@@ -1,0 +1,6 @@
+There are two main parts:
+
+ LLVM: distributed under University of Illinois/NCSA Open Source License
+   https://opensource.org/licenses/UoI-NCSA.php
+ ROOT: distributed under LGPL 2.1
+   https://root.cern.ch/license
