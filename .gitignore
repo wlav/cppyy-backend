@@ -1,6 +1,6 @@
 releases/
 root-*/
-src/
+cling/src/
 builddir/
 
 # Byte-compiled / optimized / DLL files
