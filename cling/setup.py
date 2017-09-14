@@ -167,8 +167,8 @@ setup(
 
     include_package_data=True,
 
-    package_dir={'': 'src'},
-    packages=find_packages('src', include=['cppyy_backend']),
+    package_dir={'': 'python'},
+    packages=find_packages('python', include=['cppyy_backend']),
 
     cmdclass = {
         'build': my_cmake_build,
