@@ -2,7 +2,7 @@ cppyy-backend
 =============
 
 A repackaging of Cling, the interactive C++ interpreter, including a version
-of LLVM, patched for interactive use, and C/C++ wrappers that expose no further
+of LLVM patched for interactive use, and C/C++ wrappers that expose no further
 external headers or types.
 
 
