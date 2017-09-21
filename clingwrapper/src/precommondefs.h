@@ -68,7 +68,7 @@
 #  define _RPY_HIDDEN  /* nothing */
 #endif
 #ifndef RPY_EXTERN
-#  define RPY_EXTERN   extern _RPY_HIDDEN
+#  define RPY_EXTERN   extern
 #endif
 
 
