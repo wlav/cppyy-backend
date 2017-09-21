@@ -1,0 +1,89 @@
+diff -u a/src/core/metacling/src/TClingCallFunc.cxx b/src/core/metacling/src/TClingCallFunc.cxx
+--- a/src/core/metacling/src/TClingCallFunc.cxx	2017-07-28 06:15:40.000000000 -0700
++++ b/src/core/metacling/src/TClingCallFunc.cxx	2017-08-06 14:47:31.582916890 -0700
+@@ -272,7 +272,7 @@
+ 
+ void TClingCallFunc::collect_type_info(QualType &QT, ostringstream &typedefbuf,
+                                        ostringstream &callbuf, string &type_name,
+-                                       bool &isReference, bool &isPointer, int indent_level,
++                                       int &isReference, bool &isPointer, int indent_level,
+                                        bool forArgument)
+ {
+    //
+@@ -281,7 +281,7 @@
+    //
+    const FunctionDecl *FD = GetDecl();
+    PrintingPolicy Policy(FD->getASTContext().getPrintingPolicy());
+-   isReference = false;
++   isReference = 0;
+    if (QT->isRecordType() && forArgument) {
+       ROOT::TMetaUtils::GetNormalizedName(type_name, QT, *fInterp, fNormCtxt);
+       return;
+@@ -321,6 +321,8 @@
+       QT = cast<clang::PointerType>(QT)->getPointeeType();
+    } else if (QT->isReferenceType()) {
+       isReference = true;
++      if (QT->isRValueReferenceType()) isReference = 2;
++      else isReference = 1;
+       QT = cast<ReferenceType>(QT)->getPointeeType();
+    }
+    // Fall through for the array type to deal with reference/pointer ro array type.
+@@ -359,7 +361,7 @@
+       QualType Ty = PVD->getType();
+       QualType QT = Ty.getCanonicalType();
+       string type_name;
+-      bool isReference = false;
++      int isReference = 0;
+       bool isPointer = false;
+       collect_type_info(QT, typedefbuf, callbuf, type_name,
+                         isReference, isPointer, indent_level, true);
+@@ -375,7 +377,8 @@
+          }
+       }
+       if (isReference) {
+-         callbuf << "(" << type_name.c_str() << "&)*(" << type_name.c_str() << "*)args["
++         callbuf << "(" << type_name.c_str() <<
++                 (isReference == 1 ? "&" : "&&") << ")*(" << type_name.c_str() << "*)args["
+                  << i << "]";
+       } else if (isPointer) {
+          callbuf << "*(" << type_name.c_str() << "**)args["
+@@ -423,7 +426,7 @@
+       QualType Ty = PVD->getType();
+       QualType QT = Ty.getCanonicalType();
+       string type_name;
+-      bool isReference = false;
++      int isReference = 0;
+       bool isPointer = false;
+       collect_type_info(QT, typedefbuf, callbuf, type_name,
+                         isReference, isPointer, indent_level, true);
+@@ -439,7 +442,8 @@
+          }
+       }
+       if (isReference) {
+-         callbuf << "(" << type_name.c_str() << "&)*(" << type_name.c_str() << "*)args["
++         callbuf << "(" << type_name.c_str() <<
++                 (isReference == 1 ? "&" : "&&") << ")*(" << type_name.c_str() << "*)args["
+                  << i << "]";
+       } else if (isPointer) {
+          callbuf << "*(" << type_name.c_str() << "**)args["
+@@ -577,7 +581,7 @@
+          }
+          callbuf << "new (ret) ";
+          string type_name;
+-         bool isReference = false;
++         int isReference = 0;
+          bool isPointer = false;
+          collect_type_info(QT, typedefbuf, callbuf, type_name,
+                            isReference, isPointer, indent_level, false);
+diff -u a/src/core/metacling/src/TClingCallFunc.h b/src/core/metacling/src/TClingCallFunc.h
+--- a/src/core/metacling/src/TClingCallFunc.h	2017-07-28 06:15:40.000000000 -0700
++++ b/src/core/metacling/src/TClingCallFunc.h	2017-08-06 14:46:00.492919000 -0700
+@@ -82,7 +82,7 @@
+ 
+    void collect_type_info(clang::QualType& QT, std::ostringstream& typedefbuf,
+                           std::ostringstream& callbuf, std::string& type_name,
+-                          bool& isReference, bool& isPointer, int indent_level,
++                          int& isReference, bool& isPointer, int indent_level,
+                           bool forArgument);
+ 
+    void make_narg_call(const unsigned N, std::ostringstream& typedefbuf,

@@ -308,4 +308,10 @@ for entry in os.listdir(pkgdir):
         if not os.path.exists(dest):
             shutil.copy2(fullp, dest)
 
+#
+## apply patches
+#
+os.system('patch -p1 < patches/metacling.diff')
+
+
 # done!
