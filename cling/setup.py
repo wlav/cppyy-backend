@@ -136,7 +136,7 @@ setup(
     author_email='rootdev@cern.ch',
 
     use_scm_version=True,
-    setup_requires=['setuptools_scm'],
+    setup_requires=['wheel', 'setuptools_scm'],
 
     license='LLVM: UoI-NCSA; ROOT: LGPL 2.1',
 
@@ -181,6 +181,7 @@ setup(
         "console_scripts": [
             "cling-config = cppyy_backend._cling_config:main",
             "genreflex = cppyy_backend._genreflex:main",
+            "rootcling = cppyy_backend._rootcling:main",
         ],
     },
 )
