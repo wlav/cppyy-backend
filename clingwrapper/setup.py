@@ -60,7 +60,7 @@ setup(
     author_email='pypy-dev@python.org',
 
     use_scm_version=True,
-    setup_requires=['setuptools_scm', 'cppyy_backend'],
+    setup_requires=['wheel', 'setuptools_scm', 'cppyy_backend'],
 
     license='LBNL BSD',
 
