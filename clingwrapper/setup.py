@@ -1,10 +1,9 @@
 #!/usr/bin/env python
 
 import os, glob, subprocess
-from setuptools import setup
+from setuptools import setup, Extension
 from distutils import log
-from distutils.command.build_clib import build_clib as _build_clib
-from setuptools.command.install import install as _install
+from distutils.command.build_ext import build_ext as _build_ext
 from wheel.bdist_wheel import bdist_wheel as _bdist_wheel
 from codecs import open
 
@@ -18,35 +17,26 @@ def get_include_path():
     cli_arg = subprocess.check_output(['cling-config', '--cppflags'])
     return cli_arg[2:-1]
 
-libcppyy_backend = ('cppyy_backend',
-                    {'sources' : ['src/clingwrapper.cxx'],
-                     'include_dirs' : [get_include_path()]}
-                    )
+class my_build_cpplib(_build_ext):
+    def build_extension(self, ext):
+        objects = self.compiler.compile(
+            ext.sources,
+            output_dir=self.build_temp,
+            include_dirs=ext.include_dirs,
+            debug=self.debug,
+            extra_postargs=['-std=c++11', '-O2'])
 
-class my_build_cpplib(_build_clib):
-    def build_libraries(self, libraries):
-        for (lib_name, build_info) in libraries:
-            sources = list(build_info.get('sources'))
-            include_dirs = build_info.get('include_dirs')
-            extra_args = ['-std=c++11', '-O2']
+        ext_path = self.get_ext_fullpath(ext.name)
+        output_dir = os.path.dirname(ext_path)
+        full_libname = os.path.basename(ext_path)
 
-            objects = self.compiler.compile(
-                sources,
-                output_dir=self.build_temp,
-                include_dirs=include_dirs,
-                debug=self.debug,
-                extra_postargs=extra_args)
-
-            full_libname = self.compiler.shared_lib_format %\
-                           (lib_name, self.compiler.shared_lib_extension)
-
-            log.info("Now building %s", full_libname)
-            self.compiler.link_shared_object(
-                objects, full_libname,
-                build_temp=self.build_temp,
-                output_dir=self.build_clib,
-                debug=self.debug,
-                target_lang='c++')
+        log.info("Now building %s", full_libname)
+        self.compiler.link_shared_object(
+            objects, full_libname,
+            build_temp=self.build_temp,
+            output_dir=output_dir,
+            debug=self.debug,
+            target_lang='c++')
 
 class my_bdist_wheel(_bdist_wheel):
     def finalize_options(self):
@@ -98,10 +88,13 @@ setup(
     keywords='C++ bindings',
 
     install_requires=['cppyy-backend'],
-    libraries = [libcppyy_backend],
+
+    ext_modules=[Extension('cppyy_backend/lib/libcppyy_backend',
+        sources=glob.glob('src/clingwrapper.cxx'),
+        include_dirs=[get_include_path()])],
 
     cmdclass = {
-        'build_clib': my_build_cpplib,
+        'build_ext': my_build_cpplib,
         'bdist_wheel': my_bdist_wheel
     }
 )
