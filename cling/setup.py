@@ -41,7 +41,7 @@ class my_cmake_build(_build):
         _build.run(self)
 
         # custom run
-        log.info('Now building libcppyy_backend.so and dependencies')
+        log.info('Now building cppyy_backend')
         builddir = get_builddir()
         prefix   = get_prefix()
         srcdir   = get_srcdir()
@@ -73,7 +73,7 @@ class my_cmake_build(_build):
             raise DistutilsSetupError('Failed to build cppyy_backend')
 
         os.chdir(olddir)
-        log.info('build finished')
+        log.info('Build finished')
 
 class my_install(_install):
     def _get_install_path(self):
@@ -89,7 +89,7 @@ class my_install(_install):
         _install.run(self)
 
         # custom install of backend
-        log.info('Now installing libcppyy_backend.so and dependencies')
+        log.info('Now installing cppyy_backend')
         builddir = get_builddir()
         if not os.path.exists(builddir):
             raise DistutilsSetupError('Failed to find build dir!')
@@ -108,7 +108,7 @@ class my_install(_install):
         log.info('Copying installation to: %s ...', install_path)
         self.copy_tree(prefix_base, install_path)
 
-        log.info('install finished')
+        log.info('Install finished')
 
     def get_outputs(self):
         outputs = _install.get_outputs(self)
@@ -122,6 +122,7 @@ class my_bdist_wheel(_bdist_wheel):
         from distutils.util import get_platform
         self.plat_name = get_platform()
         _bdist_wheel.finalize_options(self)
+        self.root_is_pure = True
 
 
 setup(
@@ -178,6 +179,7 @@ setup(
 
     entry_points={
         "console_scripts": [
+            "cling-config = cppyy_backend._cling_config:main",
             "genreflex = cppyy_backend._genreflex:main",
         ],
     },
