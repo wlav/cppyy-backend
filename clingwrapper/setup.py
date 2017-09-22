@@ -19,10 +19,11 @@ def get_include_path():
 
 class my_build_cpplib(_build_ext):
     def build_extension(self, ext):
+        include_dirs = ext.include_dirs + [get_include_path()]
         objects = self.compiler.compile(
             ext.sources,
             output_dir=self.build_temp,
-            include_dirs=ext.include_dirs,
+            include_dirs=include_dirs,
             debug=self.debug,
             extra_postargs=['-std=c++11', '-O2'])
 
@@ -50,7 +51,7 @@ class my_bdist_wheel(_bdist_wheel):
 
 
 setup(
-    name='clingwrapper',
+    name='cppyy-backend',
     description='C/C++ wrapper for Cling',
     long_description=long_description,
     url='http://pypy.org',
@@ -59,8 +60,8 @@ setup(
     author='PyPy Developers',
     author_email='pypy-dev@python.org',
 
-    use_scm_version=True,
-    setup_requires=['setuptools_scm', 'cppyy_backend'],
+    version='0.1.0',
+    setup_requires=['cppyy-cling'],
 
     license='LBNL BSD',
 
@@ -73,7 +74,7 @@ setup(
         'Topic :: Software Development',
         'Topic :: Software Development :: Interpreters',
 
-        'License :: OSI Approved :: LBNL BSD License',
+        'License :: OSI Approved :: BSD License',
 
         'Operating System :: POSIX',
         'Operating System :: POSIX :: Linux',
@@ -87,11 +88,10 @@ setup(
 
     keywords='C++ bindings',
 
-    install_requires=['cppyy-backend'],
+    install_requires=['cppyy-cling'],
 
     ext_modules=[Extension('cppyy_backend/lib/libcppyy_backend',
-        sources=glob.glob('src/clingwrapper.cxx'),
-        include_dirs=[get_include_path()])],
+        sources=glob.glob('src/clingwrapper.cxx'))],
 
     cmdclass = {
         'build_ext': my_build_cpplib,

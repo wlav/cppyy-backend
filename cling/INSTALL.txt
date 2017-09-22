@@ -1,13 +1,17 @@
-Use SETUPTOOLS_SCM_PRETEND_VERSION to pick up the desired ROOT version,
-build egg_info, then run the source creation script.
-From there build either a wheel or source distribution.
+Download ROOT sources, strip and patch them:
 
-Example:
-
-  $ export SETUPTOOLS_SCM_PRETEND_VERSION=6.10.4.0
   $ python setup.py egg_info
   $ python create_src_directory.py
 
 Build wheel (optional: use --keep-temp during development):
 
   $ MAKE_NPROCS=32 python setup.py bdist_wheel
+
+Build source distribution:
+
+  $ python setup.py sdist
+
+Sign:
+
+  $ gpg --detach-sign -a dist/*cppyy*.tar.gz
+

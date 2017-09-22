@@ -126,7 +126,7 @@ class my_bdist_wheel(_bdist_wheel):
 
 
 setup(
-    name='cppyy-backend',
+    name='cppyy-cling',
     description='Re-packaged Cling, as backend for cppyy',
     long_description=long_description,
     url='https://root.cern.ch/cling',
@@ -135,8 +135,7 @@ setup(
     author='ROOT Developers',
     author_email='rootdev@cern.ch',
 
-    use_scm_version=True,
-    setup_requires=['wheel', 'setuptools_scm'],
+    version='6.10.4.0',
 
     license='LLVM: UoI-NCSA; ROOT: LGPL 2.1',
 
@@ -150,7 +149,7 @@ setup(
         'Topic :: Software Development :: Interpreters',
 
         'License :: OSI Approved :: University of Illinois/NCSA Open Source License',
-        'License :: OSI Approved :: GNU Lesser General Public License v2.1 or later (LGPLv2+)',
+        'License :: OSI Approved :: GNU Lesser General Public License v2 or later (LGPLv2+)',
 
         'Operating System :: POSIX',
         'Operating System :: POSIX :: Linux',
