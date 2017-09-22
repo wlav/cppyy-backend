@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 
 import os, glob, subprocess
-from setuptools import setup, Extension
+from setuptools import setup, find_packages, Extension
 from distutils import log
 from distutils.command.build_ext import build_ext as _build_ext
 from wheel.bdist_wheel import bdist_wheel as _bdist_wheel
@@ -12,8 +12,18 @@ here = os.path.abspath(os.path.dirname(__file__))
 with open(os.path.join(here, 'README.rst'), encoding='utf-8') as f:
     long_description = f.read()
 
+try:
+    root_install = os.environ["ROOTSYS"]
+    requirements = []
+    add_pkg = ['cppyy_backend']
+except KeyError:
+    root_install = None
+    requirements = ['cppyy-cling']
+    add_pkg = []
 
 def get_include_path():
+    if root_install:
+        return os.path.join(root_install, 'include')
     cli_arg = subprocess.check_output(['cling-config', '--cppflags'])
     return cli_arg[2:-1]
 
@@ -60,8 +70,8 @@ setup(
     author='PyPy Developers',
     author_email='pypy-dev@python.org',
 
-    version='0.1.0',
-    setup_requires=['cppyy-cling'],
+    version='0.2.0',
+    setup_requires=requirements,
 
     license='LBNL BSD',
 
@@ -88,7 +98,10 @@ setup(
 
     keywords='C++ bindings',
 
-    install_requires=['cppyy-cling'],
+    install_requires=requirements,
+
+    package_dir={'': 'python'},
+    packages=find_packages('python', include=add_pkg),
 
     ext_modules=[Extension('cppyy_backend/lib/libcppyy_backend',
         sources=glob.glob('src/clingwrapper.cxx'))],
