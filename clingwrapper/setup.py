@@ -25,7 +25,7 @@ def get_include_path():
     if root_install:
         return os.path.join(root_install, 'include')
     cli_arg = subprocess.check_output(['cling-config', '--cppflags'])
-    return cli_arg[2:-1]
+    return cli_arg[2:-1].decode("utf-8")
 
 class my_build_cpplib(_build_ext):
     def build_extension(self, ext):
