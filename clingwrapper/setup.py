@@ -39,7 +39,7 @@ class my_build_cpplib(_build_ext):
 
         ext_path = self.get_ext_fullpath(ext.name)
         output_dir = os.path.dirname(ext_path)
-        full_libname = os.path.basename(ext_path)
+        full_libname = 'libcppyy_backend.so' # forced, b/c hard-wired in pypy-c/cppyy
 
         log.info("Now building %s", full_libname)
         self.compiler.link_shared_object(
@@ -70,7 +70,7 @@ setup(
     author='PyPy Developers',
     author_email='pypy-dev@python.org',
 
-    version='0.2.0',
+    version='0.2.2',
     setup_requires=requirements,
 
     license='LBNL BSD',
