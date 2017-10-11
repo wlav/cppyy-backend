@@ -211,6 +211,7 @@ Cppyy::TCppScope_t Cppyy::GetScope(const std::string& sname)
     else
         scope_name = sname;
 
+// TODO: scope_name should always be final already
     scope_name = ResolveName(scope_name);
     auto icr = g_name2classrefidx.find(scope_name);
     if (icr != g_name2classrefidx.end())
@@ -633,6 +634,7 @@ std::string Cppyy::GetFinalName(TCppType_t klass)
         return "";
     TClassRef& cr = type_from_handle(klass);
     std::string clName = cr->GetName();
+// TODO: why is this template splitting needed
     std::string::size_type pos = clName.substr(0, clName.find('<')).rfind("::");
     if (pos != std::string::npos)
         return clName.substr(pos+2, std::string::npos);
