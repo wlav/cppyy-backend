@@ -70,7 +70,7 @@ setup(
     author='PyPy Developers',
     author_email='pypy-dev@python.org',
 
-    version='0.3.0',
+    version='0.3.1',
     setup_requires=requirements,
 
     license='LBNL BSD',

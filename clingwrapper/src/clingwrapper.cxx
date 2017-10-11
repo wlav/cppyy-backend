@@ -832,8 +832,11 @@ std::string Cppyy::GetMethodName(TCppMethod_t method)
 {
     if (method) {
         std::string name = ((TFunction*)method)->GetName();
-    // strip template instantiation part, if any
-        return name.substr(0, name.find('<'));
+
+        if (name.find("operator", 0, 8) != 0)
+        // strip template instantiation part, if any
+            return name.substr(0, name.find('<'));
+        return name;
     }
     return "<unknown>";
 }
