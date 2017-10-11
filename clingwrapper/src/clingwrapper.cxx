@@ -836,8 +836,10 @@ std::string Cppyy::GetMethodName(TCppMethod_t method)
         if (f->ExtraProperty() & kIsConstructor)
             return name;     // no mod as match is string-based
 
-    // strip template instantiation part, if any
-        return name.substr(0, name.find('<'));
+        if (name.find("operator", 0, 8) != 0)
+        // strip template instantiation part, if any
+            return name.substr(0, name.find('<'));
+        return name;
     }
     return "<unknown>";
 }
