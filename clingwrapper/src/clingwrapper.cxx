@@ -908,22 +908,41 @@ std::string Cppyy::GetMethodArgDefault(TCppMethod_t method, int iarg)
     return "";
 }
 
-std::string Cppyy::GetMethodSignature(TCppScope_t scope, TCppIndex_t imeth)
+std::string Cppyy::GetMethodSignature(TCppScope_t scope, TCppIndex_t imeth, bool show_formalargs)
+{
+    TClassRef& cr = type_from_handle(scope);
+    TFunction* f = type_get_method(scope, imeth);
+    if (cr.GetClass() && cr->GetClassInfo()) {
+        std::ostringstream sig;
+        sig << "(";
+        int nArgs = f->GetNargs();
+        for (int iarg = 0; iarg < nArgs; ++iarg) {
+            TMethodArg* arg = (TMethodArg*)f->GetListOfMethodArgs()->At(iarg);
+            sig << arg->GetFullTypeName();
+            if (show_formalargs) {
+                const char* argname = arg->GetName();
+                if (argname && argname[0] != '\0') sig << " " << argname;
+                const char* defvalue = arg->GetDefault();
+                if (defvalue && defvalue[0] != '\0') sig << " = " << defvalue;
+            }
+            if (iarg != nArgs-1) sig << ", ";
+        }
+        sig << ")";
+        return sig.str();
+    }
+    return "<unknown>";
+}
+
+std::string Cppyy::GetMethodPrototype(TCppScope_t scope, TCppIndex_t imeth, bool show_formalargs)
 {
     TClassRef& cr = type_from_handle(scope);
     TFunction* f = type_get_method(scope, imeth);
     if (cr.GetClass() && cr->GetClassInfo()) {
         std::ostringstream sig;
         sig << f->GetReturnTypeName() << " "
-            << cr.GetClassName() << "::" << f->GetName() << "(";
-        int nArgs = f->GetNargs();
-        for (int iarg = 0; iarg < nArgs; ++iarg) {
-            sig << ((TMethodArg*)f->GetListOfMethodArgs()->At(iarg))->GetFullTypeName();
-            if (iarg != nArgs-1)
-               sig << ", ";
-        }
-        sig << ")" << std::ends;
-        return cppstring_to_cstring(sig.str());
+            << cr.GetClassName() << "::" << f->GetName();
+        sig << GetMethodSignature(scope, imeth, show_formalargs);
+        return sig.str();
     }
     return "<unknown>";
 }
@@ -1487,8 +1506,12 @@ char* cppyy_method_arg_default(cppyy_scope_t scope, cppyy_index_t idx, int arg_i
     return cppstring_to_cstring(Cppyy::GetMethodArgDefault((Cppyy::TCppMethod_t)f, arg_index));
 }
 
-char* cppyy_method_signature(cppyy_scope_t scope, cppyy_index_t idx) {
-    return cppstring_to_cstring(Cppyy::GetMethodSignature(scope, idx));
+char* cppyy_method_signature(cppyy_scope_t scope, cppyy_index_t idx, int show_formalargs) {
+    return cppstring_to_cstring(Cppyy::GetMethodSignature(scope, idx, (bool)show_formalargs));
+}
+
+char* cppyy_method_prototype(cppyy_scope_t scope, cppyy_index_t idx, int show_formalargs) {
+    return cppstring_to_cstring(Cppyy::GetMethodPrototype(scope, idx, (bool)show_formalargs));
 }
 
 int cppyy_method_is_template(cppyy_scope_t scope, cppyy_index_t idx) {

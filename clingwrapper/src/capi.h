@@ -91,8 +91,6 @@ extern "C" {
     int cppyy_is_abstract(cppyy_type_t type);
     RPY_EXTERN
     int cppyy_is_enum(const char* type_name);
-    RPY_EXTERN
-    int cppyy_size(cppyy_type_t type);
 
     /* class reflection information ------------------------------------------- */
     RPY_EXTERN
@@ -135,7 +133,9 @@ extern "C" {
     RPY_EXTERN
     char* cppyy_method_arg_default(cppyy_scope_t scope, cppyy_index_t idx, int arg_index);
     RPY_EXTERN
-    char* cppyy_method_signature(cppyy_scope_t scope, cppyy_index_t idx);
+    char* cppyy_method_signature(cppyy_scope_t scope, cppyy_index_t idx, int show_formalargs);
+    RPY_EXTERN
+    char* cppyy_method_prototype(cppyy_scope_t scope, cppyy_index_t idx, int show_formalargs);
 
     RPY_EXTERN
     int cppyy_method_is_template(cppyy_scope_t scope, cppyy_index_t idx);

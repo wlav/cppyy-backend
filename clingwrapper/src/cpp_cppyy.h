@@ -168,7 +168,9 @@ namespace Cppyy {
     RPY_EXTERN
     std::string GetMethodArgDefault(TCppMethod_t, int iarg);
     RPY_EXTERN
-    std::string GetMethodSignature(TCppScope_t scope, TCppIndex_t imeth);
+    std::string GetMethodSignature(TCppScope_t scope, TCppIndex_t imeth, bool show_formalargs);
+    RPY_EXTERN
+    std::string GetMethodPrototype(TCppScope_t scope, TCppIndex_t imeth, bool show_formalargs);
     RPY_EXTERN
     bool        IsConstMethod(TCppMethod_t);
 
