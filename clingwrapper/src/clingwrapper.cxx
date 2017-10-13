@@ -194,11 +194,20 @@ std::string Cppyy::GetScopeName(TCppScope_t parent, TCppIndex_t iscope)
 std::string Cppyy::ResolveName(const std::string& cppitem_name)
 {
 // Fully resolve the given name to the final type name.
+
+// classes (most common)
     std::string tclean = TClassEdit::CleanType(cppitem_name.c_str());
     if (tclean.empty() /* unknown, eg. an operator */) return cppitem_name;
 
+// data types (such as builtins)
     TDataType* dt = gROOT->GetType(tclean.c_str());
     if (dt) return dt->GetFullTypeName();
+
+// special case for enums
+    if (IsEnum(cppitem_name))
+        return "internal_enum_type_t";
+
+// typedefs
     return TClassEdit::ResolveTypedef(tclean.c_str(), true);
 }
 
@@ -219,7 +228,7 @@ Cppyy::TCppScope_t Cppyy::GetScope(const std::string& sname)
 
 // use TClass directly, to enable auto-loading; class may be stubbed (eg. for
 // function returns) leading to a non-null TClass that is otherwise invalid
-    TClassRef cr(TClass::GetClass(scope_name.c_str(), true, true));
+    TClassRef cr(TClass::GetClass(scope_name.c_str(), true /* load */, true /* silent */));
     if (!cr.GetClass() || !cr->Property())
         return (TCppScope_t)NULL;
 
@@ -270,7 +279,7 @@ bool Cppyy::IsComplete(const std::string& type_name)
     gErrorIgnoreLevel = 3000;
     TClass* klass = TClass::GetClass(TClassEdit::ShortType(type_name.c_str(), 1).c_str());
     if (klass && klass->GetClassInfo())     // works for normal case w/ dict
-        b = gInterpreter->ClassInfo_IsLoaded( klass->GetClassInfo() );
+        b = gInterpreter->ClassInfo_IsLoaded(klass->GetClassInfo());
     else {    // special case for forward declared classes
         ClassInfo_t* ci = gInterpreter->ClassInfo_Factory(type_name.c_str());
         if (ci) {
@@ -1272,10 +1281,7 @@ char* cppyy_scope_name(cppyy_scope_t parent, cppyy_index_t iscope) {
 }
 
 char* cppyy_resolve_name(const char* cppitem_name) {
-    std::string str = cppstring_to_cstring(Cppyy::ResolveName(cppitem_name));
-    if (Cppyy::IsEnum(str))
-        return cppstring_to_cstring("internal_enum_type_t");
-    return cppstring_to_cstring(str);
+    return cppstring_to_cstring(Cppyy::ResolveName(cppitem_name));
 }
 
 cppyy_scope_t cppyy_get_scope(const char* scope_name) {
