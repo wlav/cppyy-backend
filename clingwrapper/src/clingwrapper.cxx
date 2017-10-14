@@ -179,7 +179,7 @@ std::string Cppyy::GetScopeName(TCppScope_t parent, TCppIndex_t iscope)
             char* cname = gClassTable->Next();
             if (strncmp(cname, s.c_str(), s.size()) == 0 && match++ == iscope) {
                 std::string ret( cname+ s.size() );
-                return ret.substr(0, ret.find( "::" ) ); // TODO: may mean duplicates
+                return ret.substr(0, ret.find("::")); // TODO: may mean duplicates
             }
         }
         // should never get here ... fall through will fail on assert below
@@ -198,6 +198,10 @@ std::string Cppyy::ResolveName(const std::string& cppitem_name)
 // classes (most common)
     std::string tclean = TClassEdit::CleanType(cppitem_name.c_str());
     if (tclean.empty() /* unknown, eg. an operator */) return cppitem_name;
+
+// reduce [N] to []
+    if (tclean[tclean.size()-1] == ']')
+        tclean = tclean.substr(0, tclean.rfind('[')) + "[]";
 
 // data types (such as builtins)
     TDataType* dt = gROOT->GetType(tclean.c_str());
@@ -1174,9 +1178,17 @@ Cppyy::TCppIndex_t Cppyy::GetDatamemberIndex(TCppScope_t scope, const std::strin
 {
     if (scope == GLOBAL_HANDLE) {
         TGlobal* gb = (TGlobal*)gROOT->GetListOfGlobals(true)->FindObject(name.c_str());
-        if (gb && gb->GetAddress() && gb->GetAddress() != (void*)-1) {
-            g_globalvars.push_back( gb );
-            return g_globalvars.size() - 1;
+        if (gb && gb->GetAddress()) {
+            if (gb->GetAddress() == (void*)-1) {
+            // name known, but variable not in loaded by Cling yet ... force it
+            // TODO: figure out a less hackish way (problem is that the metaProcessor
+            // is hidden in TCling)
+                gInterpreter->ProcessLine((name+";").c_str());
+            }
+            if (gb->GetAddress() != (void*)-1) {
+                g_globalvars.push_back( gb );
+                return g_globalvars.size() - 1;
+            }
         }
 
     } else {
