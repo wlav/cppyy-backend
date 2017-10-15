@@ -1186,7 +1186,7 @@ Cppyy::TCppIndex_t Cppyy::GetDatamemberIndex(TCppScope_t scope, const std::strin
                 gInterpreter->ProcessLine((name+";").c_str());
             }
             if (gb->GetAddress() != (void*)-1) {
-                g_globalvars.push_back( gb );
+                g_globalvars.push_back(gb);
                 return g_globalvars.size() - 1;
             }
         }
