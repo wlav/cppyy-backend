@@ -99,7 +99,11 @@ addr = 'https://root.cern.ch/download/'+fn
 if not os.path.exists(os.path.join(TARBALL_CACHE_DIR, fn)):
     try:
         print('retrieving', fn)
-        resp = urllib2.urlopen(addr, bytes(fn, 'utf-8'))
+        if sys.hexversion < 0x3000000:
+            output_fn = fn
+        else:
+            output_fn = bytes(fn, 'utf-8')
+        resp = urllib2.urlopen(addr, output_fn)
         out = open(os.path.join(TARBALL_CACHE_DIR, fn), 'wb')
         out.write(resp.read())
         out.close()
