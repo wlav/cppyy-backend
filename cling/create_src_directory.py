@@ -2,7 +2,11 @@
 from __future__ import print_function
 
 import os, sys
-import shutil, tarfile, urllib2
+import shutil, tarfile
+try:
+    import urllib2
+except ModuleNotFoundError:
+    import urllib.request as urllib2  # p3
 
 
 DEBUG_TESTBUILD = False
@@ -33,7 +37,7 @@ ERR_RELEASE_NOT_FOUND = 2
 def get_root_version():
     import pkg_resources
     try:
-        version = pkg_resources.get_distribution('cppyy_backend').version
+        version = pkg_resources.get_distribution('cppyy_cling').version
     except pkg_resources.DistributionNotFound:
         print('ERROR: cannot determine the version. Please run setup.py egg_info first')
         sys.exit(1)
@@ -95,7 +99,7 @@ addr = 'https://root.cern.ch/download/'+fn
 if not os.path.exists(os.path.join(TARBALL_CACHE_DIR, fn)):
     try:
         print('retrieving', fn)
-        resp = urllib2.urlopen(addr, fn)
+        resp = urllib2.urlopen(addr, bytes(fn, 'utf-8'))
         out = open(os.path.join(TARBALL_CACHE_DIR, fn), 'wb')
         out.write(resp.read())
         out.close()
