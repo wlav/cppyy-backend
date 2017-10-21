@@ -1,4 +1,5 @@
 import os, sys, subprocess
+import multiprocessing
 from setuptools import setup, find_packages
 from distutils import log
 from distutils.command.build import build as _build
@@ -58,16 +59,16 @@ class my_cmake_build(_build):
             os.chdir(olddir)
             raise DistutilsSetupError('Failed to configure cppyy_backend')
 
-        nprocs = os.getenv("MAKE_NPROCS")
-        if nprocs:
-            try:
-                ival = int(nprocs)
-                nprocs = '-j'+nprocs
-            except ValueError:
-                log.warn("Integer expected for MAKE_NPROCS, but got %s (ignored)", nprocs)
-                nprocs = '-j1'
-        else:
-            nprocs = '-j1'
+        # Default to using all available CPUs.
+        nprocs = os.getenv("MAKE_NPROCS") or '0'
+        try:
+            nprocs = int(nprocs)
+        except ValueError:
+            log.warn("Integer expected for MAKE_NPROCS, but got %s (ignored)", nprocs)
+            nprocs = 0
+        if nprocs < 1:
+            nprocs = multiprocessing.cpu_count()
+        nprocs = '-j' + str(nprocs)
         log.info('Now building cppyy_backend and dependencies ...')
         if subprocess.call(['make', nprocs]) != 0:
             raise DistutilsSetupError('Failed to build cppyy_backend')
