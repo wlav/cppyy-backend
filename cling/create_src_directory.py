@@ -36,9 +36,12 @@ ERR_RELEASE_NOT_FOUND = 2
 
 def get_root_version():
     import pkg_resources
+    path = os.path.join(os.path.dirname(os.path.realpath(__file__)), "python")
+    dists = pkg_resources.find_distributions(path)
     try:
-        version = pkg_resources.get_distribution('cppyy_cling').version
-    except pkg_resources.DistributionNotFound:
+        cppyy_cling = [d for d in dists if d.key == 'cppyy-cling'][0]
+        version = cppyy_cling.version
+    except IndexError:
         print('ERROR: cannot determine the version. Please run setup.py egg_info first')
         sys.exit(1)
     #
