@@ -7,19 +7,9 @@
 #include <stddef.h>
 
 // ROOT types
-typedef long	             Long_t;
-typedef unsigned long        ULong_t;
 typedef long long            Long64_t;
 typedef unsigned long long   ULong64_t;
-typedef float                Float_t;
-typedef double               Double_t;
 typedef long double          LongDouble_t;
-typedef char                 Char_t;
-typedef unsigned char        UChar_t;
-typedef short                Short_t;
-typedef unsigned short       UShort_t;
-typedef int	             Int_t;
-typedef unsigned int         UInt_t;
 
 namespace Cppyy {
     typedef ptrdiff_t   TCppScope_t;
@@ -27,7 +17,7 @@ namespace Cppyy {
     typedef void*       TCppObject_t;
     typedef ptrdiff_t   TCppMethod_t;
 
-    typedef Long_t      TCppIndex_t;
+    typedef long        TCppIndex_t;
     typedef void*       TCppFuncAddr_t;
 
 // name to opaque C++ scope representation -----------------------------------
@@ -64,35 +54,35 @@ namespace Cppyy {
 
 // method/function dispatching -----------------------------------------------
     RPY_EXTERN
-    void         CallV(TCppMethod_t method, TCppObject_t self, void* args);
+    void          CallV(TCppMethod_t method, TCppObject_t self, void* args);
     RPY_EXTERN
-    UChar_t      CallB(TCppMethod_t method, TCppObject_t self, void* args);
+    unsigned char CallB(TCppMethod_t method, TCppObject_t self, void* args);
     RPY_EXTERN
-    Char_t       CallC(TCppMethod_t method, TCppObject_t self, void* args);
+    char          CallC(TCppMethod_t method, TCppObject_t self, void* args);
     RPY_EXTERN
-    Short_t      CallH(TCppMethod_t method, TCppObject_t self, void* args);
+    short         CallH(TCppMethod_t method, TCppObject_t self, void* args);
     RPY_EXTERN
-    Int_t        CallI(TCppMethod_t method, TCppObject_t self, void* args);
+    int           CallI(TCppMethod_t method, TCppObject_t self, void* args);
     RPY_EXTERN
-    Long_t       CallL(TCppMethod_t method, TCppObject_t self, void* args);
+    long          CallL(TCppMethod_t method, TCppObject_t self, void* args);
     RPY_EXTERN
-    Long64_t     CallLL(TCppMethod_t method, TCppObject_t self, void* args);
+    Long64_t      CallLL(TCppMethod_t method, TCppObject_t self, void* args);
     RPY_EXTERN
-    Float_t      CallF(TCppMethod_t method, TCppObject_t self, void* args);
+    float         CallF(TCppMethod_t method, TCppObject_t self, void* args);
     RPY_EXTERN
-    Double_t     CallD(TCppMethod_t method, TCppObject_t self, void* args);
+    double        CallD(TCppMethod_t method, TCppObject_t self, void* args);
     RPY_EXTERN
-    LongDouble_t CallLD(TCppMethod_t method, TCppObject_t self, void* args);
+    LongDouble_t  CallLD(TCppMethod_t method, TCppObject_t self, void* args);
     RPY_EXTERN
-    void*        CallR(TCppMethod_t method, TCppObject_t self, void* args);
+    void*         CallR(TCppMethod_t method, TCppObject_t self, void* args);
     RPY_EXTERN
-    Char_t*      CallS(TCppMethod_t method, TCppObject_t self, void* args, size_t* length);
+    char*         CallS(TCppMethod_t method, TCppObject_t self, void* args, size_t* length);
     RPY_EXTERN
-    TCppObject_t CallConstructor(TCppMethod_t method, TCppType_t type, void* args);
+    TCppObject_t  CallConstructor(TCppMethod_t method, TCppType_t type, void* args);
     RPY_EXTERN
-    void         CallDestructor(TCppType_t type, TCppObject_t self);
+    void          CallDestructor(TCppType_t type, TCppObject_t self);
     RPY_EXTERN
-    TCppObject_t CallO(TCppMethod_t method, TCppObject_t self, void* args, TCppType_t result_type);
+    TCppObject_t  CallO(TCppMethod_t method, TCppObject_t self, void* args, TCppType_t result_type);
 
     RPY_EXTERN
     TCppFuncAddr_t GetFunctionAddress(TCppScope_t scope, TCppIndex_t imeth);
@@ -222,7 +212,7 @@ namespace Cppyy {
     RPY_EXTERN
     bool  IsEnumData(TCppScope_t scope, TCppIndex_t idata);
     RPY_EXTERN
-    Int_t GetDimensionSize(TCppScope_t scope, TCppIndex_t idata, int dimension);
+    int   GetDimensionSize(TCppScope_t scope, TCppIndex_t idata, int dimension);
 
 } // namespace Cppyy
 
