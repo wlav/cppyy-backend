@@ -128,6 +128,10 @@ else:
     print('reusing existing directory', pkgdir)
 
 # remove everything except for the listed set of libraries
+try:
+    shutil.rmtree('src')
+except OSError:
+    pass
 os.chdir(pkgdir)
 clean_directory(os.path.curdir, ROOT_KEEP)
 clean_directory('core',         ROOT_CORE_KEEP)
