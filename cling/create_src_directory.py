@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 from __future__ import print_function
 
-import os, sys
+import os, sys, subprocess
 import shutil, tarfile
 try:
     import urllib2
@@ -34,16 +34,23 @@ ROOT_EXPLICIT_REMOVE = ['core/base/v7', 'math/mathcore/v7', 'io/io/v7']
 ERR_RELEASE_NOT_FOUND = 2
 
 
-def get_root_version():
+def get_root_version(try_recover=True):
     import pkg_resources
-    path = os.path.join(os.path.dirname(os.path.realpath(__file__)), "python")
+    path = os.path.join(os.path.dirname(os.path.realpath(__file__)), 'python')
     dists = pkg_resources.find_distributions(path)
     try:
         cppyy_cling = [d for d in dists if d.key == 'cppyy-cling'][0]
         version = cppyy_cling.version
     except IndexError:
-        print('ERROR: cannot determine version. Please run `python setup.py egg_info` first')
-        sys.exit(1)
+        if try_recover and os.path.exists('setup.py'):
+            print('No egg_info ... running "python setup.py egg_info"')
+            if subprocess.call(['python', 'setup.py', 'egg_info']) != 0:
+                print('ERROR: creation of egg_info failed ... giving up')
+                sys.exit(2)
+            return get_root_version(False)
+        else:
+            print('ERROR: cannot determine version. Please run "python setup.py egg_info" first.')
+            sys.exit(1)
     #
     parts = version.split('.', 3)
     major, minor, patch = map(int, parts[:3])
