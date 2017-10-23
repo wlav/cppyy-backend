@@ -8,5 +8,8 @@ def main():
         if sys.argv[1] == '--cflags' or sys.argv[1] == '--cppflags':
             print('-I' + os.path.join(MYHOME, "include"))
             return 0
-    print('Usage: cling-config [--cflags] [--cppflags]')
+        if sys.argv[1] == '--cmake':
+            print(os.path.join(MYHOME, "cmake"))
+            return 0
+    print('Usage: cling-config [--cflags] [--cppflags] [--cmake]')
     return 1
