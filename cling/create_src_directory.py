@@ -42,7 +42,7 @@ def get_root_version():
         cppyy_cling = [d for d in dists if d.key == 'cppyy-cling'][0]
         version = cppyy_cling.version
     except IndexError:
-        print('ERROR: cannot determine the version. Please run setup.py egg_info first')
+        print('ERROR: cannot determine version. Please run `python setup.py egg_info` first')
         sys.exit(1)
     #
     parts = version.split('.', 3)
