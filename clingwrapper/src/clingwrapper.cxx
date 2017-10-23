@@ -279,7 +279,7 @@ bool Cppyy::IsComplete(const std::string& type_name)
 // verify whether the dictionary of this class is fully available
     bool b = false;
 
-    Int_t oldEIL = gErrorIgnoreLevel;
+    int oldEIL = gErrorIgnoreLevel;
     gErrorIgnoreLevel = 3000;
     TClass* klass = TClass::GetClass(TClassEdit::ShortType(type_name.c_str(), 1).c_str());
     if (klass && klass->GetClassInfo())     // works for normal case w/ dict
@@ -357,7 +357,7 @@ static CallFunc_t* GetCallFunc(Cppyy::TCppMethod_t method)
                 callString += ", " + fullType;
         }
 
-        Long_t offset = 0;
+        ptrdiff_t offset = 0;
         callf = gInterpreter->CallFunc_Factory();
 
         gInterpreter->CallFunc_SetFuncProto(
@@ -518,7 +518,7 @@ T CallT(Cppyy::TCppMethod_t method, Cppyy::TCppObject_t self, void* args)
 #define CPPYY_IMP_CALL(typecode, rtype)                                      \
 rtype Cppyy::Call##typecode(TCppMethod_t method, TCppObject_t self, void* args)\
 {                                                                            \
-    return CallT< rtype >(method, self, args);                               \
+    return CallT<rtype>(method, self, args);                                 \
 }
 
 void Cppyy::CallV(TCppMethod_t method, TCppObject_t self, void* args)
@@ -527,15 +527,15 @@ void Cppyy::CallV(TCppMethod_t method, TCppObject_t self, void* args)
        return /* TODO ... report error */;
 }
 
-CPPYY_IMP_CALL(B,  UChar_t     )
-CPPYY_IMP_CALL(C,  Char_t      )
-CPPYY_IMP_CALL(H,  Short_t     )
-CPPYY_IMP_CALL(I,  Int_t       )
-CPPYY_IMP_CALL(L,  Long_t      )
-CPPYY_IMP_CALL(LL, Long64_t    )
-CPPYY_IMP_CALL(F,  Float_t     )
-CPPYY_IMP_CALL(D,  Double_t    )
-CPPYY_IMP_CALL(LD, LongDouble_t)
+CPPYY_IMP_CALL(B,  unsigned char )
+CPPYY_IMP_CALL(C,  char          )
+CPPYY_IMP_CALL(H,  short         )
+CPPYY_IMP_CALL(I,  int           )
+CPPYY_IMP_CALL(L,  long          )
+CPPYY_IMP_CALL(LL, Long64_t      )
+CPPYY_IMP_CALL(F,  float         )
+CPPYY_IMP_CALL(D,  double        )
+CPPYY_IMP_CALL(LD, LongDouble_t  )
 
 void* Cppyy::CallR(TCppMethod_t method, TCppObject_t self, void* args)
 {
@@ -545,7 +545,7 @@ void* Cppyy::CallR(TCppMethod_t method, TCppObject_t self, void* args)
     return nullptr;
 }
 
-Char_t* Cppyy::CallS(
+char* Cppyy::CallS(
        TCppMethod_t method, TCppObject_t self, void* args, size_t* length)
 {
     char* cstr = nullptr;
@@ -736,7 +736,7 @@ ptrdiff_t Cppyy::GetBaseOffset(TCppType_t derived, TCppType_t base,
     if (!cd.GetClass() || !cb.GetClass())
         return (ptrdiff_t)0;
 
-    Long_t offset = -1;
+    ptrdiff_t offset = -1;
     if (!(cd->GetClassInfo() && cb->GetClassInfo())) {     // gInterpreter requirement
     // would like to warn, but can't quite determine error from intentional
     // hiding by developers, so only cover the case where we really should have
@@ -1256,7 +1256,7 @@ bool Cppyy::IsEnumData(TCppScope_t scope, TCppIndex_t idata)
     return false;
 }
 
-Int_t Cppyy::GetDimensionSize(TCppScope_t scope, TCppIndex_t idata, int dimension)
+int Cppyy::GetDimensionSize(TCppScope_t scope, TCppIndex_t idata, int dimension)
 {
     if (scope == GLOBAL_HANDLE) {
         TGlobal* gbl = g_globalvars[idata];
@@ -1267,7 +1267,7 @@ Int_t Cppyy::GetDimensionSize(TCppScope_t scope, TCppIndex_t idata, int dimensio
         TDataMember* m = (TDataMember*)cr->GetListOfDataMembers()->At(idata);
         return m->GetMaxIndex(dimension);
     }
-    return (Int_t)-1;
+    return -1;
 }
 
 
