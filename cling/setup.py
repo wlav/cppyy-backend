@@ -59,7 +59,7 @@ class my_cmake_build(_build):
             os.chdir(olddir)
             raise DistutilsSetupError('Failed to configure cppyy_backend')
 
-        # Default to using all available CPUs.
+        # default to using all available cores (x2 if hyperthreading enabled)
         nprocs = os.getenv("MAKE_NPROCS") or '0'
         try:
             nprocs = int(nprocs)
