@@ -167,6 +167,7 @@ setup(
     keywords='interpreter development',
 
     include_package_data=True,
+    package_data={'': ['cmake/*.cmake']},
 
     package_dir={'': 'python'},
     packages=find_packages('python', include=['cppyy_backend']),
