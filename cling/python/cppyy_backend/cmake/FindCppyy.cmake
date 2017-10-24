@@ -124,7 +124,6 @@ mark_as_advanced(Cppyy_VERSION)
 #       H_FILES "kdcraw/dcrawinfocontainer.h;kdcraw/kdcraw.h;kdcraw/rawdecodingsettings.h;kdcraw/rawfiles.h")
 #
 function(CPPYY_ADD_BINDINGS pkg_lib)
-  include(${ROOT_USE_FILE})
   cmake_parse_arguments(
     ARG
     ""
