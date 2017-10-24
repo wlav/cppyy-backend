@@ -56,11 +56,11 @@ mark_as_advanced(Cppyy_VERSION)
 #       [LANGUAGE language]
 #       [LINKDEFS linkdef...]
 #       [IMPORTS pcm...]
-#       [OPTIONS option...]
-#       [CLING_OPTIONS option...]
+#       [GENERATE_OPTIONS option...]
 #       [COMPILE_OPTIONS option...]
+#       [INCLUDE_DIRS dir...]
 #       [LINK_LIBRARIES library...]
-#       [H_DIR h_directory]
+#       [H_DIRS H_DIRSectory]
 #       H_FILES h_file...)
 #
 # Arguments and options:
@@ -83,10 +83,7 @@ mark_as_advanced(Cppyy_VERSION)
 #   IMPORTS pcm         Files which contain previously-generated bindings
 #                       which pkg_lib depends on.
 #
-#   OPTIONS option      Options which are to be passed into both rootcling
-#                       and compile/link commands.
-#
-#   CLING_OPTIONS option
+#   GENERATE_OPTIONS option
 #                       Options which are to be passed into the rootcling
 #                       command. For example, bindings which depend on Qt
 #                       may need "-D__PIC__;-Wno-macro-redefined" as per
@@ -96,13 +93,15 @@ mark_as_advanced(Cppyy_VERSION)
 #                       Options which are to be passed into the compile/link
 #                       command.
 #
+#   INCLUDE_DIRS dir    Include directories.
+#
 #   LINK_LIBRARIES library
 #                       Libraries to link against.
 #
-#   H_DIR h_directory   Base directory for H_FILES.
+#   H_DIRS directory    Base directories for H_FILES.
 #
 #   H_FILES h_file      Header files for which to generate bindings in pkg_lib.
-#                       Absolute filenames, or filenames relative to H_DIR. All
+#                       Absolute filenames, or filenames relative to H_DIRS. All
 #                       definitions found directly in these files will contribute
 #                       to the bindings. (NOTE: This means that if "forwarding
 #                       headers" are present, the real "legacy" headers must be
@@ -118,18 +117,21 @@ mark_as_advanced(Cppyy_VERSION)
 #       LANGUAGE_STANDARD "14"
 #       LINKDEFS "../linkdef_overrides.h"
 #       OPTIONS "-I${QT5};-I${QT5}/QtCore"
-#       CLING_OPTIONS "-D__PIC__;-Wno-macro-redefined"
+#       GENERATE_OPTIONS "-D__PIC__;-Wno-macro-redefined"
 #       LINK_LIBRARIES "KF5KDcraw"
-#       H_DIR "${KF5}/KDCRAW"
+#       H_DIRS "${KF5}/KDCRAW"
 #       H_FILES "kdcraw/dcrawinfocontainer.h;kdcraw/kdcraw.h;kdcraw/rawdecodingsettings.h;kdcraw/rawfiles.h")
 #
 function(CPPYY_ADD_BINDINGS pkg_lib)
   cmake_parse_arguments(
     ARG
     ""
-    "LANGUAGE;LANGUAGE_STANDARD;H_DIR"
-    "LINKDEFS;IMPORTS;OPTIONS;CLING_OPTIONS;COMPILE_OPTIONS;LINK_LIBRARIES;H_FILES"
+    "LANGUAGE;LANGUAGE_STANDARD"
+    "LINKDEFS;IMPORTS;GENERATE_OPTIONS;COMPILE_OPTIONS;INCLUDE_DIRS;LINK_LIBRARIES;H_DIRS;H_FILES"
     ${ARGN})
+  if(NOT "${ARG_UNPARSED_ARGUMENTS}" STREQUAL "")
+    message(SEND_ERROR "Unexpected arguments specified '${ARG_UNPARSED_ARGUMENTS}'")
+  endif()
   set(pkg_file ${CMAKE_SHARED_LIBRARY_PREFIX}${pkg_lib}${CMAKE_SHARED_LIBRARY_SUFFIX})
   #
   # Language and language standard.
@@ -154,13 +156,18 @@ function(CPPYY_ADD_BINDINGS pkg_lib)
   if("${ARG_H_FILES}" STREQUAL "")
     message(SEND_ERROR "No H_FILES specified")
   endif()
-  if("${ARG_H_DIR}" STREQUAL "")
-    set(ARG_H_DIR ${CMAKE_CURRENT_SOURCE_DIR})
+  if("${ARG_H_DIRS}" STREQUAL "")
+    set(ARG_H_DIRS ${CMAKE_CURRENT_SOURCE_DIR})
   endif()
   set(tmp)
   foreach(h_file IN LISTS ARG_H_FILES)
     if(NOT IS_ABSOLUTE ${h_file})
-      set(h_file ${ARG_H_DIR}/${h_file})
+      foreach(h_dir IN LISTS ARG_H_DIRS)
+        if(EXISTS ${h_dir}/${h_file})
+          set(h_file ${h_dir}/${h_file})
+          break()
+        endif()
+      endforeach(h_dir)
     endif()
     if(NOT EXISTS ${h_file})
       message(WARNING "H_FILES ${h_file} does not exist")
@@ -205,14 +212,15 @@ function(CPPYY_ADD_BINDINGS pkg_lib)
     list(APPEND cling_args "-m" "${in_pcm}")
   endforeach(in_pcm)
   list(APPEND cling_args "-rmf" ${pkg_lib}.rootmap "-rml" ${pkg_file})
-  list(APPEND cling_args "-I${ARG_H_DIR}")
   if("${ARG_LANGUAGE}" STREQUAL "C++")
     list(APPEND cling_args "-std=c++${ARG_LANGUAGE_STANDARD}")
   elseif("${ARG_LANGUAGE}" STREQUAL "C")
     list(APPEND cling_args "-std=c${ARG_LANGUAGE_STANDARD}")
   endif()
-  list(APPEND cling_args "${ARG_OPTIONS}")
-  list(APPEND cling_args "${ARG_CLING_OPTIONS}")
+  foreach(dir ${ARG_H_DIRS} ${ARG_INCLUDE_DIRS})
+    list(APPEND cling_args "-I${dir}")
+  endforeach(dir)
+  list(APPEND cling_args "${ARG_GENERATE_OPTIONS}")
   list(APPEND cling_args "${ARG_H_FILES}")
   list(APPEND cling_args ${out_linkdef})
   #
@@ -229,7 +237,7 @@ function(CPPYY_ADD_BINDINGS pkg_lib)
   elseif("${ARG_LANGUAGE}" STREQUAL "C")
     set_property(TARGET ${pkg_lib} PROPERTY C_STANDARD ${ARG_LANGUAGE_STANDARD})
   endif()
-  target_include_directories(${pkg_lib} PRIVATE ${Cppyy_INCLUDE_DIRS} ${ARG_H_DIR})
-  target_compile_options(${pkg_lib} PRIVATE ${ARG_OPTIONS} ${ARG_COMPILE_OPTIONS})
+  target_include_directories(${pkg_lib} PRIVATE ${Cppyy_INCLUDE_DIRS} ${ARG_H_DIRS} ${ARG_INCLUDE_DIRS})
+  target_compile_options(${pkg_lib} PRIVATE ${ARG_COMPILE_OPTIONS})
   target_link_libraries(${pkg_lib} ${ARG_LINK_LIBRARIES})
 endfunction(CPPYY_ADD_BINDINGS)
