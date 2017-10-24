@@ -109,18 +109,21 @@ mark_as_advanced(Cppyy_VERSION)
 #
 # Examples:
 #
-#   set(QT5 "/usr/include/x86_64-linux-gnu/qt5")
-#   set(KF5 "/usr/include/KF5")
+#   find_package(Qt5Core NO_MODULE)
+#   find_package(KF5KDcraw NO_MODULE)
+#   get_target_property(_H_DIRS KF5::KDcraw INTERFACE_INCLUDE_DIRECTORIES)
+#   get_target_property(_LINK_LIBRARIES KF5::KDcraw INTERFACE_LINK_LIBRARIES)
+#   set(_LINK_LIBRARIES KF5::KDcraw ${_LINK_LIBRARIES})
 #   CPPYY_ADD_BINDINGS(
 #       "KDCRAW"
 #       LANGUAGE "C++"
 #       LANGUAGE_STANDARD "14"
 #       LINKDEFS "../linkdef_overrides.h"
-#       OPTIONS "-I${QT5};-I${QT5}/QtCore"
 #       GENERATE_OPTIONS "-D__PIC__;-Wno-macro-redefined"
-#       LINK_LIBRARIES "KF5KDcraw"
-#       H_DIRS "${KF5}/KDCRAW"
-#       H_FILES "kdcraw/dcrawinfocontainer.h;kdcraw/kdcraw.h;kdcraw/rawdecodingsettings.h;kdcraw/rawfiles.h")
+#       INCLUDE_DIRS ${Qt5Core_INCLUDE_DIRS}
+#       LINK_LIBRARIES ${_LINK_LIBRARIES}
+#       H_DIRS ${_H_DIRS}
+#       H_FILES "dcrawinfocontainer.h;kdcraw.h;rawdecodingsettings.h;rawfiles.h")
 #
 function(CPPYY_ADD_BINDINGS pkg_lib)
   cmake_parse_arguments(
