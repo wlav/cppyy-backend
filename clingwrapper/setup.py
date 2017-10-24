@@ -30,6 +30,10 @@ def get_include_path():
 class my_build_cpplib(_build_ext):
     def build_extension(self, ext):
         include_dirs = ext.include_dirs + [get_include_path()]
+        log.info('checking for %s', self.build_temp)
+        if not os.path.exists(self.build_temp):
+            log.info('creating %s', self.build_temp)
+            os.makedirs(self.build_temp)
         objects = self.compiler.compile(
             ext.sources,
             output_dir=self.build_temp,
@@ -41,7 +45,7 @@ class my_build_cpplib(_build_ext):
         output_dir = os.path.dirname(ext_path)
         full_libname = 'libcppyy_backend.so' # forced, b/c hard-wired in pypy-c/cppyy
 
-        log.info("Now building %s", full_libname)
+        log.info("now building %s", full_libname)
         self.compiler.link_shared_object(
             objects, full_libname,
             build_temp=self.build_temp,
@@ -70,7 +74,7 @@ setup(
     author='PyPy Developers',
     author_email='pypy-dev@python.org',
 
-    version='0.3.3',
+    version='0.3.4',
     setup_requires=requirements,
 
     license='LBNL BSD',
