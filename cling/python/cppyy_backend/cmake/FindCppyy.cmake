@@ -53,7 +53,7 @@ mark_as_advanced(Cppyy_VERSION)
 #
 #   CPPYY_ADD_BINDINGS(
 #       pkg_lib
-#       [LANGUAGE language]
+#       [LANGUAGE_STANDARD std]
 #       [LINKDEFS linkdef...]
 #       [IMPORTS pcm...]
 #       [GENERATE_OPTIONS option...]
@@ -70,7 +70,8 @@ mark_as_advanced(Cppyy_VERSION)
 #                       TODO: The name does not contribute to the Python
 #                       namespace.
 #
-#   LANGUAGE language   "C++" or "C". Default is "C++".
+#   LANGUAGE_STANDARD std
+#                       The version of C++ in use, "14" by default.
 #
 #   LINKDEFS linkdefs   Files which contain additional manual definitions
 #                       for the linkdef.h file used by rootcling. See
@@ -116,7 +117,6 @@ mark_as_advanced(Cppyy_VERSION)
 #   set(_LINK_LIBRARIES KF5::KDcraw ${_LINK_LIBRARIES})
 #   CPPYY_ADD_BINDINGS(
 #       "KDCRAW"
-#       LANGUAGE "C++"
 #       LANGUAGE_STANDARD "14"
 #       LINKDEFS "../linkdef_overrides.h"
 #       GENERATE_OPTIONS "-D__PIC__;-Wno-macro-redefined"
@@ -129,7 +129,7 @@ function(CPPYY_ADD_BINDINGS pkg_lib)
   cmake_parse_arguments(
     ARG
     ""
-    "LANGUAGE;LANGUAGE_STANDARD"
+    "LANGUAGE_STANDARD"
     "LINKDEFS;IMPORTS;GENERATE_OPTIONS;COMPILE_OPTIONS;INCLUDE_DIRS;LINK_LIBRARIES;H_DIRS;H_FILES"
     ${ARGN})
   if(NOT "${ARG_UNPARSED_ARGUMENTS}" STREQUAL "")
@@ -137,21 +137,10 @@ function(CPPYY_ADD_BINDINGS pkg_lib)
   endif()
   set(pkg_file ${CMAKE_SHARED_LIBRARY_PREFIX}${pkg_lib}${CMAKE_SHARED_LIBRARY_SUFFIX})
   #
-  # Language and language standard.
+  # Language standard.
   #
-  if("${ARG_LANGUAGE}" STREQUAL "")
-    set(ARG_LANGUAGE "C++")
-  endif()
-  if("${ARG_LANGUAGE}" STREQUAL "C++")
-    if("${ARG_LANGUAGE_STANDARD}" STREQUAL "")
-      set(ARG_LANGUAGE_STANDARD "14")
-    endif()
-  elseif("${ARG_LANGUAGE}" STREQUAL "C")
-    if("${ARG_LANGUAGE_STANDARD}" STREQUAL "")
-      set(ARG_LANGUAGE_STANDARD "11")
-    endif()
-  else()
-    message(SEND_ERROR "LANGUAGE must be 'C' or 'C++'")
+  if("${ARG_LANGUAGE_STANDARD}" STREQUAL "")
+    set(ARG_LANGUAGE_STANDARD "14")
   endif()
   #
   # Make H_FILES with absolute paths.
@@ -184,7 +173,7 @@ function(CPPYY_ADD_BINDINGS pkg_lib)
   set(out_linkdef ${CMAKE_CURRENT_BINARY_DIR}/linkdef.h)
   file(WRITE ${out_linkdef} "/* Per H_FILES entries: */\n")
   foreach(h_file IN LISTS ARG_H_FILES)
-    file(APPEND ${out_linkdef} "#pragma link ${ARG_LANGUAGE} defined_in ${h_file};\n")
+    file(APPEND ${out_linkdef} "#pragma link C++ defined_in ${h_file};\n")
   endforeach(h_file)
   #
   # Append any manually-provided linkdef.h content.
@@ -215,11 +204,7 @@ function(CPPYY_ADD_BINDINGS pkg_lib)
     list(APPEND cling_args "-m" "${in_pcm}")
   endforeach(in_pcm)
   list(APPEND cling_args "-rmf" ${pkg_lib}.rootmap "-rml" ${pkg_file})
-  if("${ARG_LANGUAGE}" STREQUAL "C++")
-    list(APPEND cling_args "-std=c++${ARG_LANGUAGE_STANDARD}")
-  elseif("${ARG_LANGUAGE}" STREQUAL "C")
-    list(APPEND cling_args "-std=c${ARG_LANGUAGE_STANDARD}")
-  endif()
+  list(APPEND cling_args "-std=c++${ARG_LANGUAGE_STANDARD}")
   foreach(dir ${ARG_H_DIRS} ${ARG_INCLUDE_DIRS})
     list(APPEND cling_args "-I${dir}")
   endforeach(dir)
@@ -235,11 +220,7 @@ function(CPPYY_ADD_BINDINGS pkg_lib)
   # Compile/link.
   #
   add_library(${pkg_lib} SHARED ${CMAKE_CURRENT_BINARY_DIR}/${pkg_lib}.cpp)
-  if("${ARG_LANGUAGE}" STREQUAL "C++")
-    set_property(TARGET ${pkg_lib} PROPERTY CXX_STANDARD ${ARG_LANGUAGE_STANDARD})
-  elseif("${ARG_LANGUAGE}" STREQUAL "C")
-    set_property(TARGET ${pkg_lib} PROPERTY C_STANDARD ${ARG_LANGUAGE_STANDARD})
-  endif()
+  set_property(TARGET ${pkg_lib} PROPERTY CXX_STANDARD ${ARG_LANGUAGE_STANDARD})
   target_include_directories(${pkg_lib} PRIVATE ${Cppyy_INCLUDE_DIRS} ${ARG_H_DIRS} ${ARG_INCLUDE_DIRS})
   target_compile_options(${pkg_lib} PRIVATE ${ARG_COMPILE_OPTIONS})
   target_link_libraries(${pkg_lib} ${ARG_LINK_LIBRARIES})
