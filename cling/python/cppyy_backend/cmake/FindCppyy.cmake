@@ -53,6 +53,7 @@ mark_as_advanced(Cppyy_VERSION)
 #
 #   CPPYY_ADD_BINDINGS(
 #       pkg_lib
+#       pkg_version
 #       [LANGUAGE_STANDARD std]
 #       [LINKDEFS linkdef...]
 #       [IMPORTS pcm...]
@@ -69,6 +70,8 @@ mark_as_advanced(Cppyy_VERSION)
 #
 #                       TODO: The name does not contribute to the Python
 #                       namespace.
+#
+#   pkg_version         The version of the library to generate.
 #
 #   LANGUAGE_STANDARD std
 #                       The version of C++ in use, "14" by default.
@@ -115,8 +118,10 @@ mark_as_advanced(Cppyy_VERSION)
 #   get_target_property(_H_DIRS KF5::KDcraw INTERFACE_INCLUDE_DIRECTORIES)
 #   get_target_property(_LINK_LIBRARIES KF5::KDcraw INTERFACE_LINK_LIBRARIES)
 #   set(_LINK_LIBRARIES KF5::KDcraw ${_LINK_LIBRARIES})
+#   include(${KF5KDcraw_DIR}/KF5KDcrawConfigVersion.cmake)
+#
 #   CPPYY_ADD_BINDINGS(
-#       "KDCRAW"
+#       "KDCRAW" "${PACKAGE_VERSION}"
 #       LANGUAGE_STANDARD "14"
 #       LINKDEFS "../linkdef_overrides.h"
 #       GENERATE_OPTIONS "-D__PIC__;-Wno-macro-redefined"
@@ -125,7 +130,7 @@ mark_as_advanced(Cppyy_VERSION)
 #       H_DIRS ${_H_DIRS}
 #       H_FILES "dcrawinfocontainer.h;kdcraw.h;rawdecodingsettings.h;rawfiles.h")
 #
-function(CPPYY_ADD_BINDINGS pkg_lib)
+function(CPPYY_ADD_BINDINGS pkg_lib pkg_version)
   cmake_parse_arguments(
     ARG
     ""
@@ -247,7 +252,7 @@ from cppyy_backend import bindings_utils
 
 pkg_dir = os.path.dirname(__file__)
 pkg_lib = '${pkg_lib}'
-bindings_utils.setup(pkg_dir, pkg_lib, '${CMAKE_SHARED_LIBRARY_PREFIX}', '${CMAKE_SHARED_LIBRARY_SUFFIX}', '0.0.1')
+bindings_utils.setup(pkg_dir, pkg_lib, '${CMAKE_SHARED_LIBRARY_PREFIX}', '${CMAKE_SHARED_LIBRARY_SUFFIX}', '${pkg_version}')
 ")
     install(CODE "execute_process(COMMAND python ${CMAKE_BINARY_DIR}/setup.py install)")
 endfunction(CPPYY_ADD_BINDINGS)
