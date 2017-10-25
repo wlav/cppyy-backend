@@ -224,4 +224,19 @@ function(CPPYY_ADD_BINDINGS pkg_lib)
   target_include_directories(${pkg_lib} PRIVATE ${Cppyy_INCLUDE_DIRS} ${ARG_H_DIRS} ${ARG_INCLUDE_DIRS})
   target_compile_options(${pkg_lib} PRIVATE ${ARG_COMPILE_OPTIONS})
   target_link_libraries(${pkg_lib} ${ARG_LINK_LIBRARIES})
+  #
+  # Install. NOTE: The generated files contain as few binding-specific strings
+  # as possible.
+  #
+  file(
+    GENERATE OUTPUT "setup.py"
+    CONTENT "import os
+
+from cppyy_backend import bindings_utils
+
+pkg_dir = os.path.dirname(__file__)
+pkg_lib = '${pkg_lib}'
+bindings_utils.setup(pkg_dir, pkg_lib, '${CMAKE_SHARED_LIBRARY_PREFIX}', '${CMAKE_SHARED_LIBRARY_SUFFIX}', '0.0.1')
+")
+    install(CODE "execute_process(COMMAND python ${CMAKE_BINARY_DIR}/setup.py install)")
 endfunction(CPPYY_ADD_BINDINGS)
