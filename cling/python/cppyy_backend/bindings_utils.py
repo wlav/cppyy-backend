@@ -72,10 +72,14 @@ def rootmapper(pkg_dir, pkg_lib, cmake_shared_library_prefix, cmake_shared_libra
                         setattr(parent, simplenames[-1], entity)
                     else:
                         if entities is namespaces:
-                            base_clazzes = tuple()
-                        else:
-                            base_clazzes = (entity,)
-                        clazz = type(simplenames[-1], base_clazzes, {"__module__": parent.__name__})
+                            entity = object
+                        #
+                        # Clone the attributes, but set the __module__ correctly.
+                        # TODO: nested classes should be replaced with our subclass.
+                        #
+                        attributes = {k: v for k,v in object.__dict__.items()}
+                        attributes["__module__"] = parent.__name__
+                        clazz = type(simplenames[-1], (entity, ), attributes)
                         setattr(parent, simplenames[-1], clazz)
 
 
