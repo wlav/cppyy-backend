@@ -53,7 +53,7 @@ def rootmapper(pkg_dir, pkg_lib, cmake_shared_library_prefix, cmake_shared_libra
         # Set up namespaces, then other objects, in depth order.
         #
         for entities in [namespaces, objects]:
-            levels = [len(k) for k in entities.keys()]
+            levels = list({len(k) for k in entities.keys()})
             levels.sort()
             for level in levels:
                 names_at_level = [k for k in entities.keys() if len(k) == level]
@@ -71,7 +71,13 @@ def rootmapper(pkg_dir, pkg_lib, cmake_shared_library_prefix, cmake_shared_libra
                     if isinstance(entity, cppyy.gbl.PropertyProxy):
                         setattr(parent, simplenames[-1], entity)
                     else:
-                        setattr(parent, simplenames[-1], type(simplenames[-1], (entity,), {}))
+                        if entities is namespaces:
+                            base_clazzes = tuple()
+                        else:
+                            base_clazzes = (entity,)
+                        clazz = type(simplenames[-1], base_clazzes, {"__module__": parent.__name__})
+                        setattr(parent, simplenames[-1], clazz)
+
 
 def setup(pkg_dir, pkg_lib, cmake_shared_library_prefix, cmake_shared_library_suffix, pkg_version):
     """
