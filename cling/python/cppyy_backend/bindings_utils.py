@@ -43,12 +43,12 @@ def rootmapper(pkg_dir, pkg_lib, cmake_shared_library_prefix, cmake_shared_libra
             keyword, name = line
             simplenames = tuple(name.split('::'))
             if keyword == 'namespace':
-                namespaces[simplenames] = cppyy._backend.LookupCppEntity(name)
+                namespaces[simplenames] = getattr(cppyy.gbl, name)
             elif keyword in ('class', 'var'):
                 #
                 # Classes, variables etc.
                 #
-                objects[simplenames] = cppyy._backend.LookupCppEntity(name)
+                objects[simplenames] = getattr(cppyy.gbl, name)
         #
         # Set up namespaces, then other objects, in depth order.
         #
@@ -68,7 +68,7 @@ def rootmapper(pkg_dir, pkg_lib, cmake_shared_library_prefix, cmake_shared_libra
                     #
                     # Properties can simply be added to the parent, classes however can only have one parent.
                     #
-                    if isinstance(entity, cppyy.gbl.PropertyProxy):
+                    if not hasattr(entity, "__name__"):
                         setattr(parent, simplenames[-1], entity)
                     else:
                         if entities is namespaces:
