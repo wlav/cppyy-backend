@@ -318,6 +318,7 @@ if DEBUG_TESTBUILD:
 countdown = 0
 
 print('adding src ... ')
+os.mkdir('src')
 for entry in os.listdir(pkgdir):
     fullp = os.path.join(pkgdir, entry)
     if entry[0] == '.':
