@@ -86,7 +86,7 @@ def rootmapper(py_file, cmake_shared_library_prefix, cmake_shared_library_suffix
                         # Clone the attributes, but set the __module__ correctly.
                         # TODO: nested classes should be replaced with our subclass.
                         #
-                        attributes = {k: v for k,v in entity.__dict__.items()}
+                        attributes = {k: v for k, v in entity.__dict__.items()}
                         attributes["__module__"] = new_module
                         clazz = type(simplenames[-1], (entity, ), attributes)
                         setattr(parent, simplenames[-1], clazz)
