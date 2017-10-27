@@ -235,10 +235,30 @@ function(CPPYY_ADD_BINDINGS pkg_lib pkg_version)
   #
   file(
     GENERATE OUTPUT "${pkg_lib}.py"
-    CONTENT "from cppyy_backend import bindings_utils
+    CONTENT "import sys
+import types
 
-bindings_utils.rootmapper(__file__, '${CMAKE_SHARED_LIBRARY_PREFIX}', '${CMAKE_SHARED_LIBRARY_SUFFIX}')
-del bindings_utils
+from cppyy_backend import bindings_utils
+
+
+#
+# Lazily load symbols for the pkg_lib by replacing the module with a class.
+# See https://stackoverflow.com/questions/2447353/getattr-on-a-module.
+#
+class LazyLoader(types.ModuleType):
+    def __getattribute__(self, name):
+        #
+        # Load once only.
+        #
+        del LazyLoader.__getattribute__
+        bindings_utils.rootmapper(__file__, '${CMAKE_SHARED_LIBRARY_PREFIX}', '${CMAKE_SHARED_LIBRARY_SUFFIX}')
+        #
+        # Modules need a __file__.
+        #
+        self.__file__ = __file__
+        return super(LazyLoader, self).__getattribute__(name)
+
+sys.modules[__name__] = LazyLoader('${pkg_lib}')
 ")
   file(
     GENERATE OUTPUT "setup.py"
