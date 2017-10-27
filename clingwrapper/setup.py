@@ -127,6 +127,7 @@ setup(
 
     ext_modules=[Extension('cppyy_backend/lib/libcppyy_backend',
         sources=glob.glob('src/clingwrapper.cxx'))],
+    zip_safe=False,
 
     cmdclass = {
         'build_ext': my_build_cpplib,
