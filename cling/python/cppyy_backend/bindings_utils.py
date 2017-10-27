@@ -43,7 +43,7 @@ def rootmapper(pkg_dir, pkg_lib, cmake_shared_library_prefix, cmake_shared_libra
             keyword, name = line
             simplenames = tuple(name.split('::'))
             if keyword == 'namespace':
-                namespaces[simplenames] = getattr(cppyy.gbl, name)
+                namespaces[simplenames] = object
             elif keyword in ('class', 'var'):
                 #
                 # Classes, variables etc.
@@ -68,17 +68,24 @@ def rootmapper(pkg_dir, pkg_lib, cmake_shared_library_prefix, cmake_shared_libra
                     #
                     # Properties can simply be added to the parent, classes however can only have one parent.
                     #
-                    if not hasattr(entity, "__name__"):
+                    old_module = getattr(entity, "__module__", None)
+                    if old_module is None:
                         setattr(parent, simplenames[-1], entity)
                     else:
-                        if entities is namespaces:
-                            entity = object
+                        new_module = ".".join([pkg_lib] + list(simplenames[:-1]))
+                        #
+                        # In theory, cppyy.gbl is formally an internal detail, so we could just steal the entity.
+                        # Unfortunately, the "__module__" is not writeable, so we create a subclass instead.
+                        #
+                        # setattr(entity, "__module__", new_module)
+                        # delattr(sys.modules[old_module], simplenames[-1])
+                        # setattr(parent, simplenames[-1], entity)
                         #
                         # Clone the attributes, but set the __module__ correctly.
                         # TODO: nested classes should be replaced with our subclass.
                         #
-                        attributes = {k: v for k,v in object.__dict__.items()}
-                        attributes["__module__"] = parent.__name__
+                        attributes = {k: v for k,v in entity.__dict__.items()}
+                        attributes["__module__"] = new_module
                         clazz = type(simplenames[-1], (entity, ), attributes)
                         setattr(parent, simplenames[-1], clazz)
 
