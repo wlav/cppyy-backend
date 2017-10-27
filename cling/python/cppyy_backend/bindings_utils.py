@@ -3,22 +3,24 @@ Support utilities for bindings.
 """
 import os
 import setuptools
+import sys
 
 import cppyy
 
 
-def rootmapper(pkg_dir, pkg_lib, cmake_shared_library_prefix, cmake_shared_library_suffix, pkg_module):
+def rootmapper(py_file, cmake_shared_library_prefix, cmake_shared_library_suffix):
     """
     Populate a module with some rootmap'ped bindings.
 
-    :param pkg_dir:         Base directory of the bindings.
-    :param pkg_lib:         Name of the bindings.
+    :param py_file:         Base Python file of the bindings.
     :param cmake_shared_library_prefix:
                             ${cmake_shared_library_prefix}
     :param cmake_shared_library_suffix:
                             ${cmake_shared_library_suffix}
-    :param pkg_module:      The module to be populated.
     """
+    pkg_dir, pkg_py = os.path.split(py_file)
+    pkg_lib = os.path.splitext(pkg_py)[0]
+    pkg_module = sys.modules[pkg_lib]
     pkg_file = cmake_shared_library_prefix + pkg_lib + cmake_shared_library_suffix
     #
     # Load the library.

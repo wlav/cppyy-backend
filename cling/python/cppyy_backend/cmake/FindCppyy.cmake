@@ -235,14 +235,10 @@ function(CPPYY_ADD_BINDINGS pkg_lib pkg_version)
   #
   file(
     GENERATE OUTPUT "${pkg_lib}.py"
-    CONTENT "import os as _os
-import sys as _sys
+    CONTENT "from cppyy_backend import bindings_utils
 
-from cppyy_backend import bindings_utils as _utils
-
-_pkg_dir, _pkg_py = _os.path.split(__file__)
-_pkg_lib = _os.path.splitext(_pkg_py)[0]
-_utils.rootmapper(_pkg_dir, _pkg_lib, '${CMAKE_SHARED_LIBRARY_PREFIX}', '${CMAKE_SHARED_LIBRARY_SUFFIX}', _sys.modules[_pkg_lib])
+bindings_utils.rootmapper(__file__, '${CMAKE_SHARED_LIBRARY_PREFIX}', '${CMAKE_SHARED_LIBRARY_SUFFIX}')
+del bindings_utils
 ")
   file(
     GENERATE OUTPUT "setup.py"
