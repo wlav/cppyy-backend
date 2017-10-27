@@ -337,6 +337,6 @@ for entry in os.listdir(pkgdir):
 #
 os.system('patch -p1 < patches/metacling.diff')
 os.system('patch -p1 < patches/scanner.diff')
-
+os.system('patch -p1 < patches/mactstring.diff')
 
 # done!
