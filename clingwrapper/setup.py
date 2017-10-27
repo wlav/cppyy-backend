@@ -74,7 +74,7 @@ setup(
     author='PyPy Developers',
     author_email='pypy-dev@python.org',
 
-    version='0.3.4',
+    version='0.3.5',
     setup_requires=requirements,
 
     license='LBNL BSD',
@@ -102,7 +102,7 @@ setup(
 
     keywords='C++ bindings',
 
-    install_requires=requirements,
+    setup_requires=requirements,
 
     package_dir={'': 'python'},
     packages=find_packages('python', include=add_pkg),
