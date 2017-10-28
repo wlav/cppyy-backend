@@ -318,6 +318,8 @@ if DEBUG_TESTBUILD:
 countdown = 0
 
 print('adding src ... ')
+if not os.path.exists('src'):
+    os.mkdir('src')
 for entry in os.listdir(pkgdir):
     fullp = os.path.join(pkgdir, entry)
     if entry[0] == '.':
@@ -334,6 +336,7 @@ for entry in os.listdir(pkgdir):
 ## apply patches
 #
 os.system('patch -p1 < patches/metacling.diff')
-
+os.system('patch -p1 < patches/scanner.diff')
+os.system('patch -p1 < patches/mactstring.diff')
 
 # done!

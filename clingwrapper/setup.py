@@ -4,6 +4,8 @@ import os, glob, subprocess
 from setuptools import setup, find_packages, Extension
 from distutils import log
 from distutils.command.build_ext import build_ext as _build_ext
+from distutils.command.clean import clean as _clean
+from distutils.dir_util import remove_tree
 from wheel.bdist_wheel import bdist_wheel as _bdist_wheel
 from codecs import open
 
@@ -53,6 +55,23 @@ class my_build_cpplib(_build_ext):
             debug=self.debug,
             target_lang='c++')
 
+class my_clean(_clean):
+    def run(self):
+        # Custom clean. Clean everything except that which the base clean
+        # (see below) or create_src_directory.py is responsible for.
+        topdir = os.getcwd()
+        if self.all:
+            # remove build directories
+            for directory in (os.path.join(topdir, "dist"),
+                              os.path.join(topdir, "python", "cppyy_backend.egg-info")):
+                if os.path.exists(directory):
+                    remove_tree(directory, dry_run=self.dry_run)
+                else:
+                    log.warn("'%s' does not exist -- can't clean it",
+                             directory)
+        # Base clean.
+        _clean.run(self)
+
 class my_bdist_wheel(_bdist_wheel):
     def finalize_options(self):
      # this is a universal, but platform-specific package; a combination
@@ -74,8 +93,7 @@ setup(
     author='PyPy Developers',
     author_email='pypy-dev@python.org',
 
-    version='0.3.4',
-    setup_requires=requirements,
+    version='0.3.5',
 
     license='LBNL BSD',
 
@@ -102,16 +120,18 @@ setup(
 
     keywords='C++ bindings',
 
-    install_requires=requirements,
+    setup_requires=requirements,
 
     package_dir={'': 'python'},
     packages=find_packages('python', include=add_pkg),
 
     ext_modules=[Extension('cppyy_backend/lib/libcppyy_backend',
         sources=glob.glob('src/clingwrapper.cxx'))],
+    zip_safe=False,
 
     cmdclass = {
         'build_ext': my_build_cpplib,
+        'clean': my_clean,
         'bdist_wheel': my_bdist_wheel
     }
 )

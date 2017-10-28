@@ -3,6 +3,8 @@ import multiprocessing
 from setuptools import setup, find_packages
 from distutils import log
 from distutils.command.build import build as _build
+from distutils.command.clean import clean as _clean
+from distutils.dir_util import remove_tree
 from setuptools.command.install import install as _install
 from wheel.bdist_wheel import bdist_wheel as _bdist_wheel
 from distutils.errors import DistutilsSetupError
@@ -83,6 +85,23 @@ class my_cmake_build(_build):
         os.chdir(olddir)
         log.info('Build finished')
 
+class my_clean(_clean):
+    def run(self):
+        # Custom clean. Clean everything except that which the base clean
+        # (see below) or create_src_directory.py is responsible for.
+        topdir = os.getcwd()
+        if self.all:
+            # remove build directories
+            for directory in (get_builddir(),
+                              os.path.join(topdir, "python", "cppyy_cling.egg-info")):
+                if os.path.exists(directory):
+                    remove_tree(directory, dry_run=self.dry_run)
+                else:
+                    log.warn("'%s' does not exist -- can't clean it",
+                             directory)
+        # Base clean.
+        _clean.run(self)
+
 class my_install(_install):
     def _get_install_path(self):
         # depending on goal, copy over pre-installed tree
@@ -143,7 +162,7 @@ setup(
     author='ROOT Developers',
     author_email='rootdev@cern.ch',
 
-    version='6.10.4.0',
+    version='6.10.4.1',
 
     license='LLVM: UoI-NCSA; ROOT: LGPL 2.1',
 
@@ -181,6 +200,7 @@ setup(
 
     cmdclass = {
         'build': my_cmake_build,
+        'clean': my_clean,
         'install': my_install,
         'bdist_wheel': my_bdist_wheel,
     },
