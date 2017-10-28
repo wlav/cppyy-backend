@@ -44,13 +44,35 @@ def rootmapper(py_file, cmake_shared_library_prefix, cmake_shared_library_suffix
                 continue
             keyword, name = line
             simplenames = tuple(name.split('::'))
-            if keyword == 'namespace':
-                namespaces[simplenames] = object
-            elif keyword in ('class', 'var'):
+            if keyword in ('class', 'var', 'namespace'):
                 #
                 # Classes, variables etc.
                 #
-                objects[simplenames] = getattr(cppyy.gbl, name)
+                entity = getattr(cppyy.gbl, name)
+                #
+                # Properties can simply be added to the parent, classes however can only have one parent.
+                #
+                old_module = getattr(entity, "__module__", None)
+                if old_module is None:
+                    objects[simplenames] = entity
+                else:
+                    new_module = ".".join([pkg_lib] + list(simplenames[:-1]))
+                    #
+                    # In theory, cppyy.gbl is formally an internal detail, so we could just steal the entity.
+                    # Unfortunately, the "__module__" is not writeable, so we create a subclass instead.
+                    #
+                    # setattr(entity, "__module__", new_module)
+                    # delattr(sys.modules[old_module], simplenames[-1])
+                    # setattr(parent, simplenames[-1], entity)
+                    #
+                    # Clone the attributes, but set the __module__ correctly.
+                    # TODO: nested classes should be replaced with our subclass.
+                    #
+                    if keyword == "namespace":
+                        entity = object
+                    attributes = {k: v for k, v in entity.__dict__.items()}
+                    attributes["__module__"] = new_module
+                    objects[simplenames] = type(simplenames[-1], (entity, ), attributes)
         #
         # Set up namespaces, then other objects, in depth order.
         #
@@ -67,29 +89,7 @@ def rootmapper(py_file, cmake_shared_library_prefix, cmake_shared_library_suffix
                         except AttributeError:
                             parent = parent[prefix]
                     entity = entities[simplenames]
-                    #
-                    # Properties can simply be added to the parent, classes however can only have one parent.
-                    #
-                    old_module = getattr(entity, "__module__", None)
-                    if old_module is None:
-                        setattr(parent, simplenames[-1], entity)
-                    else:
-                        new_module = ".".join([pkg_lib] + list(simplenames[:-1]))
-                        #
-                        # In theory, cppyy.gbl is formally an internal detail, so we could just steal the entity.
-                        # Unfortunately, the "__module__" is not writeable, so we create a subclass instead.
-                        #
-                        # setattr(entity, "__module__", new_module)
-                        # delattr(sys.modules[old_module], simplenames[-1])
-                        # setattr(parent, simplenames[-1], entity)
-                        #
-                        # Clone the attributes, but set the __module__ correctly.
-                        # TODO: nested classes should be replaced with our subclass.
-                        #
-                        attributes = {k: v for k, v in entity.__dict__.items()}
-                        attributes["__module__"] = new_module
-                        clazz = type(simplenames[-1], (entity, ), attributes)
-                        setattr(parent, simplenames[-1], clazz)
+                    setattr(parent, simplenames[-1], entity)
 
 
 def setup(pkg_dir, pkg_lib, cmake_shared_library_prefix, cmake_shared_library_suffix, pkg_version):
