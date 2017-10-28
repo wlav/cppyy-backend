@@ -105,11 +105,20 @@ def setup(pkg_dir, pkg_lib, cmake_shared_library_prefix, cmake_shared_library_su
     :param pkg_version:     The version of the bindings.
     """
     pkg_file = cmake_shared_library_prefix + pkg_lib + cmake_shared_library_suffix
+    long_description = """Bindings for {}.
+These bindings are based on https://cppyy.readthedocs.io/en/latest/, and can be
+used as per the documentation provided vis the cppyy.cgl namespace.
+
+Alternatively, a convenience wrapper is provided using "import {}". This wrapper
+supports discovery of the created wrappers using, for example Python 3's command
+line completion support.
+""".replace("{}", pkg_lib)
     setuptools.setup(
         name=pkg_lib,
         version=pkg_version,
         description='Bindings for ' + pkg_lib,
-        author=os.environ["USER"],
+        long_description=long_description,
+        platforms=['any'],
         package_data={'': [pkg_file, pkg_lib + '.rootmap', pkg_lib + '_rdict.pcm']},
         py_modules=[pkg_lib],
         packages=[''],
