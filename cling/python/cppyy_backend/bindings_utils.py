@@ -89,7 +89,8 @@ def rootmapper(py_file, cmake_shared_library_prefix, cmake_shared_library_suffix
                     setattr(parent, simplenames[-1], entity)
 
 
-def setup(pkg_dir, pkg_lib, cmake_shared_library_prefix, cmake_shared_library_suffix, pkg_version):
+def setup(pkg_dir, pkg_lib, cmake_shared_library_prefix, cmake_shared_library_suffix, pkg_version, author,
+          author_email, url, license):
     """
     Wrap setuptools.setup for some bindings.
 
@@ -100,6 +101,10 @@ def setup(pkg_dir, pkg_lib, cmake_shared_library_prefix, cmake_shared_library_su
     :param cmake_shared_library_suffix:
                             ${cmake_shared_library_suffix}
     :param pkg_version:     The version of the bindings.
+    :param author:          The name of the library author.
+    :param author_email:    The email address of the library author.
+    :param url:             The home page for the library.
+    :param license:         The license.
     """
     pkg_file = cmake_shared_library_prefix + pkg_lib + cmake_shared_library_suffix
     long_description = """Bindings for {}.
@@ -113,6 +118,10 @@ bindings using, for example Python 3's command line completion support.
     setuptools.setup(
         name=pkg_lib,
         version=pkg_version,
+        author=author,
+        author_email=author_email,
+        url=url,
+        license=license,
         description='Bindings for ' + pkg_lib,
         long_description=long_description,
         platforms=['any'],

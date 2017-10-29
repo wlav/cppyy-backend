@@ -54,6 +54,10 @@ mark_as_advanced(Cppyy_VERSION)
 #   CPPYY_ADD_BINDINGS(
 #       pkg_lib
 #       pkg_version
+#       author
+#       author_email
+#       [URL url]
+#       [LICENSE license]
 #       [LANGUAGE_STANDARD std]
 #       [LINKDEFS linkdef...]
 #       [IMPORTS pcm...]
@@ -68,10 +72,16 @@ mark_as_advanced(Cppyy_VERSION)
 #
 #   pkg_lib             The name of the library to generate.
 #
-#                       TODO: The name does not contribute to the Python
-#                       namespace.
-#
 #   pkg_version         The version of the library to generate.
+#
+#   author              The name of the library author.
+#
+#   author_email        The email address of the library author.
+#
+#   URL url             The home page for the library. Default is
+#                       "https://pypi.python.org/pypi/<pkg_lib>".
+#
+#   LICENSE license     The license, default is "LGPL 2.0".
 #
 #   LANGUAGE_STANDARD std
 #                       The version of C++ in use, "14" by default.
@@ -121,7 +131,7 @@ mark_as_advanced(Cppyy_VERSION)
 #   include(${KF5KDcraw_DIR}/KF5KDcrawConfigVersion.cmake)
 #
 #   CPPYY_ADD_BINDINGS(
-#       "KDCRAW" "${PACKAGE_VERSION}"
+#       "KDCRAW" "${PACKAGE_VERSION}" "Shaheed" "srhaque@theiet.org"
 #       LANGUAGE_STANDARD "14"
 #       LINKDEFS "../linkdef_overrides.h"
 #       GENERATE_OPTIONS "-D__PIC__;-Wno-macro-redefined"
@@ -130,17 +140,26 @@ mark_as_advanced(Cppyy_VERSION)
 #       H_DIRS ${_H_DIRS}
 #       H_FILES "dcrawinfocontainer.h;kdcraw.h;rawdecodingsettings.h;rawfiles.h")
 #
-function(CPPYY_ADD_BINDINGS pkg_lib pkg_version)
+function(CPPYY_ADD_BINDINGS pkg_lib pkg_version author author_email)
   cmake_parse_arguments(
     ARG
     ""
-    "LANGUAGE_STANDARD"
+    "URL;LICENSE;LANGUAGE_STANDARD"
     "LINKDEFS;IMPORTS;GENERATE_OPTIONS;COMPILE_OPTIONS;INCLUDE_DIRS;LINK_LIBRARIES;H_DIRS;H_FILES"
     ${ARGN})
   if(NOT "${ARG_UNPARSED_ARGUMENTS}" STREQUAL "")
     message(SEND_ERROR "Unexpected arguments specified '${ARG_UNPARSED_ARGUMENTS}'")
   endif()
   set(pkg_file ${CMAKE_SHARED_LIBRARY_PREFIX}${pkg_lib}${CMAKE_SHARED_LIBRARY_SUFFIX})
+  #
+  # Package metadata.
+  #
+  if("${ARG_URL}" STREQUAL "")
+    set(ARG_URL "https://pypi.python.org/pypi/${pkg_lib}")
+  endif()
+  if("${ARG_LICENSE}" STREQUAL "")
+    set(ARG_LICENSE "LGPL2.1")
+  endif()
   #
   # Language standard.
   #
@@ -248,7 +267,8 @@ from cppyy_backend import bindings_utils
 
 pkg_dir = os.path.dirname(__file__)
 pkg_lib = '${pkg_lib}'
-bindings_utils.setup(pkg_dir, pkg_lib, '${CMAKE_SHARED_LIBRARY_PREFIX}', '${CMAKE_SHARED_LIBRARY_SUFFIX}', '${pkg_version}')
+bindings_utils.setup(pkg_dir, pkg_lib, '${CMAKE_SHARED_LIBRARY_PREFIX}', '${CMAKE_SHARED_LIBRARY_SUFFIX}',
+                     '${pkg_version}', '${author}', '${author_email}', '${ARG_URL}', '${ARG_LICENSE}')
 ")
     install(CODE "execute_process(COMMAND python ${CMAKE_BINARY_DIR}/setup.py install)")
 endfunction(CPPYY_ADD_BINDINGS)
