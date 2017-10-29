@@ -50,29 +50,26 @@ def rootmapper(py_file, cmake_shared_library_prefix, cmake_shared_library_suffix
                 #
                 entity = getattr(cppyy.gbl, name)
                 #
-                # Properties can simply be added to the parent, classes however can only have one parent.
+                # In theory, cppyy.gbl is formally an internal detail, so we could just steal the entity:
                 #
-                old_module = getattr(entity, "__module__", None)
-                if old_module is None:
-                    objects[simplenames] = entity
-                else:
+                # setattr(entity, "__module__", new_module)
+                # delattr(sys.modules[old_module], simplenames[-1])
+                # setattr(parent, simplenames[-1], entity)
+                #
+                # Unfortunately, the "__module__" is not writeable, and creating a subclass instead:
+                #
+                # attributes = {k: v for k, v in entity.__dict__.items()}
+                # attributes["__module__"] = new_module
+                # objects[simplenames] = type(simplenames[-1], (entity, ), attributes)
+                #
+                # just introduces confusion. It seems all we can do is to synthesise namespaces,
+                # and just insert classes etc. as-is.
+                #
+                if keyword == "namespace":
                     new_module = ".".join([pkg_lib] + list(simplenames[:-1]))
-                    #
-                    # In theory, cppyy.gbl is formally an internal detail, so we could just steal the entity.
-                    # Unfortunately, the "__module__" is not writeable, so we create a subclass instead.
-                    #
-                    # setattr(entity, "__module__", new_module)
-                    # delattr(sys.modules[old_module], simplenames[-1])
-                    # setattr(parent, simplenames[-1], entity)
-                    #
-                    # Clone the attributes, but set the __module__ correctly.
-                    # TODO: nested classes should be replaced with our subclass.
-                    #
-                    if keyword == "namespace":
-                        entity = object
-                    attributes = {k: v for k, v in entity.__dict__.items()}
-                    attributes["__module__"] = new_module
-                    objects[simplenames] = type(simplenames[-1], (entity, ), attributes)
+                    objects[simplenames] = type(simplenames[-1], (object,), {"__module__": new_module})
+                else:
+                    objects[simplenames] = entity
         #
         # Set up namespaces, then other objects, in depth order.
         #
@@ -107,11 +104,11 @@ def setup(pkg_dir, pkg_lib, cmake_shared_library_prefix, cmake_shared_library_su
     pkg_file = cmake_shared_library_prefix + pkg_lib + cmake_shared_library_suffix
     long_description = """Bindings for {}.
 These bindings are based on https://cppyy.readthedocs.io/en/latest/, and can be
-used as per the documentation provided vis the cppyy.cgl namespace.
+used as per the documentation provided via the cppyy.cgl namespace. The environment
+variable LD_LIBRARY_PATH must contain the path of the {}.rootmap file.
 
-Alternatively, a convenience wrapper is provided using "import {}". This wrapper
-supports discovery of the created wrappers using, for example Python 3's command
-line completion support.
+Alternatively, use "import {}". This convenience wrapper supports "discovery" of the
+bindings using, for example Python 3's command line completion support.
 """.replace("{}", pkg_lib)
     setuptools.setup(
         name=pkg_lib,
@@ -122,4 +119,5 @@ line completion support.
         package_data={'': [pkg_file, pkg_lib + '.rootmap', pkg_lib + '_rdict.pcm']},
         py_modules=[pkg_lib],
         packages=[''],
+        zip_safe=False,
     )
