@@ -2,7 +2,7 @@
 Support utilities for bindings.
 """
 from distutils import log
-from distutils.command.build import build
+from setuptools.command.build_py import build_py
 from distutils.command.clean import clean
 import os
 import setuptools
@@ -120,12 +120,12 @@ Alternatively, use "import {}". This convenience wrapper supports "discovery" of
 bindings using, for example Python 3's command line completion support.
 """.replace("{}", pkg_lib)
 
-    class my_build(build):
+    class my_build_py(build_py):
         def run(self):
             #
             # Base build.
             #
-            build.run(self)
+            build_py.run(self)
             #
             # Custom build.
             #
@@ -163,7 +163,7 @@ bindings using, for example Python 3's command line completion support.
         packages=[''],
         zip_safe=False,
         cmdclass = {
-            'build': my_build,
+            'build_py': my_build_py,
             'clean': my_clean,
         },
     )
