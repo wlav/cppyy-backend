@@ -16,6 +16,7 @@ with open(os.path.join(here, 'README.rst'), encoding='utf-8') as f:
 
 builddir = None
 def get_builddir():
+    """cppyy_backend build."""
     global builddir
     if builddir is None:
         topdir = os.getcwd()
@@ -24,6 +25,7 @@ def get_builddir():
 
 srcdir = None
 def get_srcdir():
+    """cppyy_backend source."""
     global srcdir
     if srcdir is None:
         topdir = os.getcwd()
@@ -32,6 +34,7 @@ def get_srcdir():
 
 prefix = None
 def get_prefix():
+    """cppyy_backend installation."""
     global prefix
     if prefix is None:
         prefix = os.path.join(get_builddir(), 'install', 'cppyy_backend')
@@ -59,13 +62,10 @@ class my_cmake_build(_build):
             log.info('Creating build directory %s ...' % builddir)
             os.makedirs(builddir)
 
-        olddir = os.getcwd()
-        os.chdir(builddir)
         log.info('Running cmake for cppyy_backend')
         if subprocess.call([
                 'cmake', srcdir, '-Dminimal=ON -Dasimage=OFF',
-                '-DCMAKE_INSTALL_PREFIX='+prefix]) != 0:
-            os.chdir(olddir)
+                '-DCMAKE_INSTALL_PREFIX='+prefix], cwd=builddir) != 0:
             raise DistutilsSetupError('Failed to configure cppyy_backend')
 
         # default to using all available cores (x2 if hyperthreading enabled)
@@ -79,10 +79,9 @@ class my_cmake_build(_build):
             nprocs = multiprocessing.cpu_count()
         nprocs = '-j' + str(nprocs)
         log.info('Now building cppyy_backend and dependencies ...')
-        if subprocess.call(['make', nprocs]) != 0:
+        if subprocess.call(['make', nprocs], cwd=builddir) != 0:
             raise DistutilsSetupError('Failed to build cppyy_backend')
 
-        os.chdir(olddir)
         log.info('Build finished')
 
 class my_clean(_clean):
@@ -120,16 +119,12 @@ class my_install(_install):
         builddir = get_builddir()
         if not os.path.exists(builddir):
             raise DistutilsSetupError('Failed to find build dir!')
-        olddir = os.getcwd()
-        os.chdir(builddir)
 
         prefix = get_prefix()
         log.info('Now creating installation under %s ...', prefix)
-        if subprocess.call(['make', 'install']) != 0:
-            os.chdir(olddir)
+        if subprocess.call(['make', 'install'], cwd=builddir) != 0:
             raise DistutilsSetupError('Failed to install cppyy_backend')
 
-        os.chdir(olddir)
         prefix_base = os.path.join(get_prefix(), os.path.pardir)
         install_path = self._get_install_path()
         log.info('Copying installation to: %s ...', install_path)
