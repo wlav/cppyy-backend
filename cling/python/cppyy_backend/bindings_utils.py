@@ -1,8 +1,12 @@
 """
 Support utilities for bindings.
 """
+from distutils import log
+from distutils.command.build import build
+from distutils.command.clean import clean
 import os
 import setuptools
+import subprocess
 import sys
 
 import cppyy
@@ -115,6 +119,35 @@ variable LD_LIBRARY_PATH must contain the path of the {}.rootmap file.
 Alternatively, use "import {}". This convenience wrapper supports "discovery" of the
 bindings using, for example Python 3's command line completion support.
 """.replace("{}", pkg_lib)
+
+    class my_build(build):
+        def run(self):
+            #
+            # Base build.
+            #
+            build.run(self)
+            #
+            # Custom build.
+            #
+            cmd = ["make"]
+            if self.verbose:
+                cmd += ["VERBOSE=1"]
+            subprocess.check_call(cmd)
+
+    class my_clean(clean):
+        def run(self):
+            #
+            # Custom clean.
+            #
+            cmd = ["make", "clean"]
+            if self.verbose:
+                cmd += ["VERBOSE=1"]
+            subprocess.check_call(cmd)
+            #
+            #  Base clean.
+            #
+            clean.run(self)
+
     setuptools.setup(
         name=pkg_lib,
         version=pkg_version,
@@ -129,4 +162,8 @@ bindings using, for example Python 3's command line completion support.
         py_modules=[pkg_lib],
         packages=[''],
         zip_safe=False,
+        cmdclass = {
+            'build': my_build,
+            'clean': my_clean,
+        },
     )

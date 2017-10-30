@@ -238,8 +238,8 @@ function(CPPYY_ADD_BINDINGS pkg_lib pkg_version author author_email)
   #
   # Run rootcling, specifying the generated output.
   #
-  add_custom_command(OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/${pkg_lib}.cpp
-    COMMAND ${Cppyy_EXECUTABLE} ${cling_args})
+  add_custom_command(OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/${pkg_lib}.cpp ${CMAKE_CURRENT_BINARY_DIR}/${pkg_lib}_rdict.pcm
+                     ${CMAKE_CURRENT_BINARY_DIR}/${pkg_lib}.rootmap COMMAND ${Cppyy_EXECUTABLE} ${cling_args})
   #
   # Compile/link.
   #
