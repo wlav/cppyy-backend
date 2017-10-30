@@ -1,12 +1,12 @@
-#!/usr/bin/env python
-
 import os, glob, subprocess
 from setuptools import setup, find_packages, Extension
 from distutils import log
 from distutils.command.build_ext import build_ext as _build_ext
 from distutils.command.clean import clean as _clean
 from distutils.dir_util import remove_tree
+from setuptools.command.install import install as _install
 from wheel.bdist_wheel import bdist_wheel as _bdist_wheel
+from distutils.errors import DistutilsSetupError
 from codecs import open
 
 
@@ -72,6 +72,36 @@ class my_clean(_clean):
         # Base clean.
         _clean.run(self)
 
+class my_install(_install):
+    def _get_install_path(self):
+        # depending on goal, copy over pre-installed tree
+        if hasattr(self, 'bdist_dir') and self.bdist_dir:
+            install_path = self.bdist_dir
+        else:
+            install_path = self.install_lib
+        return install_path
+
+    def run(self):
+        # base install
+        _install.run(self)
+
+        # custom install of backend
+        log.info('Now installing cppyy_backend')
+        builddir = self.build_lib
+        if not os.path.exists(builddir):
+            raise DistutilsSetupError('Failed to find build dir!')
+
+        install_path = self._get_install_path()
+        log.info('Copying installation to: %s ...', install_path)
+        self.copy_tree(builddir, install_path)
+
+        log.info('Install finished')
+
+    def get_outputs(self):
+        outputs = _install.get_outputs(self)
+        outputs.append(os.path.join(self._get_install_path(), 'cppyy_backend'))
+        return outputs
+
 class my_bdist_wheel(_bdist_wheel):
     def finalize_options(self):
      # this is a universal, but platform-specific package; a combination
@@ -132,6 +162,7 @@ setup(
     cmdclass = {
         'build_ext': my_build_cpplib,
         'clean': my_clean,
+        'install': my_install,
         'bdist_wheel': my_bdist_wheel
     }
 )
