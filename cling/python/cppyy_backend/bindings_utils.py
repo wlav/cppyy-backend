@@ -5,6 +5,7 @@ from distutils import log
 from setuptools.command.build_py import build_py
 from distutils.command.clean import clean
 import os
+import re
 import setuptools
 import subprocess
 import sys
@@ -22,37 +23,18 @@ def rootmapper(py_file, cmake_shared_library_prefix, cmake_shared_library_suffix
     :param cmake_shared_library_suffix:
                             ${cmake_shared_library_suffix}
     """
-    pkg_dir, pkg_py = os.path.split(py_file)
-    pkg_lib = os.path.splitext(pkg_py)[0]
-    pkg_module = sys.modules[pkg_lib]
-    pkg_file = cmake_shared_library_prefix + pkg_lib + cmake_shared_library_suffix
-    #
-    # Load the library.
-    #
-    cppyy.load_reflection_info(os.path.join(pkg_dir, pkg_file))
-    #
-    # Parse the rootmap file.
-    #
-    namespaces = {}
-    objects = {}
-    with open(os.path.join(pkg_dir, pkg_lib + '.rootmap'), 'rU') as rootmap:
-        for line in rootmap:
-            if line.startswith('['):
-                #
-                # We found the start of the section we care about.
-                #
-                break
-        for line in rootmap:
-            line = line.strip().split(None, 1)
-            if len(line) < 2:
-                continue
-            keyword, name = line
-            simplenames = tuple(name.split('::'))
-            if keyword in ('class', 'var', 'namespace'):
-                #
-                # Classes, variables etc.
-                #
+    def lookup(keyword, name):
+        simplenames = tuple(name.split('::'))
+        if keyword in ('class', 'var', 'namespace'):
+            #
+            # Classes, variables etc.
+            #
+            try:
                 entity = getattr(cppyy.gbl, name)
+            except AttributeError as e:
+                log.warn("Unable to look up item %s", e)
+            else:
+                log.warn("Looked up item %s", str(entity))
                 #
                 # In theory, cppyy.gbl is formally an internal detail, so we could just steal the entity:
                 #
@@ -74,6 +56,52 @@ def rootmapper(py_file, cmake_shared_library_prefix, cmake_shared_library_suffix
                     objects[simplenames] = type(simplenames[-1], (object,), {"__module__": new_module})
                 else:
                     objects[simplenames] = entity
+
+    pkg_dir, pkg_py = os.path.split(py_file)
+    pkg_lib = os.path.splitext(pkg_py)[0]
+    pkg_module = sys.modules[pkg_lib]
+    pkg_file = cmake_shared_library_prefix + pkg_lib + cmake_shared_library_suffix
+    #
+    # Load the library.
+    #
+    cppyy.load_reflection_info(os.path.join(pkg_dir, pkg_file))
+    #
+    # Parse the rootmap file.
+    #
+    namespaces = {}
+    objects = {}
+    with open(os.path.join(pkg_dir, pkg_lib + '.rootmap'), 'rU') as rootmap:
+        #
+        # "decls" part.
+        #
+        for line in rootmap:
+            if line.startswith('['):
+                #
+                # We found the start of the [pkg_lib].
+                #
+                break
+            names = re.sub("[{};]", "", line).split()
+            if not names or not names[0] in ('namespace'):
+                continue
+            keys = range(0, len(names) - 1, 2)
+            keyword = [name for i, name in enumerate(names) if i in keys][-1]
+            names = [name for i, name in enumerate(names) if i not in keys]
+            name = "::".join(names)
+            lookup(keyword, name)
+        #
+        # [pkg_lib] part.
+        #
+        for line in rootmap:
+            line = line.strip().split(None, 1)
+            if len(line) < 2:
+                continue
+            keyword, names = line
+            if not keyword in ('class', 'var', 'namespace'):
+                continue
+            names = re.split("[<>(),\s]+", names)
+            names = [name for name in names if name]
+            for name in names:
+                lookup(keyword, name)
         #
         # Set up namespaces, then other objects, in depth order.
         #
