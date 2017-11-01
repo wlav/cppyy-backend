@@ -253,7 +253,7 @@ function(CPPYY_ADD_BINDINGS pkg_lib pkg_version author author_email)
   # as possible.
   #
   file(
-    GENERATE OUTPUT "${pkg_lib}.py"
+    GENERATE OUTPUT "__init__.py"
     CONTENT "from cppyy_backend import bindings_utils
 
 bindings_utils.rootmapper(__file__, '${CMAKE_SHARED_LIBRARY_PREFIX}', '${CMAKE_SHARED_LIBRARY_SUFFIX}')

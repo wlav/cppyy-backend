@@ -2,8 +2,8 @@
 Support utilities for bindings.
 """
 from distutils import log
-from setuptools.command.build_py import build_py
 from distutils.command.clean import clean
+from setuptools.command.build_py import build_py
 import os
 import re
 import setuptools
@@ -58,7 +58,7 @@ def rootmapper(py_file, cmake_shared_library_prefix, cmake_shared_library_suffix
                     objects[simplenames] = entity
 
     pkg_dir, pkg_py = os.path.split(py_file)
-    pkg_lib = os.path.splitext(pkg_py)[0]
+    pkg_lib = os.path.basename(pkg_dir)
     pkg_module = sys.modules[pkg_lib]
     pkg_file = cmake_shared_library_prefix + pkg_lib + cmake_shared_library_suffix
     #
@@ -161,6 +161,8 @@ bindings using, for example Python 3's command line completion support.
             if self.verbose:
                 cmd += ["VERBOSE=1"]
             subprocess.check_call(cmd)
+            for f in self.package_data[pkg_lib]:
+                self.copy_file(f, os.path.join(self.build_lib, pkg_lib, f))
 
     class my_clean(clean):
         def run(self):
@@ -186,9 +188,9 @@ bindings using, for example Python 3's command line completion support.
         description='Bindings for ' + pkg_lib,
         long_description=long_description,
         platforms=['any'],
-        package_data={'': [pkg_file, pkg_lib + '.rootmap', pkg_lib + '_rdict.pcm']},
-        py_modules=[pkg_lib],
-        packages=[''],
+        package_data={pkg_lib: [pkg_file, pkg_lib + '.rootmap', pkg_lib + '_rdict.pcm']},
+        packages=[pkg_lib],
+        package_dir={pkg_lib: '.'},
         zip_safe=False,
         cmdclass = {
             'build_py': my_build_py,
