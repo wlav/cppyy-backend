@@ -52,7 +52,7 @@ mark_as_advanced(Cppyy_VERSION)
 # Generate a set of bindings from a set of C/C++ header files.
 #
 #   CPPYY_ADD_BINDINGS(
-#       pkg_lib
+#       pkg
 #       pkg_version
 #       author
 #       author_email
@@ -70,16 +70,18 @@ mark_as_advanced(Cppyy_VERSION)
 #
 # Arguments and options:
 #
-#   pkg_lib             The name of the library to generate.
+#   pkg                 The name of the package to generate. This can be either
+#                       of the form "simplename" (e.g. "Akonadi"), or of the
+#                       form "namespace.simplename" (e.g. "KF5.Akonadi").
 #
-#   pkg_version         The version of the library to generate.
+#   pkg_version         The version of the package.
 #
 #   author              The name of the library author.
 #
 #   author_email        The email address of the library author.
 #
 #   URL url             The home page for the library. Default is
-#                       "https://pypi.python.org/pypi/<pkg_lib>".
+#                       "https://pypi.python.org/pypi/<pkg>".
 #
 #   LICENSE license     The license, default is "LGPL 2.0".
 #
@@ -95,7 +97,7 @@ mark_as_advanced(Cppyy_VERSION)
 #                       "#pragma link off struct KDcrawIface::KDcraw::QPrivateSignal;".
 #
 #   IMPORTS pcm         Files which contain previously-generated bindings
-#                       which pkg_lib depends on.
+#                       which pkg depends on.
 #
 #   GENERATE_OPTIONS option
 #                       Options which are to be passed into the rootcling
@@ -114,7 +116,7 @@ mark_as_advanced(Cppyy_VERSION)
 #
 #   H_DIRS directory    Base directories for H_FILES.
 #
-#   H_FILES h_file      Header files for which to generate bindings in pkg_lib.
+#   H_FILES h_file      Header files for which to generate bindings in pkg.
 #                       Absolute filenames, or filenames relative to H_DIRS. All
 #                       definitions found directly in these files will contribute
 #                       to the bindings. (NOTE: This means that if "forwarding
@@ -140,7 +142,7 @@ mark_as_advanced(Cppyy_VERSION)
 #       H_DIRS ${_H_DIRS}
 #       H_FILES "dcrawinfocontainer.h;kdcraw.h;rawdecodingsettings.h;rawfiles.h")
 #
-function(CPPYY_ADD_BINDINGS pkg_lib pkg_version author author_email)
+function(CPPYY_ADD_BINDINGS pkg pkg_version author author_email)
   cmake_parse_arguments(
     ARG
     ""
@@ -150,15 +152,21 @@ function(CPPYY_ADD_BINDINGS pkg_lib pkg_version author author_email)
   if(NOT "${ARG_UNPARSED_ARGUMENTS}" STREQUAL "")
     message(SEND_ERROR "Unexpected arguments specified '${ARG_UNPARSED_ARGUMENTS}'")
   endif()
-  set(pkg_file ${CMAKE_SHARED_LIBRARY_PREFIX}${pkg_lib}${CMAKE_SHARED_LIBRARY_SUFFIX})
-  set(cpp_file ${CMAKE_CURRENT_BINARY_DIR}/${pkg_lib}.cpp)
-  set(pcm_file ${CMAKE_CURRENT_BINARY_DIR}/${pkg_lib}_rdict.pcm)
-  set(rootmap_file ${pkg_lib}.rootmap)
+  string(REGEX MATCH "[^\.]+$" pkg_simplename ${pkg})
+  string(REGEX REPLACE "\.?${pkg_simplename}" "" pkg_namespace ${pkg})
+  set(pkg_dir ${CMAKE_CURRENT_BINARY_DIR})
+  string(REPLACE "." "/" tmp ${pkg})
+  set(pkg_dir "${pkg_dir}/${tmp}")
+  set(pkg_file ${CMAKE_SHARED_LIBRARY_PREFIX}${pkg_simplename}${CMAKE_SHARED_LIBRARY_SUFFIX})
+  set(cpp_file ${CMAKE_CURRENT_BINARY_DIR}/${pkg_simplename}.cpp)
+  set(pcm_file ${pkg_dir}/${pkg_simplename}_rdict.pcm)
+  set(rootmap_file ${pkg_dir}/${pkg_simplename}.rootmap)
   #
   # Package metadata.
   #
   if("${ARG_URL}" STREQUAL "")
-    set(ARG_URL "https://pypi.python.org/pypi/${pkg_lib}")
+    string(REPLACE "." "-" tmp ${pkg})
+    set(ARG_URL "https://pypi.python.org/pypi/${tmp}")
   endif()
   if("${ARG_LICENSE}" STREQUAL "")
     set(ARG_LICENSE "LGPL2.1")
@@ -223,7 +231,7 @@ function(CPPYY_ADD_BINDINGS pkg_lib pkg_version author author_email)
   #
   set(cling_args)
   list(APPEND cling_args "-f" ${cpp_file})
-  list(APPEND cling_args "-s" ${pkg_lib})
+  list(APPEND cling_args "-s" ${pkg_simplename})
   foreach(in_pcm IN LISTS ARG_IMPORTS)
     #
     # Create -m options for any imported .pcm files.
@@ -241,25 +249,28 @@ function(CPPYY_ADD_BINDINGS pkg_lib pkg_version author author_email)
   #
   # Run rootcling, specifying the generated output.
   #
-  add_custom_command(OUTPUT ${cpp_file} ${pcm_file} ${CMAKE_CURRENT_BINARY_DIR}/${rootmap_file}
-                     COMMAND ${Cppyy_EXECUTABLE} ${cling_args})
+  file(MAKE_DIRECTORY ${pkg_dir})
+  add_custom_command(OUTPUT ${cpp_file} ${pcm_file} ${rootmap_file}
+                     COMMAND ${Cppyy_EXECUTABLE} ${cling_args}
+                     WORKING_DIRECTORY ${pkg_dir})
   #
   # Compile/link.
   #
-  add_library(${pkg_lib} SHARED ${cpp_file})
-  set_property(TARGET ${pkg_lib} PROPERTY CXX_STANDARD ${ARG_LANGUAGE_STANDARD})
-  target_include_directories(${pkg_lib} PRIVATE ${Cppyy_INCLUDE_DIRS} ${ARG_H_DIRS} ${ARG_INCLUDE_DIRS})
-  target_compile_options(${pkg_lib} PRIVATE ${ARG_COMPILE_OPTIONS})
-  target_link_libraries(${pkg_lib} ${ARG_LINK_LIBRARIES})
+  add_library(${pkg_simplename} SHARED ${cpp_file})
+  set_property(TARGET ${pkg_simplename} PROPERTY CXX_STANDARD ${ARG_LANGUAGE_STANDARD})
+  set_property(TARGET ${pkg_simplename} PROPERTY LIBRARY_OUTPUT_DIRECTORY ${pkg_dir})
+  target_include_directories(${pkg_simplename} PRIVATE ${Cppyy_INCLUDE_DIRS} ${ARG_H_DIRS} ${ARG_INCLUDE_DIRS})
+  target_compile_options(${pkg_simplename} PRIVATE ${ARG_COMPILE_OPTIONS})
+  target_link_libraries(${pkg_simplename} ${ARG_LINK_LIBRARIES})
   #
   # Install. NOTE: The generated files contain as few binding-specific strings
   # as possible.
   #
   file(
-    GENERATE OUTPUT "__init__.py"
+    GENERATE OUTPUT "${pkg_dir}/__init__.py"
     CONTENT "from cppyy_backend import bindings_utils
 
-bindings_utils.rootmapper(__file__, '${CMAKE_SHARED_LIBRARY_PREFIX}', '${CMAKE_SHARED_LIBRARY_SUFFIX}')
+bindings_utils.rootmapper(__file__, '${CMAKE_SHARED_LIBRARY_PREFIX}', '${CMAKE_SHARED_LIBRARY_SUFFIX}', '${pkg_namespace}')
 del bindings_utils
 ")
   file(
@@ -269,8 +280,8 @@ del bindings_utils
 from cppyy_backend import bindings_utils
 
 pkg_dir = os.path.dirname(__file__)
-pkg_lib = '${pkg_lib}'
-bindings_utils.setup(pkg_dir, pkg_lib, '${CMAKE_SHARED_LIBRARY_PREFIX}', '${CMAKE_SHARED_LIBRARY_SUFFIX}',
+pkg = '${pkg}'
+bindings_utils.setup(pkg_dir, pkg, '${CMAKE_SHARED_LIBRARY_PREFIX}', '${CMAKE_SHARED_LIBRARY_SUFFIX}',
                      '${pkg_version}', '${author}', '${author_email}', '${ARG_URL}', '${ARG_LICENSE}')
 ")
     install(CODE "execute_process(COMMAND python ${CMAKE_BINARY_DIR}/setup.py install)")
