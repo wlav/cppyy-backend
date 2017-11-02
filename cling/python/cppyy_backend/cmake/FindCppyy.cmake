@@ -151,6 +151,9 @@ function(CPPYY_ADD_BINDINGS pkg_lib pkg_version author author_email)
     message(SEND_ERROR "Unexpected arguments specified '${ARG_UNPARSED_ARGUMENTS}'")
   endif()
   set(pkg_file ${CMAKE_SHARED_LIBRARY_PREFIX}${pkg_lib}${CMAKE_SHARED_LIBRARY_SUFFIX})
+  set(cpp_file ${CMAKE_CURRENT_BINARY_DIR}/${pkg_lib}.cpp)
+  set(pcm_file ${CMAKE_CURRENT_BINARY_DIR}/${pkg_lib}_rdict.pcm)
+  set(rootmap_file ${pkg_lib}.rootmap)
   #
   # Package metadata.
   #
@@ -219,7 +222,7 @@ function(CPPYY_ADD_BINDINGS pkg_lib pkg_version author author_email)
   # Set up arguments for rootcling.
   #
   set(cling_args)
-  list(APPEND cling_args "-f" ${CMAKE_CURRENT_BINARY_DIR}/${pkg_lib}.cpp)
+  list(APPEND cling_args "-f" ${cpp_file})
   list(APPEND cling_args "-s" ${pkg_lib})
   foreach(in_pcm IN LISTS ARG_IMPORTS)
     #
@@ -227,7 +230,7 @@ function(CPPYY_ADD_BINDINGS pkg_lib pkg_version author author_email)
     #
     list(APPEND cling_args "-m" "${in_pcm}")
   endforeach(in_pcm)
-  list(APPEND cling_args "-rmf" ${pkg_lib}.rootmap "-rml" ${pkg_file})
+  list(APPEND cling_args "-rmf" ${rootmap_file} "-rml" ${pkg_file})
   list(APPEND cling_args "-std=c++${ARG_LANGUAGE_STANDARD}")
   foreach(dir ${ARG_H_DIRS} ${ARG_INCLUDE_DIRS})
     list(APPEND cling_args "-I${dir}")
@@ -238,12 +241,12 @@ function(CPPYY_ADD_BINDINGS pkg_lib pkg_version author author_email)
   #
   # Run rootcling, specifying the generated output.
   #
-  add_custom_command(OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/${pkg_lib}.cpp ${CMAKE_CURRENT_BINARY_DIR}/${pkg_lib}_rdict.pcm
-                     ${CMAKE_CURRENT_BINARY_DIR}/${pkg_lib}.rootmap COMMAND ${Cppyy_EXECUTABLE} ${cling_args})
+  add_custom_command(OUTPUT ${cpp_file} ${pcm_file} ${CMAKE_CURRENT_BINARY_DIR}/${rootmap_file}
+                     COMMAND ${Cppyy_EXECUTABLE} ${cling_args})
   #
   # Compile/link.
   #
-  add_library(${pkg_lib} SHARED ${CMAKE_CURRENT_BINARY_DIR}/${pkg_lib}.cpp)
+  add_library(${pkg_lib} SHARED ${cpp_file})
   set_property(TARGET ${pkg_lib} PROPERTY CXX_STANDARD ${ARG_LANGUAGE_STANDARD})
   target_include_directories(${pkg_lib} PRIVATE ${Cppyy_INCLUDE_DIRS} ${ARG_H_DIRS} ${ARG_INCLUDE_DIRS})
   target_compile_options(${pkg_lib} PRIVATE ${ARG_COMPILE_OPTIONS})
