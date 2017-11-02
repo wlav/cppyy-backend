@@ -123,6 +123,10 @@ mark_as_advanced(Cppyy_VERSION)
 #                       headers" are present, the real "legacy" headers must be
 #                       specified as H_FILES).
 #
+#                       All header files which contribute to a given C++ namespace
+#                       should be grouped into a single pkg to ensure a 1-to-1
+#                       mapping with the implementing Python class.
+#
 # Examples:
 #
 #   find_package(Qt5Core NO_MODULE)
