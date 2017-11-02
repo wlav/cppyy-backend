@@ -209,7 +209,7 @@ bindings using, for example Python 3's command line completion support.
         package_data={pkg: [pkg_file, pkg_simplename + '.rootmap', pkg_simplename + '_rdict.pcm']},
         packages=[pkg],
         zip_safe=False,
-        cmdclass = {
+        cmdclass={
             'build_py': my_build_py,
             'clean': my_clean,
         },

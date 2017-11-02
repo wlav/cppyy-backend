@@ -92,10 +92,6 @@ mark_as_advanced(Cppyy_VERSION)
 #                       for the linkdef.h file used by rootcling. See
 #                       https://root.cern.ch/root/html/guides/users-guide/AddingaClass.html#the-linkdef.h-file.
 #
-#                       TODO: For now, any private definitions in H_FILES
-#                       must be disabled using something like
-#                       "#pragma link off struct KDcrawIface::KDcraw::QPrivateSignal;".
-#
 #   IMPORTS pcm         Files which contain previously-generated bindings
 #                       which pkg depends on.
 #
