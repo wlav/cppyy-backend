@@ -88,7 +88,7 @@ mark_as_advanced(Cppyy_VERSION)
 #   LANGUAGE_STANDARD std
 #                       The version of C++ in use, "14" by default.
 #
-#   LINKDEFS linkdefs   Files which contain additional manual definitions
+#   LINKDEFS linkdefs   Files or texts which contain custom content
 #                       for the linkdef.h file used by rootcling. See
 #                       https://root.cern.ch/root/html/guides/users-guide/AddingaClass.html#the-linkdef.h-file.
 #
@@ -215,14 +215,13 @@ function(CPPYY_ADD_BINDINGS pkg pkg_version author author_email)
   #
   if(NOT "${ARG_LINKDEFS}" STREQUAL "")
     foreach(in_linkdef IN LISTS ARG_LINKDEFS)
-      if(NOT IS_ABSOLUTE ${in_linkdef})
+      if(NOT IS_ABSOLUTE ${in_linkdef} AND EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/${in_linkdef})
         set(in_linkdef ${CMAKE_CURRENT_SOURCE_DIR}/${in_linkdef})
       endif()
-      if(NOT EXISTS ${in_linkdef})
-        message(WARNING "LINKDEFS ${in_linkdef} does not exist")
+      if(EXISTS ${in_linkdef})
+        file(APPEND ${out_linkdef} "/* Copied from ${in_linkdef}: */\n")
+        file(STRINGS ${in_linkdef} in_linkdef NEWLINE_CONSUME)
       endif()
-      file(APPEND ${out_linkdef} "/* Copied from ${in_linkdef}: */\n")
-      file(STRINGS ${in_linkdef} in_linkdef NEWLINE_CONSUME)
       file(APPEND ${out_linkdef} ${in_linkdef})
     endforeach(in_linkdef)
   endif()
