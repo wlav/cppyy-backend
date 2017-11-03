@@ -143,11 +143,13 @@ mark_as_advanced(Cppyy_VERSION)
 #       H_FILES "dcrawinfocontainer.h;kdcraw.h;rawdecodingsettings.h;rawfiles.h")
 #
 function(CPPYY_ADD_BINDINGS pkg pkg_version author author_email)
+  set(simple_args URL LICENSE LANGUAGE_STANDARD)
+  set(list_args LINKDEFS IMPORTS GENERATE_OPTIONS COMPILE_OPTIONS INCLUDE_DIRS LINK_LIBRARIES H_DIRS H_FILES)
   cmake_parse_arguments(
     ARG
     ""
-    "URL;LICENSE;LANGUAGE_STANDARD"
-    "LINKDEFS;IMPORTS;GENERATE_OPTIONS;COMPILE_OPTIONS;INCLUDE_DIRS;LINK_LIBRARIES;H_DIRS;H_FILES"
+    "${simple_args}"
+    "${list_args}"
     ${ARGN})
   if(NOT "${ARG_UNPARSED_ARGUMENTS}" STREQUAL "")
     message(SEND_ERROR "Unexpected arguments specified '${ARG_UNPARSED_ARGUMENTS}'")
@@ -225,6 +227,13 @@ function(CPPYY_ADD_BINDINGS pkg pkg_version author author_email)
       file(APPEND ${out_linkdef} ${in_linkdef})
     endforeach(in_linkdef)
   endif()
+  #
+  # Record diagnostics.
+  #
+  file(APPEND ${out_linkdef} "//\n// Diagnostics.\n//\n")
+  foreach(arg IN LISTS simple_args list_args)
+    file(APPEND ${out_linkdef} "// ${arg}=${ARG_${arg}}\n")
+  endforeach(arg)
   #
   # Set up arguments for rootcling.
   #
