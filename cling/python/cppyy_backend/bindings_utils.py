@@ -24,32 +24,22 @@ def rootmapper(pkg_file, cmake_shared_library_prefix, cmake_shared_library_suffi
                             ${cmake_shared_library_suffix}
     :param pkg_namespace:   Any namespace for the bindings.
     """
-    def lookup(keyword, name):
-        simplenames = tuple(name.split('::'))
+    def add_to_pkg(keyword, simplenames):
+        #
+        # Add level 1 objects to the pkg namespace.
+        #
+        if len(simplenames) > 1:
+            return
         if keyword in ('class', 'var', 'namespace'):
             #
             # Classes, variables etc.
             #
-            try:
-                entity = getattr(cppyy.gbl, name)
-            except AttributeError as e:
-                log.warn("Unable to look up item %s", e)
-            else:
-                log.warn("Looked up item %s", str(entity))
-                if getattr(entity, "__module__", None) == "cppyy.gbl":
-                    #
-                    # Unlike CPython and PyPy, CPyCppyy needs the __module__ for a nestedclass
-                    # to include the name of the outer class, as in "module1.module2in1.outerclass".
-                    # Internally, CPyCppyy does not use __module__ (not even for lookups) but it
-                    # is needed for pickle and __repr__.
-                    #
-                    # TODO: need codepath for PyPy?
-                    #
-                    new_module = ".".join([pkg_simplename] + list(simplenames[:-1]))
-                    setattr(entity, "__module__", new_module)
-                    objects[simplenames] = entity
-                else:
-                    objects[simplenames] = entity
+            simplename = simplenames[0]
+            entity = getattr(cppyy.gbl, simplename)
+            if getattr(entity, "__module__", None) == "cppyy.gbl":
+                setattr(entity, "__module__", pkg_simplename)
+            print("Adding", simplename, "to", pkg_module.__name__)
+            setattr(pkg_module, simplename, entity)
 
     pkg_dir, pkg_py = os.path.split(pkg_file)
     pkg_simplename = os.path.basename(pkg_dir)
@@ -58,13 +48,13 @@ def rootmapper(pkg_file, cmake_shared_library_prefix, cmake_shared_library_suffi
     #
     # Load the library.
     #
-    cppyy.add_autoload_map(os.path.join(pkg_dir, pkg_simplename + ".rootmap"))
+    rootmap = os.path.join(pkg_dir, pkg_simplename + ".rootmap")
+    cppyy.add_autoload_map(rootmap)
     cppyy.load_reflection_info(os.path.join(pkg_dir, lib_file))
     #
     # Parse the rootmap file.
     #
-    objects = {}
-    with open(os.path.join(pkg_dir, pkg_simplename + '.rootmap'), 'rU') as rootmap:
+    with open(rootmap, 'rU') as rootmap:
         #
         # "decls" part.
         #
@@ -79,9 +69,8 @@ def rootmapper(pkg_file, cmake_shared_library_prefix, cmake_shared_library_suffi
                 continue
             keys = range(0, len(names) - 1, 2)
             keyword = [name for i, name in enumerate(names) if i in keys][-1]
-            names = [name for i, name in enumerate(names) if i not in keys]
-            name = "::".join(names)
-            lookup(keyword, name)
+            simplenames = [name for i, name in enumerate(names) if i not in keys]
+            add_to_pkg(keyword, simplenames)
         #
         # [pkg_simplename] part.
         #
@@ -95,15 +84,8 @@ def rootmapper(pkg_file, cmake_shared_library_prefix, cmake_shared_library_suffi
             names = re.split("[<>(),\s]+", names)
             names = [name for name in names if name]
             for name in names:
-                lookup(keyword, name)
-        #
-        # Add level 1 objects to the pkg namespace.
-        #
-        names_at_level = [k for k in objects.keys() if len(k) == 1]
-        for simplenames in names_at_level:
-            entity = objects[simplenames]
-            print("Adding", simplenames[-1], "to", pkg_module.__name__)
-            setattr(pkg_module, simplenames[-1], entity)
+                simplenames = name.split('::')
+                add_to_pkg(keyword, simplenames)
 
 
 def setup(pkg_dir, pkg, cmake_shared_library_prefix, cmake_shared_library_suffix, pkg_version, author,
