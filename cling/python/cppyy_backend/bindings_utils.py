@@ -36,25 +36,18 @@ def rootmapper(pkg_file, cmake_shared_library_prefix, cmake_shared_library_suffi
                 log.warn("Unable to look up item %s", e)
             else:
                 log.warn("Looked up item %s", str(entity))
-                #
-                # In theory, cppyy.gbl is formally an internal detail, so we could just steal the entity:
-                #
-                # setattr(entity, "__module__", new_module)
-                # delattr(sys.modules[old_module], simplenames[-1])
-                # setattr(parent, simplenames[-1], entity)
-                #
-                # Unfortunately, the "__module__" is not writeable, and creating a subclass instead:
-                #
-                # attributes = {k: v for k, v in entity.__dict__.items()}
-                # attributes["__module__"] = new_module
-                # objects[simplenames] = type(simplenames[-1], (entity, ), attributes)
-                #
-                # just introduces confusion. It seems all we can do is to synthesise namespaces,
-                # and just insert classes etc. as-is.
-                #
-                if keyword == "namespace":
+                if getattr(entity, "__module__", None) == "cppyy.gbl":
+                    #
+                    # Unlike CPython and PyPy, CPyCppyy needs the __module__ for a nestedclass
+                    # to include the name of the outer class, as in "module1.module2in1.outerclass".
+                    # Internally, CPyCppyy does not use __module__ (not even for lookups) but it
+                    # is needed for pickle and __repr__.
+                    #
+                    # TODO: need codepath for PyPy?
+                    #
                     new_module = ".".join([pkg_simplename] + list(simplenames[:-1]))
-                    objects[simplenames] = type(simplenames[-1], (object,), {"__module__": new_module})
+                    setattr(entity, "__module__", new_module)
+                    objects[simplenames] = entity
                 else:
                     objects[simplenames] = entity
 
@@ -65,11 +58,11 @@ def rootmapper(pkg_file, cmake_shared_library_prefix, cmake_shared_library_suffi
     #
     # Load the library.
     #
+    cppyy.add_autoload_map(os.path.join(pkg_dir, pkg_simplename + ".rootmap"))
     cppyy.load_reflection_info(os.path.join(pkg_dir, lib_file))
     #
     # Parse the rootmap file.
     #
-    namespaces = {}
     objects = {}
     with open(os.path.join(pkg_dir, pkg_simplename + '.rootmap'), 'rU') as rootmap:
         #
@@ -104,22 +97,22 @@ def rootmapper(pkg_file, cmake_shared_library_prefix, cmake_shared_library_suffi
             for name in names:
                 lookup(keyword, name)
         #
-        # Set up namespaces, then other objects, in depth order.
+        # Set up objects, in depth order.
         #
-        for entities in [namespaces, objects]:
-            levels = list({len(k) for k in entities.keys()})
-            levels.sort()
-            for level in levels:
-                names_at_level = [k for k in entities.keys() if len(k) == level]
-                for simplenames in names_at_level:
-                    parent = pkg_module
-                    for prefix in simplenames[:-1]:
-                        try:
-                            parent = getattr(parent, prefix)
-                        except AttributeError:
-                            parent = parent[prefix]
-                    entity = entities[simplenames]
-                    setattr(parent, simplenames[-1], entity)
+        levels = list({len(k) for k in objects.keys()})
+        levels.sort()
+        for level in levels:
+            names_at_level = [k for k in objects.keys() if len(k) == level]
+            for simplenames in names_at_level:
+                parent = pkg_module
+                for prefix in simplenames[:-1]:
+                    try:
+                        parent = getattr(parent, prefix)
+                    except AttributeError:
+                        parent = parent[prefix]
+                entity = objects[simplenames]
+                print("Adding", simplenames[-1], "to", parent.__name__,level)
+                setattr(parent, simplenames[-1], entity)
 
 
 def setup(pkg_dir, pkg, cmake_shared_library_prefix, cmake_shared_library_suffix, pkg_version, author,
