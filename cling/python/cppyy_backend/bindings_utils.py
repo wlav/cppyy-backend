@@ -38,7 +38,6 @@ def rootmapper(pkg_file, cmake_shared_library_prefix, cmake_shared_library_suffi
             entity = getattr(cppyy.gbl, simplename)
             if getattr(entity, "__module__", None) == "cppyy.gbl":
                 setattr(entity, "__module__", pkg)
-            print("Adding", simplename, "to", pkg_module.__name__)
             setattr(pkg_module, simplename, entity)
 
     pkg_dir, pkg_py = os.path.split(pkg_file)
