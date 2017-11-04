@@ -146,10 +146,11 @@ def setup(pkg_dir, pkg, cmake_shared_library_prefix, cmake_shared_library_suffix
     long_description = """Bindings for {}.
 These bindings are based on https://cppyy.readthedocs.io/en/latest/, and can be
 used as per the documentation provided via the cppyy.cgl namespace. The environment
-variable LD_LIBRARY_PATH must contain the path of the {}.rootmap file.
+variable LD_LIBRARY_PATH must contain the path of the {}.rootmap file. Use
+"import cppyy; from cppyy.gbl import <some-C++-entity>".
 
 Alternatively, use "import {}". This convenience wrapper supports "discovery" of the
-bindings using, for example Python 3's command line completion support.
+available C++ entities using, for example Python 3's command line completion support.
 """.replace("{}", pkg)
 
     class my_build_py(build_py):
