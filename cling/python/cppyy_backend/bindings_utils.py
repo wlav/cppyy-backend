@@ -97,22 +97,13 @@ def rootmapper(pkg_file, cmake_shared_library_prefix, cmake_shared_library_suffi
             for name in names:
                 lookup(keyword, name)
         #
-        # Set up objects, in depth order.
+        # Add level 1 objects to the pkg namespace.
         #
-        levels = list({len(k) for k in objects.keys()})
-        levels.sort()
-        for level in levels:
-            names_at_level = [k for k in objects.keys() if len(k) == level]
-            for simplenames in names_at_level:
-                parent = pkg_module
-                for prefix in simplenames[:-1]:
-                    try:
-                        parent = getattr(parent, prefix)
-                    except AttributeError:
-                        parent = parent[prefix]
-                entity = objects[simplenames]
-                print("Adding", simplenames[-1], "to", parent.__name__,level)
-                setattr(parent, simplenames[-1], entity)
+        names_at_level = [k for k in objects.keys() if len(k) == 1]
+        for simplenames in names_at_level:
+            entity = objects[simplenames]
+            print("Adding", simplenames[-1], "to", pkg_module.__name__)
+            setattr(pkg_module, simplenames[-1], entity)
 
 
 def setup(pkg_dir, pkg, cmake_shared_library_prefix, cmake_shared_library_suffix, pkg_version, author,
