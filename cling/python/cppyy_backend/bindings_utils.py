@@ -51,12 +51,11 @@ def rootmapper(pkg_file, cmake_shared_library_prefix, cmake_shared_library_suffi
     #
     # Load the library.
     #
-    rootmap = os.path.join(pkg_dir, pkg_simplename + ".rootmap")
-    cppyy.add_autoload_map(rootmap)
     cppyy.load_reflection_info(os.path.join(pkg_dir, lib_file))
     #
     # Parse the rootmap file.
     #
+    rootmap = os.path.join(pkg_dir, pkg_simplename + ".rootmap")
     with open(rootmap, 'rU') as rootmap:
         #
         # "decls" part.
