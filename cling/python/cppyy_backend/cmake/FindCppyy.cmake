@@ -297,6 +297,10 @@ pkg = '${pkg}'
 bindings_utils.setup(pkg_dir, pkg, '${CMAKE_SHARED_LIBRARY_PREFIX}', '${CMAKE_SHARED_LIBRARY_SUFFIX}',
                      '${pkg_version}', '${author}', '${author_email}', '${ARG_URL}', '${ARG_LICENSE}')
 ")
+  set(setup_cfg ${CMAKE_CURRENT_BINARY_DIR}/setup.cfg)
+  file(WRITE ${setup_cfg} "[bdist_wheel]
+universal=1
+")
   install(CODE "execute_process(COMMAND python ${CMAKE_BINARY_DIR}/setup.py install)")
   #
   # Return results.

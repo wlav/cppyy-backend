@@ -3,7 +3,9 @@ Support utilities for bindings.
 """
 from distutils import log
 from distutils.command.clean import clean
+from distutils.util import get_platform
 from setuptools.command.build_py import build_py
+from wheel.bdist_wheel import bdist_wheel
 import os
 import re
 import setuptools
@@ -138,7 +140,6 @@ available C++ entities using, for example Python 3's command line completion sup
             # Move CMake output to self.build_lib.
             #
             pkg_subdir = pkg.replace(".", os.path.sep)
-            pkg_data = list(self.package_data[pkg])
             if pkg_namespace:
                 #
                 # Implement a pkgutil-style namespace package as per the guidance on
@@ -155,6 +156,7 @@ available C++ entities using, for example Python 3's command line completion sup
         def run(self):
             #
             # Custom clean.
+            # TODO: There is no way to reliably clean the "dist" directory.
             #
             cmd = ["make", "clean"]
             if self.verbose:
@@ -164,6 +166,17 @@ available C++ entities using, for example Python 3's command line completion sup
             #  Base clean.
             #
             clean.run(self)
+
+    class my_bdist_wheel(bdist_wheel):
+        def finalize_options(self):
+            #
+            # This is a universal (Python2/Python3), but platform-specific (has
+            # compiled parts) package; a combination that wheel does not recognize,
+            # thus simply fool it.
+            #
+            self.plat_name = get_platform()
+            bdist_wheel.finalize_options(self)
+            self.root_is_pure = True
 
     setuptools.setup(
         name=pkg,
@@ -181,5 +194,6 @@ available C++ entities using, for example Python 3's command line completion sup
         cmdclass={
             'build_py': my_build_py,
             'clean': my_clean,
+            'bdist_wheel': my_bdist_wheel,
         },
     )
