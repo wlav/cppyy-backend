@@ -133,6 +133,8 @@ available C++ entities using, for example Python 3's command line completion sup
             # Custom build.
             #
             cmd = ["make"]
+            if self.dry_run:
+                cmd += ["--dry-run"]
             if self.verbose:
                 cmd += ["VERBOSE=1"]
             subprocess.check_call(cmd)
@@ -159,6 +161,8 @@ available C++ entities using, for example Python 3's command line completion sup
             # TODO: There is no way to reliably clean the "dist" directory.
             #
             cmd = ["make", "clean"]
+            if self.dry_run:
+                cmd += ["--dry-run"]
             if self.verbose:
                 cmd += ["VERBOSE=1"]
             subprocess.check_call(cmd)
