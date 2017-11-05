@@ -51,7 +51,7 @@ mark_as_advanced(Cppyy_VERSION)
 #
 # Generate a set of bindings from a set of C/C++ header files.
 #
-#   CPPYY_ADD_BINDINGS(
+#   cppyy_add_bindings(
 #       pkg
 #       pkg_version
 #       author
@@ -123,6 +123,12 @@ mark_as_advanced(Cppyy_VERSION)
 #                       should be grouped into a single pkg to ensure a 1-to-1
 #                       mapping with the implementing Python class.
 #
+# Returns via PARENT_SCOPE variables:
+#
+#   target              The CMake target used to build.
+#
+#   setup_py            The setup.py script used to build or install pkg.
+#
 # Examples:
 #
 #   find_package(Qt5Core NO_MODULE)
@@ -132,7 +138,7 @@ mark_as_advanced(Cppyy_VERSION)
 #   set(_LINK_LIBRARIES KF5::KDcraw ${_LINK_LIBRARIES})
 #   include(${KF5KDcraw_DIR}/KF5KDcrawConfigVersion.cmake)
 #
-#   CPPYY_ADD_BINDINGS(
+#   cppyy_add_bindings(
 #       "KDCRAW" "${PACKAGE_VERSION}" "Shaheed" "srhaque@theiet.org"
 #       LANGUAGE_STANDARD "14"
 #       LINKDEFS "../linkdef_overrides.h"
@@ -142,7 +148,7 @@ mark_as_advanced(Cppyy_VERSION)
 #       H_DIRS ${_H_DIRS}
 #       H_FILES "dcrawinfocontainer.h;kdcraw.h;rawdecodingsettings.h;rawfiles.h")
 #
-function(CPPYY_ADD_BINDINGS pkg pkg_version author author_email)
+function(cppyy_add_bindings pkg pkg_version author author_email)
   set(simple_args URL LICENSE LANGUAGE_STANDARD)
   set(list_args LINKDEFS IMPORTS GENERATE_OPTIONS COMPILE_OPTIONS INCLUDE_DIRS LINK_LIBRARIES H_DIRS H_FILES)
   cmake_parse_arguments(
@@ -281,9 +287,8 @@ function(CPPYY_ADD_BINDINGS pkg pkg_version author author_email)
 bindings_utils.rootmapper(__file__, '${CMAKE_SHARED_LIBRARY_PREFIX}', '${CMAKE_SHARED_LIBRARY_SUFFIX}', '${pkg_namespace}')
 del bindings_utils
 ")
-  file(
-    GENERATE OUTPUT "setup.py"
-    CONTENT "import os
+  set(setup_py ${CMAKE_CURRENT_BINARY_DIR}/setup.py)
+  file(WRITE ${setup_py} "import os
 
 from cppyy_backend import bindings_utils
 
@@ -292,5 +297,10 @@ pkg = '${pkg}'
 bindings_utils.setup(pkg_dir, pkg, '${CMAKE_SHARED_LIBRARY_PREFIX}', '${CMAKE_SHARED_LIBRARY_SUFFIX}',
                      '${pkg_version}', '${author}', '${author_email}', '${ARG_URL}', '${ARG_LICENSE}')
 ")
-    install(CODE "execute_process(COMMAND python ${CMAKE_BINARY_DIR}/setup.py install)")
-endfunction(CPPYY_ADD_BINDINGS)
+  install(CODE "execute_process(COMMAND python ${CMAKE_BINARY_DIR}/setup.py install)")
+  #
+  # Return results.
+  #
+  set(target ${pkg_simplename} PARENT_SCOPE)
+  set(setup_py ${setup_py} PARENT_SCOPE)
+endfunction(cppyy_add_bindings)
