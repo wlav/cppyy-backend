@@ -88,7 +88,7 @@ mark_as_advanced(Cppyy_VERSION)
 #   LANGUAGE_STANDARD std
 #                       The version of C++ in use, "14" by default.
 #
-#   LINKDEFS linkdefs   Files or texts which contain custom content
+#   LINKDEFS linkdefs   Files or lines which contain custom content
 #                       for the linkdef.h file used by rootcling. See
 #                       https://root.cern.ch/root/html/guides/users-guide/AddingaClass.html#the-linkdef.h-file.
 #
@@ -230,7 +230,7 @@ function(cppyy_add_bindings pkg pkg_version author author_email)
         file(APPEND ${out_linkdef} "/* Copied from ${in_linkdef}: */\n")
         file(STRINGS ${in_linkdef} in_linkdef NEWLINE_CONSUME)
       endif()
-      file(APPEND ${out_linkdef} ${in_linkdef})
+      file(APPEND ${out_linkdef} "${in_linkdef}\n")
     endforeach(in_linkdef)
   endif()
   #
