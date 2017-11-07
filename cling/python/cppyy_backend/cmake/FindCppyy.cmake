@@ -216,6 +216,10 @@ function(cppyy_add_bindings pkg pkg_version author author_email)
   set(out_linkdef ${CMAKE_CURRENT_BINARY_DIR}/linkdef.h)
   file(WRITE ${out_linkdef} "/* Per H_FILES entries: */\n")
   foreach(h_file IN LISTS ARG_H_FILES)
+    #
+    # Doubled-up path separators "//" causes errors in rootcling.
+    #
+    string(REGEX REPLACE "/+" "/" h_file ${h_file})
     file(APPEND ${out_linkdef} "#pragma link C++ defined_in ${h_file};\n")
   endforeach(h_file)
   #
