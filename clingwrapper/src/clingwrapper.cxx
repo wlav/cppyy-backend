@@ -33,7 +33,7 @@
 
 // temp
 #include <iostream>
-typedef PyROOT::TParameter TParameter;
+typedef CPyCppyy::Parameter Parameter;
 // --temp
 
 
@@ -135,8 +135,8 @@ static inline
 bool match_name(const std::string& tname, const std::string fname) {
 // either match exactly, or match the name as template
     if (fname.rfind(tname, 0) == 0) {
-        if ( (tname.size() == fname.size()) ||
-              (tname.size() < fname.size() && fname[tname.size()] == '<') )
+        if ((tname.size() == fname.size()) ||
+              (tname.size() < fname.size() && fname[tname.size()] == '<'))
            return true;
     }
     return false;
@@ -178,7 +178,7 @@ std::string Cppyy::GetScopeName(TCppScope_t parent, TCppIndex_t iscope)
         for (int i = 0; i < N; ++i) {
             char* cname = gClassTable->Next();
             if (strncmp(cname, s.c_str(), s.size()) == 0 && match++ == iscope) {
-                std::string ret( cname+ s.size() );
+                std::string ret(cname+ s.size());
                 return ret.substr(0, ret.find("::")); // TODO: may mean duplicates
             }
         }
@@ -194,9 +194,11 @@ std::string Cppyy::GetScopeName(TCppScope_t parent, TCppIndex_t iscope)
 std::string Cppyy::ResolveName(const std::string& cppitem_name)
 {
 // Fully resolve the given name to the final type name.
+    std::string tclean = cppitem_name.rfind("::", 2, 2) == 0 ?
+        cppitem_name.substr(2, std::string::npos) : cppitem_name;
 
 // classes (most common)
-    std::string tclean = TClassEdit::CleanType(cppitem_name.c_str());
+    tclean = TClassEdit::CleanType(tclean.c_str());
     if (tclean.empty() /* unknown, eg. an operator */) return cppitem_name;
 
 // reduce [N] to []
@@ -217,15 +219,8 @@ std::string Cppyy::ResolveName(const std::string& cppitem_name)
 
 Cppyy::TCppScope_t Cppyy::GetScope(const std::string& sname)
 {
-// TODO: is stripping of std:: still necessary?
-    std::string scope_name;
-    if (sname.find("std::", 0, 5) == 0)
-        scope_name = sname.substr(5, std::string::npos);
-    else
-        scope_name = sname;
-
 // TODO: scope_name should always be final already
-    scope_name = ResolveName(scope_name);
+    std::string scope_name = ResolveName(sname);
     auto icr = g_name2classrefidx.find(scope_name);
     if (icr != g_name2classrefidx.end())
         return (TCppType_t)icr->second;
@@ -390,10 +385,10 @@ static CallFunc_t* GetCallFunc(Cppyy::TCppMethod_t method)
     if (!(callf && gInterpreter->CallFunc_IsValid(callf))) {
     // TODO: propagate this error to caller w/o use of Python C-API
     /*
-        PyErr_Format( PyExc_RuntimeError, "could not resolve %s::%s(%s)",
+        PyErr_Format(PyExc_RuntimeError, "could not resolve %s::%s(%s)",
             const_cast<TClassRef&>(klass).GetClassName(),
             func ? func->GetName() : const_cast<TClassRef&>(klass).GetClassName(),
-            callString.c_str() ); */
+            callString.c_str()); */
         std::cerr << "TODO: report unresolved function error to Python\n";
         if (callf) gInterpreter->CallFunc_Delete(callf);
         return nullptr;
@@ -405,8 +400,8 @@ static CallFunc_t* GetCallFunc(Cppyy::TCppMethod_t method)
 
 static inline
 void copy_args(void* args_, void** vargs) {
-    std::vector<TParameter>& args = *(std::vector<TParameter>*)args_;
-    for (std::vector<TParameter>::size_type i = 0; i < args.size(); ++i) {
+    std::vector<Parameter>& args = *(std::vector<Parameter>*)args_;
+    for (std::vector<Parameter>::size_type i = 0; i < args.size(); ++i) {
         switch (args[i].fTypeCode) {
         case 'b':       /* bool */
             vargs[i] = (void*)&args[i].fValue.fBool;
@@ -464,9 +459,9 @@ void copy_args(void* args_, void** vargs) {
 
 bool FastCall(Cppyy::TCppMethod_t method, void* args_, void* self, void* result)
 {
-    const std::vector<TParameter>& args = *(std::vector<TParameter>*)args_;
+    const std::vector<Parameter>& args = *(std::vector<Parameter>*)args_;
 
-    CallFunc_t* callf = GetCallFunc( method );
+    CallFunc_t* callf = GetCallFunc(method);
     if (!callf)
         return false;
 
@@ -527,15 +522,15 @@ void Cppyy::CallV(TCppMethod_t method, TCppObject_t self, void* args)
        return /* TODO ... report error */;
 }
 
-CPPYY_IMP_CALL(B,  unsigned char )
-CPPYY_IMP_CALL(C,  char          )
-CPPYY_IMP_CALL(H,  short         )
-CPPYY_IMP_CALL(I,  int           )
-CPPYY_IMP_CALL(L,  long          )
-CPPYY_IMP_CALL(LL, Long64_t      )
-CPPYY_IMP_CALL(F,  float         )
-CPPYY_IMP_CALL(D,  double        )
-CPPYY_IMP_CALL(LD, LongDouble_t  )
+CPPYY_IMP_CALL(B,  unsigned char)
+CPPYY_IMP_CALL(C,  char         )
+CPPYY_IMP_CALL(H,  short        )
+CPPYY_IMP_CALL(I,  int          )
+CPPYY_IMP_CALL(L,  long         )
+CPPYY_IMP_CALL(LL, Long64_t     )
+CPPYY_IMP_CALL(F,  float        )
+CPPYY_IMP_CALL(D,  double       )
+CPPYY_IMP_CALL(LD, LongDouble_t )
 
 void* Cppyy::CallR(TCppMethod_t method, TCppObject_t self, void* args)
 {
@@ -551,7 +546,7 @@ char* Cppyy::CallS(
     char* cstr = nullptr;
     TClassRef cr("std::string");
     std::string* cppresult = (std::string*)malloc(sizeof(std::string));
-    if (FastCall( method, args, self, (void*)cppresult)) {
+    if (FastCall(method, args, self, (void*)cppresult)) {
         cstr = cppstring_to_cstring(*cppresult);
         *length = cppresult->size();
         cppresult->std::string::~basic_string();
@@ -596,22 +591,22 @@ Cppyy::TCppFuncAddr_t Cppyy::GetFunctionAddress(TCppScope_t scope, TCppIndex_t i
 // handling of function argument buffer --------------------------------------
 void* Cppyy::AllocateFunctionArgs(size_t nargs)
 {
-    return new TParameter[nargs];
+    return new Parameter[nargs];
 }
 
 void Cppyy::DeallocateFunctionArgs(void* args)
 {
-    delete [] (TParameter*)args;
+    delete [] (Parameter*)args;
 }
 
 size_t Cppyy::GetFunctionArgSizeof()
 {
-    return sizeof( TParameter );
+    return sizeof(Parameter);
 }
 
 size_t Cppyy::GetFunctionArgTypeoffset()
 {
-    return offsetof(TParameter, fTypeCode);
+    return offsetof(Parameter, fTypeCode);
 }
 
 
@@ -634,7 +629,7 @@ bool Cppyy::IsAbstract(TCppType_t klass) {
     return false;
 }
 
-bool Cppyy::IsEnum( const std::string& type_name ) {
+bool Cppyy::IsEnum(const std::string& type_name) {
     if (type_name.empty()) return false;
     return gInterpreter->ClassInfo_IsEnum(type_name.c_str());
 }
@@ -657,8 +652,12 @@ std::string Cppyy::GetFinalName(TCppType_t klass)
 std::string Cppyy::GetScopedFinalName(TCppType_t klass)
 {
     TClassRef& cr = type_from_handle(klass);
-    if (cr.GetClass())
+    if (cr.GetClass()) {
+        // TODO: the implementation of TClassEdit::IsStdClass() isn't particularly fast
+        if (TClassEdit::IsStdClass(cr->GetName()))
+            return std::string("std::")+cr->GetName();
         return cr->GetName();
+    }
     return "";
 }
 
@@ -669,7 +668,7 @@ bool Cppyy::HasComplexHierarchy(TCppType_t klass)
 
     TClassRef& cr = type_from_handle(klass);
     if (cr.GetClass() && cr->GetListOfBases() != 0)
-        nbases = GetNumBases( klass );
+        nbases = GetNumBases(klass);
 
     if (1 < nbases)
         is_complex = 1;
@@ -746,7 +745,7 @@ ptrdiff_t Cppyy::GetBaseOffset(TCppType_t derived, TCppType_t base,
             std::ostringstream msg;
             msg << "failed offset calculation between " << cb->GetName() << " and " << cd->GetName();
             // TODO: propagate this warning to caller w/o use of Python C-API
-            // PyErr_Warn( PyExc_RuntimeWarning, const_cast<char*>( msg.str().c_str() ) );
+            // PyErr_Warn(PyExc_RuntimeWarning, const_cast<char*>(msg.str().c_str()));
             std::cerr << "Warning: " << msg.str() << '\n';
         }
 
@@ -773,14 +772,12 @@ Cppyy::TCppIndex_t Cppyy::GetNumMethods(TCppScope_t scope)
             std::string clName = GetScopedFinalName(scope);
             if (clName.find('<') != std::string::npos) {
             // chicken-and-egg problem: TClass does not know about methods until instantiation: force it
-                if (TClass::GetClass( ("std::"+clName).c_str()))
-                    clName = "std::" + clName;
                 std::ostringstream stmt;
                 stmt << "template class " << clName << ";";
                 gInterpreter->Declare(stmt.str().c_str());
 
             // now reload the methods
-                return (TCppIndex_t)cr->GetListOfMethods( true )->GetSize();
+                return (TCppIndex_t)cr->GetListOfMethods(true)->GetSize();
             }
         }
         return nMethods;
@@ -1020,9 +1017,9 @@ std::string Cppyy::GetMethodTemplateArgName(
     std::string name = f->GetName();
     std::string::size_type pos = name.find('<');
 // TODO: left as-is, this should loop over arguments, but what is here
-// suffices to pass the Reflex-based tests (need more tests :) )
+// suffices to pass the Reflex-based tests (need more tests :))
     return cppstring_to_cstring(
-        ResolveName( name.substr(pos+1, name.size()-pos-2)));
+        ResolveName(name.substr(pos+1, name.size()-pos-2)));
 }
 
 Cppyy::TCppMethod_t Cppyy::GetMethodTemplate(
@@ -1134,7 +1131,7 @@ std::string Cppyy::GetDatamemberType(TCppScope_t scope, TCppIndex_t idata)
             fullType.append("*");
         else if ((int)gbl->GetArrayDim() == 1) {
             std::ostringstream s;
-            s << '[' << gbl->GetMaxIndex( 0 ) << ']' << std::ends;
+            s << '[' << gbl->GetMaxIndex(0) << ']' << std::ends;
             fullType.append(s.str());
         }
         return fullType;
@@ -1273,12 +1270,12 @@ int Cppyy::GetDimensionSize(TCppScope_t scope, TCppIndex_t idata, int dimension)
 
 //- C-linkage wrappers -------------------------------------------------------
 static inline
-std::vector<TParameter> vsargs_to_parvec(void* args, int nargs)
+std::vector<Parameter> vsargs_to_parvec(void* args, int nargs)
 {
-    std::vector<TParameter> v;
+    std::vector<Parameter> v;
     v.reserve(nargs);
     for (int i=0; i<nargs; ++i)
-        v.push_back(((TParameter*)args)[i]);
+        v.push_back(((Parameter*)args)[i]);
     return v;
 }
 
@@ -1325,73 +1322,73 @@ void cppyy_destruct(cppyy_type_t type, cppyy_object_t self) {
 
 /* method/function dispatching -------------------------------------------- */
 void cppyy_call_v(cppyy_method_t method, cppyy_object_t self, int nargs, void* args) {
-    std::vector<TParameter> parvec = vsargs_to_parvec(args, nargs);
+    std::vector<Parameter> parvec = vsargs_to_parvec(args, nargs);
     Cppyy::CallV(method, (void*)self, &parvec);
 }
 
 unsigned char cppyy_call_b(cppyy_method_t method, cppyy_object_t self, int nargs, void* args) {
-    std::vector<TParameter> parvec = vsargs_to_parvec(args, nargs);
+    std::vector<Parameter> parvec = vsargs_to_parvec(args, nargs);
     return (unsigned char)Cppyy::CallB(method, (void*)self, &parvec);
 }
 
 char cppyy_call_c(cppyy_method_t method, cppyy_object_t self, int nargs, void* args) {
-    std::vector<TParameter> parvec = vsargs_to_parvec(args, nargs);
+    std::vector<Parameter> parvec = vsargs_to_parvec(args, nargs);
     return (char)Cppyy::CallC(method, (void*)self, &parvec);
 }
 
 short cppyy_call_h(cppyy_method_t method, cppyy_object_t self, int nargs, void* args) {
-    std::vector<TParameter> parvec = vsargs_to_parvec(args, nargs);
+    std::vector<Parameter> parvec = vsargs_to_parvec(args, nargs);
     return (short)Cppyy::CallH(method, (void*)self, &parvec);
 }
 
 int cppyy_call_i(cppyy_method_t method, cppyy_object_t self, int nargs, void* args) {
-    std::vector<TParameter> parvec = vsargs_to_parvec(args, nargs);
+    std::vector<Parameter> parvec = vsargs_to_parvec(args, nargs);
     return (int)Cppyy::CallI(method, (void*)self, &parvec);
 }
 
 long cppyy_call_l(cppyy_method_t method, cppyy_object_t self, int nargs, void* args){
-    std::vector<TParameter> parvec = vsargs_to_parvec(args, nargs);
+    std::vector<Parameter> parvec = vsargs_to_parvec(args, nargs);
     return (long)Cppyy::CallL(method, (void*)self, &parvec);
 }
 
 long long cppyy_call_ll(cppyy_method_t method, cppyy_object_t self, int nargs, void* args) {
-    std::vector<TParameter> parvec = vsargs_to_parvec(args, nargs);
+    std::vector<Parameter> parvec = vsargs_to_parvec(args, nargs);
     return (long long)Cppyy::CallLL(method, (void*)self, &parvec);
 }
 
 float cppyy_call_f(cppyy_method_t method, cppyy_object_t self, int nargs, void* args) {
-    std::vector<TParameter> parvec = vsargs_to_parvec(args, nargs);
+    std::vector<Parameter> parvec = vsargs_to_parvec(args, nargs);
     return (float)Cppyy::CallF(method, (void*)self, &parvec);
 }
 
 double cppyy_call_d(cppyy_method_t method, cppyy_object_t self, int nargs, void* args) {
-    std::vector<TParameter> parvec = vsargs_to_parvec(args, nargs);
+    std::vector<Parameter> parvec = vsargs_to_parvec(args, nargs);
     return (double)Cppyy::CallD(method, (void*)self, &parvec);
 }
 
 long double cppyy_call_ld(cppyy_method_t method, cppyy_object_t self, int nargs, void* args) {
-    std::vector<TParameter> parvec = vsargs_to_parvec(args, nargs);
+    std::vector<Parameter> parvec = vsargs_to_parvec(args, nargs);
     return (long double)Cppyy::CallLD(method, (void*)self, &parvec);
 }
 
 void* cppyy_call_r(cppyy_method_t method, cppyy_object_t self, int nargs, void* args) {
-    std::vector<TParameter> parvec = vsargs_to_parvec(args, nargs);
+    std::vector<Parameter> parvec = vsargs_to_parvec(args, nargs);
     return (void*)Cppyy::CallR(method, (void*)self, &parvec);
 }
 
 char* cppyy_call_s(
         cppyy_method_t method, cppyy_object_t self, int nargs, void* args, size_t* lsz) {
-    std::vector<TParameter> parvec = vsargs_to_parvec(args, nargs);
+    std::vector<Parameter> parvec = vsargs_to_parvec(args, nargs);
     return Cppyy::CallS(method, (void*)self, &parvec, lsz);
 }
 
 cppyy_object_t cppyy_constructor(cppyy_method_t method, cppyy_type_t klass, int nargs, void* args) {
-    std::vector<TParameter> parvec = vsargs_to_parvec(args, nargs);
+    std::vector<Parameter> parvec = vsargs_to_parvec(args, nargs);
     return cppyy_object_t(Cppyy::CallConstructor(method, klass, &parvec));
 }
 
 cppyy_object_t cppyy_call_o(cppyy_method_t method, cppyy_object_t self, int nargs, void* args, cppyy_type_t result_type) {
-    std::vector<TParameter> parvec = vsargs_to_parvec(args, nargs);
+    std::vector<Parameter> parvec = vsargs_to_parvec(args, nargs);
     return cppyy_object_t(Cppyy::CallO(method, (void*)self, &parvec, result_type));
 }
 
