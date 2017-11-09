@@ -15,6 +15,10 @@
 #   Cppyy_VERSION - the version number of the Cppyy backend.
 #
 #
+# The module also defines the following functions:
+#
+#   cppyy_add_bindings - Generate a set of bindings from a set of header files.
+#
 # The minimum required version of Cppyy can be specified using the
 # standard syntax, e.g.  find_package(Cppyy 4.19)
 #
@@ -49,7 +53,7 @@ FIND_PACKAGE_HANDLE_STANDARD_ARGS(
 mark_as_advanced(Cppyy_VERSION)
 
 #
-# Generate a set of bindings from a set of C/C++ header files.
+# Generate a set of bindings from a set of header files.
 #
 #   cppyy_add_bindings(
 #       pkg
@@ -67,6 +71,18 @@ mark_as_advanced(Cppyy_VERSION)
 #       [LINK_LIBRARIES library...]
 #       [H_DIRS H_DIRSectory]
 #       H_FILES h_file...)
+#
+# The bindings are based on https://cppyy.readthedocs.io/en/latest/, and can be
+# used as per the documentation provided via the cppyy.cgl namespace. The
+# environment variable LD_LIBRARY_PATH must contain the path of the {}.rootmap
+# file. Use "import cppyy; from cppyy.gbl import <some-C++-entity>".
+#
+# Alternatively, use "import <pkg>". This convenience wrapper supports
+# "discovery" of the available C++ entities using, for example Python 3's command
+# line completion support.
+#
+# The bindings are complete with a setup.py, supporting both Wheel and Egg-based
+# packaging.
 #
 # Arguments and options:
 #
