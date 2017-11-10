@@ -54,11 +54,13 @@ static Method2CallFunc_t g_method2callfunc;
 typedef std::vector<TGlobal*> GlobalVars_t;
 static GlobalVars_t g_globalvars;
 
+static std::set<std::string> gSTLNames;
+
 // data ----------------------------------------------------------------------
 Cppyy::TCppScope_t Cppyy::gGlobalScope = GLOBAL_HANDLE;
 
 // smart pointer types
-static std::set< std::string > gSmartPtrTypes =
+static std::set<std::string> gSmartPtrTypes =
     {"auto_ptr", "shared_ptr", "weak_ptr", "unique_ptr"};
 
 // configuration
@@ -86,6 +88,15 @@ public:
 
     // disable fast path if requested
         if (getenv("CPPYY_DISABLE_FASTPATH")) gEnableFastPath = false;
+
+    // fill the set of STL names
+        const char* stl_names[] = {"string", "bitset", "pair", "allocator",
+            "auto_ptr", "shared_ptr", "unique_ptr", "weak_ptr",
+            "vector", "list", "forward_list", "deque", "map", "multimap",
+            "set", "multiset", "unordered_set", "unordered_multiset",
+            "unordered_map", "unordered_multimap"};
+        for (auto& name : stl_names)
+            gSTLNames.insert(name);
     }
 
     ~ApplicationStarter() {
@@ -125,20 +136,31 @@ Cppyy::TCppScope_t declaring_scope(Cppyy::TCppMethod_t method)
 }
 
 static inline
-char* cppstring_to_cstring(const std::string& cppstr) {
+char* cppstring_to_cstring(const std::string& cppstr)
+{
     char* cstr = (char*)malloc(cppstr.size()+1);
     memcpy(cstr, cppstr.c_str(), cppstr.size()+1);
     return cstr;
 }
 
 static inline 
-bool match_name(const std::string& tname, const std::string fname) {
+bool match_name(const std::string& tname, const std::string fname)
+{
 // either match exactly, or match the name as template
     if (fname.rfind(tname, 0) == 0) {
         if ((tname.size() == fname.size()) ||
               (tname.size() < fname.size() && fname[tname.size()] == '<'))
            return true;
     }
+    return false;
+}
+
+static inline
+bool is_stl(const std::string& name)
+{
+    std::string::size_type pos = name.find('<');
+    if (pos != std::string::npos)
+        return gSTLNames.find(name.substr(0, pos)) != gSTLNames.end();
     return false;
 }
 
@@ -194,7 +216,7 @@ std::string Cppyy::GetScopeName(TCppScope_t parent, TCppIndex_t iscope)
 std::string Cppyy::ResolveName(const std::string& cppitem_name)
 {
 // Fully resolve the given name to the final type name.
-    std::string tclean = cppitem_name.rfind("::", 2, 2) == 0 ?
+    std::string tclean = cppitem_name.compare(0, 2, "::") == 0 ?
         cppitem_name.substr(2, std::string::npos) : cppitem_name;
 
 // classes (most common)
@@ -231,7 +253,7 @@ Cppyy::TCppScope_t Cppyy::GetScope(const std::string& sname)
     if (!cr.GetClass() || !cr->Property())
         return (TCppScope_t)NULL;
 
-   // no check for ClassInfo as forward declared classes are okay (fragile)
+    // no check for ClassInfo as forward declared classes are okay (fragile)
 
     ClassRefs_t::size_type sz = g_classrefs.size();
     g_name2classrefidx[scope_name] = sz;
@@ -399,7 +421,8 @@ static CallFunc_t* GetCallFunc(Cppyy::TCppMethod_t method)
 }
 
 static inline
-void copy_args(void* args_, void** vargs) {
+void copy_args(void* args_, void** vargs)
+{
     std::vector<Parameter>& args = *(std::vector<Parameter>*)args_;
     for (std::vector<Parameter>::size_type i = 0; i < args.size(); ++i) {
         switch (args[i].fTypeCode) {
@@ -457,7 +480,7 @@ void copy_args(void* args_, void** vargs) {
     }
 }
 
-bool FastCall(Cppyy::TCppMethod_t method, void* args_, void* self, void* result)
+static bool FastCall(Cppyy::TCppMethod_t method, void* args_, void* self, void* result)
 {
     const std::vector<Parameter>& args = *(std::vector<Parameter>*)args_;
 
@@ -541,7 +564,7 @@ void* Cppyy::CallR(TCppMethod_t method, TCppObject_t self, void* args)
 }
 
 char* Cppyy::CallS(
-       TCppMethod_t method, TCppObject_t self, void* args, size_t* length)
+    TCppMethod_t method, TCppObject_t self, void* args, size_t* length)
 {
     char* cstr = nullptr;
     TClassRef cr("std::string");
@@ -557,7 +580,8 @@ char* Cppyy::CallS(
 }
 
 Cppyy::TCppObject_t Cppyy::CallConstructor(
-        TCppMethod_t method, TCppType_t /* klass */, void* args) {
+    TCppMethod_t method, TCppType_t /* klass */, void* args)
+{
     void* obj = nullptr;
     if (FastCall(method, args, nullptr, &obj))
         return (TCppObject_t)obj;
@@ -571,7 +595,7 @@ void Cppyy::CallDestructor(TCppType_t type, TCppObject_t self)
 }
 
 Cppyy::TCppObject_t Cppyy::CallO(TCppMethod_t method,
-        TCppObject_t self, void* args, TCppType_t result_type)
+    TCppObject_t self, void* args, TCppType_t result_type)
 {
     TClassRef& cr = type_from_handle(result_type);
     void* obj = malloc(cr->Size());
@@ -611,7 +635,8 @@ size_t Cppyy::GetFunctionArgTypeoffset()
 
 
 // scope reflection information ----------------------------------------------
-bool Cppyy::IsNamespace(TCppScope_t scope) {
+bool Cppyy::IsNamespace(TCppScope_t scope)
+{
 // Test if this scope represents a namespace.
     if (scope == GLOBAL_HANDLE)
         return true;
@@ -621,7 +646,8 @@ bool Cppyy::IsNamespace(TCppScope_t scope) {
     return false;
 }
 
-bool Cppyy::IsAbstract(TCppType_t klass) {
+bool Cppyy::IsAbstract(TCppType_t klass)
+{
 // Test if this type may not be instantiated.
     TClassRef& cr = type_from_handle(klass);
     if (cr.GetClass())
@@ -653,8 +679,8 @@ std::string Cppyy::GetScopedFinalName(TCppType_t klass)
 {
     TClassRef& cr = type_from_handle(klass);
     if (cr.GetClass()) {
-        // TODO: the implementation of TClassEdit::IsStdClass() isn't particularly fast
-        if (TClassEdit::IsStdClass(cr->GetName()))
+        std::string name = cr->GetName();
+        if (is_stl(name) && name.compare(0, 5, "std::") != 0)
             return std::string("std::")+cr->GetName();
         return cr->GetName();
     }
@@ -709,11 +735,13 @@ bool Cppyy::IsSubtype(TCppType_t derived, TCppType_t base)
     return derived_type->GetBaseClass(base_type) != 0;
 }
 
-void Cppyy::AddSmartPtrType(const std::string& type_name) {
+void Cppyy::AddSmartPtrType(const std::string& type_name)
+{
     gSmartPtrTypes.insert(ResolveName(type_name));
 }
 
-bool Cppyy::IsSmartPtr(const std::string& type_name) {
+bool Cppyy::IsSmartPtr(const std::string& type_name)
+{
 // checks if typename denotes a smart pointer
 // TODO: perhaps make this stricter?
     const std::string& real_name = ResolveName(type_name);
@@ -723,7 +751,7 @@ bool Cppyy::IsSmartPtr(const std::string& type_name) {
 
 // type offsets --------------------------------------------------------------
 ptrdiff_t Cppyy::GetBaseOffset(TCppType_t derived, TCppType_t base,
-        TCppObject_t address, int direction, bool rerror)
+    TCppObject_t address, int direction, bool rerror)
 {
 // calculate offsets between declared and actual type, up-cast: direction > 0; down-cast: direction < 0
     if (derived == base || !(base && derived))
@@ -772,6 +800,8 @@ Cppyy::TCppIndex_t Cppyy::GetNumMethods(TCppScope_t scope)
             std::string clName = GetScopedFinalName(scope);
             if (clName.find('<') != std::string::npos) {
             // chicken-and-egg problem: TClass does not know about methods until instantiation: force it
+                if (TClass::GetClass( ("std::"+clName).c_str()))
+                    clName = "std::" + clName;
                 std::ostringstream stmt;
                 stmt << "template class " << clName << ";";
                 gInterpreter->Declare(stmt.str().c_str());
@@ -798,7 +828,7 @@ Cppyy::TCppIndex_t Cppyy::GetMethodIndexAt(TCppScope_t scope, TCppIndex_t imeth)
 }
 
 std::vector<Cppyy::TCppIndex_t> Cppyy::GetMethodIndicesFromName(
-      TCppScope_t scope, const std::string& name)
+    TCppScope_t scope, const std::string& name)
 {
     std::vector<TCppIndex_t> indices;
     TClassRef& cr = type_from_handle(scope);
@@ -843,7 +873,7 @@ std::string Cppyy::GetMethodName(TCppMethod_t method)
     if (method) {
         std::string name = ((TFunction*)method)->GetName();
 
-        if (name.find("operator", 0, 8) != 0)
+        if (name.compare(0, 8, "operator") != 0)
         // strip template instantiation part, if any
             return name.substr(0, name.find('<'));
         return name;
@@ -998,7 +1028,7 @@ bool Cppyy::IsMethodTemplate(TCppScope_t scope, TCppIndex_t imeth)
 }
 
 Cppyy::TCppIndex_t Cppyy::GetMethodNumTemplateArgs(
-      TCppScope_t scope, TCppIndex_t imeth)
+    TCppScope_t scope, TCppIndex_t imeth)
 {
 // this is dumb, but the fact that Cling can instantiate template
 // methods on-the-fly means that there is some vast reworking TODO
@@ -1009,7 +1039,7 @@ Cppyy::TCppIndex_t Cppyy::GetMethodNumTemplateArgs(
 }
 
 std::string Cppyy::GetMethodTemplateArgName(
-        TCppScope_t scope, TCppIndex_t imeth, TCppIndex_t /* iarg */)
+    TCppScope_t scope, TCppIndex_t imeth, TCppIndex_t /* iarg */)
 {
 // TODO: like above, given Cling's instantiation capability, this
 // is just dumb ...
@@ -1023,7 +1053,7 @@ std::string Cppyy::GetMethodTemplateArgName(
 }
 
 Cppyy::TCppMethod_t Cppyy::GetMethodTemplate(
-        TCppScope_t scope, const std::string& name, const std::string& proto)
+    TCppScope_t scope, const std::string& name, const std::string& proto)
 {
     TFunction* func = nullptr;
     if (scope == (cppyy_scope_t)GLOBAL_HANDLE) {
@@ -1039,7 +1069,7 @@ Cppyy::TCppMethod_t Cppyy::GetMethodTemplate(
 }
 
 Cppyy::TCppIndex_t Cppyy::GetGlobalOperator(
-        TCppScope_t scope, TCppType_t lc, TCppType_t rc, const std::string& opname)
+    TCppScope_t scope, TCppType_t lc, TCppType_t rc, const std::string& opname)
 {
 // Find a global operator function with a matching signature
     std::string proto = GetScopedFinalName(lc) + ", " + GetScopedFinalName(rc);
@@ -1125,7 +1155,7 @@ std::string Cppyy::GetDatamemberType(TCppScope_t scope, TCppIndex_t idata)
         std::string fullType = gbl->GetFullTypeName();
         if (fullType[fullType.size()-1] == '*' && \
               !dynamic_cast<TGlobalMappedFunction*>(gbl) && \
-              fullType.find("char", 0, 4) == std::string::npos)
+              fullType.compare(0, 4, "char") != 0)
             fullType.append("*");
         else if ((int)gbl->GetArrayDim() > 1)
             fullType.append("*");
@@ -1346,7 +1376,7 @@ int cppyy_call_i(cppyy_method_t method, cppyy_object_t self, int nargs, void* ar
     return (int)Cppyy::CallI(method, (void*)self, &parvec);
 }
 
-long cppyy_call_l(cppyy_method_t method, cppyy_object_t self, int nargs, void* args){
+long cppyy_call_l(cppyy_method_t method, cppyy_object_t self, int nargs, void* args) {
     std::vector<Parameter> parvec = vsargs_to_parvec(args, nargs);
     return (long)Cppyy::CallL(method, (void*)self, &parvec);
 }
@@ -1387,7 +1417,8 @@ cppyy_object_t cppyy_constructor(cppyy_method_t method, cppyy_type_t klass, int 
     return cppyy_object_t(Cppyy::CallConstructor(method, klass, &parvec));
 }
 
-cppyy_object_t cppyy_call_o(cppyy_method_t method, cppyy_object_t self, int nargs, void* args, cppyy_type_t result_type) {
+cppyy_object_t cppyy_call_o(
+        cppyy_method_t method, cppyy_object_t self, int nargs, void* args, cppyy_type_t result_type) {
     std::vector<Parameter> parvec = vsargs_to_parvec(args, nargs);
     return cppyy_object_t(Cppyy::CallO(method, (void*)self, &parvec, result_type));
 }
@@ -1398,19 +1429,19 @@ cppyy_funcaddr_t cppyy_get_function_address(cppyy_scope_t scope, cppyy_index_t i
 
 
 /* handling of function argument buffer ----------------------------------- */
-void* cppyy_allocate_function_args(int nargs){
+void* cppyy_allocate_function_args(int nargs) {
     return (void*)Cppyy::AllocateFunctionArgs(nargs);
 }
 
-void cppyy_deallocate_function_args(void* args){
+void cppyy_deallocate_function_args(void* args) {
     Cppyy::DeallocateFunctionArgs(args);
 }
 
-size_t cppyy_function_arg_sizeof(){
+size_t cppyy_function_arg_sizeof() {
     return (size_t)Cppyy::GetFunctionArgSizeof();
 }
 
-size_t cppyy_function_arg_typeoffset(){
+size_t cppyy_function_arg_typeoffset() {
     return (size_t)Cppyy::GetFunctionArgTypeoffset();
 }
 
@@ -1424,11 +1455,11 @@ int cppyy_is_template(const char* template_name) {
     return (int)Cppyy::IsTemplate(template_name);
 }
 
-int cppyy_is_abstract(cppyy_type_t type){
+int cppyy_is_abstract(cppyy_type_t type) {
     return (int)Cppyy::IsAbstract(type);
 }
 
-int cppyy_is_enum(const char* type_name){
+int cppyy_is_enum(const char* type_name) {
     return (int)Cppyy::IsEnum(type_name);
 }
 
@@ -1450,11 +1481,11 @@ int cppyy_num_bases(cppyy_type_t type) {
     return (int)Cppyy::GetNumBases(type);
 }
 
-char* cppyy_base_name(cppyy_type_t type, int base_index){
+char* cppyy_base_name(cppyy_type_t type, int base_index) {
     return cppstring_to_cstring(Cppyy::GetBaseName (type, base_index));
 }
 
-int cppyy_is_subtype(cppyy_type_t derived, cppyy_type_t base){
+int cppyy_is_subtype(cppyy_type_t derived, cppyy_type_t base) {
     return (int)Cppyy::IsSubtype(derived, base);
 }
 
@@ -1474,7 +1505,8 @@ cppyy_index_t cppyy_method_index_at(cppyy_scope_t scope, int imeth) {
     return cppyy_index_t(Cppyy::GetMethodIndexAt(scope, imeth));
 }
 
-cppyy_index_t* cppyy_method_indices_from_name(cppyy_scope_t scope, const char* name) {
+cppyy_index_t* cppyy_method_indices_from_name(cppyy_scope_t scope, const char* name)
+{
     std::vector<cppyy_index_t> result = Cppyy::GetMethodIndicesFromName(scope, name);
 
     if (result.empty())
@@ -1633,11 +1665,12 @@ const char* cppyy_stdstring2charp(cppyy_object_t ptr, size_t* lsz) {
     return ((std::string*)ptr)->data();
 }
 
-cppyy_object_t cppyy_stdstring2stdstring(cppyy_object_t ptr){
+cppyy_object_t cppyy_stdstring2stdstring(cppyy_object_t ptr) {
     return (cppyy_object_t)new std::string(*(std::string*)ptr);
 }
 
-const char* cppyy_stdvector_valuetype(const char* clname) {
+const char* cppyy_stdvector_valuetype(const char* clname)
+{
     const char* result = nullptr;
     std::string name = clname;
     TypedefInfo_t* ti = gInterpreter->TypedefInfo_Factory((name+"::value_type").c_str());
@@ -1647,7 +1680,8 @@ const char* cppyy_stdvector_valuetype(const char* clname) {
     return result;
 }
 
-size_t cppyy_stdvector_valuesize(const char* clname) {
+size_t cppyy_stdvector_valuesize(const char* clname)
+{
     size_t result = 0;
     std::string name = clname;
     TypedefInfo_t* ti = gInterpreter->TypedefInfo_Factory((name+"::value_type").c_str());
