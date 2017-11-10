@@ -26,6 +26,7 @@ except KeyError:
 def get_include_path():
     if root_install:
         return os.path.join(root_install, 'include')
+    print os.environ["PATH"]
     cli_arg = subprocess.check_output(['cling-config', '--cppflags'])
     return cli_arg[2:-1].decode("utf-8")
 
@@ -99,7 +100,7 @@ class my_install(_install):
 
     def get_outputs(self):
         outputs = _install.get_outputs(self)
-        outputs.append(os.path.join(self._get_install_path(), 'cppyy_backend'))
+        #outputs.append(os.path.join(self._get_install_path(), 'cppyy_backend'))
         return outputs
 
 class my_bdist_wheel(_bdist_wheel):
