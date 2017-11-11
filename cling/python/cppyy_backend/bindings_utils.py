@@ -32,15 +32,14 @@ def rootmapper(pkg_file, cmake_shared_library_prefix, cmake_shared_library_suffi
         #
         if len(simplenames) > 1:
             return
-        if keyword in ('class', 'var', 'namespace'):
-            #
-            # Classes, variables etc.
-            #
-            simplename = simplenames[0]
-            entity = getattr(cppyy.gbl, simplename)
-            if getattr(entity, "__module__", None) == "cppyy.gbl":
-                setattr(entity, "__module__", pkg)
-            setattr(pkg_module, simplename, entity)
+        #
+        # Classes, variables etc.
+        #
+        simplename = simplenames[0]
+        entity = getattr(cppyy.gbl, simplename)
+        if getattr(entity, "__module__", None) == "cppyy.gbl":
+            setattr(entity, "__module__", pkg)
+        setattr(pkg_module, simplename, entity)
 
     pkg_dir, pkg_py = os.path.split(pkg_file)
     pkg_simplename = os.path.basename(pkg_dir)
