@@ -327,6 +327,7 @@ universal=1
   #
   file(WRITE ${CMAKE_CURRENT_BINARY_DIR}/test.py "# pytest/nosetest sanity test script.
 import os
+import pydoc
 import subprocess
 import sys
 
@@ -383,7 +384,7 @@ class Test(object):
         __import__(pkg)
 
     def test_help(self):
-        help(pkg)
+        pydoc.render_doc(pkg)
 
     def test_uninstall(self):
         for pip in PIPS:
