@@ -74,7 +74,7 @@ mark_as_advanced(Cppyy_VERSION)
 #
 # The bindings are based on https://cppyy.readthedocs.io/en/latest/, and can be
 # used as per the documentation provided via the cppyy.cgl namespace. The
-# environment variable LD_LIBRARY_PATH must contain the path of the {}.rootmap
+# environment variable LD_LIBRARY_PATH must contain the path of the <pkg>.rootmap
 # file. Use "import cppyy; from cppyy.gbl import <some-C++-entity>".
 #
 # Alternatively, use "import <pkg>". This convenience wrapper supports
@@ -312,6 +312,7 @@ del bindings_utils
 
 from cppyy_backend import bindings_utils
 
+
 pkg_dir = os.path.dirname(__file__)
 pkg = '${pkg}'
 bindings_utils.setup(pkg_dir, pkg, '${CMAKE_SHARED_LIBRARY_PREFIX}', '${CMAKE_SHARED_LIBRARY_SUFFIX}',
@@ -320,6 +321,47 @@ bindings_utils.setup(pkg_dir, pkg, '${CMAKE_SHARED_LIBRARY_PREFIX}', '${CMAKE_SH
   set(setup_cfg ${CMAKE_CURRENT_BINARY_DIR}/setup.cfg)
   file(WRITE ${setup_cfg} "[bdist_wheel]
 universal=1
+")
+  #
+  # Generate a nosetest/pytest script.
+  #
+  file(WRITE ${CMAKE_CURRENT_BINARY_DIR}/test.py "# nosetest for ${pkg}
+import os
+import subprocess
+import sys
+
+
+SCRIPT_DIR = os.path.dirname(__file__)
+pkg = '${pkg}'
+
+
+class Test(object):
+    @classmethod
+    def setup_class(klass):
+        pass
+
+    @classmethod
+    def teardown_class(klass):
+        pass
+
+    def setUp(self):
+        '''This method is run once before _each_ test method is executed'''
+
+    def teardown(self):
+        '''This method is run once after _each_ test method is executed'''
+
+    def test_install(self):
+        fails = 0
+        pips = ['pip', 'pip3']
+        for pip in pips:
+            fails += subprocess.check_call([pip, 'install', '.'], cwd=SCRIPT_DIR)
+        assert fails < len(pips), 'No viable pip versions found'
+
+    def test_import(self):
+        __import__(pkg)
+
+    def test_help(self):
+        help(pkg)
 ")
   #
   # Return results.
