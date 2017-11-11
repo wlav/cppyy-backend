@@ -82,7 +82,7 @@ mark_as_advanced(Cppyy_VERSION)
 # line completion support.
 #
 # The bindings are complete with a setup.py, supporting both Wheel and Egg-based
-# packaging.
+# packaging, and a test.py supporting pytest/nosetest sanity test of the bindings.
 #
 # Arguments and options:
 #
@@ -323,9 +323,9 @@ bindings_utils.setup(pkg_dir, pkg, '${CMAKE_SHARED_LIBRARY_PREFIX}', '${CMAKE_SH
 universal=1
 ")
   #
-  # Generate a nosetest/pytest script.
+  # Generate a pytest/nosetest sanity test script.
   #
-  file(WRITE ${CMAKE_CURRENT_BINARY_DIR}/test.py "# nosetest for ${pkg}
+  file(WRITE ${CMAKE_CURRENT_BINARY_DIR}/test.py "# pytest/nosetest sanity test script.
 import os
 import subprocess
 import sys
@@ -333,12 +333,37 @@ import sys
 
 SCRIPT_DIR = os.path.dirname(__file__)
 pkg = '${pkg}'
+PIPS = {}
 
 
 class Test(object):
     @classmethod
     def setup_class(klass):
-        pass
+        #
+        # What pip version do we have, and what Python versions do they support?
+        # The command 'pip -V' returns a string of the form:
+        #
+        #   pip 9.0.1 from /usr/lib/python2.7/dist-packages (python 2.7)
+        #
+        possible_pips = ['pip', 'pip2', 'pip3']
+        global PIPS
+        for pip in possible_pips:
+            try:
+                version = subprocess.check_output([pip, '-V'], cwd=SCRIPT_DIR)
+            except subprocess.CalledProcessError:
+                pass
+            else:
+                #
+                # All pip variants that map onto a given Python version are de-duped.
+                #
+                version = version.rsplit('(', 1)[-1]
+                version = version.split()[-1]
+                PIPS[version] = pip
+        #
+        # We want the pip names as the key.
+        #
+        PIPS = {v: k for k, v in PIPS.items()}
+        assert len(PIPS), 'No viable pip versions found'
 
     @classmethod
     def teardown_class(klass):
@@ -351,17 +376,18 @@ class Test(object):
         '''This method is run once after _each_ test method is executed'''
 
     def test_install(self):
-        fails = 0
-        pips = ['pip', 'pip3']
-        for pip in pips:
-            fails += subprocess.check_call([pip, 'install', '.'], cwd=SCRIPT_DIR)
-        assert fails < len(pips), 'No viable pip versions found'
+        for pip in PIPS:
+            subprocess.check_call([pip, 'install', '--force-reinstall', '.'], cwd=SCRIPT_DIR)
 
     def test_import(self):
         __import__(pkg)
 
     def test_help(self):
         help(pkg)
+
+    def test_uninstall(self):
+        for pip in PIPS:
+            subprocess.check_call([pip, 'uninstall', '--yes', pkg], cwd=SCRIPT_DIR)
 ")
   #
   # Return results.
