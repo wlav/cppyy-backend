@@ -83,7 +83,7 @@ def rootmapper(pkg_file, cmake_shared_library_prefix, cmake_shared_library_suffi
             if len(line) < 2:
                 continue
             keyword, names = line
-            if not keyword in ('class', 'var', 'namespace'):
+            if not keyword in ('class', 'var', 'namespace', 'typedef'):
                 continue
             names = re.split("[<>(),\s]+", names)
             names = [name for name in names if name]
