@@ -15,6 +15,9 @@ import sys
 import cppyy
 
 
+PRIMITIVE_TYPES = re.compile(r"\b(bool|char|short|int|unsigned|long|float|double)\b")
+
+
 def rootmapper(pkg_file, cmake_shared_library_prefix, cmake_shared_library_suffix, pkg_namespace=""):
     """
     Populate a module with some rootmap'ped bindings.
@@ -33,9 +36,16 @@ def rootmapper(pkg_file, cmake_shared_library_prefix, cmake_shared_library_suffi
         if len(simplenames) > 1:
             return
         #
-        # Classes, variables etc.
+        # Ignore some names based on heuristics.
         #
         simplename = simplenames[0]
+        if simplename in ('void'):
+            return
+        if PRIMITIVE_TYPES.search(simplename):
+            return
+        #
+        # Classes, variables etc.
+        #
         entity = getattr(cppyy.gbl, simplename)
         if getattr(entity, "__module__", None) == "cppyy.gbl":
             setattr(entity, "__module__", pkg)
