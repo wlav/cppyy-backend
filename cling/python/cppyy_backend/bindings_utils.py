@@ -74,12 +74,20 @@ def rootmapper(pkg_file, cmake_shared_library_prefix, cmake_shared_library_suffi
         for line in rootmap:
             if line.startswith('['):
                 #
-                # We found the start of the [pkg_simplename].
+                # We found the start of the [pkg_simplename] section.
                 #
                 break
             names = re.sub("[{};]", "", line).split()
             if not names or not names[0] in ('namespace'):
                 continue
+            #
+            # Examples of syntax:
+            #
+            #   namespace KActivities {  }
+            #   namespace KActivities { namespace Stats { namespace Terms {  } } }
+            #   namespace Akonadi { namespace NoteUtils { class Attachment; } }
+            #   namespace BluezQt { template <typename T> class Request; }
+            #
             keys = range(0, len(names) - 1, 2)
             keyword = [name for i, name in enumerate(names) if i in keys][-1]
             simplenames = [name for i, name in enumerate(names) if i not in keys]
@@ -91,6 +99,15 @@ def rootmapper(pkg_file, cmake_shared_library_prefix, cmake_shared_library_suffi
             line = line.strip().split(None, 1)
             if len(line) < 2:
                 continue
+            #
+            # Examples of syntax:
+            #
+            #   class KXMLGUIClient::StateChange
+            #   var KKeyServer
+            #   namespace KUndoActions
+            #   typedef KTextEditor
+            #   header kactioncollection.h
+            #
             keyword, names = line
             if not keyword in ('class', 'var', 'namespace', 'typedef'):
                 continue
