@@ -77,9 +77,6 @@ def rootmapper(pkg_file, cmake_shared_library_prefix, cmake_shared_library_suffi
                 # We found the start of the [pkg_simplename] section.
                 #
                 break
-            names = re.sub("[{};]", "", line).split()
-            if not names or not names[0] in ('namespace'):
-                continue
             #
             # Examples of syntax:
             #
@@ -87,13 +84,14 @@ def rootmapper(pkg_file, cmake_shared_library_prefix, cmake_shared_library_suffi
             #   namespace KActivities { namespace Stats { namespace Terms {  } } }
             #   namespace Akonadi { namespace NoteUtils { class Attachment; } }
             #   namespace BluezQt { template <typename T> class Request; }
+            #   template <typename T> class QTypeInfo;
             #
-            keys = range(0, len(names) - 1, 2)
-            keyword = [name for i, name in enumerate(names) if i in keys][-1]
-            simplenames = [name for i, name in enumerate(names) if i not in keys]
-            add_to_pkg(keyword, simplenames)
+            # Nothing in this section describes anything defined_in the code,
+            # or that we care about.
+            #
+            pass
         #
-        # [pkg_simplename] part.
+        # [pkg_simplename] part. This is the list of things defined_in the code.
         #
         for line in rootmap:
             line = line.strip().split(None, 1)
