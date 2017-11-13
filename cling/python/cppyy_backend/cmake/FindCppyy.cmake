@@ -108,6 +108,8 @@ mark_as_advanced(Cppyy_VERSION)
 #                       for the linkdef.h file used by rootcling. See
 #                       https://root.cern.ch/root/html/guides/users-guide/AddingaClass.html#the-linkdef.h-file.
 #
+#                       In lines, literal semi-colons must be escaped: "\;".
+#
 #   IMPORTS pcm         Files which contain previously-generated bindings
 #                       which pkg depends on.
 #
@@ -241,24 +243,41 @@ function(cppyy_add_bindings pkg pkg_version author author_email)
   #
   # Append any manually-provided linkdef.h content.
   #
-  if(NOT "${ARG_LINKDEFS}" STREQUAL "")
-    foreach(in_linkdef IN LISTS ARG_LINKDEFS)
-      if(NOT IS_ABSOLUTE ${in_linkdef} AND EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/${in_linkdef})
-        set(in_linkdef ${CMAKE_CURRENT_SOURCE_DIR}/${in_linkdef})
-      endif()
-      if(EXISTS ${in_linkdef})
-        file(APPEND ${out_linkdef} "/* Copied from ${in_linkdef}: */\n")
-        file(STRINGS ${in_linkdef} in_linkdef NEWLINE_CONSUME)
-      endif()
-      file(APPEND ${out_linkdef} "${in_linkdef}\n")
-    endforeach(in_linkdef)
-  endif()
+  set(LINKDEF_EXTRACTS)
+  string(REPLACE "\\" "\\\\" ARG_LINKDEFS "${ARG_LINKDEFS}")
+  foreach(in_linkdef IN LISTS ARG_LINKDEFS)
+    if("${in_linkdef}" STREQUAL "")
+      continue()
+    endif()
+    if(NOT IS_ABSOLUTE "${in_linkdef}" AND EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/${in_linkdef}")
+      set(in_linkdef "${CMAKE_CURRENT_SOURCE_DIR}/${in_linkdef}")
+    endif()
+    if(EXISTS "${in_linkdef}")
+      file(APPEND ${out_linkdef} "/* Copied from ${in_linkdef}: */\n")
+      file(STRINGS ${in_linkdef} in_linkdef NEWLINE_CONSUME)
+    else()
+      file(APPEND ${out_linkdef} "/* Inlined: */\n")
+    endif()
+    string(REPLACE "\n" ";" in_linkdef "${in_linkdef}")
+    foreach(line ${in_linkdef})
+      file(APPEND ${out_linkdef} "${line}\n")
+    endforeach()
+    list(GET in_linkdef 0 in_linkdef)
+    list(APPEND LINKDEFS_EXTRACTS ${in_linkdef})
+  endforeach(in_linkdef)
   #
   # Record diagnostics.
   #
   file(APPEND ${out_linkdef} "//\n// Diagnostics.\n//\n")
   foreach(arg IN LISTS simple_args list_args)
-    file(APPEND ${out_linkdef} "// ${arg}=${ARG_${arg}}\n")
+    if(arg STREQUAL "LINKDEFS")
+      file(APPEND ${out_linkdef} "// ${arg}=\n")
+      foreach(in_linkdef IN LISTS LINKDEFS_EXTRACTS)
+        file(APPEND ${out_linkdef} "//    ${in_linkdef}...\n")
+      endforeach(in_linkdef)
+    else()
+      file(APPEND ${out_linkdef} "// ${arg}=${ARG_${arg}}\n")
+    endif()
   endforeach(arg)
   #
   # Set up arguments for rootcling.
