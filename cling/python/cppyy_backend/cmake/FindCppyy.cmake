@@ -119,6 +119,8 @@ mark_as_advanced(Cppyy_VERSION)
 #                       may need "-D__PIC__;-Wno-macro-redefined" as per
 #                       https://sft.its.cern.ch/jira/browse/ROOT-8719.
 #
+#   EXTRA_CODES code    Files which contain extra code needed by the bindings.
+#
 #   COMPILE_OPTIONS option
 #                       Options which are to be passed into the compile/link
 #                       command.
@@ -168,7 +170,8 @@ mark_as_advanced(Cppyy_VERSION)
 #
 function(cppyy_add_bindings pkg pkg_version author author_email)
   set(simple_args URL LICENSE LANGUAGE_STANDARD)
-  set(list_args LINKDEFS IMPORTS GENERATE_OPTIONS COMPILE_OPTIONS INCLUDE_DIRS LINK_LIBRARIES H_DIRS H_FILES)
+  set(list_args LINKDEFS IMPORTS GENERATE_OPTIONS EXTRA_CODES COMPILE_OPTIONS INCLUDE_DIRS
+    LINK_LIBRARIES H_DIRS H_FILES)
   cmake_parse_arguments(
     ARG
     ""
@@ -309,7 +312,7 @@ function(cppyy_add_bindings pkg pkg_version author author_email)
   #
   # Compile/link.
   #
-  add_library(${pkg_simplename} SHARED ${cpp_file})
+  add_library(${pkg_simplename} SHARED ${cpp_file} ${ARG_EXTRA_CODES})
   set_property(TARGET ${pkg_simplename} PROPERTY CXX_STANDARD ${ARG_LANGUAGE_STANDARD})
   set_property(TARGET ${pkg_simplename} PROPERTY LIBRARY_OUTPUT_DIRECTORY ${pkg_dir})
   target_include_directories(${pkg_simplename} PRIVATE ${Cppyy_INCLUDE_DIRS} ${ARG_H_DIRS} ${ARG_INCLUDE_DIRS})
