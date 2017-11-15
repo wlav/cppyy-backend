@@ -348,6 +348,7 @@ universal=1
   # Generate a pytest/nosetest sanity test script.
   #
   file(WRITE ${CMAKE_CURRENT_BINARY_DIR}/test.py "# pytest/nosetest sanity test script.
+import logging
 import os
 import pydoc
 import subprocess
@@ -362,6 +363,14 @@ PIPS = {}
 class Test(object):
     @classmethod
     def setup_class(klass):
+        #
+        # Make an attempt to check the verbosity setting (ignore quiet!).
+        #
+        verbose = [a for a in sys.argv[1:] if a.startswith(('-v', '--verbos'))]
+        if verbose:
+            logging.basicConfig(level=logging.DEBUG, format='%(asctime)s %(name)s %(levelname)s: %(message)s')
+        else:
+            logging.basicConfig(level=logging.INFO, format='%(levelname)s: %(message)s')
         #
         # What pip version do we have, and what Python versions do they support?
         # The command 'pip -V' returns a string of the form:

@@ -1,11 +1,12 @@
 """
 Support utilities for bindings.
 """
-from distutils import log
 from distutils.command.clean import clean
 from distutils.util import get_platform
 from setuptools.command.build_py import build_py
 from wheel.bdist_wheel import bdist_wheel
+import gettext
+import logging
 import os
 import re
 import setuptools
@@ -13,6 +14,13 @@ import subprocess
 import sys
 
 import cppyy
+
+
+logger = logging.getLogger(__name__)
+gettext.install(__name__)
+
+# Keep PyCharm happy.
+_ = _
 
 
 PRIMITIVE_TYPES = re.compile(r"\b(bool|char|short|int|unsigned|long|float|double)\b")
@@ -46,10 +54,15 @@ def rootmapper(pkg_file, cmake_shared_library_prefix, cmake_shared_library_suffi
         #
         # Classes, variables etc.
         #
-        entity = getattr(cppyy.gbl, simplename)
-        if getattr(entity, "__module__", None) == "cppyy.gbl":
-            setattr(entity, "__module__", pkg)
-        setattr(pkg_module, simplename, entity)
+        try:
+            entity = getattr(cppyy.gbl, simplename)
+        except AttributeError as e:
+            logger.error(_("Unable to lookup {} {}.{}: {}").format(keyword, pkg, simplename, e))
+            raise
+        else:
+            if getattr(entity, "__module__", None) == "cppyy.gbl":
+                setattr(entity, "__module__", pkg)
+            setattr(pkg_module, simplename, entity)
 
     pkg_dir, pkg_py = os.path.split(pkg_file)
     pkg_simplename = os.path.basename(pkg_dir)
