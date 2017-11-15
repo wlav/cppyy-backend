@@ -7,7 +7,7 @@ index 3d5acac510..d0295b865f 100644
     }
 
 +   // private declarations lead to uncompilable code, so just ignore
-+   if (recordDecl && recordDecl->getAccess() == AS_private) {
++   if (recordDecl && (recordDecl->getAccess() == AS_private || recordDecl->getAccess() == AS_protected)) {
 +       return true;
 +   }
 +
