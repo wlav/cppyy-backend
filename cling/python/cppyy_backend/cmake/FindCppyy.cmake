@@ -121,6 +121,8 @@ mark_as_advanced(Cppyy_VERSION)
 #
 #   EXTRA_CODES code    Files which contain extra code needed by the bindings.
 #
+#   EXTRA_HEADERS hdr   Files which contain extra headers needed by the bindings.
+#
 #   COMPILE_OPTIONS option
 #                       Options which are to be passed into the compile/link
 #                       command.
@@ -170,7 +172,7 @@ mark_as_advanced(Cppyy_VERSION)
 #
 function(cppyy_add_bindings pkg pkg_version author author_email)
   set(simple_args URL LICENSE LANGUAGE_STANDARD)
-  set(list_args LINKDEFS IMPORTS GENERATE_OPTIONS EXTRA_CODES COMPILE_OPTIONS INCLUDE_DIRS
+  set(list_args LINKDEFS IMPORTS GENERATE_OPTIONS EXTRA_CODES EXTRA_HEADERS COMPILE_OPTIONS INCLUDE_DIRS
     LINK_LIBRARIES H_DIRS H_FILES)
   cmake_parse_arguments(
     ARG
@@ -242,6 +244,13 @@ function(cppyy_add_bindings pkg pkg_version author author_email)
     #
     string(REGEX REPLACE "/+" "/" h_file ${h_file})
     file(APPEND ${out_linkdef} "#pragma link C++ defined_in ${h_file};\n")
+  endforeach(h_file)
+  foreach(h_file IN LISTS ARG_EXTRA_HEADERS)
+    #
+    # Doubled-up path separators "//" causes errors in rootcling.
+    #
+    string(REGEX REPLACE "/+" "/" h_file ${h_file})
+    file(APPEND ${out_linkdef} "#pragma extra_include \"${h_file}\";\n")
   endforeach(h_file)
   #
   # Append any manually-provided linkdef.h content.
