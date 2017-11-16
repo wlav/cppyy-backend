@@ -47,7 +47,12 @@ def rootmapper(pkg_file, cmake_shared_library_prefix, cmake_shared_library_suffi
         # Ignore some names based on heuristics.
         #
         simplename = simplenames[0]
-        if simplename in ('void'):
+        if simplename in ('void', 'sizeof', 'const'):
+            return
+        if simplename[0] in '0123456789':
+            #
+            # Don't attempt to look up numbers (i.e. non-type template parameters).
+            #
             return
         if PRIMITIVE_TYPES.search(simplename):
             return
