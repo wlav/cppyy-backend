@@ -57,7 +57,7 @@ def rootmapper(pkg_file, cmake_shared_library_prefix, cmake_shared_library_suffi
         try:
             entity = getattr(cppyy.gbl, simplename)
         except AttributeError as e:
-            logger.error(_("Unable to lookup {} {}.{}: {}").format(keyword, pkg, simplename, e))
+            logger.error(_("Unable to lookup {} cppyy.gbl.{}").format(keyword, simplename))
             raise
         else:
             if getattr(entity, "__module__", None) == "cppyy.gbl":
