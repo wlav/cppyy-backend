@@ -188,7 +188,8 @@ function(cppyy_add_bindings pkg pkg_version author author_email)
   set(pkg_dir ${CMAKE_CURRENT_BINARY_DIR})
   string(REPLACE "." "/" tmp ${pkg})
   set(pkg_dir "${pkg_dir}/${tmp}")
-  set(pkg_file ${CMAKE_SHARED_LIBRARY_PREFIX}${pkg_simplename}${CMAKE_SHARED_LIBRARY_SUFFIX})
+  set(lib_name "${pkg_namespace}${pkg_simplename}Cppyy")
+  set(lib_file ${CMAKE_SHARED_LIBRARY_PREFIX}${lib_name}${CMAKE_SHARED_LIBRARY_SUFFIX})
   set(cpp_file ${CMAKE_CURRENT_BINARY_DIR}/${pkg_simplename}.cpp)
   set(pcm_file ${pkg_dir}/${pkg_simplename}_rdict.pcm)
   set(rootmap_file ${pkg_dir}/${pkg_simplename}.rootmap)
@@ -303,7 +304,7 @@ function(cppyy_add_bindings pkg pkg_version author author_email)
     #
     list(APPEND cling_args "-m" "${in_pcm}")
   endforeach(in_pcm)
-  list(APPEND cling_args "-rmf" ${rootmap_file} "-rml" ${pkg_file})
+  list(APPEND cling_args "-rmf" ${rootmap_file} "-rml" ${lib_file})
   list(APPEND cling_args "-std=c++${ARG_LANGUAGE_STANDARD}")
   foreach(dir ${ARG_H_DIRS} ${ARG_INCLUDE_DIRS})
     list(APPEND cling_args "-I${dir}")
@@ -321,12 +322,13 @@ function(cppyy_add_bindings pkg pkg_version author author_email)
   #
   # Compile/link.
   #
-  add_library(${pkg_simplename} SHARED ${cpp_file} ${ARG_EXTRA_CODES})
-  set_property(TARGET ${pkg_simplename} PROPERTY CXX_STANDARD ${ARG_LANGUAGE_STANDARD})
-  set_property(TARGET ${pkg_simplename} PROPERTY LIBRARY_OUTPUT_DIRECTORY ${pkg_dir})
-  target_include_directories(${pkg_simplename} PRIVATE ${Cppyy_INCLUDE_DIRS} ${ARG_H_DIRS} ${ARG_INCLUDE_DIRS})
-  target_compile_options(${pkg_simplename} PRIVATE ${ARG_COMPILE_OPTIONS})
-  target_link_libraries(${pkg_simplename} ${ARG_LINK_LIBRARIES})
+  add_library(${lib_name} SHARED ${cpp_file} ${ARG_EXTRA_CODES})
+  set_property(TARGET ${lib_name} PROPERTY VERSION ${version})
+  set_property(TARGET ${lib_name} PROPERTY CXX_STANDARD ${ARG_LANGUAGE_STANDARD})
+  set_property(TARGET ${lib_name} PROPERTY LIBRARY_OUTPUT_DIRECTORY ${pkg_dir})
+  target_include_directories(${lib_name} PRIVATE ${Cppyy_INCLUDE_DIRS} ${ARG_H_DIRS} ${ARG_INCLUDE_DIRS})
+  target_compile_options(${lib_name} PRIVATE ${ARG_COMPILE_OPTIONS})
+  target_link_libraries(${lib_name} ${ARG_LINK_LIBRARIES})
   #
   # Install. NOTE: The generated files contain as few binding-specific strings
   # as possible.
@@ -433,6 +435,6 @@ class Test(object):
   #
   # Return results.
   #
-  set(target ${pkg_simplename} PARENT_SCOPE)
+  set(target ${lib_name} PARENT_SCOPE)
   set(setup_py ${setup_py} PARENT_SCOPE)
 endfunction(cppyy_add_bindings)

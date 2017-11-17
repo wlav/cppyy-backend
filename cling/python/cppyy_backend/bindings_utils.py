@@ -76,7 +76,8 @@ def rootmapper(pkg_file, cmake_shared_library_prefix, cmake_shared_library_suffi
     else:
         pkg = pkg_simplename
     pkg_module = sys.modules[pkg]
-    lib_file = cmake_shared_library_prefix + pkg_simplename + cmake_shared_library_suffix
+    lib_name = pkg_namespace + pkg_simplename + "Cppyy"
+    lib_file = cmake_shared_library_prefix + lib_name + cmake_shared_library_suffix
     #
     # Load the library.
     #
@@ -154,7 +155,8 @@ def setup(pkg_dir, pkg, cmake_shared_library_prefix, cmake_shared_library_suffix
     pkg_simplename = re.findall("[^\.]+$", pkg)[0]
     pkg_namespace = re.sub("\.?" + pkg_simplename, "", pkg)
     pkg_dir = os.path.join(pkg_dir, pkg.replace(".", os.path.sep))
-    pkg_file = cmake_shared_library_prefix + pkg_simplename + cmake_shared_library_suffix
+    lib_name = pkg_namespace + pkg_simplename + "Cppyy"
+    lib_file = cmake_shared_library_prefix + lib_name + cmake_shared_library_suffix
     long_description = """Bindings for {}.
 These bindings are based on https://cppyy.readthedocs.io/en/latest/, and can be
 used as per the documentation provided via the cppyy.cgl namespace. The environment
@@ -234,7 +236,7 @@ available C++ entities using, for example Python 3's command line completion sup
         description='Bindings for ' + pkg,
         long_description=long_description,
         platforms=['any'],
-        package_data={pkg: [pkg_file, pkg_simplename + '.rootmap', pkg_simplename + '_rdict.pcm']},
+        package_data={pkg: [lib_file, pkg_simplename + '.rootmap', pkg_simplename + '_rdict.pcm']},
         packages=[pkg],
         zip_safe=False,
         cmdclass={
