@@ -1,0 +1,14 @@
+--- Scanner.cxx	2017-11-18 12:14:35.039749867 +0000
++++ ./src/core/dictgen/src/Scanner.cxx	2017-11-18 09:22:40.495627219 +0000
+@@ -632,6 +632,11 @@
+        return true;
+    }
+ 
++   // hidden stuff is not part of the bindings.
++   if (recordDecl && (recordDecl->getVisibility() == HiddenVisibility)) {
++       return true;
++   }
++
+    // Never select the class templates themselves.
+    const clang::CXXRecordDecl *cxxdecl = llvm::dyn_cast<clang::CXXRecordDecl>(recordDecl);
+    if (cxxdecl && cxxdecl->getDescribedClassTemplate ()) {
