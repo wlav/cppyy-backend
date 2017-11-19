@@ -6,7 +6,6 @@ from distutils.util import get_platform
 from setuptools.command.build_py import build_py
 from wheel.bdist_wheel import bdist_wheel
 import gettext
-import logging
 import os
 import re
 import setuptools
@@ -16,7 +15,6 @@ import sys
 import cppyy
 
 
-logger = logging.getLogger(__name__)
 gettext.install(__name__)
 
 # Keep PyCharm happy.
@@ -62,7 +60,7 @@ def rootmapper(pkg_file, cmake_shared_library_prefix, cmake_shared_library_suffi
         try:
             entity = getattr(cppyy.gbl, simplename)
         except AttributeError as e:
-            logger.error(_("Unable to lookup {} cppyy.gbl.{}").format(keyword, simplename))
+            print(_("Unable to lookup {} cppyy.gbl.{}").format(keyword, simplename))
             raise
         else:
             if getattr(entity, "__module__", None) == "cppyy.gbl":
