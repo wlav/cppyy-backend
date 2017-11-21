@@ -1,15 +1,36 @@
 """
 Support utilities for bindings.
 """
+import glob
 from distutils.command.clean import clean
 from distutils.util import get_platform
 from setuptools.command.build_py import build_py
 from wheel.bdist_wheel import bdist_wheel
 import gettext
+import inspect
 import os
 import re
 import setuptools
 import sys
+try:
+    #
+    # Python2.
+    #
+    from imp import load_source
+except ImportError:
+    #
+    # Python3.
+    #
+    import importlib.util
+
+    def load_source(module_name, file_path):
+        spec = importlib.util.spec_from_file_location(module_name, file_path)
+        module = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(module)
+        # Optional; only necessary if you want to be able to import the module
+        # by name later.
+        sys.modules[module_name] = module
+        return module
 
 import cppyy
 
@@ -129,6 +150,20 @@ def initialise(pkg, __init__py, cmake_shared_library_prefix, cmake_shared_librar
             for name in names:
                 simplenames = name.split('::')
                 add_to_pkg(keyword, simplenames)
+    #
+    # Load any customisations.
+    #
+    extra_pythons = glob.glob(os.path.join(pkg_dir, "extra_*.py"))
+    for extra_python in extra_pythons:
+        extra_module = os.path.basename(extra_python)
+        extra_module = pkg + "." + os.path.splitext(extra_module)[0]
+        try:
+            extra = load_source(extra_module, extra_python)
+            customisers = inspect.getmembers(extra, predicate=callable)
+            for customiser in customisers:
+                customiser[1](pkg_module)
+        finally:
+            del sys.modules[extra_module]
 
 
 def setup(pkg, setup_py, cmake_shared_library_prefix, cmake_shared_library_suffix, extra_pythons,
@@ -142,6 +177,7 @@ def setup(pkg, setup_py, cmake_shared_library_prefix, cmake_shared_library_suffi
                             ${cmake_shared_library_prefix}
     :param cmake_shared_library_suffix:
                             ${cmake_shared_library_suffix}
+    :param extra_pythons:   Semicolon-separated list of customisation code.
     :param pkg_version:     The version of the bindings.
     :param author:          The name of the library author.
     :param author_email:    The email address of the library author.
@@ -212,6 +248,8 @@ available C++ entities using, for example Python 3's command line completion sup
             bdist_wheel.finalize_options(self)
             self.root_is_pure = True
 
+    package_data = [lib_file, pkg_simplename + '.rootmap', pkg_simplename + '_rdict.pcm']
+    package_data += [ep for ep in extra_pythons.split(";") if ep]
     setuptools.setup(
         name=pkg,
         version=pkg_version,
@@ -222,7 +260,7 @@ available C++ entities using, for example Python 3's command line completion sup
         description='Bindings for ' + pkg,
         long_description=long_description,
         platforms=['any'],
-        package_data={pkg: [lib_file, pkg_simplename + '.rootmap', pkg_simplename + '_rdict.pcm']},
+        package_data={pkg: package_data},
         packages=[pkg],
         zip_safe=False,
         cmdclass={

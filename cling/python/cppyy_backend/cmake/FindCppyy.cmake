@@ -104,32 +104,26 @@ mark_as_advanced(Cppyy_VERSION)
 #   LANGUAGE_STANDARD std
 #                       The version of C++ in use, "14" by default.
 #
-#   LINKDEFS linkdefs   Files or lines which contain custom content
-#                       for the linkdef.h file used by rootcling. See
-#                       https://root.cern.ch/root/html/guides/users-guide/AddingaClass.html#the-linkdef.h-file.
-#
-#                       In lines, literal semi-colons must be escaped: "\;".
-#
 #   IMPORTS pcm         Files which contain previously-generated bindings
 #                       which pkg depends on.
 #
 #   GENERATE_OPTIONS option
 #                       Options which are to be passed into the rootcling
-#                       command. These will typically be similar to the
-#                       options with which the C++ library being bound was
-#                       built with.
-#
-#                       For example, many libraries are built with the
-#                       default visibility of symbols turned down using
-#                       "-fvisibility=hidden".
-#
-#                       For another example, bindings which depend on Qt
+#                       command. For example, bindings which depend on Qt
 #                       may need "-D__PIC__;-Wno-macro-redefined" as per
 #                       https://sft.its.cern.ch/jira/browse/ROOT-8719.
+#
+#   LINKDEFS def        Files or lines which contain extra #pragma content
+#                       for the linkdef.h file used by rootcling. See
+#                       https://root.cern.ch/root/html/guides/users-guide/AddingaClass.html#the-linkdef.h-file.
+#
+#                       In lines, literal semi-colons must be escaped: "\;".
 #
 #   EXTRA_CODES code    Files which contain extra code needed by the bindings.
 #
 #   EXTRA_HEADERS hdr   Files which contain extra headers needed by the bindings.
+#
+#   EXTRA_PYTHONS py    Files which contain extra Python code needed by the bindings.
 #
 #   COMPILE_OPTIONS option
 #                       Options which are to be passed into the compile/link
@@ -180,8 +174,8 @@ mark_as_advanced(Cppyy_VERSION)
 #
 function(cppyy_add_bindings pkg pkg_version author author_email)
   set(simple_args URL LICENSE LANGUAGE_STANDARD)
-  set(list_args LINKDEFS IMPORTS GENERATE_OPTIONS EXTRA_CODES EXTRA_HEADERS COMPILE_OPTIONS INCLUDE_DIRS
-    LINK_LIBRARIES H_DIRS H_FILES)
+  set(list_args IMPORTS GENERATE_OPTIONS COMPILE_OPTIONS INCLUDE_DIRS LINK_LIBRARIES H_DIRS H_FILES
+    LINKDEFS EXTRA_CODES EXTRA_HEADERS EXTRA_PYTHONS)
   cmake_parse_arguments(
     ARG
     ""
@@ -441,6 +435,12 @@ class Test(object):
         for pip in PIPS:
             subprocess.check_call([pip, 'uninstall', '--yes', pkg], cwd=SCRIPT_DIR)
 ")
+  #
+  # Stage extra Python code.
+  #
+  foreach(extra_python IN LISTS ARG_EXTRA_PYTHONS)
+    file(GENERATE OUTPUT ${pkg_dir}/${extra_python} INPUT ${CMAKE_CURRENT_SOURCE_DIR}/${extra_python})
+  endforeach()
   #
   # Return results.
   #
