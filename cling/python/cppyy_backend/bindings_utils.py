@@ -9,7 +9,6 @@ import gettext
 import os
 import re
 import setuptools
-import subprocess
 import sys
 
 import cppyy
@@ -174,12 +173,6 @@ available C++ entities using, for example Python 3's command line completion sup
             #
             # Custom build.
             #
-            cmd = ["make"]
-            if self.dry_run:
-                cmd += ["--dry-run"]
-            if self.verbose:
-                cmd += ["VERBOSE=1"]
-            subprocess.check_call(cmd)
             #
             # Move CMake output to self.build_lib.
             #
@@ -202,12 +195,6 @@ available C++ entities using, for example Python 3's command line completion sup
             # Custom clean.
             # TODO: There is no way to reliably clean the "dist" directory.
             #
-            cmd = ["make", "clean"]
-            if self.dry_run:
-                cmd += ["--dry-run"]
-            if self.verbose:
-                cmd += ["VERBOSE=1"]
-            subprocess.check_call(cmd)
             #
             #  Base clean.
             #
