@@ -137,6 +137,14 @@ mark_as_advanced(Cppyy_VERSION)
 #                       In lines, literal semi-colons must be escaped: "\;".
 #
 #   EXTRA_CODES code    Files which contain extra code needed by the bindings.
+#                       Customisation is by routines named "c13n_<something>";
+#                       each such routine is passed the module for <pkg>:
+#
+#                           def c13n_doit(pkg_module):
+#                               print(pkg_module.__dict__)
+#
+#                       The files and individual routines within files are
+#                       processed in alphabetical order.
 #
 #   EXTRA_HEADERS hdr   Files which contain extra headers needed by the bindings.
 #

@@ -160,9 +160,13 @@ def initialise(pkg, __init__py, cmake_shared_library_prefix, cmake_shared_librar
         extra_module = pkg + "." + os.path.splitext(extra_module)[0]
         try:
             extra = load_source(extra_module, extra_python)
-            customisers = inspect.getmembers(extra, predicate=callable)
-            for customiser in customisers:
-                customiser[1](pkg_module)
+            #
+            # Valid customisations are routines named "c13n_<something>".
+            #
+            fns = inspect.getmembers(extra, predicate=inspect.isroutine)
+            fns = {fn[0]: fn[1] for fn in fns if fn[0].startswith("c13n_")}
+            for fn in sorted(fns):
+                fns[fn](pkg_module)
         finally:
             del sys.modules[extra_module]
 
