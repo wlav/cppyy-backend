@@ -23,16 +23,16 @@ _ = _
 PRIMITIVE_TYPES = re.compile(r"\b(bool|char|short|int|unsigned|long|float|double)\b")
 
 
-def rootmapper(pkg_file, cmake_shared_library_prefix, cmake_shared_library_suffix, pkg_namespace=""):
+def initialise(pkg, __init__py, cmake_shared_library_prefix, cmake_shared_library_suffix):
     """
-    Populate a module with some rootmap'ped bindings.
+    Initialise the bindings module.
 
-    :param pkg_file:        Base Python file of the bindings.
+    :param pkg:             The bindings package.
+    :param __init__py:      Base __init__.py file of the bindings.
     :param cmake_shared_library_prefix:
                             ${cmake_shared_library_prefix}
     :param cmake_shared_library_suffix:
                             ${cmake_shared_library_suffix}
-    :param pkg_namespace:   Any namespace for the bindings.
     """
     def add_to_pkg(keyword, simplenames):
         #
@@ -66,12 +66,11 @@ def rootmapper(pkg_file, cmake_shared_library_prefix, cmake_shared_library_suffi
                 setattr(entity, "__module__", pkg)
             setattr(pkg_module, simplename, entity)
 
-    pkg_dir, pkg_py = os.path.split(pkg_file)
-    pkg_simplename = os.path.basename(pkg_dir)
-    if pkg_namespace:
-        pkg = pkg_namespace + "." + pkg_simplename
+    pkg_dir = os.path.dirname(__init__py)
+    if "." in pkg:
+        pkg_namespace, pkg_simplename = pkg.rsplit(".", 1)
     else:
-        pkg = pkg_simplename
+        pkg_namespace, pkg_simplename = "", pkg
     pkg_module = sys.modules[pkg]
     lib_name = pkg_namespace + pkg_simplename + "Cppyy"
     lib_file = cmake_shared_library_prefix + lib_name + cmake_shared_library_suffix
@@ -132,13 +131,13 @@ def rootmapper(pkg_file, cmake_shared_library_prefix, cmake_shared_library_suffi
                 add_to_pkg(keyword, simplenames)
 
 
-def setup(pkg_dir, pkg, cmake_shared_library_prefix, cmake_shared_library_suffix, pkg_version, author,
-          author_email, url, license):
+def setup(pkg, setup_py, cmake_shared_library_prefix, cmake_shared_library_suffix, extra_pythons,
+          pkg_version, author, author_email, url, license):
     """
     Wrap setuptools.setup for some bindings.
 
-    :param pkg_dir:         Base directory of the bindings.
     :param pkg:             Name of the bindings.
+    :param setup_py:        Base __init__.py file of the bindings.
     :param cmake_shared_library_prefix:
                             ${cmake_shared_library_prefix}
     :param cmake_shared_library_suffix:
@@ -149,9 +148,11 @@ def setup(pkg_dir, pkg, cmake_shared_library_prefix, cmake_shared_library_suffix
     :param url:             The home page for the library.
     :param license:         The license.
     """
-    pkg_simplename = re.findall("[^\.]+$", pkg)[0]
-    pkg_namespace = re.sub("\.?" + pkg_simplename, "", pkg)
-    pkg_dir = os.path.join(pkg_dir, pkg.replace(".", os.path.sep))
+    pkg_dir = os.path.dirname(setup_py)
+    if "." in pkg:
+        pkg_namespace, pkg_simplename = pkg.rsplit(".", 1)
+    else:
+        pkg_namespace, pkg_simplename = "", pkg
     lib_name = pkg_namespace + pkg_simplename + "Cppyy"
     lib_file = cmake_shared_library_prefix + lib_name + cmake_shared_library_suffix
     long_description = """Bindings for {}.
@@ -187,7 +188,7 @@ available C++ entities using, for example Python 3's command line completion sup
                     f.write("__path__ = __import__('pkgutil').extend_path(__path__, __name__)\n")
                 self.copy_file(namespace_init, os.path.join(self.build_lib, namespace_init))
             for f in self.package_data[pkg]:
-                self.copy_file(os.path.join(pkg_subdir, f), os.path.join(self.build_lib, pkg_subdir, f))
+                self.copy_file(os.path.join(pkg_dir, pkg_subdir, f), os.path.join(self.build_lib, pkg_subdir, f))
 
     class my_clean(clean):
         def run(self):

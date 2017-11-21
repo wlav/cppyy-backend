@@ -115,7 +115,15 @@ mark_as_advanced(Cppyy_VERSION)
 #
 #   GENERATE_OPTIONS option
 #                       Options which are to be passed into the rootcling
-#                       command. For example, bindings which depend on Qt
+#                       command. These will typically be similar to the
+#                       options with which the C++ library being bound was
+#                       built with.
+#
+#                       For example, many libraries are built with the
+#                       default visibility of symbols turned down using
+#                       "-fvisibility=hidden".
+#
+#                       For another example, bindings which depend on Qt
 #                       may need "-D__PIC__;-Wno-macro-redefined" as per
 #                       https://sft.its.cern.ch/jira/browse/ROOT-8719.
 #
@@ -337,18 +345,17 @@ function(cppyy_add_bindings pkg pkg_version author author_email)
     GENERATE OUTPUT "${pkg_dir}/__init__.py"
     CONTENT "from cppyy_backend import bindings_utils
 
-bindings_utils.rootmapper(__file__, '${CMAKE_SHARED_LIBRARY_PREFIX}', '${CMAKE_SHARED_LIBRARY_SUFFIX}', '${pkg_namespace}')
+bindings_utils.initialise('${pkg}', __file__, '${CMAKE_SHARED_LIBRARY_PREFIX}', '${CMAKE_SHARED_LIBRARY_SUFFIX}')
 del bindings_utils
 ")
   set(setup_py ${CMAKE_CURRENT_BINARY_DIR}/setup.py)
-  file(WRITE ${setup_py} "import os
+  file(
+    GENERATE OUTPUT ${setup_py}
+    CONTENT "from cppyy_backend import bindings_utils
 
-from cppyy_backend import bindings_utils
 
-
-pkg_dir = os.path.dirname(__file__)
-pkg = '${pkg}'
-bindings_utils.setup(pkg_dir, pkg, '${CMAKE_SHARED_LIBRARY_PREFIX}', '${CMAKE_SHARED_LIBRARY_SUFFIX}',
+bindings_utils.setup('${pkg}', __file__, '${CMAKE_SHARED_LIBRARY_PREFIX}', '${CMAKE_SHARED_LIBRARY_SUFFIX}',
+                     '${ARG_EXTRA_PYTHONS}',
                      '${pkg_version}', '${author}', '${author_email}', '${ARG_URL}', '${ARG_LICENSE}')
 ")
   set(setup_cfg ${CMAKE_CURRENT_BINARY_DIR}/setup.cfg)
@@ -358,7 +365,9 @@ universal=1
   #
   # Generate a pytest/nosetest sanity test script.
   #
-  file(WRITE ${CMAKE_CURRENT_BINARY_DIR}/test.py "# pytest/nosetest sanity test script.
+  file(
+    GENERATE OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/test.py
+    CONTENT "# pytest/nosetest sanity test script.
 import logging
 import os
 import pydoc
