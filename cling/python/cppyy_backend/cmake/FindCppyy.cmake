@@ -53,7 +53,10 @@ FIND_PACKAGE_HANDLE_STANDARD_ARGS(
 mark_as_advanced(Cppyy_VERSION)
 
 #
-# Generate a set of bindings from a set of header files.
+# Generate a set of bindings from a set of header files. Somewhat like CMake's
+# add_library(), the output is a compiler target. In addition ancilliary files
+# are also generated to allow a complete set of bindings to be compiled,
+# packaged and installed.
 #
 #   cppyy_add_bindings(
 #       pkg
@@ -73,9 +76,9 @@ mark_as_advanced(Cppyy_VERSION)
 #       H_FILES h_file...)
 #
 # The bindings are based on https://cppyy.readthedocs.io/en/latest/, and can be
-# used as per the documentation provided via the cppyy.cgl namespace. The
-# environment variable LD_LIBRARY_PATH must contain the path of the <pkg>.rootmap
-# file. Use "import cppyy; from cppyy.gbl import <some-C++-entity>".
+# used as per the documentation provided via the cppyy.cgl namespace. First add
+# the directory of the <pkg>.rootmap file to the LD_LIBRARY_PATH environment
+# variable, then "import cppyy; from cppyy.gbl import <some-C++-entity>".
 #
 # Alternatively, use "import <pkg>". This convenience wrapper supports
 # "discovery" of the available C++ entities using, for example Python 3's command
@@ -83,6 +86,20 @@ mark_as_advanced(Cppyy_VERSION)
 #
 # The bindings are complete with a setup.py, supporting both Wheel and Egg-based
 # packaging, and a test.py supporting pytest/nosetest sanity test of the bindings.
+#
+# The bindings are generated/built/packaged using 3 environments:
+#
+#   - One compatible with the header files being bound. This is used to
+#     generate the generic C++ binding code (and some ancilliary files) using
+#     a modified C++ compiler. The needed options must be compatible with the
+#     normal build environment of the header files.
+#
+#   - One to compile the generated, generic C++ binding code using a standard
+#     C++ compiler. The resulting library code is "universal" in that it is
+#     compatible with both Python2 and Python3.
+#
+#   - One to package the library and ancilliary files into standard Python2/3
+#     wheel/egg format. The packaging is done using native Python tooling.
 #
 # Arguments and options:
 #
@@ -368,10 +385,12 @@ import pydoc
 import subprocess
 import sys
 
+from cppyy_backend import bindings_utils
+
 
 SCRIPT_DIR = os.path.dirname(__file__)
 pkg = '${pkg}'
-PIPS = {}
+PIPS = None
 
 
 class Test(object):
@@ -385,31 +404,8 @@ class Test(object):
             logging.basicConfig(level=logging.DEBUG, format='%(asctime)s %(name)s %(levelname)s: %(message)s')
         else:
             logging.basicConfig(level=logging.INFO, format='%(levelname)s: %(message)s')
-        #
-        # What pip version do we have, and what Python versions do they support?
-        # The command 'pip -V' returns a string of the form:
-        #
-        #   pip 9.0.1 from /usr/lib/python2.7/dist-packages (python 2.7)
-        #
-        possible_pips = ['pip', 'pip2', 'pip3']
         global PIPS
-        for pip in possible_pips:
-            try:
-                version = subprocess.check_output([pip, '-V'], cwd=SCRIPT_DIR)
-            except subprocess.CalledProcessError:
-                pass
-            else:
-                #
-                # All pip variants that map onto a given Python version are de-duped.
-                #
-                version = version.rsplit('(', 1)[-1]
-                version = version.split()[-1]
-                PIPS[version] = pip
-        #
-        # We want the pip names as the key.
-        #
-        PIPS = {v: k for k, v in PIPS.items()}
-        assert len(PIPS), 'No viable pip versions found'
+        PIPS = bindings_utils.find_pips()
 
     @classmethod
     def teardown_class(klass):
@@ -423,7 +419,7 @@ class Test(object):
 
     def test_install(self):
         for pip in PIPS:
-            subprocess.check_call([pip, 'install', '--force-reinstall', '.'], cwd=SCRIPT_DIR)
+            subprocess.check_call([pip, 'install', '--force-reinstall', '--pre', '.'], cwd=SCRIPT_DIR)
 
     def test_import(self):
         __import__(pkg)
@@ -447,3 +443,19 @@ class Test(object):
   set(target ${lib_name} PARENT_SCOPE)
   set(setup_py ${setup_py} PARENT_SCOPE)
 endfunction(cppyy_add_bindings)
+
+#
+# Return a list of available pip programs.
+#
+function(cppyy_find_pips)
+  execute_process(
+    COMMAND python -c "from cppyy_backend import bindings_utils; print(\";\".join(bindings_utils.find_pips()))"
+    OUTPUT_VARIABLE _stdout
+    ERROR_VARIABLE _stderr
+    RESULT_VARIABLE _rc
+    OUTPUT_STRIP_TRAILING_WHITESPACE)
+  if(NOT "${_rc}" STREQUAL "0")
+    message(FATAL_ERROR "Error finding pips: (${_rc}) ${_stderr}")
+  endif()
+  set(PIP_EXECUTABLES ${_stdout} PARENT_SCOPE)
+endfunction(cppyy_find_pips)

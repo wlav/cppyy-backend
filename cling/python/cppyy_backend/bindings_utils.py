@@ -11,6 +11,7 @@ import inspect
 import os
 import re
 import setuptools
+import subprocess
 import sys
 try:
     #
@@ -269,3 +270,35 @@ available C++ entities using, for example Python 3's command line completion sup
             'bdist_wheel': my_bdist_wheel,
         },
     )
+
+
+def find_pips():
+    """
+    What pip versions do we have?
+
+    :return: [pip_program]
+    """
+    possible_pips = ['pip', 'pip2', 'pip3']
+    pips = {}
+    for pip in possible_pips:
+        try:
+            #
+            # The command 'pip -V' returns a string of the form:
+            #
+            #   pip 9.0.1 from /usr/lib/python2.7/dist-packages (python 2.7)
+            #
+            version = subprocess.check_output([pip, '-V'])
+        except subprocess.CalledProcessError:
+            pass
+        else:
+            version = version.rsplit('(', 1)[-1]
+            version = version.split()[-1]
+            #
+            # All pip variants that map onto a given Python version are de-duped.
+            #
+            pips[version] = pip
+    #
+    # We want the pip names.
+    #
+    assert len(pips), 'No viable pip versions found'
+    return pips.values()
