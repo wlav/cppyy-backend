@@ -158,17 +158,18 @@ def initialise(pkg, __init__py, cmake_shared_library_prefix, cmake_shared_librar
     for extra_python in extra_pythons:
         extra_module = os.path.basename(extra_python)
         extra_module = pkg + "." + os.path.splitext(extra_module)[0]
-        try:
-            extra = load_source(extra_module, extra_python)
-            #
-            # Valid customisations are routines named "c13n_<something>".
-            #
-            fns = inspect.getmembers(extra, predicate=inspect.isroutine)
-            fns = {fn[0]: fn[1] for fn in fns if fn[0].startswith("c13n_")}
-            for fn in sorted(fns):
-                fns[fn](pkg_module)
-        finally:
-            del sys.modules[extra_module]
+        #
+        # Deleting the modules after use runs the risk of GC running on
+        # stuff we are using, such as ctypes.c_int.
+        #
+        extra = load_source(extra_module, extra_python)
+        #
+        # Valid customisations are routines named "c13n_<something>".
+        #
+        fns = inspect.getmembers(extra, predicate=inspect.isroutine)
+        fns = {fn[0]: fn[1] for fn in fns if fn[0].startswith("c13n_")}
+        for fn in sorted(fns):
+            fns[fn](pkg_module)
 
 
 def setup(pkg, setup_py, cmake_shared_library_prefix, cmake_shared_library_suffix, extra_pythons,
