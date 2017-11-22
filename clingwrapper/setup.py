@@ -123,7 +123,7 @@ setup(
     author='PyPy Developers',
     author_email='pypy-dev@python.org',
 
-    version='0.3.5',
+    version='0.4.0',
 
     license='LBNL BSD',
 

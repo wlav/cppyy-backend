@@ -13,6 +13,7 @@
 #include "TDataMember.h"
 #include "TDataType.h"
 #include "TEnum.h"
+#include "TEnv.h"
 #include "TError.h"
 #include "TFunction.h"
 #include "TFunctionTemplate.h"
@@ -98,7 +99,9 @@ public:
             "auto_ptr", "shared_ptr", "unique_ptr", "weak_ptr",
             "vector", "list", "forward_list", "deque", "map", "multimap",
             "set", "multiset", "unordered_set", "unordered_multiset",
-            "unordered_map", "unordered_multimap"};
+            "unordered_map", "unordered_multimap",
+            "iterator", "reverse_iterator", "basic_string",
+            "complex", "valarray"};
         for (auto& name : stl_names)
             gSTLNames.insert(name);
     }
@@ -162,10 +165,22 @@ bool match_name(const std::string& tname, const std::string fname)
 static inline
 bool is_stl(const std::string& name)
 {
+    std::string w = name;
+    if (w.compare(0, 5, "std::") == 0)
+        w = w.substr(5, std::string::npos);
+    std::string::size_type pos = name.find('<');
+    if (pos != std::string::npos)
+        w = w.substr(0, pos);
+    return gSTLNames.find(w) != gSTLNames.end();
+}
+
+static inline
+bool is_missclassified_stl(const std::string& name)
+{
     std::string::size_type pos = name.find('<');
     if (pos != std::string::npos)
         return gSTLNames.find(name.substr(0, pos)) != gSTLNames.end();
-    return false;
+    return gSTLNames.find(name) != gSTLNames.end();
 }
 
 
@@ -667,6 +682,26 @@ std::string outer_no_template(const std::string& name)
             cppnames.insert(nm);                                              \
     }}
 
+static inline
+void cond_add(Cppyy::TCppScope_t scope, const std::string& ns_scope,
+    std::set<std::string>& cppnames, const char* name)
+{
+    if (!name || name[0] == '_' || strstr(name, ".h") != 0 || strncmp(name, "operator", 8) == 0)
+        return;
+
+    if (scope == GLOBAL_HANDLE) {
+        if (!is_missclassified_stl(name))
+            cppnames.insert(outer_no_template(name));
+    } else if (scope == STD_HANDLE) {
+        if (strncmp(name, "std::", 5) == 0) name += 5;
+        else if (!is_missclassified_stl(name)) return;
+        cppnames.insert(outer_no_template(name));
+    } else {
+        if (strncmp(name, ns_scope.c_str(), ns_scope.size()) == 0)
+            cppnames.insert(outer_with_template(name + ns_scope.size()));
+    }
+}
+
 void Cppyy::GetAllCppNames(TCppScope_t scope, std::set<std::string>& cppnames)
 {
 // Collect all known names of C++ entities under scope. This is useful for IDEs
@@ -680,42 +715,31 @@ void Cppyy::GetAllCppNames(TCppScope_t scope, std::set<std::string>& cppnames)
     std::string ns_scope = GetFinalName(scope);
     if (scope != GLOBAL_HANDLE) ns_scope += "::";
 
-// add subscopes (these may be namespaces)
-    gClassTable->Init();
-    const int N = gClassTable->Classes();
-    if (scope == GLOBAL_HANDLE) {
-        for (int i = 0; i < N; ++i)
-            cppnames.insert(outer_no_template(gClassTable->Next()));
-    } else if (scope == STD_HANDLE) {
-        for (int i = 0; i < N; ++i) {
-            char* cname = gClassTable->Next();
-            if (strncmp(cname, "std::", 5) == 0)
-                cppnames.insert(outer_no_template(cname+5));
-        }
-    } else {
-        for (int i = 0; i < N; ++i) {
-            char* cname = gClassTable->Next();
-            if (strncmp(cname, ns_scope.c_str(), ns_scope.size()) == 0)
-                cppnames.insert(outer_with_template(cname+ns_scope.size()));
-        }
+// add existing values from read rootmap files if within this scope
+    TCollection* coll = gInterpreter->GetMapfile()->GetTable();
+    {
+        TIter itr{coll};
+        TEnvRec* ev = nullptr;
+        while ((ev = (TEnvRec*)itr.Next()))
+            cond_add(scope, ns_scope, cppnames, ev->GetName());
     }
 
-// add typedefs
-    TCollection* coll = gROOT->GetListOfTypes();
+// do we care about the class table or are the rootmap and list of types enough?
+/*
+    gClassTable->Init();
+    const int N = gClassTable->Classes();
+    for (int i = 0; i < N; ++i)
+        cond_add(scope, ns_scope, cppnames, gClassTable->Next());
+*/
+
+// any other types (e.g. that may have come from parsing headers)
+    coll = gROOT->GetListOfTypes();
     {
         TIter itr{coll};
         TDataType* dt = nullptr;
         while ((dt = (TDataType*)itr.Next())) {
-            const char* dtname = dt->GetName();
-            if (scope == GLOBAL_HANDLE) {
-                cppnames.insert(outer_no_template(dtname));
-            } else if (scope == STD_HANDLE) {
-                if (strncmp(dtname, "std::", 5) == 0)
-                    cppnames.insert(outer_no_template(dtname+5));
-            } else {
-                if (strncmp(dtname, ns_scope.c_str(), ns_scope.size()) == 0)
-                    cppnames.insert(outer_with_template(dtname+ns_scope.size()));
-            }
+            if (!(dt->Property() & kIsFundamental))
+                cond_add(scope, ns_scope, cppnames, dt->GetName());
         }
     }
 
@@ -774,7 +798,7 @@ std::string Cppyy::GetScopedFinalName(TCppType_t klass)
     TClassRef& cr = type_from_handle(klass);
     if (cr.GetClass()) {
         std::string name = cr->GetName();
-        if (is_stl(name) && name.compare(0, 5, "std::") != 0)
+        if (is_missclassified_stl(name))
             return std::string("std::")+cr->GetName();
         return cr->GetName();
     }
@@ -897,7 +921,7 @@ Cppyy::TCppIndex_t Cppyy::GetNumMethods(TCppScope_t scope)
             std::string clName = GetScopedFinalName(scope);
             if (clName.find('<') != std::string::npos) {
             // chicken-and-egg problem: TClass does not know about methods until instantiation: force it
-                if (TClass::GetClass( ("std::"+clName).c_str()))
+                if (TClass::GetClass(("std::"+clName).c_str()))
                     clName = "std::" + clName;
                 std::ostringstream stmt;
                 stmt << "template class " << clName << ";";
