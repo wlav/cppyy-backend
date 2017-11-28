@@ -220,6 +220,7 @@ function(cppyy_add_bindings pkg pkg_version author author_email)
   set(cpp_file ${CMAKE_CURRENT_BINARY_DIR}/${pkg_simplename}.cpp)
   set(pcm_file ${pkg_dir}/${pkg_simplename}_rdict.pcm)
   set(rootmap_file ${pkg_dir}/${pkg_simplename}.rootmap)
+  set(extra_map_file ${pkg_dir}/${pkg_simplename}.map)
   #
   # Package metadata.
   #
@@ -320,36 +321,54 @@ function(cppyy_add_bindings pkg pkg_version author author_email)
     endif()
   endforeach(arg)
   #
+  # Set up args.
+  #
+  list(APPEND ARG_GENERATE_OPTIONS "-std=c++${ARG_LANGUAGE_STANDARD}")
+  foreach(dir ${ARG_H_DIRS} ${ARG_INCLUDE_DIRS})
+    list(APPEND ARG_GENERATE_OPTIONS "-I${dir}")
+  endforeach(dir)
+  #
+  # Run generator. First check dependencies. TODO: temporary hack: rather
+  # than an external dependency, enable libclang in the local build.
+  #
+  find_package(LibClang REQUIRED)
+  get_filename_component(Cppyygen_EXECUTABLE ${Cppyy_EXECUTABLE} DIRECTORY)
+  set(Cppyygen_EXECUTABLE ${Cppyygen_EXECUTABLE}/cppyy-generator)
+  #
+  # Set up arguments for cppyy-generator.
+  #
+  set(generator_args)
+  foreach(arg IN LISTS ARG_GENERATE_OPTIONS)
+    string(REGEX REPLACE "^-" "\\\\-" arg ${arg})
+    list(APPEND generator_args ${arg})
+  endforeach()
+  #
   # Set up arguments for rootcling.
   #
   set(cling_args)
   list(APPEND cling_args "-f" ${cpp_file})
   list(APPEND cling_args "-s" ${pkg_simplename})
+  list(APPEND cling_args "-rmf" ${rootmap_file} "-rml" ${lib_file})
   foreach(in_pcm IN LISTS ARG_IMPORTS)
     #
     # Create -m options for any imported .pcm files.
     #
     list(APPEND cling_args "-m" "${in_pcm}")
   endforeach(in_pcm)
-  list(APPEND cling_args "-rmf" ${rootmap_file} "-rml" ${lib_file})
-  list(APPEND cling_args "-std=c++${ARG_LANGUAGE_STANDARD}")
-  foreach(dir ${ARG_H_DIRS} ${ARG_INCLUDE_DIRS})
-    list(APPEND cling_args "-I${dir}")
-  endforeach(dir)
   list(APPEND cling_args "${ARG_GENERATE_OPTIONS}")
-  list(APPEND cling_args "${ARG_H_FILES}")
-  list(APPEND cling_args ${out_linkdef})
   #
   # Run rootcling, specifying the generated output.
   #
   file(MAKE_DIRECTORY ${pkg_dir})
+  add_custom_command(OUTPUT ${extra_map_file}
+    COMMAND ${LibClang_PYTHON_EXECUTABLE} ${Cppyygen_EXECUTABLE} --flags "\"${generator_args}\""
+    ${extra_map_file} ${ARG_H_FILES} WORKING_DIRECTORY ${pkg_dir})
   add_custom_command(OUTPUT ${cpp_file} ${pcm_file} ${rootmap_file}
-                     COMMAND ${Cppyy_EXECUTABLE} ${cling_args}
-                     WORKING_DIRECTORY ${pkg_dir})
+    COMMAND ${Cppyy_EXECUTABLE} ${cling_args} ${ARG_H_FILES} ${out_linkdef} WORKING_DIRECTORY ${pkg_dir})
   #
   # Compile/link.
   #
-  add_library(${lib_name} SHARED ${cpp_file} ${ARG_EXTRA_CODES})
+  add_library(${lib_name} SHARED ${cpp_file} ${pcm_file} ${rootmap_file} ${extra_map_file} ${ARG_EXTRA_CODES})
   set_property(TARGET ${lib_name} PROPERTY VERSION ${version})
   set_property(TARGET ${lib_name} PROPERTY CXX_STANDARD ${ARG_LANGUAGE_STANDARD})
   set_property(TARGET ${lib_name} PROPERTY LIBRARY_OUTPUT_DIRECTORY ${pkg_dir})
