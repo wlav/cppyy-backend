@@ -437,8 +437,6 @@ class CppyyGenerator(object):
         :param is_signal:           Is this a Qt signal?
         :return:                    A string.
         """
-        if fn.spelling.startswith("operator"):
-            pass
         info = Info("function", fn)
         parameters_fixup(level, info, "name")
         if fn.kind not in [CursorKind.CONSTRUCTOR, CursorKind.DESTRUCTOR]:
@@ -698,7 +696,7 @@ def main(argv=None):
         g = CppyyGenerator(flags, verbose=args.verbose)
         mapping = g.create_mapping(args.sources)
         with open(args.output, "w") as f:
-            json.dump(mapping, f, indent=4, sort_keys=True)
+            json.dump(mapping, f, indent=1, sort_keys=True)
         return 0
     except Exception as e:
         tbk = traceback.format_exc()

@@ -2,6 +2,7 @@
 Support utilities for bindings.
 """
 import glob
+import json
 from distutils.command.clean import clean
 from distutils.util import get_platform
 from setuptools.command.build_py import build_py
@@ -96,61 +97,26 @@ def initialise(pkg, __init__py, cmake_shared_library_prefix, cmake_shared_librar
     pkg_module = sys.modules[pkg]
     lib_name = pkg_namespace + pkg_simplename + "Cppyy"
     lib_file = cmake_shared_library_prefix + lib_name + cmake_shared_library_suffix
+    map_file = os.path.join(pkg_dir, pkg_simplename + ".map")
     #
     # Load the library.
     #
     cppyy.load_reflection_info(os.path.join(pkg_dir, lib_file))
     #
-    # Parse the rootmap file.
+    # Parse the map file.
     #
-    rootmap = os.path.join(pkg_dir, pkg_simplename + ".rootmap")
-    with open(rootmap, 'rU') as rootmap:
-        #
-        # "decls" part.
-        #
-        for line in rootmap:
-            if line.startswith('['):
-                #
-                # We found the start of the [pkg_simplename] section.
-                #
-                break
-            #
-            # Examples of syntax:
-            #
-            #   namespace KActivities {  }
-            #   namespace KActivities { namespace Stats { namespace Terms {  } } }
-            #   namespace Akonadi { namespace NoteUtils { class Attachment; } }
-            #   namespace BluezQt { template <typename T> class Request; }
-            #   template <typename T> class QTypeInfo;
-            #
-            # Nothing in this section describes anything defined_in the code,
-            # or that we care about.
-            #
-            pass
-        #
-        # [pkg_simplename] part. This is the list of things defined_in the code.
-        #
-        for line in rootmap:
-            line = line.strip().split(None, 1)
-            if len(line) < 2:
+    with open(map_file, 'rU') as map_file:
+        files = json.load(map_file)
+    #
+    # Iterate over all the items at the top level of each file, and add them
+    # to the pkg.
+    #
+    for file in files:
+        for child in file["children"]:
+            if not child["kind"] in ('class', 'var', 'namespace', 'typedef'):
                 continue
-            #
-            # Examples of syntax:
-            #
-            #   class KXMLGUIClient::StateChange
-            #   var KKeyServer
-            #   namespace KUndoActions
-            #   typedef KTextEditor
-            #   header kactioncollection.h
-            #
-            keyword, names = line
-            if not keyword in ('class', 'var', 'namespace', 'typedef'):
-                continue
-            names = re.split("[<>(),\s&*]+", names)
-            names = [name for name in names if name]
-            for name in names:
-                simplenames = name.split('::')
-                add_to_pkg(keyword, simplenames)
+            simplenames = child["name"].split('::')
+            add_to_pkg(child["kind"], simplenames)
     #
     # Load any customisations.
     #
@@ -254,7 +220,7 @@ available C++ entities using, for example Python 3's command line completion sup
             bdist_wheel.finalize_options(self)
             self.root_is_pure = True
 
-    package_data = [lib_file, pkg_simplename + '.rootmap', pkg_simplename + '_rdict.pcm']
+    package_data = [lib_file, pkg_simplename + '.rootmap', pkg_simplename + '_rdict.pcm', pkg_simplename + ".map"]
     package_data += [ep for ep in extra_pythons.split(";") if ep]
     setuptools.setup(
         name=pkg,
