@@ -77,7 +77,9 @@ class SourceProcessor(object):
     def unpreprocessed(self, extent, nl=" "):
         """
         Read the given range from the raw source.
+
         :param extent:              The range of text required.
+        :param nl:                  What \n should be replaced by.
         """
         assert self.source, "Must call compile() first!"
         if not self.unpreprocessed_source:
@@ -156,6 +158,8 @@ def parameters_fixup(level, sip, key):
     """
     Clang seems to replace template parameter N of the form "T" with
     "type-parameter-<depth>-N"...so we need to put "T" back.
+
+    :param level:               Template nesting level.
     :param sip:                 The sip.
     :param key:                 The key in the sip which may need
                                 fixing up.
@@ -320,7 +324,7 @@ class CppyyGenerator(object):
                 child_info = self._enum_get(container, child, level.append(container))
                 children.append(child_info)
             elif child.kind == CursorKind.CXX_ACCESS_SPEC_DECL:
-                is_signal = self._get_access_specifier(child, level.append(container))
+                is_signal = self._get_access_specifier(child)
             elif child.kind == CursorKind.TYPEDEF_DECL:
                 child_info = self.typedef_decl(container, child, level + [container], h_file)
                 #
@@ -333,16 +337,16 @@ class CppyyGenerator(object):
                     assert children[-1] == child_info["type"]
                     children.pop()
                 children.append(child_info)
-            elif child.kind in [CursorKind.NAMESPACE, CursorKind.CLASS_DECL,
-                                 CursorKind.CLASS_TEMPLATE, CursorKind.CLASS_TEMPLATE_PARTIAL_SPECIALIZATION,
-                                 CursorKind.STRUCT_DECL, CursorKind.UNION_DECL]:
+            elif child.kind in [CursorKind.NAMESPACE, CursorKind.CLASS_DECL, CursorKind.CLASS_TEMPLATE,
+                                CursorKind.CLASS_TEMPLATE_PARTIAL_SPECIALIZATION, CursorKind.STRUCT_DECL,
+                                CursorKind.UNION_DECL]:
                 child_info = self._container_get(child, level + [container], h_file)
                 children.append(child_info)
             elif child.kind in [CursorKind.FIELD_DECL]:
-                child_info = self._var_get("field", child, level + [container], h_file)
+                child_info = self._var_get("field", child, level + [container])
                 children.append(child_info)
             elif child.kind in [CursorKind.VAR_DECL]:
-                child_info = self._var_get("variable", child, level + [container], h_file)
+                child_info = self._var_get("variable", child, level + [container])
                 children.append(child_info)
             elif child.kind in [CursorKind.TEMPLATE_TYPE_PARAMETER, CursorKind.TEMPLATE_NON_TYPE_PARAMETER,
                                 CursorKind.TEMPLATE_TEMPLATE_PARAMETER]:
@@ -390,7 +394,7 @@ class CppyyGenerator(object):
                 logger.info(_("Processing {}").format(item_describe(child)))
         return info
 
-    def _get_access_specifier(self, member, level):
+    def _get_access_specifier(self, member):
         """
         In principle, we just want member.access_specifier.name.lower(), except that we need to handle:
 
@@ -468,7 +472,7 @@ class CppyyGenerator(object):
 
     QUALIFIED_ID = re.compile("(?:[a-z_][a-z_0-9]*::)*([a-z_][a-z_0-9]*)", re.I)
 
-    def _fn_get_parameter(self, function, parameter):
+    def _fn_get_parameter(self, fn, parameter):
         """
         The parser does not seem to provide access to the complete text of a parameter.
         This makes it hard to find any default values, so we:
@@ -477,109 +481,6 @@ class CppyyGenerator(object):
             or a ")" marking the end.
             2. Watch for the assignment.
         """
-        def decompose_arg(arg, spellings):
-            template, args = utils.decompose_template(arg)
-            spellings.append(template)
-            if args is not None:
-                for arg in args:
-                    decompose_arg(arg, spellings)
-
-        def _get_param_type(parameter):
-            q_flags_enum = None
-            canonical = underlying = parameter.type
-            spellings = []
-            while underlying:
-                prefixes, name, operators, suffixes, next = underlying.decomposition()
-                name, args = utils.decompose_template(name)
-                #
-                # We want the name (or name part of the template), plus any template parameters to deal with:
-                #
-                #  QList<KDGantt::Constraint> &constraints = QList<Constraint>()
-                #
-                spellings.append(name)
-                if args is not None:
-                    for arg in args:
-                        decompose_arg(arg, spellings)
-                    if name == QFLAGS:
-                        #
-                        # The name of the enum.
-                        #
-                        q_flags_enum = args[0]
-                        return spellings, q_flags_enum, underlying
-                canonical = underlying
-                underlying = next
-            return spellings, q_flags_enum, canonical.get_canonical()
-
-        def _get_param_value(text, parameter):
-
-            def mangler_enum(spellings, rhs, fqn):
-                #
-                # Is rhs the suffix of any of the typedefs?
-                #
-                for spelling in spellings[:-1]:
-                    name, args = utils.decompose_template(spelling)
-                    if name.endswith(rhs):
-                        return name
-                prefix = spellings[-1].rsplit("::", 1)[0] + "::"
-                return prefix + rhs
-
-            def mangler_other(spellings, rhs, fqn):
-                #
-                # Is rhs the suffix of any of the typedefs?
-                #
-                for spelling in spellings:
-                    name, args = utils.decompose_template(spelling)
-                    if name.endswith(rhs):
-                        return name
-                return fqn
-
-            if text in ["", "0", "nullptr", Q_NULLPTR]:
-                return text
-            spellings, q_flags_enum, canonical_t = _get_param_type(parameter)
-            if text == "{}":
-                if q_flags_enum or canonical_t.kind == TypeKind.ENUM:
-                    return "0"
-                if canonical_t.kind == TypeKind.POINTER:
-                    return "nullptr"
-                #
-                # TODO: return the lowest or highest type?
-                #
-                return spellings[-1] + "()"
-            #
-            # SIP wants things fully qualified. Without creating a full AST, we can only hope to cover the common
-            # cases:
-            #
-            #   - Enums may come as a single value or an or'd list:
-            #
-            #       Input                       Output
-            #       -----                       ------
-            #       Option1                     parents::Option1
-            #       Flag1|Flag3                 parents::Flag1|parents::Flag3
-            #       FlagsType(Flag1|Flag3)      parents::FlagsType(parents::Flag1|parents::Flag3)
-            #       LookUpMode(exactOnly) | defaultOnly
-            #                                   parents::LookUpMode(parents::exactOnly) | parents::defaultOnly
-            #
-            #     So, prefix any identifier with the prefix of the enum.
-            #
-            #   - For other cases, if any (qualified) id in the default value matches the RHS of the parameter
-            #     type, use the parameter type.
-            #
-            if q_flags_enum or canonical_t.kind == TypeKind.ENUM:
-                mangler = mangler_enum
-            else:
-                mangler = mangler_other
-            tmp = ""
-            match = CppyyGenerator.QUALIFIED_ID.search(text)
-            while match:
-                tmp += match.string[:match.start()]
-                rhs = match.group(1)
-                fqn = match.group()
-                tmp += mangler(spellings, rhs, fqn)
-                text = text[match.end():]
-                match = CppyyGenerator.QUALIFIED_ID.search(text)
-            tmp += text
-            return tmp
-
         info = Info("parameter", parameter)
         info["type"] = parameter.type.spelling
         for member in parameter.get_children():
@@ -588,7 +489,7 @@ class CppyyGenerator(object):
                 # Get the text after the "=". Macro expansion can make relying on tokens fraught...and
                 # member.get_tokens() simply does not always return anything.
                 #
-                possible_extent = SourceRange.from_locations(parameter.extent.start, function.extent.end)
+                possible_extent = SourceRange.from_locations(parameter.extent.start, fn.extent.end)
                 text = ""
                 bracket_level = 0
                 found_start = False
@@ -614,7 +515,7 @@ class CppyyGenerator(object):
                         text += token.spelling
                         was_punctuated = token.kind == TokenKind.PUNCTUATION
                 if not found_end and text:
-                    raise RuntimeError(_("No end found for {}::{}, '{}'").format(function.spelling, parameter.spelling,
+                    raise RuntimeError(_("No end found for {}::{}, '{}'").format(fn.spelling, parameter.spelling,
                                                                                  text))
                 info["default"] = text
         return info
@@ -708,14 +609,13 @@ class CppyyGenerator(object):
                 CppyyGenerator._report_ignoring(child, "unusable")
         return info
 
-    def _var_get(self, tag, parent, level, h_file):
+    def _var_get(self, tag, parent, level):
         """
         Generate the translation for a type.
 
         :param tag:                 "typedef", "variable" etc.
         :param parent:              The typed object.
         :param level:               Recursion level controls indentation.
-        :param h_file:              The source header file of interest.
         :return:                    Info().
         """
         info = Info(tag, parent)
@@ -745,7 +645,7 @@ def main(argv=None):
         QT5=$INC/x86_64-linux-gnu/qt5
         KF5=$INC/KF5
         FLAGS="\\\\-I$QT5;\\\\-I$QT5/QtCore;\\\\-I$KF5/kjs;\\\\-I$KF5/wtf"
-        cppyy-generator --flags="$FLAGS" /usr/lib/x86_64-linux-gnu/libclang-3.9.so PyKF5 $KF5/kjs/kjsinterpreter.h tmp.sip
+        cppyy-generator --flags="$FLAGS" kjs.rootmap $KF5/kjs/kjsinterpreter.h
     """
     if argv is None:
         argv = sys.argv
