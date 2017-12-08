@@ -23,6 +23,8 @@ extern "C" {
     RPY_EXTERN
     char* cppyy_resolve_name(const char* cppitem_name);
     RPY_EXTERN
+    char* cppyy_resolve_enum(const char* enum_type);
+    RPY_EXTERN
     cppyy_scope_t cppyy_get_scope(const char* scope_name);
     RPY_EXTERN
     cppyy_type_t cppyy_actual_class(cppyy_type_t klass, cppyy_object_t obj);

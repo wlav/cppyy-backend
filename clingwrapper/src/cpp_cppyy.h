@@ -25,6 +25,8 @@ namespace Cppyy {
     RPY_EXTERN
     std::string ResolveName(const std::string& cppitem_name);
     RPY_EXTERN
+    std::string ResolveEnum(const std::string& enum_type);
+    RPY_EXTERN
     TCppScope_t GetScope(const std::string& scope_name);
     RPY_EXTERN
     TCppType_t  GetActualClass(TCppType_t klass, TCppObject_t obj);

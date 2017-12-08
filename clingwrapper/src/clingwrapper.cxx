@@ -205,10 +205,40 @@ std::string Cppyy::ResolveName(const std::string& cppitem_name)
 
 // special case for enums
     if (IsEnum(cppitem_name))
-        return "internal_enum_type_t";
+        return ResolveEnum(cppitem_name);
 
 // typedefs
     return TClassEdit::ResolveTypedef(tclean.c_str(), true);
+}
+
+static std::map<std::string, std::string> resolved_enum_types;
+std::string Cppyy::ResolveEnum(const std::string& enum_type)
+{
+// The underlying type of a an enum may be any kind of integer.
+// Resolve that type via a workaround (note: this function assumes
+// that the enum_type name is a valid enum type name)
+    auto res = resolved_enum_types.find(enum_type);
+    if (res != resolved_enum_types.end())
+        return res->second;
+
+    if (enum_type.find("(anonymous") == std::string::npos) {
+        std::ostringstream decl;
+        for (auto& itype : {"unsigned int"}) {
+            decl << "std::is_same<"
+                 << itype
+                 << ", std::underlying_type<"
+                 << enum_type
+                 << ">::type>::value;";
+            if (gInterpreter->ProcessLine(decl.str().c_str())) {
+                resolved_enum_types[enum_type] = itype;
+                return itype;
+            }
+        }
+    }
+
+// failed or anonymous ... signal up stream to special case this
+    resolved_enum_types[enum_type] = "internal_enum_type_t";
+    return "internal_enum_type_t";      // should default to int
 }
 
 Cppyy::TCppScope_t Cppyy::GetScope(const std::string& sname)
@@ -1434,6 +1464,10 @@ extern "C" {
 /* name to opaque C++ scope representation -------------------------------- */
 char* cppyy_resolve_name(const char* cppitem_name) {
     return cppstring_to_cstring(Cppyy::ResolveName(cppitem_name));
+}
+
+char* cppyy_resolve_enum(const char* enum_type) {
+    return cppstring_to_cstring(Cppyy::ResolveEnum(enum_type));
 }
 
 cppyy_scope_t cppyy_get_scope(const char* scope_name) {
