@@ -2,6 +2,7 @@
 #define CPYCPPYY_CPPYY_H
 
 // Standard
+#include <set>
 #include <string>
 #include <vector>
 #include <stddef.h>
@@ -22,11 +23,9 @@ namespace Cppyy {
 
 // name to opaque C++ scope representation -----------------------------------
     RPY_EXTERN
-    TCppIndex_t GetNumScopes(TCppScope_t parent);
-    RPY_EXTERN
-    std::string GetScopeName(TCppScope_t parent, TCppIndex_t iscope);
-    RPY_EXTERN
     std::string ResolveName(const std::string& cppitem_name);
+    RPY_EXTERN
+    std::string ResolveEnum(const std::string& enum_type);
     RPY_EXTERN
     TCppScope_t GetScope(const std::string& scope_name);
     RPY_EXTERN
@@ -106,6 +105,9 @@ namespace Cppyy {
     bool IsAbstract(TCppType_t type);
     RPY_EXTERN
     bool IsEnum(const std::string& type_name);
+
+    RPY_EXTERN
+    void GetAllCppNames(TCppScope_t scope, std::set<std::string>& cppnames);
 
 // class reflection information ----------------------------------------------
     RPY_EXTERN
