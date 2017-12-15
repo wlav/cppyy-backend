@@ -1,14 +1,14 @@
-diff --git a/src/core/dictgen/src/Scanner.cxx b/core/dictgen/src/Scanner.cxx
-index 3d5acac510..d0295b865f 100644
+diff --git a/src/core/dictgen/src/Scanner.cxx b/src/core/dictgen/src/Scanner.cxx
+index 3d5acac510..34124a40e1 100644
 --- a/src/core/dictgen/src/Scanner.cxx
 +++ b/src/core/dictgen/src/Scanner.cxx
-@@ -627,6 +627,11 @@ bool RScanner::TreatRecordDeclOrTypedefNameDecl(clang::TypeDecl* typeDecl)
+@@ -654,6 +654,11 @@ bool RScanner::TreatRecordDeclOrTypedefNameDecl(clang::TypeDecl* typeDecl)
        return true;
     }
-
+ 
 +   // private declarations lead to uncompilable code, so just ignore
 +   if (recordDecl && (recordDecl->getAccess() == AS_private || recordDecl->getAccess() == AS_protected)) {
-+       return true;
++      return true;
 +   }
 +
     // Never select the class templates themselves.

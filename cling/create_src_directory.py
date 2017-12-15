@@ -17,7 +17,7 @@ ROOT_KEEP = ['build', 'cmake', 'config', 'core', 'etc', 'interpreter',
              'io', 'LICENSE', 'Makefile', 'CMakeLists.txt', 'math',
              'main'] # main only needed in more recent root b/c of rootcling
 ROOT_CORE_KEEP = ['CMakeLists.txt', 'base', 'clib', 'clingutils', 'cont',
-                  'dictgen', 'foundation', 'lzma', 'macosx', 'meta',
+                  'dictgen', 'foundation', 'lz4', 'lzma', 'macosx', 'meta',
                   'metacling', 'metautils', 'rootcling_stage1', 'textinput',
                   'thread', 'unix', 'utils', 'winnt', 'zip']
 ROOT_IO_KEEP = ['CMakeLists.txt', 'io', 'rootpcm']
@@ -338,8 +338,6 @@ for entry in os.listdir(pkgdir):
 os.system('patch -p1 < patches/metacling.diff')
 os.system('patch -p1 < patches/scanner.diff')
 os.system('patch -p1 < patches/scanner_2.diff')
-os.system('patch -p1 < patches/mactstring.diff')
-os.system('patch -p1 < patches/nomacro_expansion.diff')
 os.system('patch -p1 < patches/faux_typedef.diff')
 
 # done!

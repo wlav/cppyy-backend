@@ -1,10 +1,12 @@
---- Scanner.cxx	2017-11-18 12:14:35.039749867 +0000
-+++ ./src/core/dictgen/src/Scanner.cxx	2017-11-18 09:22:40.495627219 +0000
-@@ -632,6 +632,11 @@
-        return true;
+diff --git a/src/core/dictgen/src/Scanner.cxx b/src/core/dictgen/src/Scanner.cxx
+index 3d5acac510..9f639795f1 100644
+--- a/src/core/dictgen/src/Scanner.cxx
++++ b/src/core/dictgen/src/Scanner.cxx
+@@ -659,6 +659,11 @@ bool RScanner::TreatRecordDeclOrTypedefNameDecl(clang::TypeDecl* typeDecl)
+       return true;
     }
  
-+   // hidden stuff is not part of the bindings.
++   // hidden decl can not be used interactively
 +   if (recordDecl && (recordDecl->getVisibility() == HiddenVisibility)) {
 +       return true;
 +   }
