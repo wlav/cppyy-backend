@@ -339,5 +339,6 @@ os.system('patch -p1 < patches/metacling.diff')
 os.system('patch -p1 < patches/scanner.diff')
 os.system('patch -p1 < patches/scanner_2.diff')
 os.system('patch -p1 < patches/faux_typedef.diff')
+os.system('patch -p1 < patches/template_fwd.diff')
 
 # done!
