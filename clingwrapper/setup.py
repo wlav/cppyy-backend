@@ -123,7 +123,7 @@ setup(
     author='PyPy Developers',
     author_email='pypy-dev@python.org',
 
-    version='0.4.0',
+    version='0.4.1',
 
     license='LBNL BSD',
 
@@ -151,6 +151,7 @@ setup(
     keywords='C++ bindings',
 
     setup_requires=requirements,
+    install_requires=requirements,
 
     package_dir={'': 'python'},
     packages=find_packages('python', include=add_pkg),
