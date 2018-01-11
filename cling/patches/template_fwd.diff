@@ -1,4 +1,4 @@
-diff --git a/core/dictgen/src/rootcling_impl.cxx b/core/dictgen/src/rootcling_impl.cxx
+diff --git a/src/core/dictgen/src/rootcling_impl.cxx b/src/core/dictgen/src/rootcling_impl.cxx
 index 90b0dbed10..cc8a527c1c 100644
 --- a/src/core/dictgen/src/rootcling_impl.cxx
 +++ b/src/core/dictgen/src/rootcling_impl.cxx
