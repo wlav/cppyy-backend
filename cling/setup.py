@@ -205,6 +205,7 @@ setup(
             "cling-config = cppyy_backend._cling_config:main",
             "genreflex = cppyy_backend._genreflex:main",
             "rootcling = cppyy_backend._rootcling:main",
+            "cppyy-generator = cppyy_backend._cppyy_generator:main",
         ],
     },
 )
