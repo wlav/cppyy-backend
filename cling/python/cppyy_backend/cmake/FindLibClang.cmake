@@ -14,8 +14,8 @@
 #   LibClang_PYTHON_EXECUTABLE - Compatible python version.
 
 #
-# Python support for clang might not be availale for Python3. We need to
-# find  what we have.
+# Python support for clang might not be available for Python3. We need to
+# find what we have.
 #
 function(_find_libclang_filename python_executable filename)
     #
