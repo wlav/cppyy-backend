@@ -528,25 +528,12 @@ class CppyyGenerator(object):
         :param h_file:              The source header file of interest.
         :return:                    Info().
         """
-        info = self._type_get("typedef", typedef, level, h_file)
-        return info
-
-    def _type_get(self, tag, parent, level, h_file):
-        """
-        Generate the translation for a type.
-
-        :param tag:                 "typedef", "variable" etc.
-        :param parent:              The typed object.
-        :param level:               Recursion level controls indentation.
-        :param h_file:              The source header file of interest.
-        :return:                    Info().
-        """
-        info = Info(tag, parent)
+        info = Info("typedef", typedef)
         template_count_stack = []
         template_info_stack = []
         template_stack_index = -1
         parameters = None
-        for child in parent.get_children():
+        for child in typedef.get_children():
             if child.kind in [CursorKind.STRUCT_DECL, CursorKind.UNION_DECL]:
                 child_info = self._container_get(child, level, h_file)
                 info["type"] = child_info
@@ -554,7 +541,7 @@ class CppyyGenerator(object):
                 #
                 # Create an entry to collect information for this level of template arguments.
                 #
-                tmp = Config().lib.clang_Type_getNumTemplateArguments(parent.type)
+                tmp = Config().lib.clang_Type_getNumTemplateArguments(typedef.type)
                 if tmp == -1:
                     logger.error(_("Unexpected template_arg_count={}").format(tmp))
                     #
@@ -593,15 +580,20 @@ class CppyyGenerator(object):
                     info["type"] = child_info
             elif child.kind == CursorKind.PARM_DECL:
                 #
-                # This must be a function type.
+                # This must be a function type. TODO: what if there are no PARM_DECLs?
                 #
                 if parameters is None:
-                    child_info = Info("function", parent)
+                    child_info = Info("function", typedef)
                     info["type"] = child_info
-                    child_info["type"] = parent.underlying_typedef_type.spelling
+                    #
+                    # TODO: this is actually the signature:
+                    #
+                    #   "int (Object::*)(QMetaObject::Call, int, void **)"
+                    #
+                    child_info["type"] = typedef.underlying_typedef_type.spelling
                     parameters = []
                     child_info["parameters"] = parameters
-                child_info = self._fn_get_parameter(parent, child)
+                child_info = self._fn_get_parameter(typedef, child)
                 parameters.append(child_info)
             else:
                 CppyyGenerator._report_ignoring(child, "unusable")
