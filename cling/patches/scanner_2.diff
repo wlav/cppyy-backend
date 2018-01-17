@@ -1,14 +1,14 @@
 diff --git a/src/core/dictgen/src/Scanner.cxx b/src/core/dictgen/src/Scanner.cxx
-index 3d5acac510..34124a40e1 100644
+index 3d5acac510..9f639795f1 100644
 --- a/src/core/dictgen/src/Scanner.cxx
 +++ b/src/core/dictgen/src/Scanner.cxx
-@@ -654,6 +654,11 @@ bool RScanner::TreatRecordDeclOrTypedefNameDecl(clang::TypeDecl* typeDecl)
+@@ -659,6 +659,11 @@ bool RScanner::TreatRecordDeclOrTypedefNameDecl(clang::TypeDecl* typeDecl)
        return true;
     }
  
-+   // private declarations lead to uncompilable code, so just ignore
-+   if (recordDecl && (recordDecl->getAccess() == AS_private || recordDecl->getAccess() == AS_protected)) {
-+      return true;
++   // hidden decl can not be used interactively
++   if (recordDecl && (recordDecl->getVisibility() == HiddenVisibility)) {
++       return true;
 +   }
 +
     // Never select the class templates themselves.

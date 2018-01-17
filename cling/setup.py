@@ -157,7 +157,7 @@ setup(
     author='ROOT Developers',
     author_email='rootdev@cern.ch',
 
-    version='6.10.4.2',
+    version='6.12.4.2',
 
     license='LLVM: UoI-NCSA; ROOT: LGPL 2.1',
 
@@ -205,6 +205,7 @@ setup(
             "cling-config = cppyy_backend._cling_config:main",
             "genreflex = cppyy_backend._genreflex:main",
             "rootcling = cppyy_backend._rootcling:main",
+            "cppyy-generator = cppyy_backend._cppyy_generator:main",
         ],
     },
 )
