@@ -147,7 +147,7 @@ def initialise(pkg, __init__py, cmake_shared_library_prefix, cmake_shared_librar
             entity = getattr(cppyy.gbl, simplename)
         except AttributeError as e:
             print(_("Unable to lookup {}:{} cppyy.gbl.{} ({})").format(file, keyword, simplename, children))
-            raise
+            #raise
         else:
             if getattr(entity, "__module__", None) == "cppyy.gbl":
                 setattr(entity, "__module__", pkg)
