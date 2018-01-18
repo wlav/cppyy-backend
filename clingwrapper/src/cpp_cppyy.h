@@ -123,9 +123,9 @@ namespace Cppyy {
     RPY_EXTERN
     bool        IsSubtype(TCppType_t derived, TCppType_t base);
     RPY_EXTERN
-    void        AddSmartPtrType(const std::string&);
+    bool        GetSmartPtrInfo(const std::string&, TCppType_t& raw, TCppMethod_t& deref);
     RPY_EXTERN
-    bool        IsSmartPtr(const std::string&);
+    void        AddSmartPtrType(const std::string&);
 
 // calculate offsets between declared and actual type, up-cast: direction > 0; down-cast: direction < 0
     RPY_EXTERN
@@ -138,7 +138,7 @@ namespace Cppyy {
     RPY_EXTERN
     TCppIndex_t GetMethodIndexAt(TCppScope_t scope, TCppIndex_t imeth);
     RPY_EXTERN
-    std::vector<Cppyy::TCppIndex_t> GetMethodIndicesFromName(TCppScope_t scope, const std::string& name);
+    std::vector<TCppIndex_t> GetMethodIndicesFromName(TCppScope_t scope, const std::string& name);
 
     RPY_EXTERN
     TCppMethod_t GetMethod(TCppScope_t scope, TCppIndex_t imeth);

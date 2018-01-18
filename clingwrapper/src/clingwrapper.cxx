@@ -883,19 +883,35 @@ bool Cppyy::IsSubtype(TCppType_t derived, TCppType_t base)
     return derived_type->GetBaseClass(base_type) != 0;
 }
 
+bool Cppyy::GetSmartPtrInfo(
+    const std::string& tname, TCppType_t& raw, TCppMethod_t& deref)
+{
+    const std::string& rn = ResolveName(tname);
+    if (gSmartPtrTypes.find(rn.substr(0, rn.find("<"))) != gSmartPtrTypes.end()) {
+        TClassRef& cr = type_from_handle(GetScope(tname));
+        if (cr.GetClass()) {
+            gInterpreter->UpdateListOfMethods(cr.GetClass());
+            TFunction* func = nullptr;
+            TIter next(cr->GetListOfAllPublicMethods()); 
+            while ((func = (TFunction*)next())) {
+                if (strstr(func->GetName(), "operator->")) {
+                    deref = (TCppMethod_t)func;
+                    raw = GetScope(TClassEdit::ShortType(
+                        func->GetReturnTypeNormalizedName().c_str(), 1));
+                    return deref && raw;
+                }
+            }
+        }
+    }
+
+    return false;
+}
+
 void Cppyy::AddSmartPtrType(const std::string& type_name)
 {
     gSmartPtrTypes.insert(ResolveName(type_name));
 }
 
-bool Cppyy::IsSmartPtr(const std::string& type_name)
-{
-// checks if typename denotes a smart pointer
-// TODO: perhaps make this stricter?
-    const std::string& real_name = ResolveName(type_name);
-    return gSmartPtrTypes.find(
-        real_name.substr(0, real_name.find("<"))) != gSmartPtrTypes.end();
-}
 
 // type offsets --------------------------------------------------------------
 ptrdiff_t Cppyy::GetBaseOffset(TCppType_t derived, TCppType_t base,
