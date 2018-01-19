@@ -87,6 +87,8 @@ namespace Cppyy {
 
     RPY_EXTERN
     TCppFuncAddr_t GetFunctionAddress(TCppScope_t scope, TCppIndex_t imeth);
+    RPY_EXTERN
+    TCppFuncAddr_t GetFunctionAddress(TCppMethod_t method);
 
 // handling of function argument buffer --------------------------------------
     RPY_EXTERN

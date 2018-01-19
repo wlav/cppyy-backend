@@ -636,6 +636,12 @@ Cppyy::TCppFuncAddr_t Cppyy::GetFunctionAddress(TCppScope_t scope, TCppIndex_t i
     return (TCppFuncAddr_t)dlsym(RTLD_DEFAULT, f->GetMangledName());
 }
 
+Cppyy::TCppFuncAddr_t Cppyy::GetFunctionAddress(TCppMethod_t method)
+{
+    TFunction* f = (TFunction*)method;
+    return (TCppFuncAddr_t)dlsym(RTLD_DEFAULT, f->GetMangledName());
+}
+
 
 // handling of function argument buffer --------------------------------------
 void* Cppyy::AllocateFunctionArgs(size_t nargs)
