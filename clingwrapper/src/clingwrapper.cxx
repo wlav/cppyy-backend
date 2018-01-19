@@ -286,6 +286,13 @@ size_t Cppyy::SizeOf(TCppType_t klass)
     return (size_t)0;
 }
 
+size_t Cppyy::SizeOf(const std::string& type_name)
+{
+    TDataType* dt = gROOT->GetType(type_name.c_str());
+    if (dt) return dt->Size();
+    return SizeOf(GetScope(type_name));
+}
+
 bool Cppyy::IsBuiltin(const std::string& type_name)
 {
     TDataType* dt = gROOT->GetType(TClassEdit::CleanType(type_name.c_str(), 1).c_str());
@@ -423,8 +430,9 @@ static CallFunc_t* GetCallFunc(Cppyy::TCppMethod_t method)
 }
 
 static inline
-void copy_args(void* args_, void** vargs)
+bool copy_args(void* args_, void** vargs)
 {
+    bool runRelease = false;
     std::vector<Parameter>& args = *(std::vector<Parameter>*)args_;
     for (std::vector<Parameter>::size_type i = 0; i < args.size(); ++i) {
         switch (args[i].fTypeCode) {
@@ -469,6 +477,8 @@ void copy_args(void* args_, void** vargs)
         case 'p':       /* void* */
             vargs[i] = (void*)&args[i].fValue.fVoidp;
             break;
+        case 'X':       /* (void*)type& with free */
+            runRelease = true;
         case 'V':       /* (void*)type& */
             vargs[i] = args[i].fValue.fVoidp;
             break;
@@ -479,6 +489,15 @@ void copy_args(void* args_, void** vargs)
             std::cerr << "unknown type code: " << args[i].fTypeCode << std::endl;
             break;
         }
+    }
+    return runRelease;
+}
+
+static inline
+void release_args(const std::vector<Parameter>& args) {
+    for (std::vector<Parameter>::size_type i = 0; i < args.size(); ++i) {
+        if (args[i].fTypeCode == 'X')
+            free(args[i].fValue.fVoidp);
     }
 }
 
@@ -492,29 +511,33 @@ static bool FastCall(Cppyy::TCppMethod_t method, void* args_, void* self, void* 
 
     TInterpreter::CallFuncIFacePtr_t faceptr = gCling->CallFunc_IFacePtr(callf);
     if (faceptr.fKind == TInterpreter::CallFuncIFacePtr_t::kGeneric) {
+        bool runRelease = false;
         if (args.size() <= SMALL_ARGS_N) {
             void* smallbuf[SMALL_ARGS_N];
-            copy_args(args_, smallbuf);
+            runRelease = copy_args(args_, smallbuf);
             faceptr.fGeneric(self, args.size(), smallbuf, result);
         } else {
             std::vector<void*> buf(args.size());
-            copy_args(args_, buf.data());
+            runRelease = copy_args(args_, buf.data());
             faceptr.fGeneric(self, args.size(), buf.data(), result);
         }
+        if (runRelease) release_args(args);
         return true;
     }
 
     if (faceptr.fKind == TInterpreter::CallFuncIFacePtr_t::kCtor) {
+        bool runRelease = false;
         if (args.size() <= SMALL_ARGS_N) {
             void* smallbuf[SMALL_ARGS_N];
-            copy_args(args_, (void**)smallbuf);
+            runRelease = copy_args(args_, (void**)smallbuf);
             faceptr.fCtor((void**)smallbuf, result, args.size());
         } else {
             std::vector<void*> buf(args.size());
-            copy_args(args_, buf.data());
+            runRelease = copy_args(args_, buf.data());
             faceptr.fCtor(buf.data(), result, args.size());
         }
-       return true;
+        if (runRelease) release_args(args);
+        return true;
     }
 
     if (faceptr.fKind == TInterpreter::CallFuncIFacePtr_t::kDtor) {

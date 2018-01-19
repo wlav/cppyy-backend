@@ -32,6 +32,8 @@ namespace Cppyy {
     TCppType_t  GetActualClass(TCppType_t klass, TCppObject_t obj);
     RPY_EXTERN
     size_t      SizeOf(TCppType_t klass);
+    RPY_EXTERN
+    size_t      SizeOf(const std::string& type_name);
 
     RPY_EXTERN
     bool        IsBuiltin(const std::string& type_name);
