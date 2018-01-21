@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-"""Cppyy binding generator."""
+"""Cppyy binding description generator."""
 from __future__ import print_function
 import argparse
 import gettext
@@ -217,16 +217,11 @@ class CppyyGenerator(object):
 
     def create_file_mapping(self, h_file):
         """
-        Actually convert the given source header file into its SIP equivalent.
-        This is the main entry point for this class.
+        Generate a dict describing the given source header file. This is the
+        main entry point for this class.
 
         :param h_file:              The source header file of interest.
-        :returns: A (body, modulecode, includes). The body is the SIP text
-                corresponding to the h_file, it can be a null string indicating
-                there was nothing that could be generated. The modulecode is
-                a dictionary of fragments of code that are to be emitted at
-                module scope. The includes is a iterator over the files which
-                clang #included while processing h_file.
+        :returns: A dict corresponding to the h_file.
         """
         #
         # Use Clang to parse the source and return its AST.
@@ -528,25 +523,12 @@ class CppyyGenerator(object):
         :param h_file:              The source header file of interest.
         :return:                    Info().
         """
-        info = self._type_get("typedef", typedef, level, h_file)
-        return info
-
-    def _type_get(self, tag, parent, level, h_file):
-        """
-        Generate the translation for a type.
-
-        :param tag:                 "typedef", "variable" etc.
-        :param parent:              The typed object.
-        :param level:               Recursion level controls indentation.
-        :param h_file:              The source header file of interest.
-        :return:                    Info().
-        """
-        info = Info(tag, parent)
+        info = Info("typedef", typedef)
         template_count_stack = []
         template_info_stack = []
         template_stack_index = -1
         parameters = None
-        for child in parent.get_children():
+        for child in typedef.get_children():
             if child.kind in [CursorKind.STRUCT_DECL, CursorKind.UNION_DECL]:
                 child_info = self._container_get(child, level, h_file)
                 info["type"] = child_info
@@ -554,7 +536,7 @@ class CppyyGenerator(object):
                 #
                 # Create an entry to collect information for this level of template arguments.
                 #
-                tmp = Config().lib.clang_Type_getNumTemplateArguments(parent.type)
+                tmp = Config().lib.clang_Type_getNumTemplateArguments(typedef.type)
                 if tmp == -1:
                     logger.error(_("Unexpected template_arg_count={}").format(tmp))
                     #
@@ -593,15 +575,20 @@ class CppyyGenerator(object):
                     info["type"] = child_info
             elif child.kind == CursorKind.PARM_DECL:
                 #
-                # This must be a function type.
+                # This must be a function type. TODO: what if there are no PARM_DECLs?
                 #
                 if parameters is None:
-                    child_info = Info("function", parent)
+                    child_info = Info("function", typedef)
                     info["type"] = child_info
-                    child_info["type"] = parent.underlying_typedef_type.spelling
+                    #
+                    # TODO: this is actually the signature:
+                    #
+                    #   "int (Object::*)(QMetaObject::Call, int, void **)"
+                    #
+                    child_info["type"] = typedef.underlying_typedef_type.spelling
                     parameters = []
                     child_info["parameters"] = parameters
-                child_info = self._fn_get_parameter(parent, child)
+                child_info = self._fn_get_parameter(typedef, child)
                 parameters.append(child_info)
             else:
                 CppyyGenerator._report_ignoring(child, "unusable")
@@ -632,18 +619,20 @@ class CppyyGenerator(object):
 
 def main(argv=None):
     """
-    Take set of C++ header files and generate the corresponding SIP file.
-    Beyond simple generation of the SIP file from the corresponding C++
-    header file, a set of rules can be used to customise the generated
-    SIP file.
+    Takes a set of C++ header files and generate a JSON output file describing
+    the objects found in them. This output is intended to support more
+    convenient access to a set of cppyy-supported bindings.
 
     Examples:
 
         INC=/usr/include
         QT5=$INC/x86_64-linux-gnu/qt5
         KF5=$INC/KF5
-        FLAGS="\\\\-I$QT5;\\\\-I$QT5/QtCore;\\\\-I$KF5/kjs;\\\\-I$KF5/wtf"
-        cppyy-generator --flags="$FLAGS" kjs.rootmap $KF5/kjs/kjsinterpreter.h
+        INCDIRS="\\\\-I$KF5/KConfigCore;\\\\-I$QT5/QtXml;\\\\-I$QT5/QtCore"
+        STDDIRS="\\\\-I$Qt5/mkspecs/linux-g++-64\\\\;-I$KF5;\\\\-I$QT5"
+        FLAGS="\\\\-fvisibility=hidden;\\\-D__PIC__;\\\\-Wno-macro-redefined;\\\\-std=c++14"
+
+        cppyy-generator --flags "$FLAGS;$INCDIRS;$STDDIRS" KF5/Config/Config.map $INC/KF5/KConfigCore/*
     """
     if argv is None:
         argv = sys.argv
@@ -654,7 +643,7 @@ def main(argv=None):
                         help=_("Semicolon-separated C++ compile flags to use, escape leading - or -- with \\"))
     parser.add_argument("--libclang", help=_("libclang library to use for parsing"))
     parser.add_argument("output", help=_("Output filename to write"))
-    parser.add_argument("sources", nargs="+", help=_("Semicolon-separated C++ headers to process"))
+    parser.add_argument("sources", nargs="+", help=_("C++ headers to process"))
     try:
         args = parser.parse_args(argv[1:])
         if args.verbose:
