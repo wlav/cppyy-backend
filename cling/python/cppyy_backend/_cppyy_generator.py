@@ -624,10 +624,9 @@ class CppyyGenerator(object):
 
 def main(argv=None):
     """
-    Take set of C++ header files and generate an output file describing
-    the objects found in the header files. This output is intended to
-    support more convenient access to a set of cling-supported
-    bindings.
+    Takes a set of C++ header files and generate an output file describing
+    the objects found in them. This output is intended to support more
+    convenient access to a set of cling-supported bindings.
 
     Examples:
 
