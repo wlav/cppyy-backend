@@ -649,7 +649,7 @@ def main(argv=None):
                         help=_("Semicolon-separated C++ compile flags to use, escape leading - or -- with \\"))
     parser.add_argument("--libclang", help=_("libclang library to use for parsing"))
     parser.add_argument("output", help=_("Output filename to write"))
-    parser.add_argument("sources", nargs="+", help=_("Semicolon-separated C++ headers to process"))
+    parser.add_argument("sources", nargs="+", help=_("C++ headers to process"))
     try:
         args = parser.parse_args(argv[1:])
         if args.verbose:
