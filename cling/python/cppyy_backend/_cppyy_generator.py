@@ -624,18 +624,21 @@ class CppyyGenerator(object):
 
 def main(argv=None):
     """
-    Take set of C++ header files and generate the corresponding SIP file.
-    Beyond simple generation of the SIP file from the corresponding C++
-    header file, a set of rules can be used to customise the generated
-    SIP file.
+    Take set of C++ header files and generate an output file describing
+    the objects found in the header files. This output is intended to
+    support more convenient access to a set of cling-supported
+    bindings.
 
     Examples:
 
         INC=/usr/include
         QT5=$INC/x86_64-linux-gnu/qt5
         KF5=$INC/KF5
-        FLAGS="\\\\-I$QT5;\\\\-I$QT5/QtCore;\\\\-I$KF5/kjs;\\\\-I$KF5/wtf"
-        cppyy-generator --flags="$FLAGS" kjs.rootmap $KF5/kjs/kjsinterpreter.h
+        INCDIRS="\\\\-I$KF5/KConfigCore;\\\\-I$QT5/QtXml;\\\\-I$QT5/QtCore"
+        STDDIRS="\\\\-I$Qt5/mkspecs/linux-g++-64\\\\;-I$KF5;\\\\-I$QT5"
+        FLAGS="\\\\-fvisibility=hidden;\\\-D__PIC__;\\\\-Wno-macro-redefined;\\\\-std=c++14"
+
+        cppyy-generator --flags "$FLAGS;$INCDIRS;$STDDIRS" KF5/Config/Config.map $INC/KF5/KConfigCore/*
     """
     if argv is None:
         argv = sys.argv
