@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-"""Cppyy binding generator."""
+"""Cppyy binding description generator."""
 from __future__ import print_function
 import argparse
 import gettext
@@ -217,16 +217,11 @@ class CppyyGenerator(object):
 
     def create_file_mapping(self, h_file):
         """
-        Actually convert the given source header file into its SIP equivalent.
-        This is the main entry point for this class.
+        Generate a dict describing the given source header file. This is the
+        main entry point for this class.
 
         :param h_file:              The source header file of interest.
-        :returns: A (body, modulecode, includes). The body is the SIP text
-                corresponding to the h_file, it can be a null string indicating
-                there was nothing that could be generated. The modulecode is
-                a dictionary of fragments of code that are to be emitted at
-                module scope. The includes is a iterator over the files which
-                clang #included while processing h_file.
+        :returns: A dict corresponding to the h_file.
         """
         #
         # Use Clang to parse the source and return its AST.
@@ -624,9 +619,9 @@ class CppyyGenerator(object):
 
 def main(argv=None):
     """
-    Takes a set of C++ header files and generate an output file describing
+    Takes a set of C++ header files and generate a JSON output file describing
     the objects found in them. This output is intended to support more
-    convenient access to a set of cling-supported bindings.
+    convenient access to a set of cppyy-supported bindings.
 
     Examples:
 
