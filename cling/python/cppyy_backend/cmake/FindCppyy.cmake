@@ -84,7 +84,7 @@ mark_as_advanced(Cppyy_VERSION)
 # "discovery" of the available C++ entities using, for example Python 3's command
 # line completion support.
 #
-# The bindings are complete with a setup.py, supporting both Wheel and Egg-based
+# The bindings are complete with a setup.py, supporting Wheel-based
 # packaging, and a test.py supporting pytest/nosetest sanity test of the bindings.
 #
 # The bindings are generated/built/packaged using 3 environments:
@@ -99,7 +99,7 @@ mark_as_advanced(Cppyy_VERSION)
 #     compatible with both Python2 and Python3.
 #
 #   - One to package the library and ancilliary files into standard Python2/3
-#     wheel/egg format. The packaging is done using native Python tooling.
+#     wheel format. The packaging is done using native Python tooling.
 #
 # Arguments and options:
 #
