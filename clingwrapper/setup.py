@@ -24,10 +24,18 @@ except KeyError:
     add_pkg = []
 
 def get_include_path():
+    config_exec = 'cling-config'
     if root_install:
-        return os.path.join(root_install, 'include')
-    cli_arg = subprocess.check_output(['cling-config', '--cppflags'])
-    return cli_arg[2:-1].decode("utf-8")
+        config_exec = 'root-config'
+    cli_arg = subprocess.check_output([config_exec, '--incdir'])
+    return cli_arg.decode("utf-8").strip()
+
+def get_cflags():
+    config_exec = 'cling-config'
+    if root_install:
+        config_exec = 'root-config'
+    cli_arg = subprocess.check_output([config_exec, '--auxcflags'])
+    return cli_arg.decode("utf-8").strip()
 
 class my_build_cpplib(_build_ext):
     def build_extension(self, ext):
@@ -41,7 +49,7 @@ class my_build_cpplib(_build_ext):
             output_dir=self.build_temp,
             include_dirs=include_dirs,
             debug=self.debug,
-            extra_postargs=['-std=c++11', '-O2'])
+            extra_postargs=['-O2']+get_cflags().split())
 
         ext_path = self.get_ext_fullpath(ext.name)
         output_dir = os.path.dirname(ext_path)

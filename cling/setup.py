@@ -62,9 +62,23 @@ class my_cmake_build(_build):
             log.info('Creating build directory %s ...' % builddir)
             os.makedirs(builddir)
 
+        # get C++ standard to use, if set
+        try:
+            stdcxx = os.environ['STDCXX']
+        except KeyError:
+            stdcxx = '14'
+
+        if not stdcxx in ['11', '14', '17']:
+            log.fatal('FATAL: envar STDCXX should be one of 11, 14, or 17')
+            sys.exit(1)
+
+        stdcxx='-Dcxx'+stdcxx+'=ON'
+
         log.info('Running cmake for cppyy_backend')
         if subprocess.call([
-                'cmake', srcdir, '-Dminimal=ON -Dasimage=OFF',
+                'cmake', srcdir, stdcxx,
+                '-Dminimal=ON', '-Dasimage=OFF', '-Droot7=OFF', '-Dhttp=OFF',
+                '-DCMAKE_BUILD_TYPE=RelWithDebInfo',
                 '-DCMAKE_INSTALL_PREFIX='+prefix], cwd=builddir) != 0:
             raise DistutilsSetupError('Failed to configure cppyy_backend')
 
