@@ -104,6 +104,14 @@ public:
             "complex", "valarray"};
         for (auto& name : stl_names)
             gSTLNames.insert(name);
+
+    // create a helper for wrapping lambdas
+        gInterpreter->Declare(
+            "namespace __cppyy_internal { template <typename F>"
+            "struct FT : public FT<decltype(&F::operator())> {};"
+            "template <typename C, typename R, typename... Args>"
+            "struct FT<R(C::*)(Args...) const> { typedef std::function<R(Args...)> F; };}"
+        );
     }
 
     ~ApplicationStarter() {
@@ -1409,6 +1417,21 @@ Cppyy::TCppIndex_t Cppyy::GetDatamemberIndex(TCppScope_t scope, const std::strin
                 gInterpreter->ProcessLine((name+";").c_str());
             }
             if (gb->GetAddress() != (void*)-1) {
+                if (strcmp(gb->GetFullTypeName(), "(lambda)") == 0) {
+                // lambdas use a compiler internal closure type, so we wrap
+                // them, then return the wrapper's type
+                // TODO: this current leaks the std::function; also, if possible,
+                //       should instantiate through TClass rather then ProcessLine
+                    std::ostringstream s;
+                    s << "auto __cppyy_internal_wrap_" << name << " = "
+                        "new __cppyy_internal::FT<decltype(" << name << ")>::F"
+                        "{" << name << "};";
+                    gInterpreter->ProcessLine(s.str().c_str());
+                    TGlobal* wrap = (TGlobal*)gROOT->GetListOfGlobals(true)->FindObject(
+                        ("__cppyy_internal_wrap_"+name).c_str());
+                    if (wrap && wrap->GetAddress()) gb = wrap;
+                }
+
                 g_globalvars.push_back(gb);
                 return g_globalvars.size() - 1;
             }
