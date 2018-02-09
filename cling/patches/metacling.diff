@@ -90,7 +90,7 @@ diff --git a/src/core/metacling/src/TClingCallFunc.h b/src/core/metacling/src/TC
 index 3a65031b09..3b907e4fff 100644
 --- a/src/core/metacling/src/TClingCallFunc.h
 +++ b/src/core/metacling/src/TClingCallFunc.h
-@@ -82,7 +82,7 @@ private:
+@@ -85,7 +85,7 @@ private:
  
     void collect_type_info(clang::QualType& QT, std::ostringstream& typedefbuf,
                            std::ostringstream& callbuf, std::string& type_name,
