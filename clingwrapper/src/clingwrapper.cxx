@@ -1546,8 +1546,12 @@ cppyy_type_t cppyy_actual_class(cppyy_type_t klass, cppyy_object_t obj) {
     return cppyy_type_t(Cppyy::GetActualClass(klass, (void*)obj));
 }
 
-size_t cppyy_size_of(cppyy_type_t klass) {
+size_t cppyy_size_of_klass(cppyy_type_t klass) {
     return Cppyy::SizeOf(klass);
+}
+
+size_t cppyy_size_of_type(const char* type_name) {
+    return Cppyy::SizeOf(type_name);
 }
 
 
@@ -1558,6 +1562,10 @@ cppyy_object_t cppyy_allocate(cppyy_type_t type) {
 
 void cppyy_deallocate(cppyy_type_t type, cppyy_object_t self) {
     Cppyy::Deallocate(type, (void*)self);
+}
+
+cppyy_object_t cppyy_construct(cppyy_type_t type) {
+    return (cppyy_object_t)Cppyy::Construct(type);
 }
 
 void cppyy_destruct(cppyy_type_t type, cppyy_object_t self) {
@@ -1632,14 +1640,22 @@ cppyy_object_t cppyy_constructor(cppyy_method_t method, cppyy_type_t klass, int 
     return cppyy_object_t(Cppyy::CallConstructor(method, klass, &parvec));
 }
 
+void cppyy_destructor(cppyy_type_t klass, cppyy_object_t self) {
+    Cppyy::CallDestructor(klass, self);
+}
+
 cppyy_object_t cppyy_call_o(
         cppyy_method_t method, cppyy_object_t self, int nargs, void* args, cppyy_type_t result_type) {
     std::vector<Parameter> parvec = vsargs_to_parvec(args, nargs);
     return cppyy_object_t(Cppyy::CallO(method, (void*)self, &parvec, result_type));
 }
 
-cppyy_funcaddr_t cppyy_get_function_address(cppyy_scope_t scope, cppyy_index_t idx) {
+cppyy_funcaddr_t cppyy_function_address_from_index(cppyy_scope_t scope, cppyy_index_t idx) {
     return cppyy_funcaddr_t(Cppyy::GetFunctionAddress(scope, idx));
+}
+
+cppyy_funcaddr_t cppyy_function_address_from_method(cppyy_method_t method) {
+    return cppyy_funcaddr_t(Cppyy::GetFunctionAddress(method));
 }
 
 
@@ -1678,6 +1694,18 @@ int cppyy_is_enum(const char* type_name) {
     return (int)Cppyy::IsEnum(type_name);
 }
 
+const char** cppyy_get_all_cpp_names(cppyy_scope_t scope) {
+    std::set<std::string> cppnames;
+    Cppyy::GetAllCppNames(scope, cppnames);
+    const char** c_cppnames = (const char**)malloc(cppnames.size());
+    int i = 0;
+    for (const auto& name : cppnames) {
+        c_cppnames[i] = cppstring_to_cstring(name);
+        ++i;
+    }
+    return c_cppnames;
+}
+
 
 /* class reflection information ------------------------------------------- */
 char* cppyy_final_name(cppyy_type_t type) {
@@ -1702,6 +1730,18 @@ char* cppyy_base_name(cppyy_type_t type, int base_index) {
 
 int cppyy_is_subtype(cppyy_type_t derived, cppyy_type_t base) {
     return (int)Cppyy::IsSubtype(derived, base);
+}
+
+int cppyy_smartptr_info(const char* name, cppyy_type_t* raw, cppyy_method_t* deref) {
+    Cppyy::TCppScope_t r2 = *raw;
+    Cppyy::TCppMethod_t d2 = *deref;
+    int result = (int)Cppyy::GetSmartPtrInfo(name, r2, d2);
+    *raw = r2; *deref = d2;
+    return result;
+}
+
+void cppyy_add_smartptr_type(const char* type_name) {
+    Cppyy::AddSmartPtrType(type_name);
 }
 
 
@@ -1776,6 +1816,14 @@ char* cppyy_method_prototype(cppyy_scope_t scope, cppyy_index_t idx, int show_fo
     return cppstring_to_cstring(Cppyy::GetMethodPrototype(scope, idx, (bool)show_formalargs));
 }
 
+int cppyy_is_const_method(cppyy_method_t method) {
+    return (int)Cppyy::IsConstMethod(method);
+}
+
+int cppyy_exists_method_template(cppyy_scope_t scope, const char* name) {
+    return (int)Cppyy::ExistsMethodTemplate(scope, name);
+}
+
 int cppyy_method_is_template(cppyy_scope_t scope, cppyy_index_t idx) {
     return (int)Cppyy::IsMethodTemplate(scope, idx);
 }
@@ -1843,12 +1891,24 @@ int cppyy_datamember_index(cppyy_scope_t scope, const char* name) {
 
 
 /* data member properties ------------------------------------------------- */
-int cppyy_is_publicdata(cppyy_type_t type, int datamember_index) {
+int cppyy_is_publicdata(cppyy_type_t type, cppyy_index_t datamember_index) {
     return (int)Cppyy::IsPublicData(type, datamember_index);
 }
 
-int cppyy_is_staticdata(cppyy_type_t type, int datamember_index) {
+int cppyy_is_staticdata(cppyy_type_t type, cppyy_index_t datamember_index) {
     return (int)Cppyy::IsStaticData(type, datamember_index);
+}
+
+int cppyy_is_const_data(cppyy_scope_t scope, cppyy_index_t idata) {
+    return (int)Cppyy::IsConstData(scope, idata);
+}
+
+int cppyy_is_enum_data(cppyy_scope_t scope, cppyy_index_t idata) {
+    return (int)Cppyy::IsEnumData(scope, idata);
+}
+
+int cppyy_get_dimension_size(cppyy_scope_t scope, cppyy_index_t idata, int dimension) {
+    return Cppyy::GetDimensionSize(scope, idata, dimension);
 }
 
 
