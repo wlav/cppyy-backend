@@ -165,6 +165,10 @@ for line in open(inp).readlines():
 new_cml.close()
 os.rename(outp, inp)
 
+# trim core (gGLManager crashes on call)
+print('trimming main')
+os.remove("core/base/src/TVirtualGL.cxx")
+os.remove("core/base/inc/TVirtualGL.h")
 
 # remove afterimage and ftgl explicitly
 print('trimming externals')
