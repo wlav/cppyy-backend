@@ -281,7 +281,7 @@ Cppyy::TCppType_t Cppyy::GetActualClass(TCppType_t klass, TCppObject_t obj)
     TClassRef& cr = type_from_handle(klass);
     TClass* clActual = cr->GetActualClass((void*)obj);
     if (clActual && clActual != cr.GetClass()) {
-        // TODO: lookup through name should not be needed
+    // TODO: lookup through name should not be needed
         return (TCppType_t)GetScope(clActual->GetName());
     }
     return klass;
@@ -1049,7 +1049,7 @@ std::vector<Cppyy::TCppIndex_t> Cppyy::GetMethodIndicesFromName(
     } else if (scope == GLOBAL_HANDLE) {
         TCollection* funcs = gROOT->GetListOfGlobalFunctions(true);
         
-        // tickle deserialization
+    // tickle deserialization
         if (!funcs->FindObject(name.c_str()))
             return indices;
 
@@ -1097,8 +1097,8 @@ std::string Cppyy::GetMethodResultType(TCppMethod_t method)
         if (f->ExtraProperty() & kIsConstructor)
             return "constructor";
         return f->GetReturnTypeNormalizedName();
-     }
-     return "<unknown>";
+    }
+    return "<unknown>";
 }
 
 Cppyy::TCppIndex_t Cppyy::GetMethodNumArgs(TCppMethod_t method)
@@ -1357,8 +1357,10 @@ std::string Cppyy::GetDatamemberType(TCppScope_t scope, TCppIndex_t idata)
     if (scope == GLOBAL_HANDLE) {
         TGlobal* gbl = g_globalvars[idata];
         std::string fullType = gbl->GetFullTypeName();
+        if (!strcmp(gbl->GetName(), "gInterpreter"))
+            return fullType;
+
         if (fullType[fullType.size()-1] == '*' && \
-              !dynamic_cast<TGlobalMappedFunction*>(gbl) && \
               fullType.compare(0, 4, "char") != 0)
             fullType.append("*");
         else if ((int)gbl->GetArrayDim() > 1)
@@ -1391,7 +1393,7 @@ std::string Cppyy::GetDatamemberType(TCppScope_t scope, TCppIndex_t idata)
 ptrdiff_t Cppyy::GetDatamemberOffset(TCppScope_t scope, TCppIndex_t idata)
 {
     if (scope == GLOBAL_HANDLE) {
-        TGlobal* gbl = g_globalvars[ idata ];
+        TGlobal* gbl = g_globalvars[idata];
         return (ptrdiff_t)gbl->GetAddress();
     }
 
