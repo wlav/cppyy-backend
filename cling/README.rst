@@ -23,4 +23,4 @@ Cling documentation is here:
 ----
 
 Find the cppyy documentation here:
-  http://cppyy.readthedocs.io/en/latest
+  http://cppyy.readthedocs.io/
