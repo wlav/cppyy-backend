@@ -91,9 +91,13 @@ class my_cmake_build(_build):
             nprocs = 0
         if nprocs < 1:
             nprocs = multiprocessing.cpu_count()
-        nprocs = '-j' + str(nprocs)
+        build_args = ['--build', '.', '--config', 'RelWithDebInfo', '--']
+        if 'win32' in sys.platform:
+            build_args.append('/maxcpucount:' + str(nprocs))
+        else:
+            build_args.append('-j' + str(nprocs))
         log.info('Now building cppyy_backend and dependencies ...')
-        if subprocess.call(['make', nprocs], cwd=builddir) != 0:
+        if subprocess.call(['cmake'] + build_args, cwd=builddir) != 0:
             raise DistutilsSetupError('Failed to build cppyy_backend')
 
         log.info('Build finished')
@@ -136,7 +140,8 @@ class my_install(_install):
 
         prefix = get_prefix()
         log.info('Now creating installation under %s ...', prefix)
-        if subprocess.call(['make', 'install'], cwd=builddir) != 0:
+        install_args = ['--build', '.', '--config', 'RelWithDebInfo', '--target', 'install']
+        if subprocess.call(['cmake'] + install_args, cwd=builddir) != 0:
             raise DistutilsSetupError('Failed to install cppyy_backend')
 
         prefix_base = os.path.join(get_prefix(), os.path.pardir)
