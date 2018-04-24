@@ -29,6 +29,7 @@
 #include <assert.h>
 #include <algorithm>     // for std::count
 #include <dlfcn.h>
+#include <stdexcept>
 #include <map>
 #include <set>
 #include <sstream>
@@ -1020,15 +1021,6 @@ Cppyy::TCppIndex_t Cppyy::GetNumMethods(TCppScope_t scope)
     return (TCppIndex_t)0;         // unknown class?
 }
 
-Cppyy::TCppIndex_t Cppyy::GetMethodIndexAt(TCppScope_t scope, TCppIndex_t imeth)
-{
-    TClassRef& cr = type_from_handle(scope);
-    if (cr.GetClass())
-        return (TCppIndex_t)imeth;
-    assert(scope == (TCppType_t)GLOBAL_HANDLE);
-    return imeth;
-}
-
 std::vector<Cppyy::TCppIndex_t> Cppyy::GetMethodIndicesFromName(
     TCppScope_t scope, const std::string& name)
 {
@@ -1576,80 +1568,139 @@ void cppyy_destruct(cppyy_type_t type, cppyy_object_t self) {
 
 
 /* method/function dispatching -------------------------------------------- */
+/* Exception types:
+    1: default (unknown exception)
+    2: standard exception
+*/
+#define CPPYY_HANDLE_EXCEPTION                                               \
+    catch (std::exception& e) {                                              \
+        cppyy_exctype_t* etype = (cppyy_exctype_t*)((Parameter*)args+nargs); \
+        *etype = (cppyy_exctype_t)2;                                         \
+        *((char**)(etype+1)) = cppstring_to_cstring(e.what());               \
+    }                                                                        \
+    catch (...) {                                                            \
+        cppyy_exctype_t* etype = (cppyy_exctype_t*)((Parameter*)args+nargs); \
+        *etype = (cppyy_exctype_t)1;                                         \
+        *((char**)(etype+1)) =                                               \
+            cppstring_to_cstring("unhandled, unknown C++ exception");        \
+    }
+
 void cppyy_call_v(cppyy_method_t method, cppyy_object_t self, int nargs, void* args) {
-    std::vector<Parameter> parvec = vsargs_to_parvec(args, nargs);
-    Cppyy::CallV(method, (void*)self, &parvec);
+    try {
+        std::vector<Parameter> parvec = vsargs_to_parvec(args, nargs);
+        Cppyy::CallV(method, (void*)self, &parvec);
+    } CPPYY_HANDLE_EXCEPTION
 }
 
 unsigned char cppyy_call_b(cppyy_method_t method, cppyy_object_t self, int nargs, void* args) {
-    std::vector<Parameter> parvec = vsargs_to_parvec(args, nargs);
-    return (unsigned char)Cppyy::CallB(method, (void*)self, &parvec);
+    try {
+        std::vector<Parameter> parvec = vsargs_to_parvec(args, nargs);
+        return (unsigned char)Cppyy::CallB(method, (void*)self, &parvec);
+    } CPPYY_HANDLE_EXCEPTION
+    return (unsigned char)-1;
 }
 
 char cppyy_call_c(cppyy_method_t method, cppyy_object_t self, int nargs, void* args) {
-    std::vector<Parameter> parvec = vsargs_to_parvec(args, nargs);
-    return (char)Cppyy::CallC(method, (void*)self, &parvec);
+    try {
+        std::vector<Parameter> parvec = vsargs_to_parvec(args, nargs);
+        return (char)Cppyy::CallC(method, (void*)self, &parvec);
+    } CPPYY_HANDLE_EXCEPTION
+    return (char)-1;
 }
 
 short cppyy_call_h(cppyy_method_t method, cppyy_object_t self, int nargs, void* args) {
-    std::vector<Parameter> parvec = vsargs_to_parvec(args, nargs);
-    return (short)Cppyy::CallH(method, (void*)self, &parvec);
+    try {
+        std::vector<Parameter> parvec = vsargs_to_parvec(args, nargs);
+        return (short)Cppyy::CallH(method, (void*)self, &parvec);
+    } CPPYY_HANDLE_EXCEPTION
+    return (short)-1;
 }
 
 int cppyy_call_i(cppyy_method_t method, cppyy_object_t self, int nargs, void* args) {
-    std::vector<Parameter> parvec = vsargs_to_parvec(args, nargs);
-    return (int)Cppyy::CallI(method, (void*)self, &parvec);
+    try {
+        std::vector<Parameter> parvec = vsargs_to_parvec(args, nargs);
+        return (int)Cppyy::CallI(method, (void*)self, &parvec);
+    } CPPYY_HANDLE_EXCEPTION
+    return (int)-1;
 }
 
 long cppyy_call_l(cppyy_method_t method, cppyy_object_t self, int nargs, void* args) {
-    std::vector<Parameter> parvec = vsargs_to_parvec(args, nargs);
-    return (long)Cppyy::CallL(method, (void*)self, &parvec);
+    try {
+        std::vector<Parameter> parvec = vsargs_to_parvec(args, nargs);
+        return (long)Cppyy::CallL(method, (void*)self, &parvec);
+    } CPPYY_HANDLE_EXCEPTION
+    return (long)-1;
 }
 
 long long cppyy_call_ll(cppyy_method_t method, cppyy_object_t self, int nargs, void* args) {
-    std::vector<Parameter> parvec = vsargs_to_parvec(args, nargs);
-    return (long long)Cppyy::CallLL(method, (void*)self, &parvec);
+    try {
+        std::vector<Parameter> parvec = vsargs_to_parvec(args, nargs);
+        return (long long)Cppyy::CallLL(method, (void*)self, &parvec);
+    } CPPYY_HANDLE_EXCEPTION
+    return (long long)-1;
 }
 
 float cppyy_call_f(cppyy_method_t method, cppyy_object_t self, int nargs, void* args) {
-    std::vector<Parameter> parvec = vsargs_to_parvec(args, nargs);
-    return (float)Cppyy::CallF(method, (void*)self, &parvec);
+    try {
+        std::vector<Parameter> parvec = vsargs_to_parvec(args, nargs);
+        return (float)Cppyy::CallF(method, (void*)self, &parvec);
+    } CPPYY_HANDLE_EXCEPTION
+    return (float)-1;
 }
 
 double cppyy_call_d(cppyy_method_t method, cppyy_object_t self, int nargs, void* args) {
-    std::vector<Parameter> parvec = vsargs_to_parvec(args, nargs);
-    return (double)Cppyy::CallD(method, (void*)self, &parvec);
+    try {
+        std::vector<Parameter> parvec = vsargs_to_parvec(args, nargs);
+        return (double)Cppyy::CallD(method, (void*)self, &parvec);
+    } CPPYY_HANDLE_EXCEPTION
+    return (double)-1;
 }
 
 long double cppyy_call_ld(cppyy_method_t method, cppyy_object_t self, int nargs, void* args) {
-    std::vector<Parameter> parvec = vsargs_to_parvec(args, nargs);
-    return (long double)Cppyy::CallLD(method, (void*)self, &parvec);
+    try {
+        std::vector<Parameter> parvec = vsargs_to_parvec(args, nargs);
+        return (long double)Cppyy::CallLD(method, (void*)self, &parvec);
+    } CPPYY_HANDLE_EXCEPTION
+    return (long double)-1;
 }
 
 void* cppyy_call_r(cppyy_method_t method, cppyy_object_t self, int nargs, void* args) {
-    std::vector<Parameter> parvec = vsargs_to_parvec(args, nargs);
-    return (void*)Cppyy::CallR(method, (void*)self, &parvec);
+    try {
+        std::vector<Parameter> parvec = vsargs_to_parvec(args, nargs);
+        return (void*)Cppyy::CallR(method, (void*)self, &parvec);
+    } CPPYY_HANDLE_EXCEPTION
+    return (void*)nullptr;
 }
 
 char* cppyy_call_s(
         cppyy_method_t method, cppyy_object_t self, int nargs, void* args, size_t* lsz) {
-    std::vector<Parameter> parvec = vsargs_to_parvec(args, nargs);
-    return Cppyy::CallS(method, (void*)self, &parvec, lsz);
+    try {
+        std::vector<Parameter> parvec = vsargs_to_parvec(args, nargs);
+        return Cppyy::CallS(method, (void*)self, &parvec, lsz);
+    } CPPYY_HANDLE_EXCEPTION
+    return (char*)nullptr;
 }
 
-cppyy_object_t cppyy_constructor(cppyy_method_t method, cppyy_type_t klass, int nargs, void* args) {
-    std::vector<Parameter> parvec = vsargs_to_parvec(args, nargs);
-    return cppyy_object_t(Cppyy::CallConstructor(method, klass, &parvec));
+cppyy_object_t cppyy_constructor(
+        cppyy_method_t method, cppyy_type_t klass, int nargs, void* args) {
+    try {
+        std::vector<Parameter> parvec = vsargs_to_parvec(args, nargs);
+        return cppyy_object_t(Cppyy::CallConstructor(method, klass, &parvec));
+    } CPPYY_HANDLE_EXCEPTION
+    return (cppyy_object_t)0;
 }
 
 void cppyy_destructor(cppyy_type_t klass, cppyy_object_t self) {
     Cppyy::CallDestructor(klass, self);
 }
 
-cppyy_object_t cppyy_call_o(
-        cppyy_method_t method, cppyy_object_t self, int nargs, void* args, cppyy_type_t result_type) {
-    std::vector<Parameter> parvec = vsargs_to_parvec(args, nargs);
-    return cppyy_object_t(Cppyy::CallO(method, (void*)self, &parvec, result_type));
+cppyy_object_t cppyy_call_o(cppyy_method_t method, cppyy_object_t self,
+        int nargs, void* args, cppyy_type_t result_type) {
+    try {
+        std::vector<Parameter> parvec = vsargs_to_parvec(args, nargs);
+        return cppyy_object_t(Cppyy::CallO(method, (void*)self, &parvec, result_type));
+    } CPPYY_HANDLE_EXCEPTION
+    return (cppyy_object_t)0;
 }
 
 cppyy_funcaddr_t cppyy_function_address_from_index(cppyy_scope_t scope, cppyy_index_t idx) {
@@ -1663,11 +1714,12 @@ cppyy_funcaddr_t cppyy_function_address_from_method(cppyy_method_t method) {
 
 /* handling of function argument buffer ----------------------------------- */
 void* cppyy_allocate_function_args(int nargs) {
-    return (void*)Cppyy::AllocateFunctionArgs(nargs);
+// for calls through C interface, require extra space for reporting exceptions
+    return malloc(nargs*sizeof(Parameter)+sizeof(cppyy_exctype_t)+sizeof(char**));
 }
 
 void cppyy_deallocate_function_args(void* args) {
-    Cppyy::DeallocateFunctionArgs(args);
+    free(args);
 }
 
 size_t cppyy_function_arg_sizeof() {
@@ -1696,15 +1748,16 @@ int cppyy_is_enum(const char* type_name) {
     return (int)Cppyy::IsEnum(type_name);
 }
 
-const char** cppyy_get_all_cpp_names(cppyy_scope_t scope) {
+const char** cppyy_get_all_cpp_names(cppyy_scope_t scope, size_t* count) {
     std::set<std::string> cppnames;
     Cppyy::GetAllCppNames(scope, cppnames);
-    const char** c_cppnames = (const char**)malloc(cppnames.size());
+    const char** c_cppnames = (const char**)malloc(cppnames.size()*sizeof(const char*));
     int i = 0;
     for (const auto& name : cppnames) {
         c_cppnames[i] = cppstring_to_cstring(name);
         ++i;
     }
+    *count = cppnames.size();
     return c_cppnames;
 }
 
@@ -1756,10 +1809,6 @@ ptrdiff_t cppyy_base_offset(cppyy_type_t derived, cppyy_type_t base, cppyy_objec
 /* method/function reflection information --------------------------------- */
 int cppyy_num_methods(cppyy_scope_t scope) {
     return (int)Cppyy::GetNumMethods(scope);
-}
-
-cppyy_index_t cppyy_method_index_at(cppyy_scope_t scope, int imeth) {
-    return cppyy_index_t(Cppyy::GetMethodIndexAt(scope, imeth));
 }
 
 cppyy_index_t* cppyy_method_indices_from_name(cppyy_scope_t scope, const char* name)
@@ -1921,13 +1970,27 @@ void* cppyy_load_dictionary(const char* lib_name) {
     return (void*)(result == 0 /* success */ || result == 1 /* already loaded */);
 }
 
+#if defined(_MSC_VER)
+long long cppyy_strtoll(const char* str) {
+    return _strtoi64(str, NULL, 0);
+}
+
+extern "C" {
+unsigned long long cppyy_strtoull(const char* str) {
+    return _strtoui64(str, NULL, 0);
+}
+}
+#else
 long long cppyy_strtoll(const char* str) {
     return strtoll(str, NULL, 0);
 }
 
+extern "C" {
 unsigned long long cppyy_strtoull(const char* str) {
     return strtoull(str, NULL, 0);
 }
+}
+#endif
 
 void cppyy_free(void* ptr) {
     free(ptr);

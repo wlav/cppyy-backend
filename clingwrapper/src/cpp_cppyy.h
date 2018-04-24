@@ -7,6 +7,7 @@
 #include <vector>
 #include <stddef.h>
 
+
 // ROOT types
 typedef long long            Long64_t;
 typedef unsigned long long   ULong64_t;
@@ -140,8 +141,6 @@ namespace Cppyy {
     RPY_EXTERN
     TCppIndex_t GetNumMethods(TCppScope_t scope);
     RPY_EXTERN
-    TCppIndex_t GetMethodIndexAt(TCppScope_t scope, TCppIndex_t imeth);
-    RPY_EXTERN
     std::vector<TCppIndex_t> GetMethodIndicesFromName(TCppScope_t scope, const std::string& name);
 
     RPY_EXTERN
@@ -210,15 +209,15 @@ namespace Cppyy {
 
 // data member properties ----------------------------------------------------
     RPY_EXTERN
-    bool  IsPublicData(TCppScope_t scope, TCppIndex_t idata);
+    bool IsPublicData(TCppScope_t scope, TCppIndex_t idata);
     RPY_EXTERN
-    bool  IsStaticData(TCppScope_t scope, TCppIndex_t idata);
+    bool IsStaticData(TCppScope_t scope, TCppIndex_t idata);
     RPY_EXTERN
-    bool  IsConstData(TCppScope_t scope, TCppIndex_t idata);
+    bool IsConstData(TCppScope_t scope, TCppIndex_t idata);
     RPY_EXTERN
-    bool  IsEnumData(TCppScope_t scope, TCppIndex_t idata);
+    bool IsEnumData(TCppScope_t scope, TCppIndex_t idata);
     RPY_EXTERN
-    int   GetDimensionSize(TCppScope_t scope, TCppIndex_t idata, int dimension);
+    int  GetDimensionSize(TCppScope_t scope, TCppIndex_t idata, int dimension);
 
 } // namespace Cppyy
 

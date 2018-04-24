@@ -16,6 +16,8 @@ extern "C" {
     typedef long          cppyy_index_t;
     typedef void*         cppyy_funcaddr_t;
 
+    typedef unsigned long cppyy_exctype_t;
+
     /* name to opaque C++ scope representation -------------------------------- */
     RPY_EXTERN
     char* cppyy_resolve_name(const char* cppitem_name);
@@ -99,7 +101,7 @@ extern "C" {
     int cppyy_is_enum(const char* type_name);
 
     RPY_EXTERN
-    const char** cppyy_get_all_cpp_names(cppyy_scope_t scope);
+    const char** cppyy_get_all_cpp_names(cppyy_scope_t scope, size_t* count);
 
     /* class reflection information ------------------------------------------- */
     RPY_EXTERN
@@ -126,8 +128,6 @@ extern "C" {
     /* method/function reflection information --------------------------------- */
     RPY_EXTERN
     int cppyy_num_methods(cppyy_scope_t scope);
-    RPY_EXTERN
-    cppyy_index_t cppyy_method_index_at(cppyy_scope_t scope, int imeth);
     RPY_EXTERN
     cppyy_index_t* cppyy_method_indices_from_name(cppyy_scope_t scope, const char* name);
 
