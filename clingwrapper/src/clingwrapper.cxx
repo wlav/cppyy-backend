@@ -1144,9 +1144,8 @@ std::string Cppyy::GetMethodArgDefault(TCppMethod_t method, int iarg)
 
 std::string Cppyy::GetMethodSignature(TCppScope_t scope, TCppIndex_t imeth, bool show_formalargs)
 {
-    TClassRef& cr = type_from_handle(scope);
     TFunction* f = type_get_method(scope, imeth);
-    if (cr.GetClass() && cr->GetClassInfo()) {
+    if (f) {
         std::ostringstream sig;
         sig << "(";
         int nArgs = f->GetNargs();
@@ -1159,7 +1158,7 @@ std::string Cppyy::GetMethodSignature(TCppScope_t scope, TCppIndex_t imeth, bool
                 const char* defvalue = arg->GetDefault();
                 if (defvalue && defvalue[0] != '\0') sig << " = " << defvalue;
             }
-            if (iarg != nArgs-1) sig << ", ";
+            if (iarg != nArgs-1) sig << (show_formalargs ? ", " : ",");
         }
         sig << ")";
         return sig.str();
@@ -1169,12 +1168,12 @@ std::string Cppyy::GetMethodSignature(TCppScope_t scope, TCppIndex_t imeth, bool
 
 std::string Cppyy::GetMethodPrototype(TCppScope_t scope, TCppIndex_t imeth, bool show_formalargs)
 {
-    TClassRef& cr = type_from_handle(scope);
+    std::string scName = GetScopedFinalName(scope);
     TFunction* f = type_get_method(scope, imeth);
-    if (cr.GetClass() && cr->GetClassInfo()) {
+    if (f) {
         std::ostringstream sig;
         sig << f->GetReturnTypeName() << " "
-            << cr.GetClassName() << "::" << f->GetName();
+            << scName << "::" << f->GetName();
         sig << GetMethodSignature(scope, imeth, show_formalargs);
         return sig.str();
     }
