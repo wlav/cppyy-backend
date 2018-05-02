@@ -613,6 +613,9 @@ class CppyyGenerator(object):
                 parameters_fixup(level, info, "type")
             else:
                 CppyyGenerator._report_ignoring(child, "unusable")
+        else:
+            info["type"] = parent.type.spelling
+            parameters_fixup(level, info, "type")
         return info
 
     @staticmethod
