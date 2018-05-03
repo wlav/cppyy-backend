@@ -592,6 +592,9 @@ class CppyyGenerator(object):
                 parameters.append(child_info)
             else:
                 CppyyGenerator._report_ignoring(child, "unusable")
+        else:
+            info["type"] = typedef.underlying_typedef_type.spelling
+            parameters_fixup(level, info, "type")
         return info
 
     def _var_get(self, tag, parent, level):
@@ -610,6 +613,9 @@ class CppyyGenerator(object):
                 parameters_fixup(level, info, "type")
             else:
                 CppyyGenerator._report_ignoring(child, "unusable")
+        else:
+            info["type"] = parent.type.spelling
+            parameters_fixup(level, info, "type")
         return info
 
     @staticmethod
