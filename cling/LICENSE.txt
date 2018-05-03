@@ -51,6 +51,7 @@ the following people and organizations:
   Antonio Cuni
   Aditi Dutta
   Shaheed Haque
+  robertwb
 
 
 External code
