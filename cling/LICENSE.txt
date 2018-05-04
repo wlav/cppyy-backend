@@ -48,10 +48,10 @@ source files), this package contains files copyrighted by one or more of
 the following people and organizations:
 
   CERN
+  Robert Bradshaw
   Antonio Cuni
   Aditi Dutta
   Shaheed Haque
-  robertwb
 
 
 External code
