@@ -592,7 +592,7 @@ class CppyyGenerator(object):
                 parameters.append(child_info)
             else:
                 CppyyGenerator._report_ignoring(child, "unusable")
-        else:
+        if "type" not in info:
             info["type"] = typedef.underlying_typedef_type.spelling
             parameters_fixup(level, info, "type")
         return info
@@ -613,7 +613,7 @@ class CppyyGenerator(object):
                 parameters_fixup(level, info, "type")
             else:
                 CppyyGenerator._report_ignoring(child, "unusable")
-        else:
+        if "type" not in info:
             info["type"] = parent.type.spelling
             parameters_fixup(level, info, "type")
         return info
