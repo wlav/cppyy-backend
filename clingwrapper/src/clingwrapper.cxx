@@ -356,71 +356,19 @@ void Cppyy::Destruct(TCppType_t type, TCppObject_t instance)
 
 
 // method/function dispatching -----------------------------------------------
-static inline ClassInfo_t* GetGlobalNamespaceInfo()
+static inline CallFunc_t* GetCallFunc(Cppyy::TCppMethod_t method)
 {
-    static ClassInfo_t* gcl = gInterpreter->ClassInfo_Factory();
-    return gcl;
-}
-
-static CallFunc_t* GetCallFunc(Cppyy::TCppMethod_t method)
-{
+// TODO: method should be a callfunc, so that no mapping would be needed.
     auto icf = g_method2callfunc.find(method);
     if (icf != g_method2callfunc.end())
         return icf->second;
 
-    CallFunc_t* callf = nullptr;
     TFunction* func = (TFunction*)method;
-    std::string callString = "";
 
-// create, if not cached
-    Cppyy::TCppScope_t scope = declaring_scope(method);
-    const TClassRef& klass = type_from_handle(scope);
-    if (klass.GetClass() || (func && scope == GLOBAL_HANDLE)) {
-        ClassInfo_t* gcl = klass.GetClass() ? klass->GetClassInfo() : nullptr;
-        if (!gcl)
-            gcl = GetGlobalNamespaceInfo();
-
-        TCollection* method_args = func->GetListOfMethodArgs();
-        TIter iarg(method_args);
-
-        TMethodArg* method_arg = nullptr;
-        while ((method_arg = (TMethodArg*)iarg.Next())) {
-            std::string fullType = method_arg->GetTypeNormalizedName();
-            if (callString.empty())
-                callString = fullType;
-            else
-                callString += ", " + fullType;
-        }
-
-        ptrdiff_t offset = 0;
-        callf = gInterpreter->CallFunc_Factory();
-
-        gInterpreter->CallFunc_SetFuncProto(
-            callf,
-            gcl,
-            func ? func->GetName() : klass->GetName(),
-            callString.c_str(),
-            func ? (func->Property() & kIsConstMethod) : false,
-            &offset,
-            ROOT::kExactMatch);
-
-// CLING WORKAROUND -- The number of arguments is not always correct (e.g. when there
-//                     are default parameters, causing the callString to be wrong and
-//                     the exact match to fail); or the method may have been inline or
-//                     be compiler generated. In all those cases the exact match fails,
-//                     whereas the conversion match sometimes works.
-        if (!gInterpreter->CallFunc_IsValid(callf)) {
-            gInterpreter->CallFunc_SetFuncProto(
-                callf,
-                gcl,
-                func ? func->GetName() : klass->GetName(),
-                callString.c_str(),
-                func ? (func->Property() & kIsConstMethod) : false,
-                &offset);    // <- no kExactMatch as that will fail
-        }
-// -- CLING WORKAROUND
-
-    }
+    CallFunc_t* callf = gInterpreter->CallFunc_Factory();
+    MethodInfo_t* meth = gInterpreter->MethodInfo_Factory(func->GetDeclId());
+    gInterpreter->CallFunc_SetFunc(callf, meth);
+    gInterpreter->MethodInfo_Delete(meth);
 
     if (!(callf && gInterpreter->CallFunc_IsValid(callf))) {
     // TODO: propagate this error to caller w/o use of Python C-API
@@ -434,7 +382,7 @@ static CallFunc_t* GetCallFunc(Cppyy::TCppMethod_t method)
         return nullptr;
     }
 
-    g_method2callfunc[ method ] = callf;
+    g_method2callfunc[method] = callf;
     return callf;
 }
 
