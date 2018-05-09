@@ -347,5 +347,6 @@ os.system('patch -p1 < patches/template_fwd.diff')
 os.system('patch -p1 < patches/dep_template.diff')
 os.system('patch -p1 < patches/no_long64_t.diff')
 os.system('patch -p1 < patches/using_decls.diff')
+os.system('patch -p1 < patches/sfinae.diff')
 
 # done!
