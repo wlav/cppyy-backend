@@ -138,7 +138,7 @@ TFunction* type_get_method(Cppyy::TCppType_t klass, Cppyy::TCppIndex_t idx)
 {
     TClassRef& cr = type_from_handle(klass);
     if (cr.GetClass())
-        return (TFunction*)cr->GetListOfMethods()->At(idx);
+        return (TFunction*)cr->GetListOfMethods(false)->At(idx);
     assert(klass == (Cppyy::TCppType_t)GLOBAL_HANDLE);
     return (TFunction*)idx;
 }
@@ -761,7 +761,7 @@ void Cppyy::GetAllCppNames(TCppScope_t scope, std::set<std::string>& cppnames)
 
 // add functions
     coll = (scope == GLOBAL_HANDLE) ?
-        gROOT->GetListOfGlobalFunctions() : cr->GetListOfMethods();
+        gROOT->GetListOfGlobalFunctions() : cr->GetListOfMethods(false);
     {
         TIter itr{coll};
         TFunction* obj = nullptr;
@@ -947,13 +947,13 @@ Cppyy::TCppIndex_t Cppyy::GetNumMethods(TCppScope_t scope)
         return (TCppIndex_t)0;     // enforce lazy
 
     TClassRef& cr = type_from_handle(scope);
-    if (cr.GetClass() && cr->GetListOfMethods()) {
-        Cppyy::TCppIndex_t nMethods = (TCppIndex_t)cr->GetListOfMethods()->GetSize();
+    if (cr.GetClass() && cr->GetListOfMethods(true)) {
+        Cppyy::TCppIndex_t nMethods = (TCppIndex_t)cr->GetListOfMethods(false)->GetSize();
         if (nMethods == (TCppIndex_t)0) {
             std::string clName = GetScopedFinalName(scope);
             if (clName.find('<') != std::string::npos) {
             // chicken-and-egg problem: TClass does not know about methods until instantiation: force it
-                if (TClass::GetClass(("std::"+clName).c_str()))
+                if (TClass::GetClass(("std::"+clName).c_str())) // TODO: this doesn't work for templates
                     clName = "std::" + clName;
                 std::ostringstream stmt;
                 stmt << "template class " << clName << ";";
@@ -1339,6 +1339,11 @@ ptrdiff_t Cppyy::GetDatamemberOffset(TCppScope_t scope, TCppIndex_t idata)
     TClassRef& cr = type_from_handle(scope);
     if (cr.GetClass()) {
         TDataMember* m = (TDataMember*)cr->GetListOfDataMembers()->At(idata);
+    // CLING WORKAROUND: the following causes templates to be instantiated first
+    // in the proper scope, making the lookup succeed and preventing spurious
+    // duplicate instantiations later.
+        if (strchr(cr->GetName(), '<'))
+            gInterpreter->ProcessLine(((std::string)cr->GetName()+"::"+m->GetName()+";").c_str());
         return (ptrdiff_t)m->GetOffsetCint();    // yes, CINT (GetOffset() is both wrong
                                                  // and caches that wrong result!
     }
