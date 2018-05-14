@@ -761,7 +761,7 @@ void Cppyy::GetAllCppNames(TCppScope_t scope, std::set<std::string>& cppnames)
 
 // add functions
     coll = (scope == GLOBAL_HANDLE) ?
-        gROOT->GetListOfGlobalFunctions() : cr->GetListOfMethods(false);
+        gROOT->GetListOfGlobalFunctions() : cr->GetListOfMethods();
     {
         TIter itr{coll};
         TFunction* obj = nullptr;
@@ -1342,7 +1342,7 @@ ptrdiff_t Cppyy::GetDatamemberOffset(TCppScope_t scope, TCppIndex_t idata)
     // CLING WORKAROUND: the following causes templates to be instantiated first
     // in the proper scope, making the lookup succeed and preventing spurious
     // duplicate instantiations later.
-        if (strchr(cr->GetName(), '<'))
+        if ((m->Property() & kIsStatic) && strchr(cr->GetName(), '<'))
             gInterpreter->ProcessLine(((std::string)cr->GetName()+"::"+m->GetName()+";").c_str());
         return (ptrdiff_t)m->GetOffsetCint();    // yes, CINT (GetOffset() is both wrong
                                                  // and caches that wrong result!
