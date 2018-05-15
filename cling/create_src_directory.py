@@ -19,7 +19,7 @@ ROOT_KEEP = ['build', 'cmake', 'config', 'core', 'etc', 'interpreter',
 ROOT_CORE_KEEP = ['CMakeLists.txt', 'base', 'clib', 'clingutils', 'cont',
                   'dictgen', 'foundation', 'lz4', 'lzma', 'macosx', 'meta',
                   'metacling', 'metautils', 'rootcling_stage1', 'textinput',
-                  'thread', 'unix', 'utils', 'winnt', 'zip']
+                  'thread', 'unix', 'utils', 'winnt', 'zip', 'pcre']
 ROOT_IO_KEEP = ['CMakeLists.txt', 'io', 'rootpcm']
 ROOT_MATH_KEEP = ['CMakeLists.txt', 'mathcore']
 ROOT_ETC_KEEP = ['Makefile.arch', 'class.rules', 'cmake', 'dictpch',
@@ -203,6 +203,20 @@ for line in open(inp).readlines():
 new_cml.close()
 os.rename(outp, inp)
 
+# strip freetype
+inp = 'cmake/modules/SearchInstalledSoftware.cmake'
+outp = inp+'.new'
+new_cml = open(outp, 'w')
+for line in open(inp).readlines():
+    if '#---Check for Freetype' == line[0:22]:
+        now_stripping = True
+    elif '#---Check for PCRE' == line[0:18]:
+        now_stripping = False
+    if now_stripping or 'builtin_freetype' in line:
+        line = '#'+line
+    new_cml.write(line)
+new_cml.close()
+os.rename(outp, inp)
 
 # remove testing and examples
 print('trimming testing')
