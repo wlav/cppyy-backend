@@ -54,8 +54,15 @@ static const ClassRefs_t::size_type STD_HANDLE = GLOBAL_HANDLE + 1;
 typedef std::map<std::string, ClassRefs_t::size_type> Name2ClassRefIndex_t;
 static Name2ClassRefIndex_t g_name2classrefidx;
 
-typedef std::map<Cppyy::TCppMethod_t, CallFunc_t*> Method2CallFunc_t;
-static Method2CallFunc_t g_method2callfunc;
+struct CallWrapper;
+static std::vector<CallWrapper*> gWrapperHolder;
+struct CallWrapper {
+    CallWrapper(TFunction* f) : fMetaFunction(f), fWrapper(nullptr) {
+        gWrapperHolder.push_back(this);
+    }
+    TFunction*  fMetaFunction;
+    CallFunc_t* fWrapper;
+};
 
 typedef std::vector<TGlobal*> GlobalVars_t;
 static GlobalVars_t g_globalvars;
@@ -113,11 +120,17 @@ public:
             "template <typename C, typename R, typename... Args>"
             "struct FT<R(C::*)(Args...) const> { typedef std::function<R(Args...)> F; };}"
         );
+
+    // start off with a reasonable size placeholder for wrappers
+        gWrapperHolder.reserve(1024);
     }
 
     ~ApplicationStarter() {
-        for (auto ifunc : g_method2callfunc)
-            gInterpreter->CallFunc_Delete(ifunc.second);
+        for (auto wrap : gWrapperHolder) {
+            if (wrap->fWrapper)
+                gInterpreter->CallFunc_Delete(wrap->fWrapper);
+            delete wrap;
+        }
     }
 } _applicationStarter;
 
@@ -140,14 +153,21 @@ TFunction* type_get_method(Cppyy::TCppType_t klass, Cppyy::TCppIndex_t idx)
     if (cr.GetClass())
         return (TFunction*)cr->GetListOfMethods(false)->At(idx);
     assert(klass == (Cppyy::TCppType_t)GLOBAL_HANDLE);
-    return (TFunction*)idx;
+    return ((CallWrapper*)idx)->fMetaFunction;
+}
+
+static inline
+TFunction* m2f(Cppyy::TCppMethod_t method) {
+    return ((CallWrapper*)method)->fMetaFunction;
 }
 
 static inline
 Cppyy::TCppScope_t declaring_scope(Cppyy::TCppMethod_t method)
 {
-    TMethod* m = dynamic_cast<TMethod*>((TFunction*)method);
-    if (m) return Cppyy::GetScope(m->GetClass()->GetName());
+    if (method) {
+        TMethod* m = dynamic_cast<TMethod*>(m2f(method));
+        if (m) return Cppyy::GetScope(m->GetClass()->GetName());
+    }
     return (Cppyy::TCppScope_t)GLOBAL_HANDLE;
 }
 
@@ -359,11 +379,10 @@ void Cppyy::Destruct(TCppType_t type, TCppObject_t instance)
 static inline CallFunc_t* GetCallFunc(Cppyy::TCppMethod_t method)
 {
 // TODO: method should be a callfunc, so that no mapping would be needed.
-    auto icf = g_method2callfunc.find(method);
-    if (icf != g_method2callfunc.end())
-        return icf->second;
+    CallWrapper* wrap = (CallWrapper*)method;
+    if (wrap->fWrapper) return wrap->fWrapper;
 
-    TFunction* func = (TFunction*)method;
+    TFunction* func = wrap->fMetaFunction;
 
     CallFunc_t* callf = gInterpreter->CallFunc_Factory();
     MethodInfo_t* meth = gInterpreter->MethodInfo_Factory(func->GetDeclId());
@@ -382,7 +401,7 @@ static inline CallFunc_t* GetCallFunc(Cppyy::TCppMethod_t method)
         return nullptr;
     }
 
-    g_method2callfunc[method] = callf;
+    wrap->fWrapper = callf;
     return callf;
 }
 
@@ -595,7 +614,7 @@ Cppyy::TCppFuncAddr_t Cppyy::GetFunctionAddress(TCppScope_t scope, TCppIndex_t i
 
 Cppyy::TCppFuncAddr_t Cppyy::GetFunctionAddress(TCppMethod_t method)
 {
-    TFunction* f = (TFunction*)method;
+    TFunction* f = m2f(method);
     return (TCppFuncAddr_t)dlsym(RTLD_DEFAULT, f->GetMangledName());
 }
 
@@ -881,7 +900,7 @@ bool Cppyy::GetSmartPtrInfo(
             TIter next(cr->GetListOfAllPublicMethods()); 
             while ((func = (TFunction*)next())) {
                 if (strstr(func->GetName(), "operator->")) {
-                    deref = (TCppMethod_t)func;
+                    deref = (TCppMethod_t)new CallWrapper(func);
                     raw = GetScope(TClassEdit::ShortType(
                         func->GetReturnTypeNormalizedName().c_str(), 1));
                     return deref && raw;
@@ -981,7 +1000,7 @@ std::vector<Cppyy::TCppIndex_t> Cppyy::GetMethodIndicesFromName(
         TIter next(cr->GetListOfMethods()); 
         while ((func = (TFunction*)next())) {
             if (match_name(name, func->GetName())) {
-                if (Cppyy::IsPublicMethod((TCppMethod_t)func))
+                if (func->Property() & kIsPublic)
                     indices.push_back((TCppIndex_t)imeth);
             }
             ++imeth;
@@ -997,7 +1016,7 @@ std::vector<Cppyy::TCppIndex_t> Cppyy::GetMethodIndicesFromName(
         TIter ifunc(funcs);
         while ((func = (TFunction*)ifunc.Next())) {
             if (match_name(name, func->GetName()))
-                indices.push_back((TCppIndex_t)func);
+                indices.push_back((TCppIndex_t)new CallWrapper(func));
         }
     }
 
@@ -1006,14 +1025,16 @@ std::vector<Cppyy::TCppIndex_t> Cppyy::GetMethodIndicesFromName(
 
 Cppyy::TCppMethod_t Cppyy::GetMethod(TCppScope_t scope, TCppIndex_t imeth)
 {
-    TFunction* f = type_get_method(scope, imeth);
-    return (Cppyy::TCppMethod_t)f;
+    TFunction* func = type_get_method(scope, imeth);
+    if (func)
+        return (Cppyy::TCppMethod_t)new CallWrapper(func);
+    return (Cppyy::TCppMethod_t)nullptr;
 }
 
 std::string Cppyy::GetMethodName(TCppMethod_t method)
 {
     if (method) {
-        std::string name = ((TFunction*)method)->GetName();
+        std::string name = m2f(method)->GetName();
 
         if (name.compare(0, 8, "operator") != 0)
         // strip template instantiation part, if any
@@ -1026,14 +1047,14 @@ std::string Cppyy::GetMethodName(TCppMethod_t method)
 std::string Cppyy::GetMethodMangledName(TCppMethod_t method)
 {
     if (method)
-        return ((TFunction*)method)->GetMangledName();
+        return m2f(method)->GetMangledName();
     return "<unknown>";
 }
 
 std::string Cppyy::GetMethodResultType(TCppMethod_t method)
 {
     if (method) {
-        TFunction* f = (TFunction*)method;
+        TFunction* f = m2f(method);
         if (f->ExtraProperty() & kIsConstructor)
             return "constructor";
         return f->GetReturnTypeNormalizedName();
@@ -1044,14 +1065,14 @@ std::string Cppyy::GetMethodResultType(TCppMethod_t method)
 Cppyy::TCppIndex_t Cppyy::GetMethodNumArgs(TCppMethod_t method)
 {
     if (method)
-        return ((TFunction*)method)->GetNargs();
+        return m2f(method)->GetNargs();
     return 0;
 }
 
 Cppyy::TCppIndex_t Cppyy::GetMethodReqArgs(TCppMethod_t method)
 {
     if (method) {
-        TFunction* f = (TFunction*)method;
+        TFunction* f = m2f(method);
         return (TCppIndex_t)(f->GetNargs() - f->GetNargsOpt());
     }
     return (TCppIndex_t)0;
@@ -1060,7 +1081,7 @@ Cppyy::TCppIndex_t Cppyy::GetMethodReqArgs(TCppMethod_t method)
 std::string Cppyy::GetMethodArgName(TCppMethod_t method, int iarg)
 {
     if (method) {
-        TFunction* f = (TFunction*)method;
+        TFunction* f = m2f(method);
         TMethodArg* arg = (TMethodArg*)f->GetListOfMethodArgs()->At(iarg);
         return arg->GetName();
     }
@@ -1070,7 +1091,7 @@ std::string Cppyy::GetMethodArgName(TCppMethod_t method, int iarg)
 std::string Cppyy::GetMethodArgType(TCppMethod_t method, int iarg)
 {
     if (method) {
-        TFunction* f = (TFunction*)method;
+        TFunction* f = m2f(method);
         TMethodArg* arg = (TMethodArg*)f->GetListOfMethodArgs()->At(iarg);
         return arg->GetTypeNormalizedName();
     }
@@ -1080,7 +1101,7 @@ std::string Cppyy::GetMethodArgType(TCppMethod_t method, int iarg)
 std::string Cppyy::GetMethodArgDefault(TCppMethod_t method, int iarg)
 {
     if (method) {
-        TFunction* f = (TFunction*)method;
+        TFunction* f = m2f(method);
         TMethodArg* arg = (TMethodArg*)f->GetListOfMethodArgs()->At(iarg);
         const char* def = arg->GetDefault();
         if (def)
@@ -1131,7 +1152,7 @@ std::string Cppyy::GetMethodPrototype(TCppScope_t scope, TCppIndex_t imeth, bool
 bool Cppyy::IsConstMethod(TCppMethod_t method)
 {
     if (method) {
-        TFunction* f = (TFunction*)method;
+        TFunction* f = m2f(method);
         return f->Property() & kIsConstMethod;
     }
     return false;
@@ -1205,8 +1226,11 @@ Cppyy::TCppMethod_t Cppyy::GetMethodTemplate(
             func = cr->GetMethodWithPrototype(name.c_str(), proto.c_str());
     }
 
+    if (func)
+        return (TCppMethod_t)new CallWrapper(func);
+
 // failure ...
-    return (TCppMethod_t)func;
+    return (TCppMethod_t)nullptr;
 }
 
 Cppyy::TCppIndex_t Cppyy::GetGlobalOperator(
@@ -1216,7 +1240,7 @@ Cppyy::TCppIndex_t Cppyy::GetGlobalOperator(
     std::string proto = GetScopedFinalName(lc) + ", " + GetScopedFinalName(rc);
     if (scope == (cppyy_scope_t)GLOBAL_HANDLE) {
         TFunction* func = gROOT->GetGlobalFunctionWithPrototype(opname.c_str(), proto.c_str());
-        if (func) return (TCppIndex_t)func;
+        if (func) return (TCppIndex_t)new CallWrapper(func);
     } else {
         TClassRef& cr = type_from_handle(scope);
         if (cr.GetClass()) {
@@ -1233,7 +1257,7 @@ Cppyy::TCppIndex_t Cppyy::GetGlobalOperator(
 bool Cppyy::IsPublicMethod(TCppMethod_t method)
 {
     if (method) {
-        TFunction* f = (TFunction*)method;
+        TFunction* f = m2f(method);
         return f->Property() & kIsPublic;
     }
     return false;
@@ -1242,7 +1266,7 @@ bool Cppyy::IsPublicMethod(TCppMethod_t method)
 bool Cppyy::IsConstructor(TCppMethod_t method)
 {
     if (method) {
-        TFunction* f = (TFunction*)method;
+        TFunction* f = m2f(method);
         return f->ExtraProperty() & kIsConstructor;
     }
     return false;
@@ -1251,7 +1275,7 @@ bool Cppyy::IsConstructor(TCppMethod_t method)
 bool Cppyy::IsDestructor(TCppMethod_t method)
 {
     if (method) {
-        TFunction* f = (TFunction*)method;
+        TFunction* f = m2f(method);
         return f->ExtraProperty() & kIsDestructor;
     }
     return false;
@@ -1260,7 +1284,7 @@ bool Cppyy::IsDestructor(TCppMethod_t method)
 bool Cppyy::IsStaticMethod(TCppMethod_t method)
 {
     if (method) {
-        TFunction* f = (TFunction*)method;
+        TFunction* f = m2f(method);
         return f->Property() & kIsStatic;
     }
     return false;
