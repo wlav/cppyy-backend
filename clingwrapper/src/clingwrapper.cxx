@@ -1801,38 +1801,38 @@ cppyy_index_t* cppyy_method_indices_from_name(cppyy_scope_t scope, const char* n
 }
 
 char* cppyy_method_name(cppyy_scope_t scope, cppyy_index_t idx) {
-    TFunction* f = type_get_method(scope, idx);
-    return cppstring_to_cstring(Cppyy::GetMethodName((Cppyy::TCppMethod_t)f));
+    CallWrapper wrap{type_get_method(scope, idx)};
+    return cppstring_to_cstring(Cppyy::GetMethodName((Cppyy::TCppMethod_t)&wrap));
 }
 
 char* cppyy_method_mangled_name(cppyy_scope_t scope, cppyy_index_t idx) {
-    TFunction* f = type_get_method(scope, idx);
-    return cppstring_to_cstring(Cppyy::GetMethodMangledName((Cppyy::TCppMethod_t)f));
+    CallWrapper wrap{type_get_method(scope, idx)};
+    return cppstring_to_cstring(Cppyy::GetMethodMangledName((Cppyy::TCppMethod_t)&wrap));
 }
 
 char* cppyy_method_result_type(cppyy_scope_t scope, cppyy_index_t idx) {
-    TFunction* f = type_get_method(scope, idx);
-    return cppstring_to_cstring(Cppyy::GetMethodResultType((Cppyy::TCppMethod_t)f));
+    CallWrapper wrap{type_get_method(scope, idx)};
+    return cppstring_to_cstring(Cppyy::GetMethodResultType((Cppyy::TCppMethod_t)&wrap));
 }
 
 int cppyy_method_num_args(cppyy_scope_t scope, cppyy_index_t idx) {
-    TFunction* f = type_get_method(scope, idx);
-    return (int)Cppyy::GetMethodNumArgs((Cppyy::TCppMethod_t)f);
+    CallWrapper wrap{type_get_method(scope, idx)};
+    return (int)Cppyy::GetMethodNumArgs((Cppyy::TCppMethod_t)&wrap);
 }
 
 int cppyy_method_req_args(cppyy_scope_t scope, cppyy_index_t idx) {
-    TFunction* f = type_get_method(scope, idx);
-    return (int)Cppyy::GetMethodReqArgs((Cppyy::TCppMethod_t)f);
+    CallWrapper wrap{type_get_method(scope, idx)};
+    return (int)Cppyy::GetMethodReqArgs((Cppyy::TCppMethod_t)&wrap);
 }
 
 char* cppyy_method_arg_type(cppyy_scope_t scope, cppyy_index_t idx, int arg_index) {
-    TFunction* f = type_get_method(scope, idx);
-    return cppstring_to_cstring(Cppyy::GetMethodArgType((Cppyy::TCppMethod_t)f, arg_index));
+    CallWrapper wrap{type_get_method(scope, idx)};
+    return cppstring_to_cstring(Cppyy::GetMethodArgType((Cppyy::TCppMethod_t)&wrap, arg_index));
 }
 
 char* cppyy_method_arg_default(cppyy_scope_t scope, cppyy_index_t idx, int arg_index) {
-    TFunction* f = type_get_method(scope, idx);
-    return cppstring_to_cstring(Cppyy::GetMethodArgDefault((Cppyy::TCppMethod_t)f, arg_index));
+    CallWrapper wrap{type_get_method(scope, idx)};
+    return cppstring_to_cstring(Cppyy::GetMethodArgDefault((Cppyy::TCppMethod_t)&wrap, arg_index));
 }
 
 char* cppyy_method_signature(cppyy_scope_t scope, cppyy_index_t idx, int show_formalargs) {
@@ -1874,23 +1874,23 @@ cppyy_index_t cppyy_get_global_operator(cppyy_scope_t scope, cppyy_scope_t lc, c
 
 /* method properties ------------------------------------------------------ */
 int cppyy_is_publicmethod(cppyy_type_t type, cppyy_index_t idx) {
-    TFunction* f = type_get_method(type, idx);
-    return (int)Cppyy::IsPublicMethod((Cppyy::TCppMethod_t)f);
+    CallWrapper wrap{type_get_method(type, idx)};
+    return (int)Cppyy::IsPublicMethod((Cppyy::TCppMethod_t)&wrap);
 }
 
 int cppyy_is_constructor(cppyy_type_t type, cppyy_index_t idx) {
-    TFunction* f = type_get_method(type, idx);
-    return (int)Cppyy::IsConstructor((Cppyy::TCppMethod_t)f);
+    CallWrapper wrap{type_get_method(type, idx)};
+    return (int)Cppyy::IsConstructor((Cppyy::TCppMethod_t)&wrap);
 }
 
 int cppyy_is_destructor(cppyy_type_t type, cppyy_index_t idx) {
-    TFunction* f = type_get_method(type, idx);
-    return (int)Cppyy::IsDestructor((Cppyy::TCppMethod_t)f);
+    CallWrapper wrap{type_get_method(type, idx)};
+    return (int)Cppyy::IsDestructor((Cppyy::TCppMethod_t)&wrap);
 }
 
 int cppyy_is_staticmethod(cppyy_type_t type, cppyy_index_t idx) {
-    TFunction* f = type_get_method(type, idx);
-    return (int)Cppyy::IsStaticMethod((Cppyy::TCppMethod_t)f);
+    CallWrapper wrap{type_get_method(type, idx)};
+    return (int)Cppyy::IsStaticMethod((Cppyy::TCppMethod_t)&wrap);
 }
 
 
