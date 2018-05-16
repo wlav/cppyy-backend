@@ -77,7 +77,7 @@ class my_cmake_build(_build):
         log.info('Running cmake for cppyy_backend')
         if subprocess.call([
                 'cmake', srcdir, stdcxx,
-                '-Dminimal=ON', '-Dasimage=OFF', '-Droot7=OFF', '-Dhttp=OFF',
+                '-Dminimal=ON', '-Dasimage=OFF', '-Droot7=OFF', '-Dhttp=OFF', '-Dbuiltin_freetype=OFF',
                 '-DCMAKE_BUILD_TYPE=RelWithDebInfo',
                 '-DCMAKE_INSTALL_PREFIX='+prefix], cwd=builddir) != 0:
             raise DistutilsSetupError('Failed to configure cppyy_backend')
