@@ -54,15 +54,18 @@ static const ClassRefs_t::size_type STD_HANDLE = GLOBAL_HANDLE + 1;
 typedef std::map<std::string, ClassRefs_t::size_type> Name2ClassRefIndex_t;
 static Name2ClassRefIndex_t g_name2classrefidx;
 
-struct CallWrapper;
-static std::vector<CallWrapper*> gWrapperHolder;
 struct CallWrapper {
-    CallWrapper(TFunction* f) : fMetaFunction(f), fWrapper(nullptr) {
-        gWrapperHolder.push_back(this);
-    }
+    CallWrapper(TFunction* f) : fMetaFunction(f), fWrapper(nullptr) {}
     TFunction*  fMetaFunction;
     CallFunc_t* fWrapper;
 };
+static std::vector<CallWrapper*> gWrapperHolder;
+static inline CallWrapper* new_CallWrapper(TFunction* f) {
+    CallWrapper* wrap = new CallWrapper(f);
+    gWrapperHolder.push_back(wrap);
+    return wrap;
+}
+
 
 typedef std::vector<TGlobal*> GlobalVars_t;
 static GlobalVars_t g_globalvars;
@@ -900,7 +903,7 @@ bool Cppyy::GetSmartPtrInfo(
             TIter next(cr->GetListOfAllPublicMethods()); 
             while ((func = (TFunction*)next())) {
                 if (strstr(func->GetName(), "operator->")) {
-                    deref = (TCppMethod_t)new CallWrapper(func);
+                    deref = (TCppMethod_t)new_CallWrapper(func);
                     raw = GetScope(TClassEdit::ShortType(
                         func->GetReturnTypeNormalizedName().c_str(), 1));
                     return deref && raw;
@@ -1016,7 +1019,7 @@ std::vector<Cppyy::TCppIndex_t> Cppyy::GetMethodIndicesFromName(
         TIter ifunc(funcs);
         while ((func = (TFunction*)ifunc.Next())) {
             if (match_name(name, func->GetName()))
-                indices.push_back((TCppIndex_t)new CallWrapper(func));
+                indices.push_back((TCppIndex_t)new_CallWrapper(func));
         }
     }
 
@@ -1027,7 +1030,7 @@ Cppyy::TCppMethod_t Cppyy::GetMethod(TCppScope_t scope, TCppIndex_t imeth)
 {
     TFunction* func = type_get_method(scope, imeth);
     if (func)
-        return (Cppyy::TCppMethod_t)new CallWrapper(func);
+        return (Cppyy::TCppMethod_t)new_CallWrapper(func);
     return (Cppyy::TCppMethod_t)nullptr;
 }
 
@@ -1227,7 +1230,7 @@ Cppyy::TCppMethod_t Cppyy::GetMethodTemplate(
     }
 
     if (func)
-        return (TCppMethod_t)new CallWrapper(func);
+        return (TCppMethod_t)new_CallWrapper(func);
 
 // failure ...
     return (TCppMethod_t)nullptr;
@@ -1240,7 +1243,7 @@ Cppyy::TCppIndex_t Cppyy::GetGlobalOperator(
     std::string proto = GetScopedFinalName(lc) + ", " + GetScopedFinalName(rc);
     if (scope == (cppyy_scope_t)GLOBAL_HANDLE) {
         TFunction* func = gROOT->GetGlobalFunctionWithPrototype(opname.c_str(), proto.c_str());
-        if (func) return (TCppIndex_t)new CallWrapper(func);
+        if (func) return (TCppIndex_t)new_CallWrapper(func);
     } else {
         TClassRef& cr = type_from_handle(scope);
         if (cr.GetClass()) {
