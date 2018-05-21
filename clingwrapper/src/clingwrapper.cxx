@@ -31,6 +31,7 @@
 #include <dlfcn.h>
 #include <stdexcept>
 #include <map>
+#include <new>
 #include <set>
 #include <sstream>
 #include <stdlib.h>      // for getenv
@@ -362,7 +363,7 @@ Cppyy::TCppObject_t Cppyy::Allocate(TCppType_t type)
 
 void Cppyy::Deallocate(TCppType_t /* type */, TCppObject_t instance)
 {
-    free(instance);
+    ::operator delete(instance);
 }
 
 Cppyy::TCppObject_t Cppyy::Construct(TCppType_t type)
@@ -602,21 +603,22 @@ Cppyy::TCppObject_t Cppyy::CallO(TCppMethod_t method,
     TCppObject_t self, void* args, TCppType_t result_type)
 {
     TClassRef& cr = type_from_handle(result_type);
-    void* obj = malloc(cr->Size());
+    void* obj = ::operator new(cr->Size());
     if (FastCall(method, args, self, obj))
         return (TCppObject_t)obj;
     return (TCppObject_t)0;
 }
 
-Cppyy::TCppFuncAddr_t Cppyy::GetFunctionAddress(TCppScope_t scope, TCppIndex_t imeth)
+Cppyy::TCppFuncAddr_t Cppyy::GetFunctionAddress(TCppScope_t scope, TCppIndex_t idx)
 {
     if (!gEnableFastPath) return (TCppFuncAddr_t)nullptr;
-    TFunction* f = type_get_method(scope, imeth);
+    TFunction* f = type_get_method(scope, idx);
     return (TCppFuncAddr_t)dlsym(RTLD_DEFAULT, f->GetMangledName());
 }
 
 Cppyy::TCppFuncAddr_t Cppyy::GetFunctionAddress(TCppMethod_t method)
 {
+    if (!gEnableFastPath) return (TCppFuncAddr_t)nullptr;
     TFunction* f = m2f(method);
     return (TCppFuncAddr_t)dlsym(RTLD_DEFAULT, f->GetMangledName());
 }
