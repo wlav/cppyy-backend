@@ -111,6 +111,10 @@ class my_install(_install):
         return outputs
 
 class my_bdist_wheel(_bdist_wheel):
+    def run(self, *args):
+     # wheels do not respect dependencies; make this a no-op so that it fails (mostly) silently
+        pass
+
     def finalize_options(self):
      # this is a universal, but platform-specific package; a combination
      # that wheel does not recognize, thus simply fool it
@@ -131,12 +135,12 @@ setup(
     author='PyPy Developers',
     author_email='pypy-dev@python.org',
 
-    version='0.6.0',
+    version='1.0.0',
 
     license='LBNL BSD',
 
     classifiers=[
-        'Development Status :: 4 - Beta',
+        'Development Status :: 5 - Production/Stable'
 
         'Intended Audience :: Developers',
         'Intended Audience :: Science/Research',
@@ -156,7 +160,7 @@ setup(
         'Natural Language :: English'
     ],
 
-    keywords='C++ bindings',
+    keywords='C++ bindings data science',
 
     setup_requires=requirements,
     install_requires=requirements,
