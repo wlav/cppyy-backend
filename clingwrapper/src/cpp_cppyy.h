@@ -87,8 +87,6 @@ namespace Cppyy {
     TCppObject_t  CallO(TCppMethod_t method, TCppObject_t self, void* args, TCppType_t result_type);
 
     RPY_EXTERN
-    TCppFuncAddr_t GetFunctionAddress(TCppScope_t scope, TCppIndex_t imeth);
-    RPY_EXTERN
     TCppFuncAddr_t GetFunctionAddress(TCppMethod_t method);
 
 // handling of function argument buffer --------------------------------------
@@ -149,6 +147,8 @@ namespace Cppyy {
     RPY_EXTERN
     std::string GetMethodName(TCppMethod_t);
     RPY_EXTERN
+    std::string GetMethodFullName(TCppMethod_t);
+    RPY_EXTERN
     std::string GetMethodMangledName(TCppMethod_t);
     RPY_EXTERN
     std::string GetMethodResultType(TCppMethod_t);
@@ -163,9 +163,9 @@ namespace Cppyy {
     RPY_EXTERN
     std::string GetMethodArgDefault(TCppMethod_t, int iarg);
     RPY_EXTERN
-    std::string GetMethodSignature(TCppScope_t scope, TCppIndex_t imeth, bool show_formalargs);
+    std::string GetMethodSignature(TCppMethod_t, bool show_formalargs);
     RPY_EXTERN
-    std::string GetMethodPrototype(TCppScope_t scope, TCppIndex_t imeth, bool show_formalargs);
+    std::string GetMethodPrototype(TCppScope_t scope, TCppMethod_t, bool show_formalargs);
     RPY_EXTERN
     bool        IsConstMethod(TCppMethod_t);
 
@@ -174,13 +174,9 @@ namespace Cppyy {
     RPY_EXTERN
     bool        IsMethodTemplate(TCppScope_t scope, TCppIndex_t imeth);
     RPY_EXTERN
-    TCppIndex_t GetMethodNumTemplateArgs(TCppScope_t scope, TCppIndex_t imeth);
-    RPY_EXTERN
-    std::string GetMethodTemplateArgName(TCppScope_t scope, TCppIndex_t imeth, TCppIndex_t iarg);
-
-    RPY_EXTERN
     TCppMethod_t GetMethodTemplate(
         TCppScope_t scope, const std::string& name, const std::string& proto);
+
     RPY_EXTERN
     TCppIndex_t  GetGlobalOperator(
         TCppType_t scope, TCppType_t lc, TCppScope_t rc, const std::string& op);

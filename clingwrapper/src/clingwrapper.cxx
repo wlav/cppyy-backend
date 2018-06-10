@@ -28,7 +28,6 @@
 // Standard
 #include <assert.h>
 #include <algorithm>     // for std::count
-#include <dlfcn.h>
 #include <stdexcept>
 #include <map>
 #include <new>
@@ -609,18 +608,11 @@ Cppyy::TCppObject_t Cppyy::CallO(TCppMethod_t method,
     return (TCppObject_t)0;
 }
 
-Cppyy::TCppFuncAddr_t Cppyy::GetFunctionAddress(TCppScope_t scope, TCppIndex_t idx)
-{
-    if (!gEnableFastPath) return (TCppFuncAddr_t)nullptr;
-    TFunction* f = type_get_method(scope, idx);
-    return (TCppFuncAddr_t)dlsym(RTLD_DEFAULT, f->GetMangledName());
-}
-
 Cppyy::TCppFuncAddr_t Cppyy::GetFunctionAddress(TCppMethod_t method)
 {
     if (!gEnableFastPath) return (TCppFuncAddr_t)nullptr;
     TFunction* f = m2f(method);
-    return (TCppFuncAddr_t)dlsym(RTLD_DEFAULT, f->GetMangledName());
+    return (TCppFuncAddr_t)gInterpreter->FindSym(f->GetMangledName());
 }
 
 
@@ -1049,6 +1041,13 @@ std::string Cppyy::GetMethodName(TCppMethod_t method)
     return "<unknown>";
 }
 
+std::string Cppyy::GetMethodFullName(TCppMethod_t method)
+{
+    if (method)
+        return m2f(method)->GetName();
+    return "<unknown>";
+}
+
 std::string Cppyy::GetMethodMangledName(TCppMethod_t method)
 {
     if (method)
@@ -1116,9 +1115,9 @@ std::string Cppyy::GetMethodArgDefault(TCppMethod_t method, int iarg)
     return "";
 }
 
-std::string Cppyy::GetMethodSignature(TCppScope_t scope, TCppIndex_t imeth, bool show_formalargs)
+std::string Cppyy::GetMethodSignature(TCppMethod_t method, bool show_formalargs)
 {
-    TFunction* f = type_get_method(scope, imeth);
+    TFunction* f = m2f(method);
     if (f) {
         std::ostringstream sig;
         sig << "(";
@@ -1140,15 +1139,15 @@ std::string Cppyy::GetMethodSignature(TCppScope_t scope, TCppIndex_t imeth, bool
     return "<unknown>";
 }
 
-std::string Cppyy::GetMethodPrototype(TCppScope_t scope, TCppIndex_t imeth, bool show_formalargs)
+std::string Cppyy::GetMethodPrototype(TCppScope_t scope, TCppMethod_t method, bool show_formalargs)
 {
     std::string scName = GetScopedFinalName(scope);
-    TFunction* f = type_get_method(scope, imeth);
+    TFunction* f = m2f(method);
     if (f) {
         std::ostringstream sig;
         sig << f->GetReturnTypeName() << " "
             << scName << "::" << f->GetName();
-        sig << GetMethodSignature(scope, imeth, show_formalargs);
+        sig << GetMethodSignature(method, show_formalargs);
         return sig.str();
     }
     return "<unknown>";
@@ -1165,7 +1164,7 @@ bool Cppyy::IsConstMethod(TCppMethod_t method)
 
 bool Cppyy::ExistsMethodTemplate(TCppScope_t scope, const std::string& name)
 {
-    if (scope == (cppyy_scope_t)GLOBAL_HANDLE)
+    if (scope == (TCppScope_t)GLOBAL_HANDLE)
         return (bool)gROOT->GetFunctionTemplate(name.c_str());
     else {
         TClassRef& cr = type_from_handle(scope);
@@ -1182,53 +1181,56 @@ bool Cppyy::IsMethodTemplate(TCppScope_t scope, TCppIndex_t imeth)
     TFunction* f = type_get_method(scope, imeth);
     if (!f) return false;
 
-    if (scope == (Cppyy::TCppType_t)GLOBAL_HANDLE) {
-    // TODO: figure this one out ...
-        return false;
-    } else {
-        TClassRef& cr = type_from_handle(scope);
-        if (cr.GetClass()) {
-            return (bool)cr->GetFunctionTemplate(f->GetName());
-        }
-    }
-    return false;
+    auto result = ExistsMethodTemplate(scope, f->GetName());
+    return result;
 }
 
-Cppyy::TCppIndex_t Cppyy::GetMethodNumTemplateArgs(
-    TCppScope_t scope, TCppIndex_t imeth)
+// helpers for Cppyy::GetMethodTemplate()
+static inline ClassInfo_t* GetGlobalNamespaceInfo()
 {
-// this is dumb, but the fact that Cling can instantiate template
-// methods on-the-fly means that there is some vast reworking TODO
-// in interp_cppyy.py, so this is just to make the original tests
-// pass that worked in the Reflex era ...
-    const std::string name = GetMethodName(GetMethod(scope, imeth));
-    return (TCppIndex_t)(std::count(name.begin(), name.end(), ',')+1);
+   static ClassInfo_t* gcl = gInterpreter->ClassInfo_Factory();
+   return gcl;
 }
 
-std::string Cppyy::GetMethodTemplateArgName(
-    TCppScope_t scope, TCppIndex_t imeth, TCppIndex_t /* iarg */)
-{
-// TODO: like above, given Cling's instantiation capability, this
-// is just dumb ...
-    TFunction* f = type_get_method(scope, imeth);
-    std::string name = f->GetName();
-    std::string::size_type pos = name.find('<');
-// TODO: left as-is, this should loop over arguments, but what is here
-// suffices to pass the Reflex-based tests (need more tests :))
-    return cppstring_to_cstring(
-        ResolveName(name.substr(pos+1, name.size()-pos-2)));
+static std::vector<TFunction*> s_method_templates;
+namespace {
+    struct CleanMethodTemplates {
+        ~CleanMethodTemplates() { for (auto& x : s_method_templates) delete x; }
+    } _clean;
 }
 
 Cppyy::TCppMethod_t Cppyy::GetMethodTemplate(
     TCppScope_t scope, const std::string& name, const std::string& proto)
 {
-    TFunction* func = nullptr;
+// There is currently no clean way of extracting a templated method out of ROOT/meta
+// for a variety of reasons, none of them fundamental. The game played below is to
+// first get any pre-existing functions already managed by ROOT/meta, but if that fails,
+// to do an explicit lookup that ignores the prototype.
+// It would be possible to get the prototype from the created functions and use that to
+// do a new lookup, after which ROOT/meta will manage the function. However, neither
+// TFunction::GetPrototype() nor TFunction::GetSignature() is of the proper form, so
+// we'll/ manage the new TFunctions instead and will assume that they are cached on the
+// calling side to prevent multiple creations.
+    TFunction* func = nullptr; ClassInfo_t* cl = nullptr;
     if (scope == (cppyy_scope_t)GLOBAL_HANDLE) {
         func = gROOT->GetGlobalFunctionWithPrototype(name.c_str(), proto.c_str());
+        if (!func) cl = GetGlobalNamespaceInfo();
     } else {
         TClassRef& cr = type_from_handle(scope);
-        if (cr.GetClass())
+        if (cr.GetClass()) {
             func = cr->GetMethodWithPrototype(name.c_str(), proto.c_str());
+            if (!func) cl = cr->GetClassInfo();
+        }
+    }
+
+    if (!func && cl) {
+    // try again, ignoring proto in case full name is complete template
+        auto declid = gInterpreter->GetFunction(cl, name.c_str());
+        if (declid) {
+             MethodInfo_t* mi = gInterpreter->MethodInfo_Factory(declid);
+             s_method_templates.push_back(new TFunction(mi));
+             func = s_method_templates.back();
+        }
     }
 
     if (func)
@@ -1684,11 +1686,7 @@ cppyy_object_t cppyy_call_o(cppyy_method_t method, cppyy_object_t self,
     return (cppyy_object_t)0;
 }
 
-cppyy_funcaddr_t cppyy_function_address_from_index(cppyy_scope_t scope, cppyy_index_t idx) {
-    return cppyy_funcaddr_t(Cppyy::GetFunctionAddress(scope, idx));
-}
-
-cppyy_funcaddr_t cppyy_function_address_from_method(cppyy_method_t method) {
+cppyy_funcaddr_t cppyy_function_address(cppyy_method_t method) {
     return cppyy_funcaddr_t(Cppyy::GetFunctionAddress(method));
 }
 
@@ -1805,47 +1803,49 @@ cppyy_index_t* cppyy_method_indices_from_name(cppyy_scope_t scope, const char* n
     return llresult;
 }
 
-char* cppyy_method_name(cppyy_scope_t scope, cppyy_index_t idx) {
-    CallWrapper wrap{type_get_method(scope, idx)};
-    return cppstring_to_cstring(Cppyy::GetMethodName((Cppyy::TCppMethod_t)&wrap));
+cppyy_method_t cppyy_get_method(cppyy_scope_t scope, cppyy_index_t idx) {
+    return cppyy_method_t(Cppyy::GetMethod(scope, idx));
 }
 
-char* cppyy_method_mangled_name(cppyy_scope_t scope, cppyy_index_t idx) {
-    CallWrapper wrap{type_get_method(scope, idx)};
-    return cppstring_to_cstring(Cppyy::GetMethodMangledName((Cppyy::TCppMethod_t)&wrap));
+char* cppyy_method_name(cppyy_method_t method) {
+    return cppstring_to_cstring(Cppyy::GetMethodName((Cppyy::TCppMethod_t)method));
 }
 
-char* cppyy_method_result_type(cppyy_scope_t scope, cppyy_index_t idx) {
-    CallWrapper wrap{type_get_method(scope, idx)};
-    return cppstring_to_cstring(Cppyy::GetMethodResultType((Cppyy::TCppMethod_t)&wrap));
+char* cppyy_method_full_name(cppyy_method_t method) {
+    return cppstring_to_cstring(Cppyy::GetMethodFullName((Cppyy::TCppMethod_t)method));
 }
 
-int cppyy_method_num_args(cppyy_scope_t scope, cppyy_index_t idx) {
-    CallWrapper wrap{type_get_method(scope, idx)};
-    return (int)Cppyy::GetMethodNumArgs((Cppyy::TCppMethod_t)&wrap);
+char* cppyy_method_mangled_name(cppyy_method_t method) {
+    return cppstring_to_cstring(Cppyy::GetMethodMangledName((Cppyy::TCppMethod_t)method));
 }
 
-int cppyy_method_req_args(cppyy_scope_t scope, cppyy_index_t idx) {
-    CallWrapper wrap{type_get_method(scope, idx)};
-    return (int)Cppyy::GetMethodReqArgs((Cppyy::TCppMethod_t)&wrap);
+char* cppyy_method_result_type(cppyy_method_t method) {
+    return cppstring_to_cstring(Cppyy::GetMethodResultType((Cppyy::TCppMethod_t)method));
 }
 
-char* cppyy_method_arg_type(cppyy_scope_t scope, cppyy_index_t idx, int arg_index) {
-    CallWrapper wrap{type_get_method(scope, idx)};
-    return cppstring_to_cstring(Cppyy::GetMethodArgType((Cppyy::TCppMethod_t)&wrap, arg_index));
+int cppyy_method_num_args(cppyy_method_t method) {
+    return (int)Cppyy::GetMethodNumArgs((Cppyy::TCppMethod_t)method);
 }
 
-char* cppyy_method_arg_default(cppyy_scope_t scope, cppyy_index_t idx, int arg_index) {
-    CallWrapper wrap{type_get_method(scope, idx)};
-    return cppstring_to_cstring(Cppyy::GetMethodArgDefault((Cppyy::TCppMethod_t)&wrap, arg_index));
+int cppyy_method_req_args(cppyy_method_t method) {
+    return (int)Cppyy::GetMethodReqArgs((Cppyy::TCppMethod_t)method);
 }
 
-char* cppyy_method_signature(cppyy_scope_t scope, cppyy_index_t idx, int show_formalargs) {
-    return cppstring_to_cstring(Cppyy::GetMethodSignature(scope, idx, (bool)show_formalargs));
+char* cppyy_method_arg_type(cppyy_method_t method, int arg_index) {
+    return cppstring_to_cstring(Cppyy::GetMethodArgType((Cppyy::TCppMethod_t)method, arg_index));
 }
 
-char* cppyy_method_prototype(cppyy_scope_t scope, cppyy_index_t idx, int show_formalargs) {
-    return cppstring_to_cstring(Cppyy::GetMethodPrototype(scope, idx, (bool)show_formalargs));
+char* cppyy_method_arg_default(cppyy_method_t method, int arg_index) {
+    return cppstring_to_cstring(Cppyy::GetMethodArgDefault((Cppyy::TCppMethod_t)method, arg_index));
+}
+
+char* cppyy_method_signature(cppyy_method_t method, int show_formalargs) {
+    return cppstring_to_cstring(Cppyy::GetMethodSignature((Cppyy::TCppMethod_t)method, (bool)show_formalargs));
+}
+
+char* cppyy_method_prototype(cppyy_scope_t scope, cppyy_method_t method, int show_formalargs) {
+    return cppstring_to_cstring(Cppyy::GetMethodPrototype(
+        (Cppyy::TCppScope_t)scope, (Cppyy::TCppMethod_t)method, (bool)show_formalargs));
 }
 
 int cppyy_is_const_method(cppyy_method_t method) {
@@ -1860,16 +1860,8 @@ int cppyy_method_is_template(cppyy_scope_t scope, cppyy_index_t idx) {
     return (int)Cppyy::IsMethodTemplate(scope, idx);
 }
 
-int cppyy_method_num_template_args(cppyy_scope_t scope, cppyy_index_t idx) {
-    return (int)Cppyy::GetMethodNumTemplateArgs(scope, idx);
-}
-
-char* cppyy_method_template_arg_name(cppyy_scope_t scope, cppyy_index_t idx, cppyy_index_t iarg) {
-    return cppstring_to_cstring(Cppyy::GetMethodTemplateArgName(scope, idx, iarg));
-}
-
-cppyy_method_t cppyy_get_method(cppyy_scope_t scope, cppyy_index_t idx) {
-    return cppyy_method_t(Cppyy::GetMethod(scope, idx));
+cppyy_method_t cppyy_get_method_template(cppyy_scope_t scope, const char* name, const char* proto) {
+    return cppyy_method_t(Cppyy::GetMethodTemplate(scope, name, proto));
 }
 
 cppyy_index_t cppyy_get_global_operator(cppyy_scope_t scope, cppyy_scope_t lc, cppyy_scope_t rc, const char* op) {
@@ -1878,24 +1870,20 @@ cppyy_index_t cppyy_get_global_operator(cppyy_scope_t scope, cppyy_scope_t lc, c
 
 
 /* method properties ------------------------------------------------------ */
-int cppyy_is_publicmethod(cppyy_type_t type, cppyy_index_t idx) {
-    CallWrapper wrap{type_get_method(type, idx)};
-    return (int)Cppyy::IsPublicMethod((Cppyy::TCppMethod_t)&wrap);
+int cppyy_is_publicmethod(cppyy_method_t method) {
+    return (int)Cppyy::IsPublicMethod((Cppyy::TCppMethod_t)method);
 }
 
-int cppyy_is_constructor(cppyy_type_t type, cppyy_index_t idx) {
-    CallWrapper wrap{type_get_method(type, idx)};
-    return (int)Cppyy::IsConstructor((Cppyy::TCppMethod_t)&wrap);
+int cppyy_is_constructor(cppyy_method_t method) {
+    return (int)Cppyy::IsConstructor((Cppyy::TCppMethod_t)method);
 }
 
-int cppyy_is_destructor(cppyy_type_t type, cppyy_index_t idx) {
-    CallWrapper wrap{type_get_method(type, idx)};
-    return (int)Cppyy::IsDestructor((Cppyy::TCppMethod_t)&wrap);
+int cppyy_is_destructor(cppyy_method_t method) {
+    return (int)Cppyy::IsDestructor((Cppyy::TCppMethod_t)method);
 }
 
-int cppyy_is_staticmethod(cppyy_type_t type, cppyy_index_t idx) {
-    CallWrapper wrap{type_get_method(type, idx)};
-    return (int)Cppyy::IsStaticMethod((Cppyy::TCppMethod_t)&wrap);
+int cppyy_is_staticmethod(cppyy_method_t method) {
+    return (int)Cppyy::IsStaticMethod((Cppyy::TCppMethod_t)method);
 }
 
 
