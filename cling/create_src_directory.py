@@ -274,12 +274,12 @@ typedef struct _x3d_sizeof_ {
 new_cml.close()
 os.rename(outp, inp)
 
-inp = 'core/unix/src/TUnixSystem.cxx'
-outp = inp+'.new'
-new_cml = open(outp, 'w')
-for line in open(inp):
-    if '#include "TSocket.h"' == line[0:20]:
-        line = """//#include "TSocket.h"
+for inp in ['core/unix/src/TUnixSystem.cxx', 'core/winnt/src/TWinNTSystem.cxx']:
+    outp = inp+'.new'
+    new_cml = open(outp, 'w')
+    for line in open(inp):
+        if '#include "TSocket.h"' == line[0:20]:
+            line = """//#include "TSocket.h"
 enum ESockOptions {
    kSendBuffer,        // size of send buffer
    kRecvBuffer,        // size of receive buffer
@@ -300,9 +300,9 @@ enum ESendRecvOptions {
    kDontBlock          // send/recv as much data as possible without blocking
 };
 """
-    new_cml.write(line)
-new_cml.close()
-os.rename(outp, inp)
+        new_cml.write(line)
+    new_cml.close()
+    os.rename(outp, inp)
 
 inp = 'math/mathcore/src/Fitter.cxx'
 if os.path.exists(inp):
