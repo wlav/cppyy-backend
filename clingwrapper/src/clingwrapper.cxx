@@ -489,6 +489,9 @@ static bool FastCall(Cppyy::TCppMethod_t method, void* args_, void* self, void* 
         return false;
 
     TInterpreter::CallFuncIFacePtr_t faceptr = gCling->CallFunc_IFacePtr(callf);
+    if (!faceptr.fGeneric)
+        return false;        // happens with compilation error
+
     if (faceptr.fKind == TInterpreter::CallFuncIFacePtr_t::kGeneric) {
         bool runRelease = false;
         if (args.size() <= SMALL_ARGS_N) {
