@@ -1,0 +1,46 @@
+diff --git a/src/core/metacling/src/TClingCallFunc.cxx b/src/core/metacling/src/TClingCallFunc.cxx
+index 92c96215c0..ae0089ff83 100644
+--- a/src/core/metacling/src/TClingCallFunc.cxx
++++ b/src/core/metacling/src/TClingCallFunc.cxx
+@@ -981,7 +981,11 @@ void TClingCallFunc::make_narg_call_with_return(const unsigned N, const string &
+       make_narg_ctor_with_return(N, class_name, buf, indent_level);
+       return;
+    }
+-   QualType QT = FD->getReturnType().getCanonicalType();
++   QualType QT = FD->getReturnType();
++   CXXRecordDecl* rtdecl = QT->getAsCXXRecordDecl();
++   if (!rtdecl || (rtdecl->getAccess() != AS_private && rtdecl->getAccess() != AS_protected))
++       QT = QT.getCanonicalType();
++
+    if (QT->isVoidType()) {
+       ostringstream typedefbuf;
+       ostringstream callbuf;
+diff --git a/src/interpreter/cling/lib/Utils/AST.cpp b/src/interpreter/cling/lib/Utils/AST.cpp
+index da3b0724e5..f7ba7623aa 100644
+--- a/src/interpreter/cling/lib/Utils/AST.cpp
++++ b/src/interpreter/cling/lib/Utils/AST.cpp
+@@ -699,7 +699,12 @@ namespace utils {
+                                 const llvm::SmallSet<const Decl*, 4>& ToSkip)
+   {
+     // Return true, if we should keep this typedef rather than desugaring it.
+-
++    QualType qt = TT->getDecl()->getUnderlyingType();
++    CXXRecordDecl* decl = qt->getAsCXXRecordDecl();
++    if (decl && (decl->getAccess() == AS_private || decl->getAccess() == AS_protected)) {
++        // desugaring would result in an inaccessible type, so leave it alone
++        return true;
++    }
+     return 0 != ToSkip.count(TT->getDecl()->getCanonicalDecl());
+   }
+ 
+@@ -1123,6 +1128,10 @@ namespace utils {
+         dyn_cast_or_null<TypedefType>(QT.getTypePtr());
+       if (typedeftype) {
+         decl = typedeftype->getDecl();
++        if (decl && (decl->getAccess() == AS_private || decl->getAccess() == AS_protected)) {
++          // desugaring would result in an inaccessible type, so leave it alone
++          return QT;
++         }
+       } else {
+         // There are probably other cases ...
+         const TagType* tagdecltype = dyn_cast_or_null<TagType>(QT.getTypePtr());
