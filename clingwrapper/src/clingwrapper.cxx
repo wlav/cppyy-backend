@@ -1186,12 +1186,6 @@ bool Cppyy::IsMethodTemplate(TCppScope_t scope, TCppIndex_t imeth)
 }
 
 // helpers for Cppyy::GetMethodTemplate()
-static inline ClassInfo_t* GetGlobalNamespaceInfo()
-{
-   static ClassInfo_t* gcl = gInterpreter->ClassInfo_Factory();
-   return gcl;
-}
-
 static std::vector<TFunction*> s_method_templates;
 namespace {
     struct CleanMethodTemplates {
@@ -1212,10 +1206,9 @@ Cppyy::TCppMethod_t Cppyy::GetMethodTemplate(
 // we'll/ manage the new TFunctions instead and will assume that they are cached on the
 // calling side to prevent multiple creations.
     TFunction* func = nullptr; ClassInfo_t* cl = nullptr;
-    if (scope == (cppyy_scope_t)GLOBAL_HANDLE) {
+    if (scope == (cppyy_scope_t)GLOBAL_HANDLE)
         func = gROOT->GetGlobalFunctionWithPrototype(name.c_str(), proto.c_str());
-        if (!func) cl = GetGlobalNamespaceInfo();
-    } else {
+    else {
         TClassRef& cr = type_from_handle(scope);
         if (cr.GetClass()) {
             func = cr->GetMethodWithPrototype(name.c_str(), proto.c_str());
@@ -1223,7 +1216,7 @@ Cppyy::TCppMethod_t Cppyy::GetMethodTemplate(
         }
     }
 
-    if (!func && cl) {
+    if (!func && (cl || scope == (cppyy_scope_t)GLOBAL_HANDLE)) {
     // try again, ignoring proto in case full name is complete template
         auto declid = gInterpreter->GetFunction(cl, name.c_str());
         if (declid) {
