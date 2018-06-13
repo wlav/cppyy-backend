@@ -14,12 +14,14 @@ DEBUG_TESTBUILD = False
 TARBALL_CACHE_DIR = 'releases'
 
 ROOT_KEEP = ['build', 'cmake', 'config', 'core', 'etc', 'interpreter',
-             'io', 'LICENSE', 'Makefile', 'CMakeLists.txt', 'math',
-             'main'] # main only needed in more recent root b/c of rootcling
+             'io', 'LICENSE', 'LGPL2_1.txt', 'Makefile', 'CMakeLists.txt', 'math',
+             'main', # main only needed in more recent root b/c of rootcling
+             'builtins']
 ROOT_CORE_KEEP = ['CMakeLists.txt', 'base', 'clib', 'clingutils', 'cont',
                   'dictgen', 'foundation', 'lz4', 'lzma', 'macosx', 'meta',
                   'metacling', 'metautils', 'rootcling_stage1', 'textinput',
                   'thread', 'unix', 'utils', 'winnt', 'zip', 'pcre']
+ROOT_BUILTINS_KEEP = ['lz4', 'openssl', 'xxhash', 'zlib']
 ROOT_IO_KEEP = ['CMakeLists.txt', 'io', 'rootpcm']
 ROOT_MATH_KEEP = ['CMakeLists.txt', 'mathcore']
 ROOT_ETC_KEEP = ['Makefile.arch', 'class.rules', 'cmake', 'dictpch',
@@ -80,8 +82,8 @@ def clean_directory(directory, keeplist, trim_cmake=True):
         return
 
     # now take the removed entries out of the CMakeLists.txt
-    if removed_entries:
-        inp = os.path.join(directory, 'CMakeLists.txt')
+    inp = os.path.join(directory, 'CMakeLists.txt')
+    if removed_entries and os.path.exists(inp):
         print('trimming', inp)
         outp = inp+'.new'
         new_cml = open(outp, 'w')
@@ -142,6 +144,7 @@ except OSError:
 os.chdir(pkgdir)
 clean_directory(os.path.curdir, ROOT_KEEP)
 clean_directory('core',         ROOT_CORE_KEEP)
+clean_directory('builtins',     ROOT_BUILTINS_KEEP)
 clean_directory('etc',          ROOT_ETC_KEEP, trim_cmake=False)
 clean_directory('etc/plugins',  ROOT_PLUGINS_KEEP, trim_cmake=False)
 clean_directory('io',           ROOT_IO_KEEP)
@@ -353,7 +356,6 @@ for entry in os.listdir(pkgdir):
 #
 ## apply patches
 #
-os.system('patch -p1 < patches/metacling.diff')
 os.system('patch -p1 < patches/scanner.diff')
 os.system('patch -p1 < patches/scanner_2.diff')
 os.system('patch -p1 < patches/faux_typedef.diff')
