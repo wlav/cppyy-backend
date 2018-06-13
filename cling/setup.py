@@ -82,23 +82,32 @@ class my_cmake_build(_build):
                 '-DCMAKE_INSTALL_PREFIX='+prefix], cwd=builddir) != 0:
             raise DistutilsSetupError('Failed to configure cppyy_backend')
 
-        # default to using all available cores (x2 if hyperthreading enabled)
-        nprocs = os.getenv("MAKE_NPROCS") or '0'
-        try:
-            nprocs = int(nprocs)
-        except ValueError:
-            log.warn("Integer expected for MAKE_NPROCS, but got %s (ignored)", nprocs)
-            nprocs = 0
-        if nprocs < 1:
-            nprocs = multiprocessing.cpu_count()
-        build_args = ['--build', '.', '--config', 'RelWithDebInfo', '--']
-        if 'win32' in sys.platform:
-            build_args.append('/maxcpucount:' + str(nprocs))
+        # use $MAKE to build if it is defined
+        env_make = os.getenv("MAKE")
+        if not env_make:
+            build_cmd = 'cmake'
+            # default to using all available cores (x2 if hyperthreading enabled)
+            nprocs = os.getenv("MAKE_NPROCS") or '0'
+            try:
+                nprocs = int(nprocs)
+            except ValueError:
+                log.warn("Integer expected for MAKE_NPROCS, but got %s (ignored)", nprocs)
+                nprocs = 0
+            if nprocs < 1:
+                nprocs = multiprocessing.cpu_count()
+            build_args = ['--build', '.', '--config', 'RelWithDebInfo', '--']
+            if 'win32' in sys.platform:
+                build_args.append('/maxcpucount:' + str(nprocs))
+            else:
+                build_args.append('-j' + str(nprocs))
         else:
-            build_args.append('-j' + str(nprocs))
+            build_args = env_make.split()
+            build_cmd, build_args = build_args[0], build_args[1:]
         log.info('Now building cppyy_backend and dependencies ...')
-        if subprocess.call(['cmake'] + build_args, cwd=builddir) != 0:
+        if env_make: os.unsetenv("MAKE")
+        if subprocess.call([build_cmd] + build_args, cwd=builddir) != 0:
             raise DistutilsSetupError('Failed to build cppyy_backend')
+        if env_make: os.putenv("MAKE", env_make)
 
         log.info('Build finished')
 
@@ -138,11 +147,21 @@ class my_install(_install):
         if not os.path.exists(builddir):
             raise DistutilsSetupError('Failed to find build dir!')
 
+        # use $MAKE to install if it is defined
+        env_make = os.getenv("MAKE")
+        if not env_make:
+            install_cmd = 'cmake'
+            install_args = ['--build', '.', '--config', 'RelWithDebInfo', '--target', 'install']
+        else:
+            install_args = env_make.split()
+            install_cmd, install_args = install_args[0], install_args[1:]+['install']
+
         prefix = get_prefix()
         log.info('Now creating installation under %s ...', prefix)
-        install_args = ['--build', '.', '--config', 'RelWithDebInfo', '--target', 'install']
-        if subprocess.call(['cmake'] + install_args, cwd=builddir) != 0:
+        if env_make: os.unsetenv("MAKE")
+        if subprocess.call([install_cmd] + install_args, cwd=builddir) != 0:
             raise DistutilsSetupError('Failed to install cppyy_backend')
+        if env_make: os.putenv("MAKE", env_make)
 
         prefix_base = os.path.join(get_prefix(), os.path.pardir)
         install_path = self._get_install_path()
