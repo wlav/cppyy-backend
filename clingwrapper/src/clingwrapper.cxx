@@ -105,6 +105,15 @@ public:
     // disable fast path if requested
         if (getenv("CPPYY_DISABLE_FASTPATH")) gEnableFastPath = false;
 
+    // set opt level (default to 2 if not given; Cling itself defaults to 0)
+        int optLevel = 2;
+        if (getenv("CPPYY_OPT_LEVEL")) optLevel = atoi(getenv("CPPYY_OPT_LEVEL"));
+        if (optLevel != 0) {
+            std::ostringstream s;
+            s << "#pragma cling optimize " << optLevel;
+            gInterpreter->ProcessLine(s.str().c_str());
+        }
+
     // fill the set of STL names
         const char* stl_names[] = {"string", "bitset", "pair", "allocator",
             "auto_ptr", "shared_ptr", "unique_ptr", "weak_ptr",
