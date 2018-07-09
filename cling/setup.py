@@ -74,6 +74,10 @@ class my_cmake_build(_build):
 
         stdcxx='-Dcxx'+stdcxx+'=ON'
 
+        # extra optimization flags for Cling
+        if not 'EXTRA_CLING_ARGS' in os.environ:
+            os.putenv('EXTRA_CLING_ARGS', '-O2 -mavx')
+
         log.info('Running cmake for cppyy_backend')
         if subprocess.call([
                 'cmake', srcdir, stdcxx,
@@ -83,7 +87,7 @@ class my_cmake_build(_build):
             raise DistutilsSetupError('Failed to configure cppyy_backend')
 
         # use $MAKE to build if it is defined
-        env_make = os.getenv("MAKE")
+        env_make = os.getenv('MAKE')
         if not env_make:
             build_cmd = 'cmake'
             # default to using all available cores (x2 if hyperthreading enabled)
@@ -107,7 +111,7 @@ class my_cmake_build(_build):
         if env_make: os.unsetenv("MAKE")
         if subprocess.call([build_cmd] + build_args, cwd=builddir) != 0:
             raise DistutilsSetupError('Failed to build cppyy_backend')
-        if env_make: os.putenv("MAKE", env_make)
+        if env_make: os.putenv('MAKE', env_make)
 
         log.info('Build finished')
 
