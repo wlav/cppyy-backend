@@ -76,7 +76,21 @@ class my_cmake_build(_build):
 
         # extra optimization flags for Cling
         if not 'EXTRA_CLING_ARGS' in os.environ:
-            os.putenv('EXTRA_CLING_ARGS', '-O2 -mavx')
+            has_avx = False
+            try:
+                for line in open('/proc/cpuinfo', 'r'):
+                    if 'avx' in line:
+                        has_avx = True
+                        break
+            except Exception:
+                try:
+                    cli_arg = subprocess.check_output(['sysctl', 'machdep.cpu.features'])
+                    has_avx = 'avx' in cli_arg.decode("utf-8").strip().lower()
+                except Exception:
+                    pass
+            extra_args = '-O2'
+            if has_avx: extra_args += ' -mavx'
+            os.putenv('EXTRA_CLING_ARGS', extra_args)
 
         log.info('Running cmake for cppyy_backend')
         if subprocess.call([
