@@ -365,5 +365,6 @@ os.system('patch -p1 < patches/no_long64_t.diff')
 os.system('patch -p1 < patches/using_decls.diff')
 os.system('patch -p1 < patches/sfinae.diff')
 os.system('patch -p1 < patches/typedef_of_private.diff')
+os.system('patch -p1 < patches/optlevel2_forced.diff')
 
 # done!

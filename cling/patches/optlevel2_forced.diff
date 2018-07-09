@@ -1,0 +1,15 @@
+diff --git a/src/core/metacling/src/TCling.cxx b/src/core/metacling/src/TCling.cxx
+index 38f951c12b..2823533580 100644
+--- a/src/core/metacling/src/TCling.cxx
++++ b/src/core/metacling/src/TCling.cxx
+@@ -1240,6 +1240,10 @@ TCling::TCling(const char *name, const char *title, const char* const argv[])
+                                          &(interpArgs[0]),
+                                          llvmResourceDir);
+ 
++   // force optlevel 2
++   fInterpreter->getCI()->getCodeGenOpts().OptimizationLevel = 2;
++   fInterpreter->setDefaultOptLevel(2);
++
+    if (!fromRootCling) {
+       fInterpreter->installLazyFunctionCreator(llvmLazyFunctionCreator);
+    }
