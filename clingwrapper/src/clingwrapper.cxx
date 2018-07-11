@@ -56,8 +56,9 @@ static Name2ClassRefIndex_t g_name2classrefidx;
 
 struct CallWrapper {
     CallWrapper(TFunction* f) : fMetaFunction(f), fWrapper(nullptr) {}
-    TFunction*  fMetaFunction;
-    CallFunc_t* fWrapper;
+    TFunction*                         fMetaFunction;
+    TInterpreter::CallFuncIFacePtr_t   fFaceptr;
+    CallFunc_t*                        fWrapper;
 };
 static std::vector<CallWrapper*> gWrapperHolder;
 static inline CallWrapper* new_CallWrapper(TFunction* f) {
@@ -388,12 +389,10 @@ void Cppyy::Destruct(TCppType_t type, TCppObject_t instance)
 
 
 // method/function dispatching -----------------------------------------------
-static inline CallFunc_t* GetCallFunc(Cppyy::TCppMethod_t method)
+static TInterpreter::CallFuncIFacePtr_t GetCallFunc(Cppyy::TCppMethod_t method)
 {
 // TODO: method should be a callfunc, so that no mapping would be needed.
     CallWrapper* wrap = (CallWrapper*)method;
-    if (wrap->fWrapper) return wrap->fWrapper;
-
     TFunction* func = wrap->fMetaFunction;
 
     CallFunc_t* callf = gInterpreter->CallFunc_Factory();
@@ -410,11 +409,12 @@ static inline CallFunc_t* GetCallFunc(Cppyy::TCppMethod_t method)
             callString.c_str()); */
         std::cerr << "TODO: report unresolved function error to Python\n";
         if (callf) gInterpreter->CallFunc_Delete(callf);
-        return nullptr;
+        return TInterpreter::CallFuncIFacePtr_t{};
     }
 
+    wrap->fFaceptr = gCling->CallFunc_IFacePtr(callf);
     wrap->fWrapper = callf;
-    return callf;
+    return wrap->fFaceptr;
 }
 
 static inline
@@ -451,11 +451,8 @@ static bool WrapperCall(Cppyy::TCppMethod_t method, size_t nargs, void* args_, v
 {
     Parameter* args = (Parameter*)args_;
 
-    CallFunc_t* callf = GetCallFunc(method);
-    if (!callf)
-        return false;
-
-    TInterpreter::CallFuncIFacePtr_t faceptr = gCling->CallFunc_IFacePtr(callf);
+    CallWrapper* wrap = (CallWrapper*)method;
+    const TInterpreter::CallFuncIFacePtr_t& faceptr = wrap->fFaceptr.fGeneric ? wrap->fFaceptr : GetCallFunc(method);
     if (!faceptr.fGeneric)
         return false;        // happens with compilation error
 
@@ -463,7 +460,7 @@ static bool WrapperCall(Cppyy::TCppMethod_t method, size_t nargs, void* args_, v
         bool runRelease = false;
         if (nargs <= SMALL_ARGS_N) {
             void* smallbuf[SMALL_ARGS_N];
-            runRelease = copy_args(args, nargs, smallbuf);
+            if (nargs) runRelease = copy_args(args, nargs, smallbuf);
             faceptr.fGeneric(self, nargs, smallbuf, result);
         } else {
             std::vector<void*> buf(nargs);
@@ -478,7 +475,7 @@ static bool WrapperCall(Cppyy::TCppMethod_t method, size_t nargs, void* args_, v
         bool runRelease = false;
         if (nargs <= SMALL_ARGS_N) {
             void* smallbuf[SMALL_ARGS_N];
-            runRelease = copy_args(args, nargs, (void**)smallbuf);
+            if (nargs) runRelease = copy_args(args, nargs, (void**)smallbuf);
             faceptr.fCtor((void**)smallbuf, result, nargs);
         } else {
             std::vector<void*> buf(nargs);
