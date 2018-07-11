@@ -423,47 +423,6 @@ bool copy_args(Parameter* args, size_t nargs, void** vargs)
     bool runRelease = false;
     for (size_t i = 0; i < nargs; ++i) {
         switch (args[i].fTypeCode) {
-        case 'b':       /* bool */
-            vargs[i] = (void*)&args[i].fValue.fBool;
-            break;
-        case 'h':       /* short */
-            vargs[i] = (void*)&args[i].fValue.fShort;
-            break;
-        case 'H':       /* unsigned short */
-            vargs[i] = (void*)&args[i].fValue.fUShort;
-           break;
-        case 'i':       /* int */
-            vargs[i] = (void*)&args[i].fValue.fInt;
-           break;
-        case 'I':       /* unsigned int */
-            vargs[i] = (void*)&args[i].fValue.fUInt;
-            break;
-        case 'l':       /* long */
-            vargs[i] = (void*)&args[i].fValue.fLong;
-            break;
-        case 'L':       /* unsigned long */
-            vargs[i] = (void*)&args[i].fValue.fULong;
-            break;
-        case 'q':       /* long long */
-            vargs[i] = (void*)&args[i].fValue.fLongLong;
-            break;
-        case 'Q':       /* unsigned long long */
-            vargs[i] = (void*)&args[i].fValue.fULongLong;
-            break;
-        case 'f':       /* float */
-            vargs[i] = (void*)&args[i].fValue.fFloat;
-            break;
-        case 'd':       /* double */
-            vargs[i] = (void*)&args[i].fValue.fDouble;
-            break;
-        case 'g':       /* long double */
-            vargs[i] = (void*)&args[i].fValue.fLongDouble;
-            break;
-        case 'a':
-        case 'o':
-        case 'p':       /* void* */
-            vargs[i] = (void*)&args[i].fValue.fVoidp;
-            break;
         case 'X':       /* (void*)type& with free */
             runRelease = true;
         case 'V':       /* (void*)type& */
@@ -472,8 +431,8 @@ bool copy_args(Parameter* args, size_t nargs, void** vargs)
         case 'r':       /* const type& */
             vargs[i] = args[i].fRef;
             break;
-        default:
-            std::cerr << "unknown type code: " << args[i].fTypeCode << std::endl;
+        default:        /* all other types in union */
+            vargs[i] = (void*)&args[i].fValue.fVoidp;
             break;
         }
     }
