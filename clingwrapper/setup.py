@@ -9,7 +9,6 @@ from wheel.bdist_wheel import bdist_wheel as _bdist_wheel
 from distutils.errors import DistutilsSetupError
 from codecs import open
 
-
 here = os.path.abspath(os.path.dirname(__file__))
 with open(os.path.join(here, 'README.rst'), encoding='utf-8') as f:
     long_description = f.read()
@@ -135,7 +134,7 @@ setup(
     author='PyPy Developers',
     author_email='pypy-dev@python.org',
 
-    version='1.1.2',
+    version='1.2.0',
 
     license='LBNL BSD',
 

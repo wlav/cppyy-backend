@@ -418,11 +418,10 @@ static inline CallFunc_t* GetCallFunc(Cppyy::TCppMethod_t method)
 }
 
 static inline
-bool copy_args(void* args_, void** vargs)
+bool copy_args(Parameter* args, size_t nargs, void** vargs)
 {
     bool runRelease = false;
-    std::vector<Parameter>& args = *(std::vector<Parameter>*)args_;
-    for (std::vector<Parameter>::size_type i = 0; i < args.size(); ++i) {
+    for (size_t i = 0; i < nargs; ++i) {
         switch (args[i].fTypeCode) {
         case 'b':       /* bool */
             vargs[i] = (void*)&args[i].fValue.fBool;
@@ -482,16 +481,16 @@ bool copy_args(void* args_, void** vargs)
 }
 
 static inline
-void release_args(const std::vector<Parameter>& args) {
-    for (std::vector<Parameter>::size_type i = 0; i < args.size(); ++i) {
+void release_args(Parameter* args, size_t nargs) {
+    for (size_t i = 0; i < nargs; ++i) {
         if (args[i].fTypeCode == 'X')
             free(args[i].fValue.fVoidp);
     }
 }
 
-static bool FastCall(Cppyy::TCppMethod_t method, void* args_, void* self, void* result)
+static bool WrapperCall(Cppyy::TCppMethod_t method, size_t nargs, void* args_, void* self, void* result)
 {
-    const std::vector<Parameter>& args = *(std::vector<Parameter>*)args_;
+    Parameter* args = (Parameter*)args_;
 
     CallFunc_t* callf = GetCallFunc(method);
     if (!callf)
@@ -503,31 +502,31 @@ static bool FastCall(Cppyy::TCppMethod_t method, void* args_, void* self, void* 
 
     if (faceptr.fKind == TInterpreter::CallFuncIFacePtr_t::kGeneric) {
         bool runRelease = false;
-        if (args.size() <= SMALL_ARGS_N) {
+        if (nargs <= SMALL_ARGS_N) {
             void* smallbuf[SMALL_ARGS_N];
-            runRelease = copy_args(args_, smallbuf);
-            faceptr.fGeneric(self, args.size(), smallbuf, result);
+            runRelease = copy_args(args, nargs, smallbuf);
+            faceptr.fGeneric(self, nargs, smallbuf, result);
         } else {
-            std::vector<void*> buf(args.size());
-            runRelease = copy_args(args_, buf.data());
-            faceptr.fGeneric(self, args.size(), buf.data(), result);
+            std::vector<void*> buf(nargs);
+            runRelease = copy_args(args, nargs, buf.data());
+            faceptr.fGeneric(self, nargs, buf.data(), result);
         }
-        if (runRelease) release_args(args);
+        if (runRelease) release_args(args, nargs);
         return true;
     }
 
     if (faceptr.fKind == TInterpreter::CallFuncIFacePtr_t::kCtor) {
         bool runRelease = false;
-        if (args.size() <= SMALL_ARGS_N) {
+        if (nargs <= SMALL_ARGS_N) {
             void* smallbuf[SMALL_ARGS_N];
-            runRelease = copy_args(args_, (void**)smallbuf);
-            faceptr.fCtor((void**)smallbuf, result, args.size());
+            runRelease = copy_args(args, nargs, (void**)smallbuf);
+            faceptr.fCtor((void**)smallbuf, result, nargs);
         } else {
-            std::vector<void*> buf(args.size());
-            runRelease = copy_args(args_, buf.data());
-            faceptr.fCtor(buf.data(), result, args.size());
+            std::vector<void*> buf(nargs);
+            runRelease = copy_args(args, nargs, buf.data());
+            faceptr.fCtor(buf.data(), result, nargs);
         }
-        if (runRelease) release_args(args);
+        if (runRelease) release_args(args, nargs);
         return true;
     }
 
@@ -541,24 +540,24 @@ static bool FastCall(Cppyy::TCppMethod_t method, void* args_, void* self, void* 
 
 template< typename T >
 static inline
-T CallT(Cppyy::TCppMethod_t method, Cppyy::TCppObject_t self, void* args)
+T CallT(Cppyy::TCppMethod_t method, Cppyy::TCppObject_t self, size_t nargs, void* args)
 {
     T t{};
-    if (FastCall(method, args, (void*)self, &t))
+    if (WrapperCall(method, nargs, args, (void*)self, &t))
         return t;
     return (T)-1;
 }
 
 #define CPPYY_IMP_CALL(typecode, rtype)                                      \
-rtype Cppyy::Call##typecode(TCppMethod_t method, TCppObject_t self, void* args)\
+rtype Cppyy::Call##typecode(TCppMethod_t method, TCppObject_t self, size_t nargs, void* args)\
 {                                                                            \
-    return CallT<rtype>(method, self, args);                                 \
+    return CallT<rtype>(method, self, nargs, args);                          \
 }
 
-void Cppyy::CallV(TCppMethod_t method, TCppObject_t self, void* args)
+void Cppyy::CallV(TCppMethod_t method, TCppObject_t self, size_t nargs, void* args)
 {
-   if (!FastCall(method, args, (void*)self, nullptr))
-       return /* TODO ... report error */;
+    if (!WrapperCall(method, nargs, args, (void*)self, nullptr))
+        return /* TODO ... report error */;
 }
 
 CPPYY_IMP_CALL(B,  unsigned char)
@@ -571,21 +570,21 @@ CPPYY_IMP_CALL(F,  float        )
 CPPYY_IMP_CALL(D,  double       )
 CPPYY_IMP_CALL(LD, LongDouble_t )
 
-void* Cppyy::CallR(TCppMethod_t method, TCppObject_t self, void* args)
+void* Cppyy::CallR(TCppMethod_t method, TCppObject_t self, size_t nargs, void* args)
 {
     void* r = nullptr;
-    if (FastCall(method, args, (void*)self, &r))
+    if (WrapperCall(method, nargs, args, (void*)self, &r))
         return r;
     return nullptr;
 }
 
 char* Cppyy::CallS(
-    TCppMethod_t method, TCppObject_t self, void* args, size_t* length)
+    TCppMethod_t method, TCppObject_t self, size_t nargs, void* args, size_t* length)
 {
     char* cstr = nullptr;
     TClassRef cr("std::string");
     std::string* cppresult = (std::string*)malloc(sizeof(std::string));
-    if (FastCall(method, args, self, (void*)cppresult)) {
+    if (WrapperCall(method, nargs, args, self, (void*)cppresult)) {
         cstr = cppstring_to_cstring(*cppresult);
         *length = cppresult->size();
         cppresult->std::string::~basic_string();
@@ -596,10 +595,10 @@ char* Cppyy::CallS(
 }
 
 Cppyy::TCppObject_t Cppyy::CallConstructor(
-    TCppMethod_t method, TCppType_t /* klass */, void* args)
+    TCppMethod_t method, TCppType_t /* klass */, size_t nargs, void* args)
 {
     void* obj = nullptr;
-    if (FastCall(method, args, nullptr, &obj))
+    if (WrapperCall(method, nargs, args, nullptr, &obj))
         return (TCppObject_t)obj;
     return (TCppObject_t)0;
 }
@@ -611,11 +610,11 @@ void Cppyy::CallDestructor(TCppType_t type, TCppObject_t self)
 }
 
 Cppyy::TCppObject_t Cppyy::CallO(TCppMethod_t method,
-    TCppObject_t self, void* args, TCppType_t result_type)
+    TCppObject_t self, size_t nargs, void* args, TCppType_t result_type)
 {
     TClassRef& cr = type_from_handle(result_type);
     void* obj = ::operator new(cr->Size());
-    if (FastCall(method, args, self, obj))
+    if (WrapperCall(method, nargs, args, self, obj))
         return (TCppObject_t)obj;
     return (TCppObject_t)0;
 }
@@ -1500,15 +1499,6 @@ int Cppyy::GetDimensionSize(TCppScope_t scope, TCppIndex_t idata, int dimension)
 
 
 //- C-linkage wrappers -------------------------------------------------------
-static inline
-std::vector<Parameter> vsargs_to_parvec(void* args, int nargs)
-{
-    std::vector<Parameter> v;
-    v.reserve(nargs);
-    for (int i=0; i<nargs; ++i)
-        v.push_back(((Parameter*)args)[i]);
-    return v;
-}
 
 extern "C" {
 /* name to opaque C++ scope representation -------------------------------- */
@@ -1575,87 +1565,76 @@ void cppyy_destruct(cppyy_type_t type, cppyy_object_t self) {
 
 void cppyy_call_v(cppyy_method_t method, cppyy_object_t self, int nargs, void* args) {
     try {
-        std::vector<Parameter> parvec = vsargs_to_parvec(args, nargs);
-        Cppyy::CallV(method, (void*)self, &parvec);
+        Cppyy::CallV(method, (void*)self, nargs, args);
     } CPPYY_HANDLE_EXCEPTION
 }
 
 unsigned char cppyy_call_b(cppyy_method_t method, cppyy_object_t self, int nargs, void* args) {
     try {
-        std::vector<Parameter> parvec = vsargs_to_parvec(args, nargs);
-        return (unsigned char)Cppyy::CallB(method, (void*)self, &parvec);
+        return (unsigned char)Cppyy::CallB(method, (void*)self, nargs, args);
     } CPPYY_HANDLE_EXCEPTION
     return (unsigned char)-1;
 }
 
 char cppyy_call_c(cppyy_method_t method, cppyy_object_t self, int nargs, void* args) {
     try {
-        std::vector<Parameter> parvec = vsargs_to_parvec(args, nargs);
-        return (char)Cppyy::CallC(method, (void*)self, &parvec);
+        return (char)Cppyy::CallC(method, (void*)self, nargs, args);
     } CPPYY_HANDLE_EXCEPTION
     return (char)-1;
 }
 
 short cppyy_call_h(cppyy_method_t method, cppyy_object_t self, int nargs, void* args) {
     try {
-        std::vector<Parameter> parvec = vsargs_to_parvec(args, nargs);
-        return (short)Cppyy::CallH(method, (void*)self, &parvec);
+        return (short)Cppyy::CallH(method, (void*)self, nargs, args);
     } CPPYY_HANDLE_EXCEPTION
     return (short)-1;
 }
 
 int cppyy_call_i(cppyy_method_t method, cppyy_object_t self, int nargs, void* args) {
     try {
-        std::vector<Parameter> parvec = vsargs_to_parvec(args, nargs);
-        return (int)Cppyy::CallI(method, (void*)self, &parvec);
+        return (int)Cppyy::CallI(method, (void*)self, nargs, args);
     } CPPYY_HANDLE_EXCEPTION
     return (int)-1;
 }
 
 long cppyy_call_l(cppyy_method_t method, cppyy_object_t self, int nargs, void* args) {
     try {
-        std::vector<Parameter> parvec = vsargs_to_parvec(args, nargs);
-        return (long)Cppyy::CallL(method, (void*)self, &parvec);
+        return (long)Cppyy::CallL(method, (void*)self, nargs, args);
     } CPPYY_HANDLE_EXCEPTION
     return (long)-1;
 }
 
 long long cppyy_call_ll(cppyy_method_t method, cppyy_object_t self, int nargs, void* args) {
     try {
-        std::vector<Parameter> parvec = vsargs_to_parvec(args, nargs);
-        return (long long)Cppyy::CallLL(method, (void*)self, &parvec);
+        return (long long)Cppyy::CallLL(method, (void*)self, nargs, args);
     } CPPYY_HANDLE_EXCEPTION
     return (long long)-1;
 }
 
 float cppyy_call_f(cppyy_method_t method, cppyy_object_t self, int nargs, void* args) {
     try {
-        std::vector<Parameter> parvec = vsargs_to_parvec(args, nargs);
-        return (float)Cppyy::CallF(method, (void*)self, &parvec);
+        return (float)Cppyy::CallF(method, (void*)self, nargs, args);
     } CPPYY_HANDLE_EXCEPTION
     return (float)-1;
 }
 
 double cppyy_call_d(cppyy_method_t method, cppyy_object_t self, int nargs, void* args) {
     try {
-        std::vector<Parameter> parvec = vsargs_to_parvec(args, nargs);
-        return (double)Cppyy::CallD(method, (void*)self, &parvec);
+        return (double)Cppyy::CallD(method, (void*)self, nargs, args);
     } CPPYY_HANDLE_EXCEPTION
     return (double)-1;
 }
 
 long double cppyy_call_ld(cppyy_method_t method, cppyy_object_t self, int nargs, void* args) {
     try {
-        std::vector<Parameter> parvec = vsargs_to_parvec(args, nargs);
-        return (long double)Cppyy::CallLD(method, (void*)self, &parvec);
+        return (long double)Cppyy::CallLD(method, (void*)self, nargs, args);
     } CPPYY_HANDLE_EXCEPTION
     return (long double)-1;
 }
 
 void* cppyy_call_r(cppyy_method_t method, cppyy_object_t self, int nargs, void* args) {
     try {
-        std::vector<Parameter> parvec = vsargs_to_parvec(args, nargs);
-        return (void*)Cppyy::CallR(method, (void*)self, &parvec);
+        return (void*)Cppyy::CallR(method, (void*)self, nargs, args);
     } CPPYY_HANDLE_EXCEPTION
     return (void*)nullptr;
 }
@@ -1663,8 +1642,7 @@ void* cppyy_call_r(cppyy_method_t method, cppyy_object_t self, int nargs, void* 
 char* cppyy_call_s(
         cppyy_method_t method, cppyy_object_t self, int nargs, void* args, size_t* lsz) {
     try {
-        std::vector<Parameter> parvec = vsargs_to_parvec(args, nargs);
-        return Cppyy::CallS(method, (void*)self, &parvec, lsz);
+        return Cppyy::CallS(method, (void*)self, nargs, args, lsz);
     } CPPYY_HANDLE_EXCEPTION
     return (char*)nullptr;
 }
@@ -1672,8 +1650,7 @@ char* cppyy_call_s(
 cppyy_object_t cppyy_constructor(
         cppyy_method_t method, cppyy_type_t klass, int nargs, void* args) {
     try {
-        std::vector<Parameter> parvec = vsargs_to_parvec(args, nargs);
-        return cppyy_object_t(Cppyy::CallConstructor(method, klass, &parvec));
+        return cppyy_object_t(Cppyy::CallConstructor(method, klass, nargs, args));
     } CPPYY_HANDLE_EXCEPTION
     return (cppyy_object_t)0;
 }
@@ -1685,8 +1662,7 @@ void cppyy_destructor(cppyy_type_t klass, cppyy_object_t self) {
 cppyy_object_t cppyy_call_o(cppyy_method_t method, cppyy_object_t self,
         int nargs, void* args, cppyy_type_t result_type) {
     try {
-        std::vector<Parameter> parvec = vsargs_to_parvec(args, nargs);
-        return cppyy_object_t(Cppyy::CallO(method, (void*)self, &parvec, result_type));
+        return cppyy_object_t(Cppyy::CallO(method, (void*)self, nargs, args, result_type));
     } CPPYY_HANDLE_EXCEPTION
     return (cppyy_object_t)0;
 }

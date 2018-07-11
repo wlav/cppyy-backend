@@ -56,35 +56,35 @@ namespace Cppyy {
 
 // method/function dispatching -----------------------------------------------
     RPY_EXTERN
-    void          CallV(TCppMethod_t method, TCppObject_t self, void* args);
+    void          CallV(TCppMethod_t method, TCppObject_t self, size_t nargs, void* args);
     RPY_EXTERN
-    unsigned char CallB(TCppMethod_t method, TCppObject_t self, void* args);
+    unsigned char CallB(TCppMethod_t method, TCppObject_t self, size_t nargs, void* args);
     RPY_EXTERN
-    char          CallC(TCppMethod_t method, TCppObject_t self, void* args);
+    char          CallC(TCppMethod_t method, TCppObject_t self, size_t nargs, void* args);
     RPY_EXTERN
-    short         CallH(TCppMethod_t method, TCppObject_t self, void* args);
+    short         CallH(TCppMethod_t method, TCppObject_t self, size_t nargs, void* args);
     RPY_EXTERN
-    int           CallI(TCppMethod_t method, TCppObject_t self, void* args);
+    int           CallI(TCppMethod_t method, TCppObject_t self, size_t nargs, void* args);
     RPY_EXTERN
-    long          CallL(TCppMethod_t method, TCppObject_t self, void* args);
+    long          CallL(TCppMethod_t method, TCppObject_t self, size_t nargs, void* args);
     RPY_EXTERN
-    Long64_t      CallLL(TCppMethod_t method, TCppObject_t self, void* args);
+    Long64_t      CallLL(TCppMethod_t method, TCppObject_t self, size_t nargs, void* args);
     RPY_EXTERN
-    float         CallF(TCppMethod_t method, TCppObject_t self, void* args);
+    float         CallF(TCppMethod_t method, TCppObject_t self, size_t nargs, void* args);
     RPY_EXTERN
-    double        CallD(TCppMethod_t method, TCppObject_t self, void* args);
+    double        CallD(TCppMethod_t method, TCppObject_t self, size_t nargs, void* args);
     RPY_EXTERN
-    LongDouble_t  CallLD(TCppMethod_t method, TCppObject_t self, void* args);
+    LongDouble_t  CallLD(TCppMethod_t method, TCppObject_t self, size_t nargs, void* args);
     RPY_EXTERN
-    void*         CallR(TCppMethod_t method, TCppObject_t self, void* args);
+    void*         CallR(TCppMethod_t method, TCppObject_t self, size_t nargs, void* args);
     RPY_EXTERN
-    char*         CallS(TCppMethod_t method, TCppObject_t self, void* args, size_t* length);
+    char*         CallS(TCppMethod_t method, TCppObject_t self, size_t nargs, void* args, size_t* length);
     RPY_EXTERN
-    TCppObject_t  CallConstructor(TCppMethod_t method, TCppType_t type, void* args);
+    TCppObject_t  CallConstructor(TCppMethod_t method, TCppType_t type, size_t nargs, void* args);
     RPY_EXTERN
     void          CallDestructor(TCppType_t type, TCppObject_t self);
     RPY_EXTERN
-    TCppObject_t  CallO(TCppMethod_t method, TCppObject_t self, void* args, TCppType_t result_type);
+    TCppObject_t  CallO(TCppMethod_t method, TCppObject_t self, size_t nargs, void* args, TCppType_t result_type);
 
     RPY_EXTERN
     TCppFuncAddr_t GetFunctionAddress(TCppMethod_t method);
