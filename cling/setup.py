@@ -6,7 +6,11 @@ from distutils.command.build import build as _build
 from distutils.command.clean import clean as _clean
 from distutils.dir_util import remove_tree
 from setuptools.command.install import install as _install
-from wheel.bdist_wheel import bdist_wheel as _bdist_wheel
+try:
+    from wheel.bdist_wheel import bdist_wheel as _bdist_wheel
+    has_wheel = True
+except ImportError:
+    has_wheel = False
 from distutils.errors import DistutilsSetupError
 from codecs import open
 
@@ -193,14 +197,20 @@ class my_install(_install):
         outputs.append(os.path.join(self._get_install_path(), 'cppyy_backend'))
         return outputs
 
-class my_bdist_wheel(_bdist_wheel):
-    def finalize_options(self):
-     # this is a universal, but platform-specific package; a combination
-     # that wheel does not recognize, thus simply fool it
-        from distutils.util import get_platform
-        self.plat_name = get_platform()
-        _bdist_wheel.finalize_options(self)
-        self.root_is_pure = True
+cmdclass = {
+        'build': my_cmake_build,
+        'clean': my_clean,
+        'install': my_install }
+if has_wheel:
+    class my_bdist_wheel(_bdist_wheel):
+        def finalize_options(self):
+         # this is a universal, but platform-specific package; a combination
+         # that wheel does not recognize, thus simply fool it
+            from distutils.util import get_platform
+            self.plat_name = get_platform()
+            _bdist_wheel.finalize_options(self)
+            self.root_is_pure = True
+    cmdclass['bdist_wheel'] = my_bdist_wheel
 
 
 setup(
@@ -213,7 +223,7 @@ setup(
     author='ROOT Developers',
     author_email='rootdev@cern.ch',
 
-    version='6.14.0.0',
+    version='6.14.0.1',
 
     license='LLVM: UoI-NCSA; ROOT: LGPL 2.1',
 
@@ -243,18 +253,15 @@ setup(
 
     keywords='interpreter development',
 
+    setup_requires=['wheel'],
+
     include_package_data=True,
     package_data={'': ['cmake/*.cmake']},
 
     package_dir={'': 'python'},
     packages=find_packages('python', include=['cppyy_backend']),
 
-    cmdclass = {
-        'build': my_cmake_build,
-        'clean': my_clean,
-        'install': my_install,
-        'bdist_wheel': my_bdist_wheel,
-    },
+    cmdclass = cmdclass,
 
     entry_points={
         "console_scripts": [
