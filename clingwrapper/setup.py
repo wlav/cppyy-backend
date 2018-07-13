@@ -5,7 +5,11 @@ from distutils.command.build_ext import build_ext as _build_ext
 from distutils.command.clean import clean as _clean
 from distutils.dir_util import remove_tree
 from setuptools.command.install import install as _install
-from wheel.bdist_wheel import bdist_wheel as _bdist_wheel
+try:
+    from wheel.bdist_wheel import bdist_wheel as _bdist_wheel
+    has_wheel = True
+except ImportError:
+    has_wheel = False
 from distutils.errors import DistutilsSetupError
 from codecs import open
 
@@ -109,19 +113,25 @@ class my_install(_install):
         #outputs.append(os.path.join(self._get_install_path(), 'cppyy_backend'))
         return outputs
 
-class my_bdist_wheel(_bdist_wheel):
-    def run(self, *args):
-     # wheels do not respect dependencies; make this a no-op so that it fails (mostly) silently
-        pass
+cmdclass = {
+        'build_ext': my_build_cpplib,
+        'clean': my_clean,
+        'install': my_install }
+if has_wheel:
+    class my_bdist_wheel(_bdist_wheel):
+        def run(self, *args):
+         # wheels do not respect dependencies; make this a no-op so that it fails (mostly) silently
+            pass
 
-    def finalize_options(self):
-     # this is a universal, but platform-specific package; a combination
-     # that wheel does not recognize, thus simply fool it
-        from distutils.util import get_platform
-        self.plat_name = get_platform()
-        self.universal = True
-        _bdist_wheel.finalize_options(self)
-        self.root_is_pure = True
+        def finalize_options(self):
+         # this is a universal, but platform-specific package; a combination
+         # that wheel does not recognize, thus simply fool it
+            from distutils.util import get_platform
+            self.plat_name = get_platform()
+            self.universal = True
+            _bdist_wheel.finalize_options(self)
+            self.root_is_pure = True
+    cmdclass['bdist_wheel'] = my_bdist_wheel
 
 
 setup(
@@ -161,7 +171,7 @@ setup(
 
     keywords='C++ bindings data science',
 
-    setup_requires=requirements,
+    setup_requires=['wheel']+requirements,
     install_requires=requirements,
 
     package_dir={'': 'python'},
@@ -171,10 +181,5 @@ setup(
         sources=glob.glob('src/clingwrapper.cxx'))],
     zip_safe=False,
 
-    cmdclass = {
-        'build_ext': my_build_cpplib,
-        'clean': my_clean,
-        'install': my_install,
-        'bdist_wheel': my_bdist_wheel
-    }
+    cmdclass = cmdclass
 )
