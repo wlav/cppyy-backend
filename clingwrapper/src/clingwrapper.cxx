@@ -18,6 +18,7 @@
 #include "TFunction.h"
 #include "TFunctionTemplate.h"
 #include "TGlobal.h"
+#include "THashList.h"
 #include "TInterpreter.h"
 #include "TList.h"
 #include "TMethod.h"
@@ -1129,6 +1130,38 @@ bool Cppyy::IsConstMethod(TCppMethod_t method)
     return false;
 }
 
+Cppyy::TCppIndex_t Cppyy::GetNumTemplatedMethods(TCppScope_t scope)
+{
+    if (scope == (TCppScope_t)GLOBAL_HANDLE) {
+        TCollection* coll = gROOT->GetListOfFunctionTemplates();
+        if (coll) return (TCppIndex_t)coll->GetSize();
+    } else {
+        TClassRef& cr = type_from_handle(scope);
+        if (cr.GetClass()) {
+            TCollection* coll = cr->GetListOfFunctionTemplates(true);
+            if (coll) return (TCppIndex_t)coll->GetSize();
+        }
+    }
+
+// failure ...
+    return (TCppIndex_t)0;
+}
+
+std::string Cppyy::GetTemplatedMethodName(TCppScope_t scope, TCppIndex_t imeth)
+{
+    if (scope == (TCppScope_t)GLOBAL_HANDLE)
+        return ((THashList*)gROOT->GetListOfFunctionTemplates())->At((int)imeth)->GetName();
+    else {
+        TClassRef& cr = type_from_handle(scope);
+        if (cr.GetClass())
+            return cr->GetListOfFunctionTemplates(false)->At((int)imeth)->GetName();
+    }
+
+// failure ...
+    assert(!"should not be called unless GetNumTemplatedMethods() succeeded");
+    return "";
+}
+
 bool Cppyy::ExistsMethodTemplate(TCppScope_t scope, const std::string& name)
 {
     if (scope == (TCppScope_t)GLOBAL_HANDLE)
@@ -1787,6 +1820,14 @@ char* cppyy_method_prototype(cppyy_scope_t scope, cppyy_method_t method, int sho
 
 int cppyy_is_const_method(cppyy_method_t method) {
     return (int)Cppyy::IsConstMethod(method);
+}
+
+int cppyy_get_num_templated_methods(cppyy_scope_t scope) {
+    return (int)Cppyy::GetNumTemplatedMethods(scope);
+}
+
+char* cppyy_get_templated_method_name(cppyy_scope_t scope, cppyy_index_t imeth) {
+    return cppstring_to_cstring(Cppyy::GetTemplatedMethodName(scope, imeth));
 }
 
 int cppyy_exists_method_template(cppyy_scope_t scope, const char* name) {

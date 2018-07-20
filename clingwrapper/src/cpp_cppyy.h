@@ -170,6 +170,10 @@ namespace Cppyy {
     bool        IsConstMethod(TCppMethod_t);
 
     RPY_EXTERN
+    TCppIndex_t GetNumTemplatedMethods(TCppScope_t scope);
+    RPY_EXTERN
+    std::string GetTemplatedMethodName(TCppScope_t scope, TCppIndex_t imeth);
+    RPY_EXTERN
     bool        ExistsMethodTemplate(TCppScope_t scope, const std::string& name);
     RPY_EXTERN
     bool        IsMethodTemplate(TCppScope_t scope, TCppIndex_t imeth);
