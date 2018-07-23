@@ -46,3 +46,17 @@ index 56692341b5..c21854e757 100644
 
      typedef std::unique_ptr<WrapperTransformer> WTPtr_t;
      std::vector<WTPtr_t> WrapperTransformers;
+diff --git a/src/interpreter/cling/lib/Interpreter/BackendPasses.cpp b/src/interpreter/cling/lib/Interpreter/BackendPasses.cpp
+index cb3308c360..873bc682ea 100644
+--- a/src/interpreter/cling/lib/Interpreter/BackendPasses.cpp
++++ b/src/interpreter/cling/lib/Interpreter/BackendPasses.cpp
+@@ -112,6 +112,9 @@ void BackendPasses::CreatePasses(llvm::Module& M, int OptLevel)
+     // Inlining = CGOpts.NoInlining;
+   }
+
++// force normal inlining (as above says: NoInlining is kills)
++  const_cast<CodeGenOptions&>(m_CGOpts).setInlining(CodeGenOptions::NormalInlining);
++
+   llvm::PassManagerBuilder PMBuilder;
+   PMBuilder.OptLevel = OptLevel;
+   PMBuilder.SizeLevel = m_CGOpts.OptimizeSize;
