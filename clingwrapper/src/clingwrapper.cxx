@@ -1199,7 +1199,9 @@ Cppyy::TCppMethod_t Cppyy::GetMethodTemplate(
 // There is currently no clean way of extracting a templated method out of ROOT/meta
 // for a variety of reasons, none of them fundamental. The game played below is to
 // first get any pre-existing functions already managed by ROOT/meta, but if that fails,
-// to do an explicit lookup that ignores the prototype.
+// to do an explicit lookup that ignores the prototype (i.e. the full name should be
+// enough), and finally to ignore the template arguments part of the name as this fails
+// in cling if there are default parameters.
 // It would be possible to get the prototype from the created functions and use that to
 // do a new lookup, after which ROOT/meta will manage the function. However, neither
 // TFunction::GetPrototype() nor TFunction::GetSignature() is of the proper form, so
@@ -1208,6 +1210,8 @@ Cppyy::TCppMethod_t Cppyy::GetMethodTemplate(
     TFunction* func = nullptr; ClassInfo_t* cl = nullptr;
     if (scope == (cppyy_scope_t)GLOBAL_HANDLE)
         func = gROOT->GetGlobalFunctionWithPrototype(name.c_str(), proto.c_str());
+        if (func && name.back() == '>' && name != func->GetName())
+            func = nullptr;  // happens if implicit conversion matches the overload
     else {
         TClassRef& cr = type_from_handle(scope);
         if (cr.GetClass()) {
@@ -1216,7 +1220,7 @@ Cppyy::TCppMethod_t Cppyy::GetMethodTemplate(
         }
     }
 
-    if (!func && (cl || scope == (cppyy_scope_t)GLOBAL_HANDLE)) {
+    if (!func && name.back() == '>' && (cl || scope == (cppyy_scope_t)GLOBAL_HANDLE)) {
     // try again, ignoring proto in case full name is complete template
         auto declid = gInterpreter->GetFunction(cl, name.c_str());
         if (declid) {
@@ -1228,6 +1232,13 @@ Cppyy::TCppMethod_t Cppyy::GetMethodTemplate(
 
     if (func)
         return (TCppMethod_t)new_CallWrapper(func);
+
+// try again with template arguments removed from name, if applicable
+    if (name.back() == '>') {
+        auto pos = name.find('<');
+        if (pos != std::string::npos)
+            return GetMethodTemplate(scope, name.substr(0, pos), proto);
+    }
 
 // failure ...
     return (TCppMethod_t)nullptr;
@@ -1976,6 +1987,16 @@ size_t cppyy_stdvector_valuesize(const char* clname)
        result = (size_t)gInterpreter->TypedefInfo_Size(ti);
     gInterpreter->TypedefInfo_Delete(ti);
     return result;
+}
+
+int cppyy_vectorbool_getitem(cppyy_object_t ptr, int idx)
+{
+    return (int)(*(std::vector<bool>*)ptr)[idx];
+}
+
+void cppyy_vectorbool_setitem(cppyy_object_t ptr, int idx, int value)
+{
+    (*(std::vector<bool>*)ptr)[idx] = (bool)value;
 }
    
 } // end C-linkage wrappers
