@@ -155,6 +155,7 @@ extern "C" {
     RPY_EXTERN
     int cppyy_is_const_method(cppyy_method_t);
 
+    RPY_EXTERN
     int get_num_templated_methods(cppyy_scope_t scope);
     RPY_EXTERN
     char* get_templated_method_name(cppyy_scope_t scope, cppyy_index_t imeth);
