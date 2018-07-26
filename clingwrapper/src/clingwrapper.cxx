@@ -264,17 +264,31 @@ std::string Cppyy::ResolveEnum(const std::string& enum_type)
     if (res != resolved_enum_types.end())
         return res->second;
 
-    if (enum_type.find("(anonymous") == std::string::npos) {
+// desugar the type before resolving
+    std::string et_short = TClassEdit::ShortType(enum_type.c_str(), 1);
+    if (et_short.find("(anonymous") == std::string::npos) {
         std::ostringstream decl;
         for (auto& itype : {"unsigned int"}) {
             decl << "std::is_same<"
                  << itype
                  << ", std::underlying_type<"
-                 << enum_type
+                 << et_short
                  << ">::type>::value;";
             if (gInterpreter->ProcessLine(decl.str().c_str())) {
-                resolved_enum_types[enum_type] = itype;
-                return itype;
+            // TODO: "re-sugaring" like this is brittle, but the top
+            // should be re-translated into AST-based code anyway
+                std::string resugared;
+                if (et_short.size() != enum_type.size()) {
+                    auto pos = enum_type.find(et_short);
+                    if (pos != std::string::npos) {
+                        resugared = enum_type.substr(0, pos) + itype;
+                        if (pos+et_short.size() < enum_type.size())
+                            resugared += enum_type.substr(pos+et_short.size(), std::string::npos);
+                    }
+                }
+                if (resugared.empty()) resugared = itype;
+                resolved_enum_types[enum_type] = resugared;
+                return resugared;
             }
         }
     }
@@ -630,7 +644,8 @@ bool Cppyy::IsAbstract(TCppType_t klass)
 bool Cppyy::IsEnum(const std::string& type_name)
 {
     if (type_name.empty()) return false;
-    return gInterpreter->ClassInfo_IsEnum(type_name.c_str());
+    return gInterpreter->ClassInfo_IsEnum(
+        TClassEdit::ShortType(type_name.c_str(), 1).c_str());
 }
 
 // helpers for stripping scope names
