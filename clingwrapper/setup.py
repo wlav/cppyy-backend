@@ -144,7 +144,7 @@ setup(
     author='PyPy Developers',
     author_email='pypy-dev@python.org',
 
-    version='1.3.2',
+    version='1.4.0',
 
     license='LBNL BSD',
 

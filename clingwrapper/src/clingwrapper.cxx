@@ -1648,6 +1648,10 @@ long double cppyy_call_ld(cppyy_method_t method, cppyy_object_t self, int nargs,
     return (long double)-1;
 }
 
+double cppyy_call_nld(cppyy_method_t method, cppyy_object_t self, int nargs, void* args) {
+    return (double)cppyy_call_ld(method, self, nargs, args);
+}
+
 void* cppyy_call_r(cppyy_method_t method, cppyy_object_t self, int nargs, void* args) {
     try {
         return (void*)Cppyy::CallR(method, (void*)self, nargs, args);
@@ -1983,26 +1987,12 @@ cppyy_object_t cppyy_stdstring2stdstring(cppyy_object_t ptr) {
     return (cppyy_object_t)new std::string(*(std::string*)ptr);
 }
 
-const char* cppyy_stdvector_valuetype(const char* clname)
-{
-    const char* result = nullptr;
-    std::string name = clname;
-    TypedefInfo_t* ti = gInterpreter->TypedefInfo_Factory((name+"::value_type").c_str());
-    if (gInterpreter->TypedefInfo_IsValid(ti))
-        result = cppstring_to_cstring(gInterpreter->TypedefInfo_TrueName(ti));
-    gInterpreter->TypedefInfo_Delete(ti);
-    return result;
+double cppyy_longdouble2double(void* p) {
+    return (double)*(long double*)p;
 }
 
-size_t cppyy_stdvector_valuesize(const char* clname)
-{
-    size_t result = 0;
-    std::string name = clname;
-    TypedefInfo_t* ti = gInterpreter->TypedefInfo_Factory((name+"::value_type").c_str());
-    if (gInterpreter->TypedefInfo_IsValid(ti))
-       result = (size_t)gInterpreter->TypedefInfo_Size(ti);
-    gInterpreter->TypedefInfo_Delete(ti);
-    return result;
+void cppyy_double2longdouble(double d, void* p) {
+    *(long double*)p = d;
 }
 
 int cppyy_vectorbool_getitem(cppyy_object_t ptr, int idx)
