@@ -462,7 +462,7 @@ void release_args(Parameter* args, size_t nargs) {
     }
 }
 
-static bool WrapperCall(Cppyy::TCppMethod_t method, size_t nargs, void* args_, void* self, void* result)
+static inline bool WrapperCall(Cppyy::TCppMethod_t method, size_t nargs, void* args_, void* self, void* result)
 {
     Parameter* args = (Parameter*)args_;
 

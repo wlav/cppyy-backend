@@ -1,4 +1,4 @@
-import os, glob, subprocess
+import os, sys, glob, subprocess
 from setuptools import setup, find_packages, Extension
 from distutils import log
 from distutils.command.build_ext import build_ext as _build_ext
@@ -57,6 +57,9 @@ class my_build_cpplib(_build_ext):
         ext_path = self.get_ext_fullpath(ext.name)
         output_dir = os.path.dirname(ext_path)
         full_libname = 'libcppyy_backend.so' # forced, b/c hard-wired in pypy-c/cppyy
+        extra_preargs = list()
+        if 'linux' in sys.platform:
+            extra_preargs += ['-Wl,-Bsymbolic-functions']
 
         log.info("now building %s", full_libname)
         self.compiler.link_shared_object(
@@ -64,7 +67,8 @@ class my_build_cpplib(_build_ext):
             build_temp=self.build_temp,
             output_dir=output_dir,
             debug=self.debug,
-            target_lang='c++')
+            target_lang='c++',
+            extra_preargs=extra_preargs)
 
 class my_clean(_clean):
     def run(self):
