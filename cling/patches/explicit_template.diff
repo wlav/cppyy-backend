@@ -1,0 +1,63 @@
+diff --git a/src/core/metacling/src/TClingCallFunc.cxx b/src/core/metacling/src/TClingCallFunc.cxx
+index 92c96215c0..53c5ed69f7 100644
+--- a/src/core/metacling/src/TClingCallFunc.cxx
++++ b/src/core/metacling/src/TClingCallFunc.cxx
+@@ -659,7 +660,9 @@ int TClingCallFunc::get_wrapper_code(std::string &wrapper_name, std::string &wra
+             // The pattern is an explicit specialization, and
+             // so is not a template.
+             ((PTK != FunctionDecl::TK_FunctionTemplate) &&
+-             ((PTSK == TSK_Undeclared) || (PTSK == TSK_ExplicitSpecialization)))) {
++             ((PTSK == TSK_Undeclared) || (PTSK == TSK_ExplicitSpecialization))) ||
++            // This is an extern declaration of a promised explicit instantation only
++            (FD->getTemplateSpecializationKind() == TSK_ExplicitInstantiationDeclaration)) {
+             // Note: This might be ok, the body might be defined
+             //       in a library, and all we have seen is the
+             //       header file.
+@@ -705,7 +708,9 @@ int TClingCallFunc::get_wrapper_code(std::string &wrapper_name, std::string &wra
+             // The pattern is an explicit specialization, and
+             // so is not a template.
+             ((PTK != FunctionDecl::TK_FunctionTemplate) &&
+-             ((PTSK == TSK_Undeclared) || (PTSK == TSK_ExplicitSpecialization)))) {
++             ((PTSK == TSK_Undeclared) || (PTSK == TSK_ExplicitSpecialization))) ||
++            // This is an extern declaration of a promised explicit instantation only
++            (FD->getTemplateSpecializationKind() == TSK_ExplicitInstantiationDeclaration)) {
+             // Note: This might be ok, the body might be defined
+             //       in a library, and all we have seen is the
+             //       header file.
+@@ -755,7 +760,9 @@ int TClingCallFunc::get_wrapper_code(std::string &wrapper_name, std::string &wra
+             // The pattern is an explicit specialization, and
+             // so is not a template.
+             ((PTK != FunctionDecl::TK_FunctionTemplate) &&
+-             ((PTSK == TSK_Undeclared) || (PTSK == TSK_ExplicitSpecialization)))) {
++             ((PTSK == TSK_Undeclared) || (PTSK == TSK_ExplicitSpecialization))) ||
++            // This is an extern declaration of a promised explicit instantation only
++            (FD->getTemplateSpecializationKind() == TSK_ExplicitInstantiationDeclaration)) {
+             // Note: This might be ok, the body might be defined
+             //       in a library, and all we have seen is the
+             //       header file.
+@@ -795,7 +802,8 @@ int TClingCallFunc::get_wrapper_code(std::string &wrapper_name, std::string &wra
+       //    !PatternDecl->hasBody() || PatternDecl->isInlined())
+       //
+    }
+-   if (needInstantiation) {
++   if (needInstantiation && \
++         FD->getTemplateSpecializationKind() != TSK_ExplicitInstantiationDeclaration) {
+       clang::FunctionDecl *FDmod = const_cast<clang::FunctionDecl *>(FD);
+       clang::Sema &S = fInterp->getSema();
+       // Could trigger deserialization of decls.
+diff --git a/src/interpreter/llvm/src/tools/clang/lib/Sema/SemaTemplateInstantiateDecl.cpp b/src/interpreter/llvm/src/tools/clang/lib/Sema/SemaTemplateInstantiateDecl.cpp
+index 6fee23aa8b..ed30f06ca9 100644
+--- a/src/interpreter/llvm/src/tools/clang/lib/Sema/SemaTemplateInstantiateDecl.cpp
++++ b/src/interpreter/llvm/src/tools/clang/lib/Sema/SemaTemplateInstantiateDecl.cpp
+@@ -3762,6 +3762,11 @@ void Sema::InstantiateFunctionDefinition(SourceLocation PointOfInstantiation,
+       !Function->getClassScopeSpecializationPattern())
+     return;
+ 
++  // Pure extern declarations do not need an instantiation (would prefer to
++  // verify the linker symbol availability but can't do that here
++  if (TSK == TSK_ExplicitInstantiationDeclaration)
++      return;
++
+   // Find the function body that we'll be substituting.
+   const FunctionDecl *PatternDecl = Function->getTemplateInstantiationPattern();
+   assert(PatternDecl && "instantiating a non-template");
