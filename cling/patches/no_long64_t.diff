@@ -2,7 +2,7 @@ diff --git a/src/core/dictgen/src/rootcling_impl.cxx b/src/core/dictgen/src/root
 index 90b0dbed10..fefdfc49a5 100644
 --- a/src/core/dictgen/src/rootcling_impl.cxx
 +++ b/src/core/dictgen/src/rootcling_impl.cxx
-@@ -2852,11 +2852,14 @@ int  ExtractClassesListAndDeclLines(RScanner &scan,
+@@ -2853,11 +2853,14 @@ int  ExtractClassesListAndDeclLines(RScanner &scan,
               !llvm::isa<clang::ClassTemplateSpecializationDecl>(rDecl) &&
               classesSet.insert(outerMostClassName).second &&
               outerMostClassesSet.insert(outerMostClassName).second) {
@@ -20,7 +20,7 @@ index 90b0dbed10..fefdfc49a5 100644
              }
  
              // Also register typeinfo::name(), unless we have pseudo-strong typedefs:
-@@ -2893,11 +2893,12 @@ int  ExtractClassesListAndDeclLines(RScanner &scan,
+@@ -2894,11 +2894,12 @@ int  ExtractClassesListAndDeclLines(RScanner &scan,
                          std::string demangledName = demangledTIName + strlen(typeinfoNameFor);
  #endif
                          // See the operations in TCling::AutoLoad(type_info)
