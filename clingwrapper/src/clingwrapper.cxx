@@ -1224,11 +1224,11 @@ Cppyy::TCppMethod_t Cppyy::GetMethodTemplate(
 // we'll/ manage the new TFunctions instead and will assume that they are cached on the
 // calling side to prevent multiple creations.
     TFunction* func = nullptr; ClassInfo_t* cl = nullptr;
-    if (scope == (cppyy_scope_t)GLOBAL_HANDLE)
+    if (scope == (cppyy_scope_t)GLOBAL_HANDLE) {
         func = gROOT->GetGlobalFunctionWithPrototype(name.c_str(), proto.c_str());
         if (func && name.back() == '>' && name != func->GetName())
             func = nullptr;  // happens if implicit conversion matches the overload
-    else {
+    } else {
         TClassRef& cr = type_from_handle(scope);
         if (cr.GetClass()) {
             func = cr->GetMethodWithPrototype(name.c_str(), proto.c_str());
@@ -1995,13 +1995,11 @@ void cppyy_double2longdouble(double d, void* p) {
     *(long double*)p = d;
 }
 
-int cppyy_vectorbool_getitem(cppyy_object_t ptr, int idx)
-{
+int cppyy_vectorbool_getitem(cppyy_object_t ptr, int idx) {
     return (int)(*(std::vector<bool>*)ptr)[idx];
 }
 
-void cppyy_vectorbool_setitem(cppyy_object_t ptr, int idx, int value)
-{
+void cppyy_vectorbool_setitem(cppyy_object_t ptr, int idx, int value) {
     (*(std::vector<bool>*)ptr)[idx] = (bool)value;
 }
    
