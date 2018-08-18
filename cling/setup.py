@@ -20,7 +20,7 @@ with open(os.path.join(here, 'README.rst'), encoding='utf-8') as f:
 
 builddir = None
 def get_builddir():
-    """cppyy_backend build."""
+    """cppyy-cling build."""
     global builddir
     if builddir is None:
         topdir = os.getcwd()
@@ -29,7 +29,7 @@ def get_builddir():
 
 srcdir = None
 def get_srcdir():
-    """cppyy_backend source."""
+    """cppyy-cling source."""
     global srcdir
     if srcdir is None:
         topdir = os.getcwd()
@@ -38,7 +38,7 @@ def get_srcdir():
 
 prefix = None
 def get_prefix():
-    """cppyy_backend installation."""
+    """cppyy-cling installation."""
     global prefix
     if prefix is None:
         prefix = os.path.join(get_builddir(), 'install', 'cppyy_backend')
@@ -51,7 +51,7 @@ class my_cmake_build(_build):
         _build.run(self)
 
         # custom run
-        log.info('Now building cppyy_backend')
+        log.info('Now building cppyy-cling')
         builddir = get_builddir()
         prefix   = get_prefix()
         srcdir   = get_srcdir()
@@ -96,13 +96,16 @@ class my_cmake_build(_build):
             if has_avx: extra_args += ' -mavx'
             os.putenv('EXTRA_CLING_ARGS', extra_args)
 
-        log.info('Running cmake for cppyy_backend')
+        EXTRA_CMAKE_ARG = ''
+        if 'darwin' in sys.platform:
+            EXTRA_CMAKE_ARG = '-Dlibcxx=ON'
+        log.info('Running cmake for cppyy-cling')
         if subprocess.call([
                 'cmake', srcdir, stdcxx,
                 '-Dminimal=ON', '-Dasimage=OFF', '-Droot7=OFF', '-Dhttp=OFF', '-Dbuiltin_freetype=OFF',
-                '-DCMAKE_BUILD_TYPE=RelWithDebInfo',
+                '-DCMAKE_BUILD_TYPE=RelWithDebInfo', EXTRA_CMAKE_ARG,
                 '-DCMAKE_INSTALL_PREFIX='+prefix], cwd=builddir) != 0:
-            raise DistutilsSetupError('Failed to configure cppyy_backend')
+            raise DistutilsSetupError('Failed to configure cppyy-cling')
 
         # use $MAKE to build if it is defined
         env_make = os.getenv('MAKE')
@@ -125,10 +128,10 @@ class my_cmake_build(_build):
         else:
             build_args = env_make.split()
             build_cmd, build_args = build_args[0], build_args[1:]
-        log.info('Now building cppyy_backend and dependencies ...')
+        log.info('Now building cppyy-cling and dependencies ...')
         if env_make: os.unsetenv("MAKE")
         if subprocess.call([build_cmd] + build_args, cwd=builddir) != 0:
-            raise DistutilsSetupError('Failed to build cppyy_backend')
+            raise DistutilsSetupError('Failed to build cppyy-cling')
         if env_make: os.putenv('MAKE', env_make)
 
         log.info('Build finished')
@@ -164,7 +167,7 @@ class my_install(_install):
         _install.run(self)
 
         # custom install of backend
-        log.info('Now installing cppyy_backend')
+        log.info('Now installing cppyy-cling into cppyy_backend')
         builddir = get_builddir()
         if not os.path.exists(builddir):
             raise DistutilsSetupError('Failed to find build dir!')
@@ -182,7 +185,7 @@ class my_install(_install):
         log.info('Now creating installation under %s ...', prefix)
         if env_make: os.unsetenv("MAKE")
         if subprocess.call([install_cmd] + install_args, cwd=builddir) != 0:
-            raise DistutilsSetupError('Failed to install cppyy_backend')
+            raise DistutilsSetupError('Failed to install cppyy-cling')
         if env_make: os.putenv("MAKE", env_make)
 
         prefix_base = os.path.join(get_prefix(), os.path.pardir)
