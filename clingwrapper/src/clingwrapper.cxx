@@ -107,15 +107,6 @@ public:
     // disable fast path if requested
         if (getenv("CPPYY_DISABLE_FASTPATH")) gEnableFastPath = false;
 
-    // set opt level (default to 2 if not given; Cling itself defaults to 0)
-        int optLevel = 2;
-        if (getenv("CPPYY_OPT_LEVEL")) optLevel = atoi(getenv("CPPYY_OPT_LEVEL"));
-        if (optLevel != 0) {
-            std::ostringstream s;
-            s << "#pragma cling optimize " << optLevel;
-            gInterpreter->ProcessLine(s.str().c_str());
-        }
-
     // fill the set of STL names
         const char* stl_names[] = {"string", "bitset", "pair", "allocator",
             "auto_ptr", "shared_ptr", "unique_ptr", "weak_ptr",
@@ -126,6 +117,27 @@ public:
             "complex", "valarray"};
         for (auto& name : stl_names)
             gSTLNames.insert(name);
+
+    // save global context before running interpreter thingies
+       gInterpreter->SaveContext();
+       gInterpreter->SaveGlobalsContext();
+
+    // set opt level (default to 2 if not given; Cling itself defaults to 0)
+        int optLevel = 2;
+        if (getenv("CPPYY_OPT_LEVEL")) optLevel = atoi(getenv("CPPYY_OPT_LEVEL"));
+        if (optLevel != 0) {
+            std::ostringstream s;
+            s << "#pragma cling optimize " << optLevel;
+            gInterpreter->ProcessLine(s.str().c_str());
+        }
+
+    // create helpers for comparing thingies
+       gInterpreter->Declare(
+           "namespace __cppyy_internal { template<class C1, class C2>"
+           " bool is_equal(const C1& c1, const C2& c2){ return (bool)(c1 == c2); } }");
+       gInterpreter->Declare(
+           "namespace __cppyy_internal { template<class C1, class C2>"
+           " bool is_not_equal(const C1& c1, const C2& c2){ return (bool)(c1 != c2); } }");
 
     // create a helper for wrapping lambdas
         gInterpreter->Declare(
@@ -165,7 +177,7 @@ TFunction* type_get_method(Cppyy::TCppType_t klass, Cppyy::TCppIndex_t idx)
 {
     TClassRef& cr = type_from_handle(klass);
     if (cr.GetClass())
-        return (TFunction*)cr->GetListOfMethods(false)->At(idx);
+        return (TFunction*)cr->GetListOfMethods(false)->At((int)idx);
     assert(klass == (Cppyy::TCppType_t)GLOBAL_HANDLE);
     return ((CallWrapper*)idx)->fMetaFunction;
 }
@@ -173,16 +185,6 @@ TFunction* type_get_method(Cppyy::TCppType_t klass, Cppyy::TCppIndex_t idx)
 static inline
 TFunction* m2f(Cppyy::TCppMethod_t method) {
     return ((CallWrapper*)method)->fMetaFunction;
-}
-
-static inline
-Cppyy::TCppScope_t declaring_scope(Cppyy::TCppMethod_t method)
-{
-    if (method) {
-        TMethod* m = dynamic_cast<TMethod*>(m2f(method));
-        if (m) return Cppyy::GetScope(m->GetClass()->GetName());
-    }
-    return (Cppyy::TCppScope_t)GLOBAL_HANDLE;
 }
 
 static inline
@@ -203,18 +205,6 @@ bool match_name(const std::string& tname, const std::string fname)
            return true;
     }
     return false;
-}
-
-static inline
-bool is_stl(const std::string& name)
-{
-    std::string w = name;
-    if (w.compare(0, 5, "std::") == 0)
-        w = w.substr(5, std::string::npos);
-    std::string::size_type pos = name.find('<');
-    if (pos != std::string::npos)
-        w = w.substr(0, pos);
-    return gSTLNames.find(w) != gSTLNames.end();
 }
 
 static inline
@@ -476,11 +466,11 @@ static inline bool WrapperCall(Cppyy::TCppMethod_t method, size_t nargs, void* a
         if (nargs <= SMALL_ARGS_N) {
             void* smallbuf[SMALL_ARGS_N];
             if (nargs) runRelease = copy_args(args, nargs, smallbuf);
-            faceptr.fGeneric(self, nargs, smallbuf, result);
+            faceptr.fGeneric(self, (int)nargs, smallbuf, result);
         } else {
             std::vector<void*> buf(nargs);
             runRelease = copy_args(args, nargs, buf.data());
-            faceptr.fGeneric(self, nargs, buf.data(), result);
+            faceptr.fGeneric(self, (int)nargs, buf.data(), result);
         }
         if (runRelease) release_args(args, nargs);
         return true;
@@ -857,7 +847,7 @@ Cppyy::TCppIndex_t Cppyy::GetNumBases(TCppType_t klass)
 std::string Cppyy::GetBaseName(TCppType_t klass, TCppIndex_t ibase)
 {
     TClassRef& cr = type_from_handle(klass);
-    return ((TBaseClass*)cr->GetListOfBases()->At(ibase))->GetName();
+    return ((TBaseClass*)cr->GetListOfBases()->At((int)ibase))->GetName();
 }
 
 bool Cppyy::IsSubtype(TCppType_t derived, TCppType_t base)
@@ -1334,7 +1324,7 @@ std::string Cppyy::GetDatamemberName(TCppScope_t scope, TCppIndex_t idata)
 {
     TClassRef& cr = type_from_handle(scope);
     if (cr.GetClass()) {
-        TDataMember* m = (TDataMember*)cr->GetListOfDataMembers()->At(idata);
+        TDataMember* m = (TDataMember*)cr->GetListOfDataMembers()->At((int)idata);
         return m->GetName();
     }
     assert(scope == GLOBAL_HANDLE);
@@ -1365,7 +1355,7 @@ std::string Cppyy::GetDatamemberType(TCppScope_t scope, TCppIndex_t idata)
 
     TClassRef& cr = type_from_handle(scope);
     if (cr.GetClass())  {
-        TDataMember* m = (TDataMember*)cr->GetListOfDataMembers()->At(idata);
+        TDataMember* m = (TDataMember*)cr->GetListOfDataMembers()->At((int)idata);
         std::string fullType = m->GetTrueTypeName();
         if ((int)m->GetArrayDim() > 1 || (!m->IsBasic() && m->IsaPointer()))
             fullType.append("*");
@@ -1389,7 +1379,7 @@ ptrdiff_t Cppyy::GetDatamemberOffset(TCppScope_t scope, TCppIndex_t idata)
 
     TClassRef& cr = type_from_handle(scope);
     if (cr.GetClass()) {
-        TDataMember* m = (TDataMember*)cr->GetListOfDataMembers()->At(idata);
+        TDataMember* m = (TDataMember*)cr->GetListOfDataMembers()->At((int)idata);
     // CLING WORKAROUND: the following causes templates to be instantiated first
     // in the proper scope, making the lookup succeed and preventing spurious
     // duplicate instantiations later.
@@ -1456,7 +1446,7 @@ bool Cppyy::IsPublicData(TCppScope_t scope, TCppIndex_t idata)
     TClassRef& cr = type_from_handle(scope);
     if (cr->Property() & kIsNamespace)
         return true;
-    TDataMember* m = (TDataMember*)cr->GetListOfDataMembers()->At(idata);
+    TDataMember* m = (TDataMember*)cr->GetListOfDataMembers()->At((int)idata);
     return m->Property() & kIsPublic;
 }
 
@@ -1467,7 +1457,7 @@ bool Cppyy::IsStaticData(TCppScope_t scope, TCppIndex_t idata)
     TClassRef& cr = type_from_handle(scope);
     if (cr->Property() & kIsNamespace)
         return true;
-    TDataMember* m = (TDataMember*)cr->GetListOfDataMembers()->At(idata);
+    TDataMember* m = (TDataMember*)cr->GetListOfDataMembers()->At((int)idata);
     return m->Property() & kIsStatic;
 }
 
@@ -1479,7 +1469,7 @@ bool Cppyy::IsConstData(TCppScope_t scope, TCppIndex_t idata)
     }
     TClassRef& cr = type_from_handle(scope);
     if (cr.GetClass()) {
-        TDataMember* m = (TDataMember*)cr->GetListOfDataMembers()->At(idata);
+        TDataMember* m = (TDataMember*)cr->GetListOfDataMembers()->At((int)idata);
         return m->Property() & kIsConstant;
     }
     return false;
@@ -1493,7 +1483,7 @@ bool Cppyy::IsEnumData(TCppScope_t scope, TCppIndex_t idata)
     }
     TClassRef& cr = type_from_handle(scope);
     if (cr.GetClass()) {
-        TDataMember* m = (TDataMember*)cr->GetListOfDataMembers()->At(idata);
+        TDataMember* m = (TDataMember*)cr->GetListOfDataMembers()->At((int)idata);
         return m->Property() & kIsEnum;
     }
     return false;
@@ -1507,7 +1497,7 @@ int Cppyy::GetDimensionSize(TCppScope_t scope, TCppIndex_t idata, int dimension)
     }
     TClassRef& cr = type_from_handle(scope);
     if (cr.GetClass()) {
-        TDataMember* m = (TDataMember*)cr->GetListOfDataMembers()->At(idata);
+        TDataMember* m = (TDataMember*)cr->GetListOfDataMembers()->At((int)idata);
         return m->GetMaxIndex(dimension);
     }
     return -1;
