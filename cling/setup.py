@@ -96,17 +96,16 @@ class my_cmake_build(_build):
             if has_avx: extra_args += ' -mavx'
             os.putenv('EXTRA_CLING_ARGS', extra_args)
 
-        EXTRA_CMAKE_ARG = ''
-        if 'darwin' in sys.platform:
-            EXTRA_CMAKE_ARG = '-Dlibcxx=ON'
-        log.info('Running cmake for cppyy-cling')
-        if subprocess.call([
-                'cmake', srcdir, stdcxx,
-                '-DLLVM_ENABLE_TERMINFO=0',
+        CMAKE_COMMAND = ['cmake', srcdir,
+                stdcxx, '-DLLVM_ENABLE_TERMINFO=0',
                 '-Dminimal=ON', '-Dasimage=OFF', '-Droot7=OFF', '-Dhttp=OFF', '-Dbuiltin_freetype=OFF',
-                '-Dbuiltin_pcre=ON', '-Dbuiltin_zlibg=ON', '-Dbuiltin_lzma=ON',
-                '-DCMAKE_BUILD_TYPE=RelWithDebInfo', EXTRA_CMAKE_ARG,
-                '-DCMAKE_INSTALL_PREFIX='+prefix], cwd=builddir) != 0:
+                '-Dbuiltin_pcre=ON', '-Dbuiltin_zlibg=ON', '-Dbuiltin_lzma=ON']
+        if 'darwin' in sys.platform:
+            CMAKE_COMMAND.append('-Dlibcxx=ON')
+        CMAKE_COMMAND += ['-DCMAKE_BUILD_TYPE=RelWithDebInfo', '-DCMAKE_INSTALL_PREFIX='+prefix]
+
+        log.info('Running cmake for cppyy-cling')
+        if subprocess.call(CMAKE_COMMAND, cwd=builddir) != 0:
             raise DistutilsSetupError('Failed to configure cppyy-cling')
 
         # use $MAKE to build if it is defined
