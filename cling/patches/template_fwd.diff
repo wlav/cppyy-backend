@@ -2,7 +2,7 @@ diff --git a/src/core/dictgen/src/rootcling_impl.cxx b/src/core/dictgen/src/root
 index 90b0dbed10..cc8a527c1c 100644
 --- a/src/core/dictgen/src/rootcling_impl.cxx
 +++ b/src/core/dictgen/src/rootcling_impl.cxx
-@@ -3659,8 +3659,32 @@ std::string GenerateFwdDeclString(const RScanner &scan,
+@@ -3659,8 +3659,45 @@ std::string GenerateFwdDeclString(const RScanner &scan,
                     selectedDecls.begin(),
                     [](const ROOT::TMetaUtils::AnnotatedRecordDecl& rcd){return rcd.GetRecordDecl();});
  
@@ -13,15 +13,27 @@ index 90b0dbed10..cc8a527c1c 100644
 +   // good enough: add full headers instead.
 +       clang::QualType t = TD->getUnderlyingType();
 +       clang::CXXRecordDecl* decl = t->getAsCXXRecordDecl();
-+       if (decl && !decl->isInStdNamespace()) {   // standard headers are precompiled
-+           clang::Decl::Kind kind = decl->getKind();
-+           if (kind == clang::Decl::ClassTemplatePartialSpecialization
-+                   || kind == clang::Decl::ClassTemplateSpecialization) {
-+               clang::SourceManager& s = decl->getASTContext().getSourceManager();
-+               if (!s.isInSystemHeader(decl->getLocation())) { // system hdrs are precompiled
-+                   clang::FileID fid = s.getFileID(decl->getLocation());
-+                   clang::SourceLocation incloc = s.getIncludeLoc(fid);
-+                   const char* p = s.getCharacterData(incloc);
++       if (!decl || decl->isInStdNamespace() /* standard headers are precompiled */ || \
++               (decl->getKind() != clang::Decl::ClassTemplatePartialSpecialization && \
++                decl->getKind() != clang::Decl::ClassTemplateSpecialization)) {
++           selectedDecls.push_back(TD);
++           continue;
++       }
++
++       clang::SourceManager& s = decl->getASTContext().getSourceManager();
++       if (!s.isInSystemHeader(decl->getLocation())) { // system hdrs are precompiled
++           selectedDecls.push_back(TD);
++           continue;
++       }
++
++       clang::TypeSourceInfo* tsi = TD->getTypeSourceInfo();
++       if (tsi) {
++           clang::FileID fid = s.getFileID(tsi->getTypeLoc().getBeginLoc());
++           clang::SourceLocation incloc = s.getIncludeLoc(fid);
++           if (fid.isValid() && incloc.isValid()) {
++               bool Invalid = false;
++               const char* p = s.getCharacterData(incloc, &Invalid);
++               if (!Invalid) {
 +                   const char* q = p;
 +                   while (*q != '\n' && *q != '\0') ++q;
 +                   if (q-p) {
@@ -32,8 +44,9 @@ index 90b0dbed10..cc8a527c1c 100644
 +               }
 +           }
 +       }
++
 +       selectedDecls.push_back(TD);
 +   }
- 
+
  //    for (auto* VAR: scan.fSelectedVariables)
  //       selectedDecls.push_back(VAR);
