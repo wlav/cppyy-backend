@@ -190,6 +190,11 @@ class my_install(_install):
         if env_make: os.putenv("MAKE", env_make)
 
         prefix_base = os.path.join(get_prefix(), os.path.pardir)
+        if 'linux' in sys.platform:
+            # remove wchar.h as it's not portable
+            for root, dirs, files in os.walk(prefix_base):
+                if 'wchar.h' in files:
+                    os.remove(os.path.join(root, 'wchar.h'))
         install_path = self._get_install_path()
         log.info('Copying installation to: %s ...', install_path)
         self.copy_tree(prefix_base, install_path)
@@ -227,7 +232,7 @@ setup(
     author='ROOT Developers',
     author_email='rootdev@cern.ch',
 
-    version='6.14.2.0',
+    version='6.14.2.1',
 
     license='LLVM: UoI-NCSA; ROOT: LGPL 2.1',
 
