@@ -18,6 +18,20 @@ here = os.path.abspath(os.path.dirname(__file__))
 with open(os.path.join(here, 'README.rst'), encoding='utf-8') as f:
     long_description = f.read()
 
+_is_manylinux = None
+def is_manylinux():
+    global _is_manylinux
+    if _is_manylinux is None:
+        _is_manylinux = False
+        try:
+            for line in open('/etc/redhat-release').readlines():
+                if 'CentOS release 5.11' in line:
+                    _is_manylinux = True
+                    break
+        except (OSError, IOError):
+            pass
+    return _is_manylinux
+
 builddir = None
 def get_builddir():
     """cppyy-cling build."""
@@ -70,7 +84,10 @@ class my_cmake_build(_build):
         try:
             stdcxx = os.environ['STDCXX']
         except KeyError:
-            stdcxx = '14'
+            if is_manylinux():
+                stdcxx = '11'
+            else:
+                stdcxx = '14'
 
         if not stdcxx in ['11', '14', '17']:
             log.fatal('FATAL: envar STDCXX should be one of 11, 14, or 17')
@@ -102,7 +119,11 @@ class my_cmake_build(_build):
                 '-Dbuiltin_pcre=ON', '-Dbuiltin_zlibg=ON', '-Dbuiltin_lzma=ON']
         if 'darwin' in sys.platform:
             CMAKE_COMMAND.append('-Dlibcxx=ON')
-        CMAKE_COMMAND += ['-DCMAKE_BUILD_TYPE=RelWithDebInfo', '-DCMAKE_INSTALL_PREFIX='+prefix]
+        if is_manylinux():
+            CMAKE_COMMAND.append('-DCMAKE_BUILD_TYPE=Release')
+        else:
+            CMAKE_COMMAND.append('-DCMAKE_BUILD_TYPE=RelWithDebInfo')
+        CMAKE_COMMAND.append('-DCMAKE_INSTALL_PREFIX='+prefix)
 
         log.info('Running cmake for cppyy-cling')
         if subprocess.call(CMAKE_COMMAND, cwd=builddir) != 0:

@@ -13,9 +13,24 @@ except ImportError:
 from distutils.errors import DistutilsSetupError
 from codecs import open
 
+
 here = os.path.abspath(os.path.dirname(__file__))
 with open(os.path.join(here, 'README.rst'), encoding='utf-8') as f:
     long_description = f.read()
+
+_is_manylinux = None
+def is_manylinux():
+    global _is_manylinux
+    if _is_manylinux is None:
+        _is_manylinux = False
+        try:
+            for line in open('/etc/redhat-release').readlines():
+                if 'CentOS release 5.11' in line:
+                    _is_manylinux = True
+                    break
+        except (OSError, IOError):
+            pass
+    return _is_manylinux
 
 try:
     root_install = os.environ["ROOTSYS"]
@@ -124,8 +139,10 @@ cmdclass = {
 if has_wheel:
     class my_bdist_wheel(_bdist_wheel):
         def run(self, *args):
-         # wheels do not respect dependencies; make this a no-op so that it fails (mostly) silently
-            pass
+         # wheels do not respect dependencies; make this a no-op, unless it is
+         # explicit building for manylinux
+            if is_manylinux():
+                return _bdist_wheel.run(self, *args)
 
         def finalize_options(self):
          # this is a universal, but platform-specific package; a combination
