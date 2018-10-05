@@ -8,6 +8,13 @@ try:
 except ModuleNotFoundError:
     import urllib.request as urllib2  # p3
 
+if 'win' in sys.platform:
+    def rename(f1, f2):
+        os.remove(f2)
+        os.rename(f1, f2)
+else:
+    rename = os.rename
+
 
 DEBUG_TESTBUILD = False
 
@@ -30,7 +37,9 @@ ROOT_ETC_KEEP = ['Makefile.arch', 'class.rules', 'cmake', 'dictpch',
                  'valgrind-root-python.supp', 'valgrind-root.supp', 'vmc']
 ROOT_PLUGINS_KEEP = ['TVirtualStreamerInfo']
 
-ROOT_EXPLICIT_REMOVE = ['core/base/v7', 'math/mathcore/v7', 'io/io/v7']
+ROOT_EXPLICIT_REMOVE = [os.path.join('core', 'base', 'v7'),
+                        os.path.join('math', 'mathcore', 'v7'),
+                        os.path.join('io', 'io', 'v7')]
 
 
 ERR_RELEASE_NOT_FOUND = 2
@@ -98,7 +107,7 @@ def clean_directory(directory, keeplist, trim_cmake=True):
                         break
             new_cml.write(line)
         new_cml.close()
-        os.rename(outp, inp)
+        rename(outp, inp)
     else:
         print('reusing existing %s/CMakeLists.txt' % (directory,))
  
@@ -142,21 +151,21 @@ try:
 except OSError:
     pass
 os.chdir(pkgdir)
-clean_directory(os.path.curdir, ROOT_KEEP)
-clean_directory('core',         ROOT_CORE_KEEP)
-clean_directory('builtins',     ROOT_BUILTINS_KEEP)
-clean_directory('etc',          ROOT_ETC_KEEP, trim_cmake=False)
-clean_directory('etc/plugins',  ROOT_PLUGINS_KEEP, trim_cmake=False)
-clean_directory('io',           ROOT_IO_KEEP)
-clean_directory('math',         ROOT_MATH_KEEP)
+clean_directory(os.path.curdir,                  ROOT_KEEP)
+clean_directory('core',                          ROOT_CORE_KEEP)
+clean_directory('builtins',                      ROOT_BUILTINS_KEEP)
+clean_directory('etc',                           ROOT_ETC_KEEP, trim_cmake=False)
+clean_directory(os.path.join('etc', 'plugins'),  ROOT_PLUGINS_KEEP, trim_cmake=False)
+clean_directory('io',                            ROOT_IO_KEEP)
+clean_directory('math',                          ROOT_MATH_KEEP)
 
 
 # trim main (only need rootcling)
 print('trimming main')
-for entry in os.listdir('main/src'):
+for entry in os.listdir(os.path.join('main', 'src')):
     if entry != 'rootcling.cxx':
-        os.remove('main/src/'+entry)
-inp = 'main/CMakeLists.txt'
+        os.remove(os.path.join('main', 'src', entry))
+inp = os.path.join('main', 'CMakeLists.txt')
 outp = inp+'.new'
 new_cml = open(outp, 'w')
 for line in open(inp).readlines():
@@ -166,20 +175,20 @@ for line in open(inp).readlines():
         line = '#'+line
     new_cml.write(line)
 new_cml.close()
-os.rename(outp, inp)
+rename(outp, inp)
 
 # trim core (gGLManager crashes on call)
 print('trimming main')
-os.remove("core/base/src/TVirtualGL.cxx")
-os.remove("core/base/inc/TVirtualGL.h")
+os.remove(os.path.join('core', 'base', 'src', 'TVirtualGL.cxx'))
+os.remove(os.path.join('core', 'base', 'inc', 'TVirtualGL.h'))
 
 # remove afterimage and ftgl explicitly
 print('trimming externals')
 for cmf in ['AfterImage', 'FTGL']:
-    fname = 'cmake/modules/Find%s.cmake' % (cmf,)
+    fname = os.path.join('cmake', 'modules', 'Find%s.cmake' % (cmf,))
     if os.path.exists(fname):
         os.remove(fname)
-inp = 'cmake/modules/SearchInstalledSoftware.cmake'
+inp = os.path.join('cmake', 'modules', 'SearchInstalledSoftware.cmake')
 outp = inp+'.new'
 now_stripping = False
 new_cml = open(outp, 'w')
@@ -193,9 +202,9 @@ for line in open(inp).readlines():
         line = '#'+line
     new_cml.write(line)
 new_cml.close()
-os.rename(outp, inp)
+rename(outp, inp)
 
-inp = 'cmake/modules/RootBuildOptions.cmake'
+inp = os.path.join('cmake', 'modules', 'RootBuildOptions.cmake')
 outp = inp+'.new'
 new_cml = open(outp, 'w')
 for line in open(inp).readlines():
@@ -204,10 +213,10 @@ for line in open(inp).readlines():
         line = '#'+line
     new_cml.write(line)
 new_cml.close()
-os.rename(outp, inp)
+rename(outp, inp)
 
 # strip freetype
-inp = 'cmake/modules/SearchInstalledSoftware.cmake'
+inp = os.path.join('cmake', 'modules', 'SearchInstalledSoftware.cmake')
 outp = inp+'.new'
 new_cml = open(outp, 'w')
 for line in open(inp).readlines():
@@ -219,7 +228,7 @@ for line in open(inp).readlines():
         line = '#'+line
     new_cml.write(line)
 new_cml.close()
-os.rename(outp, inp)
+rename(outp, inp)
 
 # remove testing and examples
 print('trimming testing')
@@ -238,10 +247,10 @@ for line in open(inp).readlines():
         line = '#'+line
     new_cml.write(line)
 new_cml.close()
-os.rename(outp, inp)
+rename(outp, inp)
 
 print('trimming RootCPack')
-inp = 'cmake/modules/RootCPack.cmake'
+inp = os.path.join('cmake', 'modules', 'RootCPack.cmake')
 outp = inp+'.new'
 new_cml = open(outp, 'w')
 for line in open(inp):
@@ -249,7 +258,7 @@ for line in open(inp):
         line = '#'+line
     new_cml.write(line)
 new_cml.close()
-os.rename(outp, inp)
+rename(outp, inp)
 
 
 # some more explicit removes:
@@ -261,7 +270,7 @@ for dir_to_remove in ROOT_EXPLICIT_REMOVE:
 
 
 # special fixes
-inp = 'core/base/src/TVirtualPad.cxx'
+inp = os.path.join('core', 'base', 'src', 'TVirtualPad.cxx')
 outp = inp+'.new'
 new_cml = open(outp, 'w')
 for line in open(inp):
@@ -275,9 +284,10 @@ typedef struct _x3d_sizeof_ {
 """
     new_cml.write(line)
 new_cml.close()
-os.rename(outp, inp)
+rename(outp, inp)
 
-for inp in ['core/unix/src/TUnixSystem.cxx', 'core/winnt/src/TWinNTSystem.cxx']:
+for inp in [os.path.join('core', 'unix', 'src', 'TUnixSystem.cxx'),
+            os.path.join('core', 'winnt', 'src', 'TWinNTSystem.cxx')]:
     outp = inp+'.new'
     new_cml = open(outp, 'w')
     for line in open(inp):
@@ -305,9 +315,9 @@ enum ESendRecvOptions {
 """
         new_cml.write(line)
     new_cml.close()
-    os.rename(outp, inp)
+    rename(outp, inp)
 
-inp = 'math/mathcore/src/Fitter.cxx'
+inp = os.path.join('math', 'mathcore', 'src', 'Fitter.cxx')
 if os.path.exists(inp):
     outp = inp+'.new'
     new_cml = open(outp, 'w')
@@ -316,7 +326,7 @@ if os.path.exists(inp):
             continue
         new_cml.write(line)
     new_cml.close()
-    os.rename(outp, inp)
+    rename(outp, inp)
 
 # done
 os.chdir(os.path.pardir)
@@ -329,7 +339,8 @@ if DEBUG_TESTBUILD:
         shutil.rmtree(tb)
     os.mkdir(tb)
     os.chdir(tb)
-    os.system('cmake ../%s -DCMAKE_INSTALL_PREFIX=../install -Dminimal=ON -Dasimage=OFF' % pkgdir)
+    os.system('cmake %s -DCMAKE_INSTALL_PREFIX=%s -Dminimal=ON -Dasimage=OFF' % \
+                 (os.path.join(os.pardir, pkgdir), os.path.join(os.pardir, 'install')))
     os.system('make -j 32')
 
 
@@ -354,18 +365,12 @@ for entry in os.listdir(pkgdir):
             shutil.copy2(fullp, dest)
 
 #
-## apply patches
+## apply patches (in order)
 #
-os.system('patch -p1 < patches/scanner.diff')
-os.system('patch -p1 < patches/scanner_2.diff')
-os.system('patch -p1 < patches/faux_typedef.diff')
-os.system('patch -p1 < patches/template_fwd.diff')
-os.system('patch -p1 < patches/dep_template.diff')
-os.system('patch -p1 < patches/no_long64_t.diff')
-os.system('patch -p1 < patches/using_decls.diff')
-os.system('patch -p1 < patches/sfinae.diff')
-os.system('patch -p1 < patches/typedef_of_private.diff')
-os.system('patch -p1 < patches/optlevel2_forced.diff')
-os.system('patch -p1 < patches/explicit_template.diff')
+for patch in ('scanner.diff', 'scanner_2.diff', 'faux_typedef.diff',
+              'template_fwd.diff', 'dep_template.diff', 'no_long64_t.diff',
+              'using_decls.diff', 'sfinae.diff', 'typedef_of_private.diff',
+              'optlevel2_forced.diff', 'explicit_template.diff'):
+    os.system('patch -p1 < ' + os.path.join('patches', patch))
 
 # done!
