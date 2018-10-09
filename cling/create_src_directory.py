@@ -169,7 +169,7 @@ inp = os.path.join('main', 'CMakeLists.txt')
 outp = inp+'.new'
 new_cml = open(outp, 'w')
 for line in open(inp).readlines():
-    if ('ROOT_EXECUTABLE' in line or\
+    if ('ROOT_EXECUTABLE' in line or 'root.exe' in line or \
         'SET_TARGET_PROPERTIES' in line) and\
        not 'rootcling' in line:
         line = '#'+line
