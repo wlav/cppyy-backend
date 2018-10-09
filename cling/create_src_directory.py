@@ -367,10 +367,25 @@ for entry in os.listdir(pkgdir):
 #
 ## apply patches (in order)
 #
-for patch in ('scanner.diff', 'scanner_2.diff', 'faux_typedef.diff',
+try:
+    import patch
+except ImportError:
+    class patch(object):
+        @staticmethod
+        def fromfile(fdiff):
+            return patch(fdiff)
+
+        def __init__(self, fdiff):
+            self.fdiff = fdiff
+
+        def apply(self):
+            os.system('patch -p1 < ' + self.fdiff)
+
+for fdiff in ('scanner.diff', 'scanner_2.diff', 'faux_typedef.diff',
               'template_fwd.diff', 'dep_template.diff', 'no_long64_t.diff',
               'using_decls.diff', 'sfinae.diff', 'typedef_of_private.diff',
               'optlevel2_forced.diff', 'explicit_template.diff'):
-    os.system('patch -p1 < ' + os.path.join('patches', patch))
+    pset = patch.fromfile(os.path.join('patches', fdiff))
+    pset.apply()
 
 # done!
