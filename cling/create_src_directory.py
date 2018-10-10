@@ -381,11 +381,10 @@ except ImportError:
         def apply(self):
             os.system('patch -p1 < ' + self.fdiff)
 
-for fdiff in ('scanner.diff', 'scanner_2.diff', 'faux_typedef.diff',
-              'template_fwd.diff', 'dep_template.diff', 'no_long64_t.diff',
-              'using_decls.diff', 'sfinae.diff', 'typedef_of_private.diff',
-              'optlevel2_forced.diff', 'explicit_template.diff'):
-    pset = patch.fromfile(os.path.join('patches', fdiff))
+for fdiff in ('scanner', 'scanner_2', 'faux_typedef', 'template_fwd', 'dep_template',
+              'no_long64_t', 'using_decls', 'sfinae', 'typedef_of_private', 'optlevel2_forced',
+              'explicit_template', 'msvc'):
+    pset = patch.fromfile(os.path.join('patches', fdiff+'.diff'))
     pset.apply()
 
 # done!
