@@ -26,3 +26,7 @@ def main():
 
     print('Usage: cling-config [--cflags] [--cppflags] [--cmake]')
     return 1
+
+
+if __name__ == "__main__":
+    sys.exit(main())
