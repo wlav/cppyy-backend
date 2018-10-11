@@ -38,21 +38,24 @@ try:
     add_pkg = ['cppyy_backend']
 except KeyError:
     root_install = None
-    requirements = ['cppyy-cling']
+    requirements = ['cppyy-cling>6.14.2.1']
     add_pkg = []
 
-def get_include_path():
-    config_exec = 'cling-config'
+def _get_config_exec():
     if root_install:
-        config_exec = 'root-config'
-    cli_arg = subprocess.check_output([config_exec, '--incdir'])
+        return ['root-config']
+    return ['python', '-m', 'cppyy_backend._cling_config']
+
+def get_include_path():
+    config_exec_args = _get_config_exec()
+    config_exec_args.append('--incdir')
+    cli_arg = subprocess.check_output(config_exec_args)
     return cli_arg.decode("utf-8").strip()
 
 def get_cflags():
-    config_exec = 'cling-config'
-    if root_install:
-        config_exec = 'root-config'
-    cli_arg = subprocess.check_output([config_exec, '--auxcflags'])
+    config_exec_args = _get_config_exec()
+    config_exec_args.append('--auxcflags')
+    cli_arg = subprocess.check_output(config_exec_args)
     return cli_arg.decode("utf-8").strip()
 
 class my_build_cpplib(_build_ext):
@@ -165,7 +168,7 @@ setup(
     author='PyPy Developers',
     author_email='pypy-dev@python.org',
 
-    version='1.4.2',
+    version='1.4.3',
 
     license='LBNL BSD',
 
