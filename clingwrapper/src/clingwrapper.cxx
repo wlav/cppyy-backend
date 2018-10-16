@@ -1420,7 +1420,7 @@ Cppyy::TCppIndex_t Cppyy::GetDatamemberIndex(TCppScope_t scope, const std::strin
                 }
 
                 g_globalvars.push_back(gb);
-                return g_globalvars.size() - 1;
+                return TCppIndex_t(g_globalvars.size() - 1);
             }
         }
 
