@@ -52,6 +52,7 @@ the following people and organizations:
   Antonio Cuni
   Aditi Dutta
   Shaheed Haque
+  Matti Picus
 
 
 External code
