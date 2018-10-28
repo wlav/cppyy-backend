@@ -19,7 +19,7 @@ namespace Cppyy {
     typedef void*       TCppObject_t;
     typedef ptrdiff_t   TCppMethod_t;
 
-    typedef int64_t     TCppIndex_t;
+    typedef ptrdiff_t   TCppIndex_t;
     typedef void*       TCppFuncAddr_t;
 
 // name to opaque C++ scope representation -----------------------------------

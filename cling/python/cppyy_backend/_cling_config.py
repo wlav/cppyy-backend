@@ -35,17 +35,15 @@ def main():
 
                 def get_stdflags():
                     for line in open(rcfg):
-                        # for 32bit for now (too many long <-> void*)
-                        flags = '/env:win32 '
                         if 'cxxversion' in line:
                             if 'cxx11' in line:
-                                return flags+'/std:c++11'
+                                return '/std:c++11'
                             elif 'cxx14' in line:
-                                return flags+'/std:c++14'
+                                return '/std:c++14'
                             elif 'cxx17' in line:
-                                return flags+'/std:c++17'
+                                return '/std:c++17'
                             else:
-                                return flags+'/std:c++latest'
+                                return '/std:c++latest'
                     raise
 
                 if options == '--incdir':
@@ -61,7 +59,7 @@ def main():
                 # most important are C++ flag and include directory
                     print(get_stdflags(), '-I'+get_include_dir())
                     return 0
-                    
+
             except subprocess.CalledProcessError:
                 pass
 

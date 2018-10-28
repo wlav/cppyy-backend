@@ -41,6 +41,14 @@ except KeyError:
     requirements = ['cppyy-cling>6.14.2.1']
     add_pkg = []
 
+if 'win' in sys.platform:
+    link_libraries = ['libCore', 'libThread', 'libRIO', 'libCling']
+    import cppyy_backend
+    link_dirs = [os.path.join(os.path.dirname(cppyy_backend.__file__), 'lib')]
+else:
+    link_libraries = []
+    link_dirs = []
+
 def _get_config_exec():
     if root_install:
         return ['root-config']
@@ -82,6 +90,8 @@ class my_build_cpplib(_build_ext):
         log.info("now building %s", full_libname)
         self.compiler.link_shared_object(
             objects, full_libname,
+            libraries=link_libraries,
+            library_dirs=link_dirs,
             build_temp=self.build_temp,
             output_dir=output_dir,
             debug=self.debug,
