@@ -30,20 +30,26 @@ def main():
                 # following covers the most important options until that
                 # gets fixed upstream
 
+                import platform
+                win32 = False
+                if '32' in platform.architecture()[0]:
+                    win32 = True
+
                 def get_include_dir():
                     return os.path.join(MYHOME, 'include')
 
                 def get_stdflags():
                     for line in open(rcfg):
+                        flags = ''
                         if 'cxxversion' in line:
                             if 'cxx11' in line:
-                                return '/std:c++11'
+                                return flags+'/std:c++11'
                             elif 'cxx14' in line:
-                                return '/std:c++14'
+                                return flags+'/std:c++14'
                             elif 'cxx17' in line:
-                                return '/std:c++17'
+                                return flags+'/std:c++17'
                             else:
-                                return '/std:c++latest'
+                                return flags+'/std:c++latest'
                     raise
 
                 if options == '--incdir':

@@ -123,6 +123,10 @@ class my_cmake_build(_build):
             CMAKE_COMMAND.append('-DCMAKE_BUILD_TYPE=Release')
         else:
             CMAKE_COMMAND.append('-DCMAKE_BUILD_TYPE=RelWithDebInfo')
+        if 'win32' in sys.platform:
+            import platform
+            if '64' in platform.architecture()[0]:
+                CMAKE_COMMAND.append('-Thost=x64')
         CMAKE_COMMAND.append('-DCMAKE_INSTALL_PREFIX='+prefix)
 
         log.info('Running cmake for cppyy-cling')
