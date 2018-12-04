@@ -139,14 +139,6 @@ public:
            "namespace __cppyy_internal { template<class C1, class C2>"
            " bool is_not_equal(const C1& c1, const C2& c2){ return (bool)(c1 != c2); } }");
 
-    // create a helper for wrapping lambdas
-        gInterpreter->Declare(
-            "namespace __cppyy_internal { template <typename F>"
-            "struct FT : public FT<decltype(&F::operator())> {};"
-            "template <typename C, typename R, typename... Args>"
-            "struct FT<R(C::*)(Args...) const> { typedef std::function<R(Args...)> F; };}"
-        );
-
     // start off with a reasonable size placeholder for wrappers
         gWrapperHolder.reserve(1024);
     }
@@ -1411,7 +1403,7 @@ Cppyy::TCppIndex_t Cppyy::GetDatamemberIndex(TCppScope_t scope, const std::strin
                 //       should instantiate through TClass rather then ProcessLine
                     std::ostringstream s;
                     s << "auto __cppyy_internal_wrap_" << name << " = "
-                        "new __cppyy_internal::FT<decltype(" << name << ")>::F"
+                        "new __cling_internal::FT<decltype(" << name << ")>::F"
                         "{" << name << "};";
                     gInterpreter->ProcessLine(s.str().c_str());
                     TGlobal* wrap = (TGlobal*)gROOT->GetListOfGlobals(true)->FindObject(

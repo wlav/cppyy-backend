@@ -13,7 +13,7 @@ extern "C" {
     typedef void*         cppyy_object_t;
     typedef ptrdiff_t     cppyy_method_t;
 
-    typedef long          cppyy_index_t;
+    typedef ptrdiff_t     cppyy_index_t;
     typedef void*         cppyy_funcaddr_t;
 
     typedef unsigned long cppyy_exctype_t;
