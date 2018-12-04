@@ -46,8 +46,8 @@ if 'win' in sys.platform:
     import cppyy_backend
     link_dirs = [os.path.join(os.path.dirname(cppyy_backend.__file__), 'lib')]
 else:
-    link_libraries = []
-    link_dirs = []
+    link_libraries = None
+    link_dirs = None
 
 def _get_config_exec():
     if root_install:
@@ -82,7 +82,7 @@ class my_build_cpplib(_build_ext):
 
         ext_path = self.get_ext_fullpath(ext.name)
         output_dir = os.path.dirname(ext_path)
-        full_libname = 'libcppyy_backend.so' # forced, b/c hard-wired in pypy-c/cppyy
+        full_libname = 'libcppyy_backend'+self.compiler.shared_lib_extension
         extra_preargs = list()
         if 'linux' in sys.platform:
             extra_preargs += ['-Wl,-Bsymbolic-functions']
@@ -90,8 +90,7 @@ class my_build_cpplib(_build_ext):
         log.info("now building %s", full_libname)
         self.compiler.link_shared_object(
             objects, full_libname,
-            libraries=link_libraries,
-            library_dirs=link_dirs,
+            libraries=link_libraries, library_dirs=link_dirs,
             build_temp=self.build_temp,
             output_dir=output_dir,
             debug=self.debug,
@@ -211,8 +210,8 @@ setup(
     package_dir={'': 'python'},
     packages=find_packages('python', include=add_pkg),
 
-    ext_modules=[Extension('cppyy_backend/lib/libcppyy_backend',
-        sources=glob.glob('src/clingwrapper.cxx'))],
+    ext_modules=[Extension(os.path.join('cppyy_backend', 'lib', 'libcppyy_backend'),
+        sources=glob.glob(os.path.join('src', 'clingwrapper.cxx')))],
     zip_safe=False,
 
     cmdclass = cmdclass
