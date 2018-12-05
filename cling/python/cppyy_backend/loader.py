@@ -14,12 +14,14 @@ def load_cpp_backend():
         c = ctypes.CDLL('libcppyy_backend'+soext, ctypes.RTLD_GLOBAL)
     except OSError:
       # failed ... load dependencies explicitly
-        libpath = os.path.join(os.path.dirname(__file__), 'lib')
-        for dep in ['libCore', 'libThread', 'libRIO', 'libCling']:
-            fpath = os.path.join(libpath, dep+soext)
-            if os.path.exists(fpath):
-                dep = fpath
-            ctypes.CDLL(dep, ctypes.RTLD_GLOBAL)
-        c = ctypes.CDLL(os.path.join(libpath, 'libcppyy_backend'+soext), ctypes.RTLD_GLOBAL)
+        pkgpath = os.path.dirname(__file__)
+        for dep in ['liblzma', 'libCore', 'libThread', 'libRIO', 'libCling']:
+            for loc in ['lib', 'bin']:
+                fpath = os.path.join(pkgpath, loc, dep+soext)
+                if os.path.exists(fpath):
+                    dep = fpath
+                    ctypes.CDLL(dep, ctypes.RTLD_GLOBAL)
+                    break
+        c = ctypes.CDLL(os.path.join(pkgpath, 'lib', 'libcppyy_backend'+soext), ctypes.RTLD_GLOBAL)
 
     return c
