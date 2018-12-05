@@ -82,20 +82,25 @@ class my_build_cpplib(_build_ext):
 
         ext_path = self.get_ext_fullpath(ext.name)
         output_dir = os.path.dirname(ext_path)
-        full_libname = 'libcppyy_backend'+self.compiler.shared_lib_extension
-        extra_preargs = list()
+        libname_base = 'libcppyy_backend'
+        libname = libname_base+self.compiler.shared_lib_extension
+        extra_postargs = list()
         if 'linux' in sys.platform:
-            extra_preargs += ['-Wl,-Bsymbolic-functions']
+            extra_postargs.append('-Wl,-Bsymbolic-functions')
+        elif 'win' in sys.platform:
+            # force the export results in the proper directory.
+            extra_postargs.append('/IMPLIB:'+os.path.join(output_dir, libname_base+'.lib'))
 
-        log.info("now building %s", full_libname)
+        log.info("now building %s", libname)
         self.compiler.link_shared_object(
-            objects, full_libname,
+            objects, libname,
             libraries=link_libraries, library_dirs=link_dirs,
+            # export_symbols=[], # ie. all (hum, that puts the output in the wrong directory)
             build_temp=self.build_temp,
             output_dir=output_dir,
             debug=self.debug,
             target_lang='c++',
-            extra_preargs=extra_preargs)
+            extra_postargs=extra_postargs)
 
 class my_clean(_clean):
     def run(self):
