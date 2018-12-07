@@ -473,11 +473,11 @@ static inline bool WrapperCall(Cppyy::TCppMethod_t method, size_t nargs, void* a
         if (nargs <= SMALL_ARGS_N) {
             void* smallbuf[SMALL_ARGS_N];
             if (nargs) runRelease = copy_args(args, nargs, (void**)smallbuf);
-            faceptr.fCtor((void**)smallbuf, result, nargs);
+            faceptr.fCtor((void**)smallbuf, result, (unsigned long)nargs);
         } else {
             std::vector<void*> buf(nargs);
             runRelease = copy_args(args, nargs, buf.data());
-            faceptr.fCtor(buf.data(), result, nargs);
+            faceptr.fCtor(buf.data(), result, (unsigned long)nargs);
         }
         if (runRelease) release_args(args, nargs);
         return true;
