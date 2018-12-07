@@ -119,10 +119,12 @@ class my_cmake_build(_build):
                 '-Dbuiltin_pcre=ON', '-Dbuiltin_zlibg=ON', '-Dbuiltin_lzma=ON']
         if 'darwin' in sys.platform:
             CMAKE_COMMAND.append('-Dlibcxx=ON')
-        if is_manylinux():
-            CMAKE_COMMAND.append('-DCMAKE_BUILD_TYPE=Release')
+        if is_manylinux() or 'win32' in sys.platform:
+            # debug info too large for wheels
+            CMAKE_BUILD_TYPE = 'Release'
         else:
-            CMAKE_COMMAND.append('-DCMAKE_BUILD_TYPE=RelWithDebInfo')
+            CMAKE_BUILD_TYPE = 'RelWithDebInfo'
+        CMAKE_COMMAND.append('-DCMAKE_BUILD_TYPE='+CMAKE_BUILD_TYPE)
         if 'win32' in sys.platform:
             import platform
             if '64' in platform.architecture()[0]:
@@ -146,7 +148,7 @@ class my_cmake_build(_build):
                 nprocs = 0
             if nprocs < 1:
                 nprocs = multiprocessing.cpu_count()
-            build_args = ['--build', '.', '--config', 'RelWithDebInfo', '--']
+            build_args = ['--build', '.', '--config', CMAKE_BUILD_TYPE, '--']
             if 'win32' in sys.platform:
                 build_args.append('/maxcpucount:' + str(nprocs))
             else:
