@@ -32,6 +32,12 @@ def is_manylinux():
             pass
     return _is_manylinux
 
+def get_build_type():
+    if is_manylinux() or 'win32' in sys.platform:
+        # debug info too large for wheels
+        return 'Release'
+    return 'RelWithDebInfo'
+
 builddir = None
 def get_builddir():
     """cppyy-cling build."""
@@ -119,16 +125,11 @@ class my_cmake_build(_build):
                 '-Dbuiltin_pcre=ON', '-Dbuiltin_zlibg=ON', '-Dbuiltin_lzma=ON']
         if 'darwin' in sys.platform:
             CMAKE_COMMAND.append('-Dlibcxx=ON')
-        if is_manylinux() or 'win32' in sys.platform:
-            # debug info too large for wheels
-            CMAKE_BUILD_TYPE = 'Release'
-        else:
-            CMAKE_BUILD_TYPE = 'RelWithDebInfo'
-        CMAKE_COMMAND.append('-DCMAKE_BUILD_TYPE='+CMAKE_BUILD_TYPE)
+        CMAKE_COMMAND.append('-DCMAKE_BUILD_TYPE='+get_build_type())
         if 'win32' in sys.platform:
             import platform
             if '64' in platform.architecture()[0]:
-                CMAKE_COMMAND.append('-Thost=x64')
+                CMAKE_COMMAND += ['-Thost=x64', '-DCMAKE_GENERATOR_PLATFORM=x64']
         CMAKE_COMMAND.append('-DCMAKE_INSTALL_PREFIX='+prefix)
 
         log.info('Running cmake for cppyy-cling')
@@ -148,7 +149,7 @@ class my_cmake_build(_build):
                 nprocs = 0
             if nprocs < 1:
                 nprocs = multiprocessing.cpu_count()
-            build_args = ['--build', '.', '--config', CMAKE_BUILD_TYPE, '--']
+            build_args = ['--build', '.', '--config', get_build_type(), '--']
             if 'win32' in sys.platform:
                 build_args.append('/maxcpucount:' + str(nprocs))
             else:
@@ -204,7 +205,7 @@ class my_install(_install):
         env_make = os.getenv("MAKE")
         if not env_make:
             install_cmd = 'cmake'
-            install_args = ['--build', '.', '--config', 'RelWithDebInfo', '--target', 'install']
+            install_args = ['--build', '.', '--config', get_build_type(), '--target', 'install']
         else:
             install_args = env_make.split()
             install_cmd, install_args = install_args[0], install_args[1:]+['install']
