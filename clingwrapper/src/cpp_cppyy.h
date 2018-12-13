@@ -22,6 +22,10 @@ namespace Cppyy {
     typedef ptrdiff_t   TCppIndex_t;
     typedef void*       TCppFuncAddr_t;
 
+// direct interpreter access -------------------------------------------------
+    RPY_EXPORTED
+    bool Compile(const std::string& code);
+
 // name to opaque C++ scope representation -----------------------------------
     RPY_EXPORTED
     std::string ResolveName(const std::string& cppitem_name);

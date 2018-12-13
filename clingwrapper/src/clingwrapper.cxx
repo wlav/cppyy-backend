@@ -209,6 +209,13 @@ bool is_missclassified_stl(const std::string& name)
 }
 
 
+// direct interpreter access -------------------------------------------------
+bool Cppyy::Compile(const std::string& code)
+{
+    return gInterpreter->Declare(code.c_str());
+}
+
+
 // name to opaque C++ scope representation -----------------------------------
 std::string Cppyy::ResolveName(const std::string& cppitem_name)
 {
