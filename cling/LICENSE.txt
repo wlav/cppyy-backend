@@ -49,6 +49,7 @@ the following people and organizations:
 
   CERN
   Robert Bradshaw
+  Ellis Breen
   Antonio Cuni
   Aditi Dutta
   Shaheed Haque
