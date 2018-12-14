@@ -130,9 +130,15 @@ class my_cmake_build(_build):
             import platform
             if '64' in platform.architecture()[0]:
                 CMAKE_COMMAND += ['-Thost=x64', '-DCMAKE_GENERATOR_PLATFORM=x64']
+                CMAKE_COMMAND += ['-Dall=OFF','-Dmathmore=OFF','-Dbuiltin_zlib=ON','-Dgfal=OFF','-Dbuiltin_freetype=ON','-Dbuiltin_ftgl=OFF','-Droofit=OFF','-Dfftw3=OFF']
+                FFTW_INC=os.environ.get("FFTW_INC", None):
+                FFTW_LIB=os.environ.get("FFTW_LIB", None):
+                if FFTW_INC and FFTW_LIB:
+                    CMAKE_COMMAND += ["-DFFTW_INCLUDE_DIR={}".format(FFTW_INC),"-DFFTW_LIBRARY={}".format(FFTW_LIB)]
+
         CMAKE_COMMAND.append('-DCMAKE_INSTALL_PREFIX='+prefix)
 
-        log.info('Running cmake for cppyy-cling')
+        log.info('Running cmake for cppyy-cling: {}'.format(CMAKE_COMMAND))
         if subprocess.call(CMAKE_COMMAND, cwd=builddir) != 0:
             raise DistutilsSetupError('Failed to configure cppyy-cling')
 
