@@ -1,7 +1,7 @@
-diff --git a/core/textinput/src/textinput/StreamReaderWin.h b/core/textinput/src/textinput/StreamReaderWin.h
+diff --git a/src/core/textinput/src/textinput/StreamReaderWin.h b/src/core/textinput/src/textinput/StreamReaderWin.h
 index 074a52d799..99d204af3f 100644
---- a/core/textinput/src/textinput/StreamReaderWin.h
-+++ b/core/textinput/src/textinput/StreamReaderWin.h
+--- a/src/core/textinput/src/textinput/StreamReaderWin.h
++++ b/src/core/textinput/src/textinput/StreamReaderWin.h
 @@ -16,7 +16,10 @@
  #define TEXTINPUT_STREAMREADERWIN_H
  
@@ -14,10 +14,10 @@ index 074a52d799..99d204af3f 100644
  
  namespace textinput {
    // Windows console and pipe input
-diff --git a/core/textinput/src/textinput/TerminalDisplayWin.h b/core/textinput/src/textinput/TerminalDisplayWin.h
+diff --git a/src/core/textinput/src/textinput/TerminalDisplayWin.h b/src/core/textinput/src/textinput/TerminalDisplayWin.h
 index 8aaceb23df..2447cd4e69 100644
---- a/core/textinput/src/textinput/TerminalDisplayWin.h
-+++ b/core/textinput/src/textinput/TerminalDisplayWin.h
+--- a/src/core/textinput/src/textinput/TerminalDisplayWin.h
++++ b/src/core/textinput/src/textinput/TerminalDisplayWin.h
 @@ -17,7 +17,10 @@
  #define TEXTINPUT_TERMINALDISPLAYWIN_H
  

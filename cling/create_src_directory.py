@@ -383,7 +383,7 @@ except ImportError:
 
 for fdiff in ('scanner', 'scanner_2', 'faux_typedef', 'template_fwd', 'dep_template',
               'no_long64_t', 'using_decls', 'sfinae', 'typedef_of_private', 'optlevel2_forced',
-              'explicit_template', 'msvc','textinput'):
+              'explicit_template', 'msvc', 'textinput'):
     pset = patch.fromfile(os.path.join('patches', fdiff+'.diff'))
     pset.apply()
 
