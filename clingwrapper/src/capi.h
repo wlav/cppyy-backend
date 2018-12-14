@@ -18,6 +18,10 @@ extern "C" {
 
     typedef unsigned long cppyy_exctype_t;
 
+    /* direct interpreter access ---------------------------------------------- */
+    RPY_EXPORTED
+    int cppyy_compile(const char* code);
+
     /* name to opaque C++ scope representation -------------------------------- */
     RPY_EXPORTED
     char* cppyy_resolve_name(const char* cppitem_name);

@@ -1506,6 +1506,12 @@ int Cppyy::GetDimensionSize(TCppScope_t scope, TCppIndex_t idata, int dimension)
 //- C-linkage wrappers -------------------------------------------------------
 
 extern "C" {
+/* direct interpreter access ---------------------------------------------- */
+int cppyy_compile(const char* code) {
+    return Cppyy::Compile(code);
+}
+
+
 /* name to opaque C++ scope representation -------------------------------- */
 char* cppyy_resolve_name(const char* cppitem_name) {
     return cppstring_to_cstring(Cppyy::ResolveName(cppitem_name));
