@@ -38,7 +38,7 @@ try:
     add_pkg = ['cppyy_backend']
 except KeyError:
     root_install = None
-    requirements = ['cppyy-cling>6.14.2.1']
+    requirements = ['cppyy-cling>6.15.0.0']
     add_pkg = []
 
 if 'win' in sys.platform:
@@ -182,7 +182,7 @@ setup(
     author='PyPy Developers',
     author_email='pypy-dev@python.org',
 
-    version='1.4.3',
+    version='1.5.0',
 
     license='LBNL BSD',
 
