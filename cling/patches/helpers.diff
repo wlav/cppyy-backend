@@ -1,0 +1,22 @@
+diff --git a/src/core/metacling/src/TCling.cxx b/core/metacling/src/TCling.cxx
+index 7df9bc8393..a54d6f81fa 100644
+--- a/src/core/metacling/src/TCling.cxx
++++ b/src/core/metacling/src/TCling.cxx
+@@ -1429,6 +1429,17 @@ TCling::TCling(const char *name, const char *title, const char* const argv[])
+    fClingCallbacks->SetAutoParsingSuspended(fIsAutoParsingSuspended);
+    fInterpreter->setCallbacks(std::move(clingCallbacks));
+ 
++   // helper for lambdas
++   fInterpreter->declare(
++      "#ifndef CLING_INTERNAL_DECLARE_FT\n"
++      "#define CLING_INTERNAL_DECLARE_FT\n"
++      "#include <functional>\n"
++      "namespace __cling_internal { template <typename F>"
++      "struct FT : public FT<decltype(&F::operator())> {};"
++      "template <typename C, typename R, typename... Args>"
++      "struct FT<R(C::*)(Args...) const> { typedef std::function<R(Args...)> F; };}\n"
++      "#endif\n"
++   );
+ }
+ 
+ 

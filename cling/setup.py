@@ -140,7 +140,7 @@ class my_cmake_build(_build):
             CMAKE_COMMAND += ['-Dbuiltin_freetype=OFF']
         CMAKE_COMMAND.append('-DCMAKE_INSTALL_PREFIX='+prefix)
 
-        log.info('Running cmake for cppyy-cling: {}'.format(CMAKE_COMMAND))
+        log.info('Running cmake for cppyy-cling: %s', ' '.join(CMAKE_COMMAND))
         if subprocess.call(CMAKE_COMMAND, cwd=builddir) != 0:
             raise DistutilsSetupError('Failed to configure cppyy-cling')
 
@@ -268,7 +268,7 @@ setup(
     author='ROOT Developers',
     author_email='rootdev@cern.ch',
 
-    version='6.14.2.2',
+    version='6.15.2.0',
 
     license='LLVM: UoI-NCSA; ROOT: LGPL 2.1',
 

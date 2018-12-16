@@ -2,7 +2,7 @@ diff --git a/src/core/metacling/src/TCling.cxx b/src/core/metacling/src/TCling.c
 index 38f951c12b..2823533580 100644
 --- a/src/core/metacling/src/TCling.cxx
 +++ b/src/core/metacling/src/TCling.cxx
-@@ -1240,6 +1240,10 @@ TCling::TCling(const char *name, const char *title, const char* const argv[])
+@@ -1296,6 +1296,10 @@ TCling::TCling(const char *name, const char *title, const char* const argv[])
                                           &(interpArgs[0]),
                                           llvmResourceDir);
  
@@ -17,7 +17,7 @@ diff --git a/src/interpreter/cling/lib/Interpreter/CIFactory.cpp b/src/interpret
 index f97c86032f..69321c5579 100644
 --- a/src/interpreter/cling/lib/Interpreter/CIFactory.cpp
 +++ b/src/interpreter/cling/lib/Interpreter/CIFactory.cpp
-@@ -1226,7 +1226,7 @@ static void stringifyPreprocSetting(PreprocessorOptions& PPOpts,
+@@ -1190,7 +1190,7 @@ static void stringifyPreprocSetting(PreprocessorOptions& PPOpts,
      // FIXME: We have a bug when we switch to -O2, for some cases it takes
      // several minutes to optimize, while the same code compiled by clang -O2
      // takes only a few seconds.
@@ -30,7 +30,7 @@ diff --git a/src/interpreter/cling/lib/Interpreter/IncrementalParser.cpp b/src/i
 index 56692341b5..c21854e757 100644
 --- a/src/interpreter/cling/lib/Interpreter/IncrementalParser.cpp
 +++ b/src/interpreter/cling/lib/Interpreter/IncrementalParser.cpp
-@@ -809,12 +809,12 @@ namespace cling {
+@@ -900,12 +900,12 @@ namespace cling {
      std::vector<ASTTPtr_t> ASTTransformers;
      ASTTransformers.emplace_back(new AutoSynthesizer(TheSema));
      ASTTransformers.emplace_back(new EvaluateTSynthesizer(TheSema));
@@ -50,7 +50,7 @@ diff --git a/src/interpreter/cling/lib/Interpreter/BackendPasses.cpp b/src/inter
 index cb3308c360..873bc682ea 100644
 --- a/src/interpreter/cling/lib/Interpreter/BackendPasses.cpp
 +++ b/src/interpreter/cling/lib/Interpreter/BackendPasses.cpp
-@@ -112,6 +112,9 @@ void BackendPasses::CreatePasses(llvm::Module& M, int OptLevel)
+@@ -158,6 +158,9 @@ void BackendPasses::CreatePasses(llvm::Module& M, int OptLevel)
      // Inlining = CGOpts.NoInlining;
    }
 

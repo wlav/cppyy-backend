@@ -181,6 +181,21 @@ rename(outp, inp)
 print('trimming main')
 os.remove(os.path.join('core', 'base', 'src', 'TVirtualGL.cxx'))
 os.remove(os.path.join('core', 'base', 'inc', 'TVirtualGL.h'))
+inp = os.path.join('core', 'base', 'CMakeLists.txt')
+outp = inp+'.new'
+now_stripping = False
+new_cml = open(outp, 'w')
+for line in open(inp).readlines():
+    if 'if(cxx14 OR cxx17 OR root7)' == line[0:27]:   # get rid of v7 stuff
+        now_stripping = True
+    elif 'if(root7)' == line[0:9]:
+        now_stripping = False
+    if now_stripping:
+        line = '#'+line
+    new_cml.write(line)
+new_cml.close()
+rename(outp, inp)
+
 
 # remove afterimage and ftgl explicitly
 print('trimming externals')
@@ -194,9 +209,11 @@ now_stripping = False
 new_cml = open(outp, 'w')
 for line in open(inp).readlines():
     if '#---Check for ftgl if needed' == line[0:28] or\
-       '#---Check for AfterImage' == line[0:24]:
+       '#---Check for AfterImage' == line[0:24] or\
+       '#-------' == line[0:8]:   # openui5 (doesn't follow convention)
         now_stripping = True
-    elif '#---Check' == line[0:9]:
+    elif '#---Check' == line[0:9] or\
+         '#---Report' == line[0:10]:
         now_stripping = False
     if now_stripping:
         line = '#'+line
@@ -230,7 +247,7 @@ for line in open(inp).readlines():
 new_cml.close()
 rename(outp, inp)
 
-# remove testing and examples
+# remove testing, examples, and notebook
 print('trimming testing')
 inp = 'CMakeLists.txt'
 outp = inp+'.new'
@@ -244,6 +261,8 @@ for line in open(inp).readlines():
          '#---version' == line[0:11]:
         now_stripping = False
     if now_stripping:
+        line = '#'+line
+    elif 'kernel.json' in line:
         line = '#'+line
     new_cml.write(line)
 new_cml.close()
@@ -383,7 +402,7 @@ except ImportError:
 
 for fdiff in ('scanner', 'scanner_2', 'faux_typedef', 'template_fwd', 'dep_template',
               'no_long64_t', 'using_decls', 'sfinae', 'typedef_of_private', 'optlevel2_forced',
-              'explicit_template', 'msvc', 'textinput'):
+              'explicit_template', 'helpers', 'msvc', 'textinput'):
     pset = patch.fromfile(os.path.join('patches', fdiff+'.diff'))
     pset.apply()
 
