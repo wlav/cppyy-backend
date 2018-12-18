@@ -1,0 +1,23 @@
+diff --git a/src/core/metacling/src/TCling.cxx b/core/metacling/src/TCling.cxx
+index 5413aef378..cc94115b85 100644
+--- a/src/core/metacling/src/TCling.cxx
++++ b/src/core/metacling/src/TCling.cxx
+@@ -1217,12 +1217,14 @@ TCling::TCling(const char *name, const char *title, const char* const argv[])
+       // same functionality).
+       if (!fCxxModulesEnabled) {
+          std::string pchFilename = interpInclude + "/allDict.cxx.pch";
+-         if (gSystem->Getenv("ROOT_PCH")) {
+-            pchFilename = gSystem->Getenv("ROOT_PCH");
++         if (gSystem->Getenv("CLING_STANDARD_PCH")) {
++            pchFilename = gSystem->Getenv("CLING_STANDARD_PCH");
+          }
+ 
+-         clingArgsStorage.push_back("-include-pch");
+-         clingArgsStorage.push_back(pchFilename);
++         if (FileExists(pchFilename.c_str())) {
++            clingArgsStorage.push_back("-include-pch");
++            clingArgsStorage.push_back(pchFilename);
++         }
+       }
+ 
+       clingArgsStorage.push_back("-Wno-undefined-inline");

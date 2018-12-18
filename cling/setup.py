@@ -122,7 +122,8 @@ class my_cmake_build(_build):
         CMAKE_COMMAND = ['cmake', srcdir,
                 stdcxx, '-DLLVM_ENABLE_TERMINFO=0',
                 '-Dminimal=ON', '-Dasimage=OFF', '-Droot7=OFF', '-Dhttp=OFF',
-                '-Dbuiltin_pcre=ON', '-Dbuiltin_zlibg=ON', '-Dbuiltin_lzma=ON']
+                '-Dbuiltin_pcre=ON', '-Dbuiltin_freetype=ON',
+                '-Dbuiltin_zlib=ON', '-Dbuiltin_xxhash=ON', '-Dbuiltin_lz4=ON', '-Dbuiltin_lzma=ON']
         if 'darwin' in sys.platform:
             CMAKE_COMMAND.append('-Dlibcxx=ON')
         CMAKE_COMMAND.append('-DCMAKE_BUILD_TYPE='+get_build_type())
@@ -130,8 +131,7 @@ class my_cmake_build(_build):
             import platform
             if '64' in platform.architecture()[0]:
                 CMAKE_COMMAND += ['-Thost=x64', '-DCMAKE_GENERATOR_PLATFORM=x64', '-Dall=OFF',
-                                  '-Dmathmore=OFF', '-Dbuiltin_ftgl=OFF', '-Droofit=OFF', '-Dgfal=OFF', '-Dfftw3=OFF',
-                                  '-Dbuiltin_freetype=ON', '-Dbuiltin_zlib=ON']
+                        '-Dmathmore=OFF', '-Dbuiltin_ftgl=OFF', '-Droofit=OFF', '-Dgfal=OFF', '-Dfftw3=OFF']
                 FFTW_INC = os.environ.get("FFTW_INC", None)
                 FFTW_LIB = os.environ.get("FFTW_LIB", None)
                 if FFTW_INC and FFTW_LIB:
@@ -225,15 +225,13 @@ class my_install(_install):
             raise DistutilsSetupError('Failed to install cppyy-cling')
         if env_make: os.putenv("MAKE", env_make)
 
-        prefix_base = os.path.join(get_prefix(), os.path.pardir)
         if 'linux' in sys.platform:
-            # remove wchar.h as it's not portable
-            for root, dirs, files in os.walk(prefix_base):
-                if 'wchar.h' in files:
-                    os.remove(os.path.join(root, 'wchar.h'))
+         # remove allDict.cxx.pch as it's not portable (rebuild on first run, see cppyy)
+            log.info('removing allDict.cxx.pch')
+            os.remove(os.path.join(get_prefix(), 'etc', 'allDict.cxx.pch'))
         install_path = self._get_install_path()
         log.info('Copying installation to: %s ...', install_path)
-        self.copy_tree(prefix_base, install_path)
+        self.copy_tree(os.path.join(get_prefix(), os.path.pardir), install_path)
 
         log.info('Install finished')
 

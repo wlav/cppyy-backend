@@ -196,6 +196,23 @@ for line in open(inp).readlines():
 new_cml.close()
 rename(outp, inp)
 
+# do not copy wchar.h & friends b/c the pch should be generated at install time,
+# so preventing conflict
+print('trimming clingutils')
+inp = os.path.join('core', 'clingutils', 'CMakeLists.txt')
+outp = inp+'.new'
+now_stripping = False
+new_cml = open(outp, 'w')
+for line in open(inp).readlines():
+    if '# Capture their build-time' == line[0:26]:
+        now_stripping = True
+    elif 'set(stamp_file' == line[0:14]:
+        now_stripping = False
+    if now_stripping:
+        line = '#'+line
+    new_cml.write(line)
+new_cml.close()
+rename(outp, inp)
 
 # remove afterimage and ftgl explicitly
 print('trimming externals')
@@ -402,7 +419,7 @@ except ImportError:
 
 for fdiff in ('scanner', 'scanner_2', 'faux_typedef', 'template_fwd', 'dep_template',
               'no_long64_t', 'using_decls', 'sfinae', 'typedef_of_private', 'optlevel2_forced',
-              'explicit_template', 'helpers', 'msvc', 'textinput'):
+              'explicit_template', 'helpers', 'pch', 'msvc', 'textinput'):
     pset = patch.fromfile(os.path.join('patches', fdiff+'.diff'))
     pset.apply()
 
