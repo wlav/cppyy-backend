@@ -1,0 +1,71 @@
+diff --git a/src/build/win/w32pragma.h b/build/win/w32pragma.h
+index c21debefd4..34d3ace445 100644
+--- a/src/build/win/w32pragma.h
++++ b/src/build/win/w32pragma.h
+@@ -59,12 +59,12 @@
+ /* loop control variable is used outside the for-loop scope */
+ #pragma warning (3: 4289)
+ 
+-#define WIN32 1
+-#define _WINDOWS 1
+-#define WINVER 0x0500
++//#define WIN32 1
++//#define _WINDOWS 1
++//#define WINVER 0x0500
+ #define CRTAPI1 _cdecl 
+ #define CRTAPI2 _cdecl
+-#define _X86_ 1 
++//#define _X86_ 1 
+ // #define _DLL  - used to be explicitly defined, 
+ // but it's implicitely defined via /MD(d)
+ #define G__REDIRECTIO 1
+diff --git a/src/cmake/modules/SetUpWindows.cmake b/cmake/modules/SetUpWindows.cmake
+index ae7830febb..aa30c4b5d8 100644
+--- a/src/cmake/modules/SetUpWindows.cmake
++++ b/src/cmake/modules/SetUpWindows.cmake
+@@ -49,6 +49,14 @@ if(CMAKE_COMPILER_IS_GNUCXX)
+ 
+ elseif(MSVC)
+ 
++  if(CMAKE_SIZEOF_VOID_P EQUAL 8)
++     set(ROOT_ARCHITECTURE win64)
++     set(WIN_EXTRA_DEFS "-D_WINDOWS"
++  elseif(CMAKE_SIZEOF_VOID_P EQUAL 4)
++     set(ROOT_ARCHITECTURE win32)
++     set(WIN_EXTRA_DEFS "-D_WINDOWS -DWIN32")
++  endif()
++
+   set(ROOT_ARCHITECTURE win32)
+ 
+   math(EXPR VC_MAJOR "${MSVC_VERSION} / 100")
+@@ -63,13 +71,13 @@ elseif(MSVC)
+   endif()
+ 
+   if(CMAKE_PROJECT_NAME STREQUAL ROOT)
+-    set(CMAKE_CXX_FLAGS "-nologo -I${CMAKE_SOURCE_DIR}/build/win -FIw32pragma.h -FIsehmap.h ${BLDCXXFLAGS} -EHsc- -W3 -wd4141 -wd4291 -wd4244 -wd4049 -D_WIN32 -D_XKEYCHECK_H -D_LIBCPP_HAS_NO_PRAGMA_SYSTEM_HEADER -DNOMINMAX -D_CRT_SECURE_NO_WARNINGS")
+-    set(CMAKE_C_FLAGS   "-nologo -I${CMAKE_SOURCE_DIR}/build/win -FIw32pragma.h -FIsehmap.h ${BLDCFLAGS} -EHsc- -W3 -D_WIN32 -D_LIBCPP_HAS_NO_PRAGMA_SYSTEM_HEADER -DNOMINMAX")
++    set(CMAKE_CXX_FLAGS "-nologo -I${CMAKE_SOURCE_DIR}/build/win -FIw32pragma.h -FIsehmap.h ${BLDCXXFLAGS} ${WIN_EXTRA_DEFS} -EHsc- -W3 -wd4141 -wd4291 -wd4244 -wd4049 -D_XKEYCHECK_H -D_LIBCPP_HAS_NO_PRAGMA_SYSTEM_HEADER -DNOMINMAX -D_CRT_SECURE_NO_WARNINGS")
++    set(CMAKE_C_FLAGS   "-nologo -I${CMAKE_SOURCE_DIR}/build/win -FIw32pragma.h -FIsehmap.h ${BLDCFLAGS} ${WIN_EXTRA_DEFS} -EHsc- -W3 -D_LIBCPP_HAS_NO_PRAGMA_SYSTEM_HEADER -DNOMINMAX")
+     install(FILES ${CMAKE_SOURCE_DIR}/build/win/w32pragma.h  DESTINATION ${CMAKE_INSTALL_INCLUDEDIR} COMPONENT headers)
+     install(FILES ${CMAKE_SOURCE_DIR}/build/win/sehmap.h  DESTINATION ${CMAKE_INSTALL_INCLUDEDIR} COMPONENT headers)
+   else()
+-    set(CMAKE_CXX_FLAGS "-nologo -FIw32pragma.h -FIsehmap.h ${BLDCXXFLAGS} -EHsc- -W3 -wd4244 -D_WIN32")
+-    set(CMAKE_C_FLAGS   "-nologo -FIw32pragma.h -FIsehmap.h ${BLDCFLAGS} -EHsc- -W3 -D_WIN32")
++    set(CMAKE_CXX_FLAGS "-nologo -FIw32pragma.h -FIsehmap.h ${BLDCXXFLAGS} ${WIN_EXTRA_DEFS} -EHsc- -W3 -wd4244")
++    set(CMAKE_C_FLAGS   "-nologo -FIw32pragma.h -FIsehmap.h ${BLDCFLAGS} ${WIN_EXTRA_DEFS} -EHsc- -W3")
+   endif()
+ 
+   #---Select compiler flags----------------------------------------------------------------
+diff --git a/src/interpreter/CMakeLists.txt b/interpreter/CMakeLists.txt
+index 3752a6e423..40b2cf2a81 100644
+--- a/src/interpreter/CMakeLists.txt
++++ b/src/interpreter/CMakeLists.txt
+@@ -94,6 +94,8 @@ elseif(ROOT_ARCHITECTURE MATCHES macosx)
+   set(ROOT_CLING_TARGET "X86")
+ elseif(ROOT_ARCHITECTURE MATCHES win32)
+   set(ROOT_CLING_TARGET "X86")
++elseif(ROOT_ARCHITECTURE MATCHES win64)
++  set(ROOT_CLING_TARGET "X86")
+ else()
+   set(ROOT_CLING_TARGET "all")
+ endif()
