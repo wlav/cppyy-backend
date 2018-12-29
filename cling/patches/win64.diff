@@ -32,7 +32,7 @@ index ae7830febb..aa30c4b5d8 100644
 +     set(WIN_EXTRA_DEFS "-D_WINDOWS")
 +  elseif(CMAKE_SIZEOF_VOID_P EQUAL 4)
 +     set(ROOT_ARCHITECTURE win32)
-+     set(WIN_EXTRA_DEFS "-D_WINDOWS -DWIN32")
++     set(WIN_EXTRA_DEFS "-D_WINDOWS -DWIN32 -D_X86_")
 +  endif()
 +
    set(ROOT_ARCHITECTURE win32)
