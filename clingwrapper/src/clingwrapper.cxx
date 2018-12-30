@@ -328,7 +328,7 @@ Cppyy::TCppType_t Cppyy::GetActualClass(TCppType_t klass, TCppObject_t obj)
 size_t Cppyy::SizeOf(TCppType_t klass)
 {
     TClassRef& cr = type_from_handle(klass);
-    if (cr.GetClass()) return (size_t)cr->Size();
+    if (cr.GetClass()) return (size_t)gInterpreter->ClassInfo_Size(cr->GetClassInfo());
     return (size_t)0;
 }
 
@@ -371,7 +371,7 @@ bool Cppyy::IsComplete(const std::string& type_name)
 Cppyy::TCppObject_t Cppyy::Allocate(TCppType_t type)
 {
     TClassRef& cr = type_from_handle(type);
-    return (TCppObject_t)malloc(cr->Size());
+    return (TCppObject_t)malloc(gInterpreter->ClassInfo_Size(cr->GetClassInfo()));
 }
 
 void Cppyy::Deallocate(TCppType_t /* type */, TCppObject_t instance)
