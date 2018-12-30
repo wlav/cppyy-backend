@@ -416,7 +416,7 @@ static TInterpreter::CallFuncIFacePtr_t GetCallFunc(Cppyy::TCppMethod_t method)
         return TInterpreter::CallFuncIFacePtr_t{};
     }
 
-    wrap->fFaceptr = gCling->CallFunc_IFacePtr(callf);
+    wrap->fFaceptr = gInterpreter->CallFunc_IFacePtr(callf);
     wrap->fWrapper = callf;
     return wrap->fFaceptr;
 }
@@ -573,7 +573,7 @@ Cppyy::TCppObject_t Cppyy::CallO(TCppMethod_t method,
     TCppObject_t self, size_t nargs, void* args, TCppType_t result_type)
 {
     TClassRef& cr = type_from_handle(result_type);
-    void* obj = ::operator new(cr->Size());
+    void* obj = ::operator new(gInterpreter->ClassInfo_Size(cr->GetClassInfo()));
     if (WrapperCall(method, nargs, args, self, obj))
         return (TCppObject_t)obj;
     return (TCppObject_t)0;
