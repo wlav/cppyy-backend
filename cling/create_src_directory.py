@@ -25,10 +25,10 @@ ROOT_KEEP = ['build', 'cmake', 'config', 'core', 'etc', 'interpreter',
              'main', # main only needed in more recent root b/c of rootcling
              'builtins']
 ROOT_CORE_KEEP = ['CMakeLists.txt', 'base', 'clib', 'clingutils', 'cont',
-                  'dictgen', 'foundation', 'lz4', 'lzma', 'macosx', 'meta',
+                  'dictgen', 'foundation', 'macosx', 'meta',
                   'metacling', 'metautils', 'rootcling_stage1', 'textinput',
                   'thread', 'unix', 'utils', 'winnt', 'zip', 'pcre']
-ROOT_BUILTINS_KEEP = ['lz4', 'openssl', 'xxhash', 'zlib']
+ROOT_BUILTINS_KEEP = ['openssl', 'xxhash', 'zlib']
 ROOT_IO_KEEP = ['CMakeLists.txt', 'io', 'rootpcm']
 ROOT_MATH_KEEP = ['CMakeLists.txt', 'mathcore']
 ROOT_ETC_KEEP = ['Makefile.arch', 'class.rules', 'cmake', 'dictpch',
@@ -177,8 +177,23 @@ for line in open(inp).readlines():
 new_cml.close()
 rename(outp, inp)
 
-# trim core (gGLManager crashes on call)
-print('trimming main')
+# trim core (remove lz4 and lzma, and gGLManager which otherwise crashes on call)
+print('trimming core/CMakeLists.txt')
+inp = os.path.join('core', 'CMakeLists.txt')
+outp = inp+'.new'
+new_cml = open(outp, 'w')
+for line in open(inp).readlines():
+    if ('Lzma' in line or 'Lz4' in line):
+        line = '#'+line
+    else:
+        line = line.replace(' ${LZMA_LIBRARIES}', '')
+        line = line.replace(' LZ4::LZ4', '')
+        line = line.replace(' LZMA', '')
+    new_cml.write(line)
+new_cml.close()
+rename(outp, inp)
+
+print('trimming core/base')
 os.remove(os.path.join('core', 'base', 'src', 'TVirtualGL.cxx'))
 os.remove(os.path.join('core', 'base', 'inc', 'TVirtualGL.h'))
 inp = os.path.join('core', 'base', 'CMakeLists.txt')
@@ -214,7 +229,7 @@ for line in open(inp).readlines():
 new_cml.close()
 rename(outp, inp)
 
-# remove afterimage and ftgl explicitly
+# remove extraneous external software explicitly
 print('trimming externals')
 for cmf in ['AfterImage', 'FTGL']:
     fname = os.path.join('cmake', 'modules', 'Find%s.cmake' % (cmf,))
@@ -227,12 +242,15 @@ new_cml = open(outp, 'w')
 for line in open(inp).readlines():
     if '#---Check for ftgl if needed' == line[0:28] or\
        '#---Check for AfterImage' == line[0:24] or\
+       '#---Check for Freetype' == line[0:22] or\
+       '#---Check for LZMA' == line[0:18] or\
+       '#---Check for LZ4' == line[0:17] or\
        '#-------' == line[0:8]:   # openui5 (doesn't follow convention)
         now_stripping = True
     elif '#---Check' == line[0:9] or\
          '#---Report' == line[0:10]:
         now_stripping = False
-    if now_stripping:
+    if now_stripping or 'builtin_freetype' in line:
         line = '#'+line
     new_cml.write(line)
 new_cml.close()
@@ -244,21 +262,6 @@ new_cml = open(outp, 'w')
 for line in open(inp).readlines():
     if 'ROOT_BUILD_OPTION(builtin_ftgl' in line or\
        'ROOT_BUILD_OPTION(builtin_afterimage' in line:
-        line = '#'+line
-    new_cml.write(line)
-new_cml.close()
-rename(outp, inp)
-
-# strip freetype
-inp = os.path.join('cmake', 'modules', 'SearchInstalledSoftware.cmake')
-outp = inp+'.new'
-new_cml = open(outp, 'w')
-for line in open(inp).readlines():
-    if '#---Check for Freetype' == line[0:22]:
-        now_stripping = True
-    elif '#---Check for PCRE' == line[0:18]:
-        now_stripping = False
-    if now_stripping or 'builtin_freetype' in line:
         line = '#'+line
     new_cml.write(line)
 new_cml.close()
@@ -419,7 +422,8 @@ except ImportError:
 
 for fdiff in ('scanner', 'scanner_2', 'faux_typedef', 'template_fwd', 'dep_template',
               'no_long64_t', 'using_decls', 'sfinae', 'typedef_of_private', 'optlevel2_forced',
-              'explicit_template', 'helpers', 'pch', 'msvc', 'textinput', 'win64'):
+              'explicit_template', 'helpers', 'pch', 'msvc', 'textinput', 'win64',
+              'strip_lz4_lzma'):
     pset = patch.fromfile(os.path.join('patches', fdiff+'.diff'))
     pset.apply()
 

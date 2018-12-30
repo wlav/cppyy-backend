@@ -122,8 +122,7 @@ class my_cmake_build(_build):
         CMAKE_COMMAND = ['cmake', srcdir,
                 stdcxx, '-DLLVM_ENABLE_TERMINFO=0',
                 '-Dminimal=ON', '-Dasimage=OFF', '-Droot7=OFF', '-Dhttp=OFF',
-                '-Dbuiltin_pcre=ON', '-Dbuiltin_freetype=ON',
-                '-Dbuiltin_zlib=ON', '-Dbuiltin_xxhash=ON', '-Dbuiltin_lz4=ON', '-Dbuiltin_lzma=ON']
+                '-Dbuiltin_pcre=ON', '-Dbuiltin_freetype=ON', '-Dbuiltin_zlib=ON', '-Dbuiltin_xxhash=ON']
         if 'darwin' in sys.platform:
             CMAKE_COMMAND.append('-Dlibcxx=ON')
         CMAKE_COMMAND.append('-DCMAKE_BUILD_TYPE='+get_build_type())
