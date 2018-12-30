@@ -29,7 +29,7 @@ index ae7830febb..aa30c4b5d8 100644
  
 +  if(CMAKE_SIZEOF_VOID_P EQUAL 8)
 +     set(ROOT_ARCHITECTURE win64)
-+     set(WIN_EXTRA_DEFS "-D_WINDOWS")
++     set(WIN_EXTRA_DEFS "-D_WINDOWS -DWIN32 -D_AMD64_")
 +  elseif(CMAKE_SIZEOF_VOID_P EQUAL 4)
 +     set(ROOT_ARCHITECTURE win32)
 +     set(WIN_EXTRA_DEFS "-D_WINDOWS -DWIN32 -D_X86_")
@@ -69,3 +69,15 @@ index 3752a6e423..40b2cf2a81 100644
  else()
    set(ROOT_CLING_TARGET "all")
  endif()
+diff --git a/src/core/textinput/src/textinput/TerminalDisplayWin.h b/src/core/textinput/src/textinput/TerminalDisplayWin.h
+index 8aaceb23df..fb5bad15f5 100644
+--- a/src/core/textinput/src/textinput/TerminalDisplayWin.h
++++ b/src/core/textinput/src/textinput/TerminalDisplayWin.h
+@@ -20,6 +20,7 @@ #include "textinput/TerminalDisplay.h"
+ #include <stdio.h>
+ #include <intrin.h>
+ #include <windef.h>
++#include <windows.h>
+
+
+ namespace textinput {
