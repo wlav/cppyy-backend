@@ -1,14 +1,20 @@
-diff --git a/src/build/win/w32pragma.h b/build/win/w32pragma.h
-index c21debefd4..34d3ace445 100644
+diff --git a/src/build/win/w32pragma.h b/src/build/win/w32pragma.h
+index c21debefd4..20be10a19d 100644
 --- a/src/build/win/w32pragma.h
 +++ b/src/build/win/w32pragma.h
-@@ -59,12 +59,12 @@
+@@ -59,12 +59,18 @@
  /* loop control variable is used outside the for-loop scope */
  #pragma warning (3: 4289)
  
 -#define WIN32 1
 -#define _WINDOWS 1
 -#define WINVER 0x0500
++/* possible loss of data with integer conversion (most are irrelevant) */
++#pragma warning (disable: 4267)
++
++/* function type cast truncation */
++#pragma warning (error: 4302)
++
 +//#define WIN32 1
 +//#define _WINDOWS 1
 +//#define WINVER 0x0500
@@ -19,7 +25,7 @@ index c21debefd4..34d3ace445 100644
  // #define _DLL  - used to be explicitly defined, 
  // but it's implicitely defined via /MD(d)
  #define G__REDIRECTIO 1
-diff --git a/src/cmake/modules/SetUpWindows.cmake b/cmake/modules/SetUpWindows.cmake
+diff --git a/src/cmake/modules/SetUpWindows.cmake b/src/cmake/modules/SetUpWindows.cmake
 index ae7830febb..aa30c4b5d8 100644
 --- a/src/cmake/modules/SetUpWindows.cmake
 +++ b/src/cmake/modules/SetUpWindows.cmake
@@ -56,7 +62,7 @@ index ae7830febb..aa30c4b5d8 100644
    endif()
  
    #---Select compiler flags----------------------------------------------------------------
-diff --git a/src/interpreter/CMakeLists.txt b/interpreter/CMakeLists.txt
+diff --git a/src/interpreter/CMakeLists.txt b/src/interpreter/CMakeLists.txt
 index 3752a6e423..40b2cf2a81 100644
 --- a/src/interpreter/CMakeLists.txt
 +++ b/src/interpreter/CMakeLists.txt
@@ -69,15 +75,1107 @@ index 3752a6e423..40b2cf2a81 100644
  else()
    set(ROOT_CLING_TARGET "all")
  endif()
-diff --git a/src/core/textinput/src/textinput/TerminalDisplayWin.h b/src/core/textinput/src/textinput/TerminalDisplayWin.h
-index 8aaceb23df..fb5bad15f5 100644
---- a/src/core/textinput/src/textinput/TerminalDisplayWin.h
-+++ b/src/core/textinput/src/textinput/TerminalDisplayWin.h
-@@ -20,6 +20,7 @@ #include "textinput/TerminalDisplay.h"
+diff --git a/src/core/metacling/src/CMakeLists.txt b/src/core/metacling/src/CMakeLists.txt
+index 5ef8d28c86..483ba33620 100644
+--- a/src/core/metacling/src/CMakeLists.txt
++++ b/src/core/metacling/src/CMakeLists.txt
+@@ -73,7 +73,20 @@ ROOT_LINKER_LIBRARY(Cling
+ 
+ if(MSVC)
+   set_target_properties(Cling PROPERTIES WINDOWS_EXPORT_ALL_SYMBOLS TRUE)
+-  set(cling_exports
++  if(CMAKE_SIZEOF_VOID_P EQUAL 8)
++    set(cling_exports
++      __std_terminate
++      cling_runtime_internal_throwIfInvalidPointer
++      ?setValueNoAlloc@internal@runtime@cling@@YAXPEAX00D@Z
++      ?setValueNoAlloc@internal@runtime@cling@@YAXPEAX00DM@Z
++      ?setValueNoAlloc@internal@runtime@cling@@YAXPEAX00DN@Z
++      ?setValueNoAlloc@internal@runtime@cling@@YAXPEAX00DO@Z
++      ?setValueNoAlloc@internal@runtime@cling@@YAXPEAX00DPEBX@Z
++      ?setValueNoAlloc@internal@runtime@cling@@YAXPEAX00D_K@Z
++      ?setValueWithAlloc@internal@runtime@cling@@YAPEAXPEAX00D@Z
++    )
++  elseif(CMAKE_SIZEOF_VOID_P EQUAL 4)
++    set(cling_exports
+       __std_terminate
+       ??2@YAPAXI@Z
+       ??3@YAXPAX@Z
+@@ -108,7 +121,8 @@ if(MSVC)
+       ?printValue@cling@@YA?AV?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@std@@PAPBD@Z
+       ??$toUTF8@D@cling@@YA?AV?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@std@@QBDID@Z
+       ?EvaluateDynamicExpression@internal@runtime@cling@@YA?AVValue@3@PAVInterpreter@3@PAVDynamicExprInfo@123@PAVDeclContext@clang@@@Z
+-  )
++    )
++  endif()
+   if(MSVC_VERSION LESS 1914)
+     set(cling_exports ${cling_exports} ??3@YAXPAX0@Z ??_V@YAXPAX0@Z)
+   endif()
+diff --git a/src/core/base/inc/ROOT/RConfig.h b/src/core/base/inc/ROOT/RConfig.h
+index 60094b8764..8a62e6ffee 100644
+--- a/src/core/base/inc/ROOT/RConfig.h
++++ b/src/core/base/inc/ROOT/RConfig.h
+@@ -375,7 +375,15 @@
+ #   endif
+ #endif
+ 
+-#ifdef _WIN32
++#ifdef _WIN64
++#   define R__WIN64
++#   define R__WIN32
++#   ifndef WIN32
++#      define WIN32
++#   endif
++#   define R__BYTESWAP
++#   define R__ACCESS_IN_SYMBOL
++#elif _WIN32
+ #   define R__WIN32
+ #   ifndef WIN32
+ #      define WIN32
+diff --git a/src/core/base/inc/TROOT.h b/src/core/base/inc/TROOT.h
+index 0c3fe6f097..5a8636a5b9 100644
+--- a/src/core/base/inc/TROOT.h
++++ b/src/core/base/inc/TROOT.h
+@@ -302,9 +302,15 @@ public:
+    TCanvas          *MakeDefCanvas() const;
+    void              Message(Int_t id, const TObject *obj);
+    Bool_t            MustClean() const { return fMustClean; }
++#ifdef _WIN64
++   Long64_t          ProcessLine(const char *line, Int_t *error = 0);
++   Long64_t          ProcessLineSync(const char *line, Int_t *error = 0);
++   Long64_t          ProcessLineFast(const char *line, Int_t *error = 0);
++#else
+    Long_t            ProcessLine(const char *line, Int_t *error = 0);
+    Long_t            ProcessLineSync(const char *line, Int_t *error = 0);
+    Long_t            ProcessLineFast(const char *line, Int_t *error = 0);
++#endif
+    Bool_t            ReadingObject() const;
+    void              RecursiveRemove(TObject *obj);
+    void              RefreshBrowsers();
+diff --git a/src/core/base/inc/TString.h b/src/core/base/inc/TString.h
+index 31069a5f36..ee5a3ab3da 100644
+--- a/src/core/base/inc/TString.h
++++ b/src/core/base/inc/TString.h
+@@ -33,6 +33,8 @@
  #include <stdio.h>
- #include <intrin.h>
- #include <windef.h>
-+#include <windows.h>
+ #include <string>
+ 
++inline Ssiz_t R__strlen(const char* s) { return (Ssiz_t)strlen(s); }
++
+ class TRegexp;
+ class TPRegexp;
+ class TString;
+@@ -533,7 +535,7 @@ operator+(T i, const TString &s)
+     char buffer[32];
+     // coverity[secure_coding] Buffer is large enough (2^64 = 20 digits).
+     snprintf(buffer, sizeof(buffer), "%lld", static_cast<Long64_t>(i));
+-    return TString(buffer, strlen(buffer), s.Data(), s.Length());
++    return TString(buffer, R__strlen(buffer), s.Data(), s.Length());
+ }
+ 
+ template<class T>
+@@ -543,7 +545,7 @@ operator+(T u, const TString &s)
+     char buffer[32];
+     // coverity[secure_coding] Buffer is large enough (2^64 = 20 digits).
+     snprintf(buffer, sizeof(buffer), "%llu", static_cast<ULong64_t>(u));
+-    return TString(buffer, strlen(buffer), s.Data(), s.Length());
++    return TString(buffer, R__strlen(buffer), s.Data(), s.Length());
+ }
+ 
+ template<class T>
+@@ -553,11 +555,11 @@ operator+(T f, const TString &s)
+     char buffer[32];
+     // coverity[secure_coding] Buffer is large enough: width specified in format
+     snprintf(buffer, sizeof(buffer), "%.17Lg", static_cast<LongDouble_t>(f));
+-    return TString(buffer, strlen(buffer), s.Data(), s.Length());
++    return TString(buffer, R__strlen(buffer), s.Data(), s.Length());
+ }
+ 
+ inline TString &TString::Append(const char *cs)
+-{ return Replace(Length(), 0, cs, cs ? strlen(cs) : 0); }
++{ return Replace(Length(), 0, cs, cs ? R__strlen(cs) : 0); }
+ 
+ inline TString &TString::Append(const char *cs, Ssiz_t n)
+ { return Replace(Length(), 0, cs, n); }
+@@ -569,7 +571,7 @@ inline TString &TString::Append(const TString &s, Ssiz_t n)
+ { return Replace(Length(), 0, s.Data(), TMath::Min(n, s.Length())); }
+ 
+ inline TString &TString::operator+=(const char *cs)
+-{ return Append(cs, cs ? strlen(cs) : 0); }
++{ return Append(cs, Ssiz_t(cs ? R__strlen(cs) : 0)); }
+ 
+ inline TString &TString::operator+=(const TString &s)
+ { return Append(s.Data(), s.Length()); }
+@@ -608,7 +610,7 @@ inline typename std::enable_if<ROOT::TypeTraits::IsFloatNumeral<T>::value,TStrin
+ }
+ 
+ inline Bool_t TString::BeginsWith(const char *s, ECaseCompare cmp) const
+-{ return Index(s, s ? strlen(s) : (Ssiz_t)0, (Ssiz_t)0, cmp) == 0; }
++{ return Index(s, s ? R__strlen(s) : (Ssiz_t)0, (Ssiz_t)0, cmp) == 0; }
+ 
+ inline Bool_t TString::BeginsWith(const TString &pat, ECaseCompare cmp) const
+ { return Index(pat.Data(), pat.Length(), (Ssiz_t)0, cmp) == 0; }
+@@ -617,7 +619,7 @@ inline Bool_t TString::Contains(const TString &pat, ECaseCompare cmp) const
+ { return Index(pat.Data(), pat.Length(), (Ssiz_t)0, cmp) != kNPOS; }
+ 
+ inline Bool_t TString::Contains(const char *s, ECaseCompare cmp) const
+-{ return Index(s, s ? strlen(s) : 0, (Ssiz_t)0, cmp) != kNPOS; }
++{ return Index(s, s ? R__strlen(s) : 0, (Ssiz_t)0, cmp) != kNPOS; }
+ 
+ inline Bool_t TString::Contains(const TRegexp &pat) const
+ { return Index(pat, (Ssiz_t)0) != kNPOS; }
+@@ -632,7 +634,7 @@ inline Bool_t TString::EqualTo(const TString &st, ECaseCompare cmp) const
+ { return (CompareTo(st, cmp) == 0) ? kTRUE : kFALSE; }
+ 
+ inline Ssiz_t TString::Index(const char *s, Ssiz_t i, ECaseCompare cmp) const
+-{ return Index(s, s ? strlen(s) : 0, i, cmp); }
++{ return Index(s, s ? R__strlen(s) : 0, i, cmp); }
+ 
+ inline Ssiz_t TString::Index(const TString &s, Ssiz_t i, ECaseCompare cmp) const
+ { return Index(s.Data(), s.Length(), i, cmp); }
+@@ -642,7 +644,7 @@ inline Ssiz_t TString::Index(const TString &pat, Ssiz_t patlen, Ssiz_t i,
+ { return Index(pat.Data(), patlen, i, cmp); }
+ 
+ inline TString &TString::Insert(Ssiz_t pos, const char *cs)
+-{ return Replace(pos, 0, cs, cs ? strlen(cs) : 0); }
++{ return Replace(pos, 0, cs, cs ? R__strlen(cs) : 0); }
+ 
+ inline TString &TString::Insert(Ssiz_t pos, const char *cs, Ssiz_t n)
+ { return Replace(pos, 0, cs, n); }
+@@ -654,7 +656,7 @@ inline TString &TString::Insert(Ssiz_t pos, const TString &s, Ssiz_t n)
+ { return Replace(pos, 0, s.Data(), TMath::Min(n, s.Length())); }
+ 
+ inline TString &TString::Prepend(const char *cs)
+-{ return Replace(0, 0, cs, cs ? strlen(cs) : 0); }
++{ return Replace(0, 0, cs, cs ? R__strlen(cs) : 0); }
+ 
+ inline TString &TString::Prepend(const char *cs, Ssiz_t n)
+ { return Replace(0, 0, cs, n); }
+@@ -675,7 +677,7 @@ inline TString &TString::Chop()
+ { return Remove(TMath::Max(0, Length()-1)); }
+ 
+ inline TString &TString::Replace(Ssiz_t pos, Ssiz_t n, const char *cs)
+-{ return Replace(pos, n, cs, cs ? strlen(cs) : 0); }
++{ return Replace(pos, n, cs, cs ? R__strlen(cs) : 0); }
+ 
+ inline TString &TString::Replace(Ssiz_t pos, Ssiz_t n, const TString& s)
+ { return Replace(pos, n, s.Data(), s.Length()); }
+@@ -688,13 +690,13 @@ inline TString &TString::ReplaceAll(const TString &s1, const TString &s2)
+ { return ReplaceAll(s1.Data(), s1.Length(), s2.Data(), s2.Length()) ; }
+ 
+ inline TString &TString::ReplaceAll(const TString &s1, const char *s2)
+-{ return ReplaceAll(s1.Data(), s1.Length(), s2, s2 ? strlen(s2) : 0); }
++{ return ReplaceAll(s1.Data(), s1.Length(), s2, s2 ? R__strlen(s2) : 0); }
+ 
+ inline TString &TString::ReplaceAll(const char *s1, const TString &s2)
+-{ return ReplaceAll(s1, s1 ? strlen(s1) : 0, s2.Data(), s2.Length()); }
++{ return ReplaceAll(s1, s1 ? R__strlen(s1) : 0, s2.Data(), s2.Length()); }
+ 
+ inline TString &TString::ReplaceAll(const char *s1,const char *s2)
+-{ return ReplaceAll(s1, s1 ? strlen(s1) : 0, s2, s2 ? strlen(s2) : 0); }
++{ return ReplaceAll(s1, s1 ? R__strlen(s1) : 0, s2, s2 ? R__strlen(s2) : 0); }
+ 
+ inline TString &TString::Swap(TString &other) {
+    // Swap the contents of other and this without reallocation.
+diff --git a/src/core/meta/inc/TStreamerElement.h b/src/core/meta/inc/TStreamerElement.h
+index 248e86528d..0ba896fe2e 100644
+--- a/src/core/meta/inc/TStreamerElement.h
++++ b/src/core/meta/inc/TStreamerElement.h
+@@ -111,7 +111,7 @@ public:
+    virtual const char *GetFullName() const;
+    virtual const char *GetInclude() const {return "";}
+    Int_t            GetMaxIndex(Int_t i) const {return fMaxIndex[i];}
+-   virtual ULong_t  GetMethod() const {return ULong_t(fStreamer);}
++   virtual ptrdiff_t GetMethod() const {return (ptrdiff_t)fStreamer;}
+    TMemberStreamer *GetStreamer() const;
+    virtual Int_t    GetSize() const;
+    Int_t            GetNewType() const {return fNewType;}
+@@ -177,7 +177,7 @@ public:
+    const char      *GetErrorMessage() const { return fErrorMsg; }
+    const char      *GetInclude() const;
+    TClass          *GetNewBaseClass() { return fNewBaseClass; }
+-   ULong_t          GetMethod() const {return 0;}
++   ptrdiff_t        GetMethod() const {return 0;}
+    Int_t            GetSize() const;
+    TVirtualStreamerInfo *GetBaseStreamerInfo () const { return fStreamerInfo; }
+    virtual void     Init(TVirtualStreamerInfo *obj=0);
+@@ -217,7 +217,7 @@ public:
+    const char    *GetCountClass()   const {return fCountClass.Data();}
+    const char    *GetCountName()    const {return fCountName.Data();}
+    Int_t          GetCountVersion() const {return fCountVersion;}
+-   ULong_t        GetMethod() const;
++   ptrdiff_t      GetMethod() const;
+    Int_t          GetSize() const;
+    virtual void   Init(TVirtualStreamerInfo *obj=0);
+    virtual Bool_t HasCounter() const                {return fCounter!=0;   }
+@@ -253,7 +253,7 @@ public:
+    const char    *GetCountName()    const {return fCountName.Data();}
+    Int_t          GetCountVersion() const {return fCountVersion;}
+    const char    *GetInclude() const;
+-   ULong_t        GetMethod() const;
++   ptrdiff_t      GetMethod() const;
+    Int_t          GetSize() const;
+    virtual void   Init(TVirtualStreamerInfo *obj=0);
+    virtual Bool_t IsaPointer() const                {return kTRUE;         }
+@@ -282,7 +282,7 @@ public:
+    virtual       ~TStreamerBasicType();
+    TClass        *GetClassPointer() const { return 0; }
+    Int_t          GetCounter() const {return fCounter;}
+-   ULong_t        GetMethod() const;
++   ptrdiff_t      GetMethod() const;
+    Int_t          GetSize() const;
+    virtual void   Update(const TClass * /* oldClass */, TClass * /* newClass */) {}
 
+diff --git a/src/core/meta/src/TStreamerElement.cxx b/src/core/meta/src/TStreamerElement.cxx
+index 55b2cfbb8c..514d21b006 100644
+--- a/src/core/meta/src/TStreamerElement.cxx
++++ b/src/core/meta/src/TStreamerElement.cxx
+@@ -918,7 +918,7 @@ TStreamerBasicPointer::~TStreamerBasicPointer()
+ ////////////////////////////////////////////////////////////////////////////////
+ /// return offset of counter
+ 
+-ULong_t TStreamerBasicPointer::GetMethod() const
++ptrdiff_t TStreamerBasicPointer::GetMethod() const
+ {
+    if (!fCounter) ((TStreamerBasicPointer*)this)->Init();
+    if (!fCounter) return 0;
+@@ -927,7 +927,7 @@ ULong_t TStreamerBasicPointer::GetMethod() const
+    // the left most (non virtual) base classes.  For the other we would
+    // really need to use the object coming from the list of real data.
+    // (and even that need analysis for virtual base class).
+-   return (ULong_t)fCounter->GetOffset();
++   return (ptrdiff_t)fCounter->GetOffset();
+ }
+ 
+ ////////////////////////////////////////////////////////////////////////////////
+@@ -1027,14 +1027,14 @@ TStreamerLoop::~TStreamerLoop()
+ ////////////////////////////////////////////////////////////////////////////////
+ /// return address of counter
+ 
+-ULong_t TStreamerLoop::GetMethod() const
++ptrdiff_t TStreamerLoop::GetMethod() const
+ {
+    //if (!fCounter) {
+    //   Init();
+    //   if (!fCounter) return 0;
+    //}
+    if (!fCounter) return 0;
+-   return (ULong_t)fCounter->GetOffset();
++   return (ptrdiff_t)fCounter->GetOffset();
+ }
+ 
+ ////////////////////////////////////////////////////////////////////////////////
+@@ -1127,10 +1127,10 @@ TStreamerBasicType::~TStreamerBasicType()
+ ////////////////////////////////////////////////////////////////////////////////
+ /// return address of counter
+ 
+-ULong_t TStreamerBasicType::GetMethod() const
++ptrdiff_t TStreamerBasicType::GetMethod() const
+ {
+    if (fType ==  TVirtualStreamerInfo::kCounter ||
+-       fType == (TVirtualStreamerInfo::kCounter+TVirtualStreamerInfo::kSkip)) return (ULong_t)&fCounter;
++       fType == (TVirtualStreamerInfo::kCounter+TVirtualStreamerInfo::kSkip)) return (ptrdiff_t)&fCounter;
+    return 0;
+ }
+ 
+diff --git a/src/core/meta/inc/TInterpreter.h b/src/core/meta/inc/TInterpreter.h
+index 6e2638abcf..f57c313930 100644
+--- a/src/core/meta/inc/TInterpreter.h
++++ b/src/core/meta/inc/TInterpreter.h
+@@ -159,8 +159,13 @@ public:
+    virtual Int_t    ReloadAllSharedLibraryMaps() = 0;
+    virtual Int_t    UnloadAllSharedLibraryMaps() = 0;
+    virtual Int_t    UnloadLibraryMap(const char *library) = 0;
++#ifdef _WIN64
++   virtual Long64_t ProcessLine(const char *line, EErrorCode *error = 0) = 0;
++   virtual Long64_t ProcessLineSynch(const char *line, EErrorCode *error = 0) = 0;
++#else
+    virtual Long_t   ProcessLine(const char *line, EErrorCode *error = 0) = 0;
+    virtual Long_t   ProcessLineSynch(const char *line, EErrorCode *error = 0) = 0;
++#endif
+    virtual void     PrintIntro() = 0;
+    virtual void     RegisterModule(const char* /*modulename*/,
+                                    const char** /*headers*/,
+@@ -199,7 +204,11 @@ public:
+    virtual ECheckClassInfo CheckClassInfo(const char *name, Bool_t autoload, Bool_t isClassOrNamespaceOnly = kFALSE) = 0;
+ 
+    virtual Bool_t   CheckClassTemplate(const char *name) = 0;
++#ifdef _WIN64
++   virtual Long64_t Calc(const char *line, EErrorCode* error = 0) = 0;
++#else
+    virtual Long_t   Calc(const char *line, EErrorCode* error = 0) = 0;
++#endif
+    virtual void     CreateListOfBaseClasses(TClass *cl) const = 0;
+    virtual void     CreateListOfDataMembers(TClass *cl) const = 0;
+    virtual void     CreateListOfMethods(TClass *cl) const = 0;
+@@ -328,13 +337,13 @@ public:
+ 
+    void CallFunc_SetArg(CallFunc_t *func, void *arg)
+    {
+-      CallFunc_SetArg(func,(Long_t) arg);
++      CallFunc_SetArg(func,(ptrdiff_t) arg);
+    }
+ 
+    template <typename T>
+    void CallFunc_SetArg(CallFunc_t *func, const T *arg)
+    {
+-      CallFunc_SetArg(func,(Long_t) arg);
++      CallFunc_SetArg(func,(ptrdiff_t) arg);
+    }
+ 
+    void CallFunc_SetArgImpl(CallFunc_t * /* func */)
+diff --git a/src/core/metacling/src/TCling.h b/src/core/metacling/src/TCling.h
+index 66a0dfe392..5f8a553de8 100644
+--- a/src/core/metacling/src/TCling.h
++++ b/src/core/metacling/src/TCling.h
+@@ -212,9 +212,15 @@ public: // Public Interface
+    Int_t   ReloadAllSharedLibraryMaps();
+    Int_t   UnloadAllSharedLibraryMaps();
+    Int_t   UnloadLibraryMap(const char* library);
++#ifdef _WIN64
++   Long64_t  ProcessLine(const char* line, EErrorCode* error = 0);
++   Long64_t  ProcessLineAsynch(const char* line, EErrorCode* error = 0);
++   Long64_t  ProcessLineSynch(const char* line, EErrorCode* error = 0);
++#else
+    Long_t  ProcessLine(const char* line, EErrorCode* error = 0);
+    Long_t  ProcessLineAsynch(const char* line, EErrorCode* error = 0);
+    Long_t  ProcessLineSynch(const char* line, EErrorCode* error = 0);
++#endif
+    void    PrintIntro();
+    void    RegisterModule(const char* modulename,
+                           const char** headers,
+@@ -249,7 +255,11 @@ public: // Public Interface
+    ECheckClassInfo CheckClassInfo(const char *name, Bool_t autoload, Bool_t isClassOrNamespaceOnly = kFALSE);
+ 
+    Bool_t  CheckClassTemplate(const char *name);
++#ifdef _WIN64
++   Long64_t  Calc(const char* line, EErrorCode* error = 0);
++#else
+    Long_t  Calc(const char* line, EErrorCode* error = 0);
++#endif
+    void    CreateListOfBaseClasses(TClass* cl) const;
+    void    CreateListOfDataMembers(TClass* cl) const;
+    void    CreateListOfMethods(TClass* cl) const;
+diff --git a/src/core/metacling/src/TCling.cxx b/src/core/metacling/src/TCling.cxx
+index 5413aef378..c8fba08529 100644
+--- a/src/core/metacling/src/TCling.cxx
++++ b/src/core/metacling/src/TCling.cxx
+@@ -2188,7 +2205,12 @@ bool TCling::DiagnoseIfInterpreterException(const std::exception &e) const
+ 
+ ////////////////////////////////////////////////////////////////////////////////
+ 
+-Long_t TCling::ProcessLine(const char* line, EErrorCode* error/*=0*/)
++#ifdef _WIN64
++Long64_t
++#else
++Long_t
++#endif
++TCling::ProcessLine(const char* line, EErrorCode* error/*=0*/)
+ {
+    // Copy the passed line, it comes from a static buffer in TApplication
+    // which can be reentered through the Cling evaluation routines,
+@@ -3151,7 +3173,12 @@ void TCling::LoadMacro(const char* filename, EErrorCode* error)
+ ////////////////////////////////////////////////////////////////////////////////
+ /// Let cling process a command line asynch.
+ 
+-Long_t TCling::ProcessLineAsynch(const char* line, EErrorCode* error)
++#ifdef _WIN64
++Long64_t
++#else
++Long_t
++#endif
++TCling::ProcessLineAsynch(const char* line, EErrorCode* error)
+ {
+    return ProcessLine(line, error);
+ }
+@@ -3160,7 +3187,12 @@ Long_t TCling::ProcessLineAsynch(const char* line, EErrorCode* error)
+ /// Let cling process a command line synchronously, i.e we are waiting
+ /// it will be finished.
+ 
+-Long_t TCling::ProcessLineSynch(const char* line, EErrorCode* error)
++#ifdef _WIN64
++Long64_t
++#else
++Long_t
++#endif
++TCling::ProcessLineSynch(const char* line, EErrorCode* error)
+ {
+    R__LOCKGUARD_CLING(fLockProcessLine ? gInterpreterMutex : 0);
+    if (gApplication) {
+@@ -3176,7 +3208,12 @@ Long_t TCling::ProcessLineSynch(const char* line, EErrorCode* error)
+ /// Directly execute an executable statement (e.g. "func()", "3+5", etc.
+ /// however not declarations, like "Int_t x;").
+ 
+-Long_t TCling::Calc(const char* line, EErrorCode* error)
++#ifdef _WIN64
++Long64_t
++#else
++Long_t
++#endif
++TCling::Calc(const char* line, EErrorCode* error)
+ {
+ #ifdef R__WIN32
+    // Test on ApplicationImp not being 0 is needed because only at end of
+@@ -3223,7 +3240,11 @@ Long_t TCling::Calc(const char* line, EErrorCode* error)
+       gROOT->SetLineHasBeenProcessed();
+    }
+ #endif // R__WIN32
++#ifdef _WIN64
++   return valRef.simplisticCastAs<uint64_t>();
++#else
+    return valRef.simplisticCastAs<long>();
++#endif
+ }
+ 
+ ////////////////////////////////////////////////////////////////////////////////
+@@ -4747,10 +4788,10 @@ void TCling::Execute(TObject* obj, TClass* cl, const char* method,
+    // 'obj' is unlikely to be the start of the object (as described by IsA()),
+    // hence gInterpreter->Execute will improperly correct the offset.
+    void* addr = cl->DynamicCast(TObject::Class(), obj, kFALSE);
+-   Long_t offset = 0L;
++   ptrdiff_t offset = 0L;
+    TClingCallFunc func(fInterpreter,*fNormalizedCtxt);
+    func.SetFunc((TClingClassInfo*)cl->GetClassInfo(), method, params, objectIsConst, &offset);
+-   void* address = (void*)((Long_t)addr + offset);
++   void* address = (void*)((ptrdiff_t)addr + offset);
+    func.Exec(address);
+ }
+ 
+@@ -4857,8 +4898,8 @@ void TCling::Execute(TObject* obj, TClass* cl, TMethod* method,
+    // Now calculate the 'this' pointer offset for the method
+    // when starting from the class described by cl.
+    const CXXMethodDecl * mdecl = dyn_cast<CXXMethodDecl>(minfo->GetMethodDecl());
+-   Long_t offset = ((TClingClassInfo*)cl->GetClassInfo())->GetOffset(mdecl);
+-   void* address = (void*)((Long_t)addr + offset);
++   ptrdiff_t offset = ((TClingClassInfo*)cl->GetClassInfo())->GetOffset(mdecl);
++   void* address = (void*)((ptrdiff_t)addr + offset);
+    func.Exec(address);
+ }
+ 
+diff --git a/src/core/base/inc/TApplication.h b/src/core/base/inc/TApplication.h
+index 456cfe6668..923cce4efe 100644
+--- a/src/core/base/inc/TApplication.h
++++ b/src/core/base/inc/TApplication.h
+@@ -110,7 +110,11 @@ public:
+    virtual void    HandleIdleTimer();   //*SIGNAL*
+    virtual Bool_t  HandleTermInput() { return kFALSE; }
+    virtual void    Init() { fAppImp->Init(); }
++#ifdef _WIN64
++   virtual Long64_t  ProcessLine(const char *line, Bool_t sync = kFALSE, Int_t *error = 0);
++#else
+    virtual Long_t  ProcessLine(const char *line, Bool_t sync = kFALSE, Int_t *error = 0);
++#endif
+    virtual Long_t  ProcessFile(const char *file, Int_t *error = 0, Bool_t keep = kFALSE);
+    virtual void    Run(Bool_t retrn = kFALSE);
+    virtual void    SetIdleTimer(UInt_t idleTimeInSec, const char *command);
+diff --git a/src/core/base/src/TApplication.cxx b/src/core/base/src/TApplication.cxx
+index fe125c55ca..f204349615 100644
+--- a/src/core/base/src/TApplication.cxx
++++ b/src/core/base/src/TApplication.cxx
+@@ -886,7 +886,12 @@ namespace {
+ /// command starting with a ".".
+ /// Return the return value of the command cast to a long.
+ 
+-Long_t TApplication::ProcessLine(const char *line, Bool_t sync, Int_t *err)
++#ifdef _WIN64
++Long64_t
++#else
++Long_t
++#endif
++TApplication::ProcessLine(const char *line, Bool_t sync, Int_t *err)
+ {
+    if (!line || !*line) return 0;
+ 
+diff --git a/src/core/base/inc/TVirtualQConnection.h b/src/core/base/inc/TVirtualQConnection.h
+index d2382af591..b2387e86c5 100644
+--- a/src/core/base/inc/TVirtualQConnection.h
++++ b/src/core/base/inc/TVirtualQConnection.h
+@@ -33,7 +33,7 @@ protected:
+    // Note: sets argument list (for potentially more than one arg).
+    virtual void SetArg(const Long_t *, Int_t = -1) = 0;
+    virtual void SetArg(const char *) = 0;
+-   void SetArg(const void *ptr) { SetArg((Long_t)ptr); };
++   void SetArg(const void *ptr) { SetArg((ptrdiff_t)ptr); };
+ 
+    // We should 'widen' all types to one of the SetArg overloads.
+    template <class T, class = typename std::enable_if<std::is_integral<T>::value>::type>
+diff --git a/src/core/meta/src/TClass.cxx b/src/core/meta/src/TClass.cxx
+index c224ed7bd7..e6f9afb330 100644
+--- a/src/core/meta/src/TClass.cxx
++++ b/src/core/meta/src/TClass.cxx
+@@ -611,7 +611,7 @@ void TDumpMembers::Inspect(TClass *cl, const char *pname, const char *mname, con
+          snprintf(&line[kvalue],kline-kvalue,"->0");
+       else if (!isbasic) {
+          if (!fNoAddr) {
+-            snprintf(&line[kvalue],kline-kvalue,"->%lx ", (Long_t)p3pointer);
++            snprintf(&line[kvalue],kline-kvalue,"->%lx ", (ptrdiff_t)p3pointer);
+          }
+       } else if (membertype) {
+          if (!strcmp(membertype->GetTypeName(), "char")) {
+@@ -652,7 +652,7 @@ void TDumpMembers::Inspect(TClass *cl, const char *pname, const char *mname, con
+          }
+       } else {
+          if (!fNoAddr) {
+-            snprintf(&line[kvalue],kline-kvalue,"->%lx ", (Long_t)p3pointer);
++            snprintf(&line[kvalue],kline-kvalue,"->%lx ", (ptrdiff_t)p3pointer);
+          }
+       }
+    } else if (membertype) {
+@@ -674,7 +674,7 @@ void TDumpMembers::Inspect(TClass *cl, const char *pname, const char *mname, con
+          snprintf(&line[kvalue],kline-kvalue,"%s",str->Data());
+       } else {
+          if (!fNoAddr) {
+-            snprintf(&line[kvalue],kline-kvalue,"->%lx ", (Long_t)pointer);
++            snprintf(&line[kvalue],kline-kvalue,"->%lx ", (ptrdiff_t)pointer);
+          }
+       }
+    }
+@@ -772,7 +772,7 @@ void TBuildRealData::Inspect(TClass* cl, const char* pname, const char* mname, c
+       }
+    }
+ 
+-   Long_t offset = Long_t(((Long_t) add) - ((Long_t) fRealDataObject));
++   ptrdiff_t offset = ptrdiff_t(((ptrdiff_t) add) - ((ptrdiff_t) fRealDataObject));
+ 
+    if (TClassEdit::IsStdArray(dm->GetTypeName())){ // We tackle the std array case
+       TString rdName;
+@@ -2455,12 +2455,12 @@ void TClass::Draw(Option_t *option)
+ void TClass::Dump(const void *obj, Bool_t noAddr /*=kFALSE*/) const
+ {
+ 
+-   Long_t prObj = noAddr ? 0 : (Long_t)obj;
++   ptrdiff_t prObj = noAddr ? 0 : (ptrdiff_t)obj;
+    if (IsTObject()) {
+       if (!fIsOffsetStreamerSet) {
+          CalculateStreamerOffset();
+       }
+-      TObject *tobj = (TObject*)((Long_t)obj + fOffsetStreamer);
++      TObject *tobj = (TObject*)((ptrdiff_t)obj + fOffsetStreamer);
+ 
+ 
+       if (sizeof(this) == 4)
+@@ -2784,12 +2784,12 @@ namespace {
+             if (*thread_ptr==0) *thread_ptr = new TExMap();
+             TExMap *lmap = (TExMap*)(*thread_ptr);
+             ULong_t hash = TString::Hash(&cl, sizeof(void*));
+-            ULong_t local = 0;
++            ptrdiff_t local = 0;
+             UInt_t slot;
+-            if ((local = (ULong_t)lmap->GetValue(hash, (Long_t)cl, slot)) != 0) {
++            if ((local = (ptrdiff_t)lmap->GetValue(hash, (ptrdiff_t)cl, slot)) != 0) {
+             } else {
+-               local = (ULong_t) new TClassLocalStorage();
+-               lmap->AddAt(slot, hash, (Long_t)cl, local);
++               local = (ptrdiff_t) new TClassLocalStorage();
++               lmap->AddAt(slot, hash, (ptrdiff_t)cl, local);
+             }
+             return (TClassLocalStorage*)local;
+          }
+@@ -4347,7 +4347,7 @@ TMethod *TClass::GetClassMethod(Long_t faddr)
+    TMethod *m;
+    TIter    next(GetListOfMethods());
+    while ((m = (TMethod *) next())) {
+-      if (faddr == (Long_t)m->InterfaceMethod())
++      if (faddr == (ptrdiff_t)m->InterfaceMethod())
+          return m;
+    }
+    return 0;
+@@ -4771,12 +4771,12 @@ void *TClass::DynamicCast(const TClass *cl, void *obj, Bool_t up)
+ 
+    if (!HasDataMemberInfo()) return 0;
+ 
+-   Int_t off;
++   ptrdiff_t off;
+    if ((off = GetBaseClassOffset(cl, obj)) != -1) {
+       if (up)
+-         return (void*)((Long_t)obj+off);
++         return (void*)((ptrdiff_t)obj+off);
+       else
+-         return (void*)((Long_t)obj-off);
++         return (void*)((ptrdiff_t)obj-off);
+    }
+    return 0;
+ }
+@@ -6516,7 +6516,7 @@ void TClass::StreamerTObject(const TClass* pThis, void *object, TBuffer &b, cons
+    if (!pThis->fIsOffsetStreamerSet) {
+       pThis->CalculateStreamerOffset();
+    }
+-   TObject *tobj = (TObject*)((Long_t)object + pThis->fOffsetStreamer);
++   TObject *tobj = (TObject*)((ptrdiff_t)object + pThis->fOffsetStreamer);
+    tobj->Streamer(b);
+ }
+ 
+@@ -6525,7 +6525,7 @@ void TClass::StreamerTObject(const TClass* pThis, void *object, TBuffer &b, cons
+ 
+ void TClass::StreamerTObjectInitialized(const TClass* pThis, void *object, TBuffer &b, const TClass * /* onfile_class */)
+ {
+-   TObject *tobj = (TObject*)((Long_t)object + pThis->fOffsetStreamer);
++   TObject *tobj = (TObject*)((ptrdiff_t)object + pThis->fOffsetStreamer);
+    tobj->Streamer(b);
+ }
 
- namespace textinput {
+diff --git a/src/core/meta/inc/TMethodCall.h b/src/core/meta/inc/TMethodCall.h
+index 578d4c9ffe..e64bb8636f 100644
+--- a/src/core/meta/inc/TMethodCall.h
++++ b/src/core/meta/inc/TMethodCall.h
+@@ -52,7 +52,7 @@ public:
+ 
+ private:
+    CallFunc_t    *fFunc;      //CINT method invocation environment
+-   Long_t         fOffset;    //offset added to object pointer before method invocation
++   ptrdiff_t      fOffset;    //offset added to object pointer before method invocation
+    TClass        *fClass;     //pointer to the class info
+    TFunction     *fMetPtr;    //pointer to the method or function info
+    TString        fMethod;    //method name
+diff --git a/src/core/meta/src/TMethodCall.cxx b/src/core/meta/src/TMethodCall.cxx
+index a79850e7b7..17735b7a5f 100644
+--- a/src/core/meta/src/TMethodCall.cxx
++++ b/src/core/meta/src/TMethodCall.cxx
+@@ -420,7 +420,7 @@ void TMethodCall::Execute(void *object)
+    if (!fFunc) return;
+ 
+    void *address = 0;
+-   if (object) address = (void*)((Long_t)object + fOffset);
++   if (object) address = (void*)((ptrdiff_t)object + fOffset);
+    if (!fDtorOnly && fMethod[0]=='~') {
+       Error("Execute","TMethodCall can no longer be use to call the operator delete and the destructor at the same time");
+    }
+@@ -438,7 +438,7 @@ void TMethodCall::Execute(void *object, const char *params)
+    gCling->CallFunc_SetArgs(fFunc, (char *)params);
+ 
+    void *address = 0;
+-   if (object) address = (void*)((Long_t)object + fOffset);
++   if (object) address = (void*)((ptrdiff_t)object + fOffset);
+    gCling->SetTempLevel(1);
+    gCling->CallFunc_Exec(fFunc,address);
+    gCling->SetTempLevel(-1);
+@@ -452,7 +452,7 @@ void TMethodCall::Execute(void *object, Long_t &retLong)
+    if (!fFunc) return;
+ 
+    void *address = 0;
+-   if (object) address = (void*)((Long_t)object + fOffset);
++   if (object) address = (void*)((ptrdiff_t)object + fOffset);
+    gCling->SetTempLevel(1);
+    retLong = gCling->CallFunc_ExecInt(fFunc,address);
+    gCling->SetTempLevel(-1);
+@@ -469,7 +469,7 @@ void TMethodCall::Execute(void *object, const char *params, Long_t &retLong)
+    gCling->CallFunc_SetArgs(fFunc, (char *)params);
+ 
+    void *address = 0;
+-   if (object) address = (void*)((Long_t)object + fOffset);
++   if (object) address = (void*)((ptrdiff_t)object + fOffset);
+    gCling->SetTempLevel(1);
+    retLong = gCling->CallFunc_ExecInt(fFunc,address);
+    gCling->SetTempLevel(-1);
+@@ -483,7 +483,7 @@ void TMethodCall::Execute(void *object, Double_t &retDouble)
+    if (!fFunc) return;
+ 
+    void *address = 0;
+-   if (object) address = (void*)((Long_t)object + fOffset);
++   if (object) address = (void*)((ptrdiff_t)object + fOffset);
+    gCling->SetTempLevel(1);
+    retDouble = gCling->CallFunc_ExecDouble(fFunc,address);
+    gCling->SetTempLevel(-1);
+@@ -499,7 +499,7 @@ void TMethodCall::Execute(void *object, const char *params, Double_t &retDouble)
+    gCling->CallFunc_SetArgs(fFunc, (char *)params);
+ 
+    void *address = 0;
+-   if (object) address = (void*)((Long_t)object + fOffset);
++   if (object) address = (void*)((ptrdiff_t)object + fOffset);
+    gCling->SetTempLevel(1);
+    retDouble = gCling->CallFunc_ExecDouble(fFunc,address);
+    gCling->SetTempLevel(-1);
+@@ -513,9 +513,13 @@ void TMethodCall::Execute(void *object, char **retText)
+    if (!fFunc) return;
+ 
+    void *address = 0;
+-   if (object) address = (void*)((Long_t)object + fOffset);
++   if (object) address = (void*)((ptrdiff_t)object + fOffset);
+    gCling->SetTempLevel(1);
++#ifdef _WIN64
++   *retText =(char*)(gCling->CallFunc_ExecInt64(fFunc,address));
++#else
+    *retText =(char*) (gCling->CallFunc_ExecInt(fFunc,address));
++#endif
+    gCling->SetTempLevel(-1);
+ }
+ 
+@@ -530,9 +534,13 @@ void TMethodCall::Execute(void *object, const char *params, char **retText)
+    gCling->CallFunc_SetArgs(fFunc, (char *)params);
+ 
+    void *address = 0;
+-   if (object) address = (void*)((Long_t)object + fOffset);
++   if (object) address = (void*)((ptrdiff_t)object + fOffset);
+    gCling->SetTempLevel(1);
++#ifdef _WIN64
++   *retText =(char*)(gCling->CallFunc_ExecInt64(fFunc,address));
++#else
+    *retText =(char*)(gCling->CallFunc_ExecInt(fFunc,address));
++#endif
+    gCling->SetTempLevel(-1);
+ }
+
+diff --git a/src/core/cont/src/TArray.cxx b/src/core/cont/src/TArray.cxx
+index 64940717ba..29e17cace3 100644
+--- a/src/core/cont/src/TArray.cxx
++++ b/src/core/cont/src/TArray.cxx
+@@ -29,7 +29,7 @@ ClassImp(TArray);
+ 
+ Bool_t TArray::OutOfBoundsError(const char *where, Int_t i) const
+ {
+-   ::Error(where, "index %d out of bounds (size: %d, this: 0x%lx)", i, fN, (Long_t)this);
++   ::Error(where, "index %d out of bounds (size: %d, this: 0x%lx)", i, fN, (ptrdiff_t)this);
+    return kFALSE;
+ }
+
+diff --git a/src/core/cont/src/TClassTable.cxx b/src/core/cont/src/TClassTable.cxx
+index 72a55b2e1f..3c7ab6fe30 100644
+--- a/src/core/cont/src/TClassTable.cxx
++++ b/src/core/cont/src/TClassTable.cxx
+@@ -132,7 +132,7 @@ namespace ROOT {
+       void Print() {
+          Info("TMapTypeToClassRec::Print", "printing the typeinfo map in TClassTable");
+          for (const_iterator iter = fMap.begin(); iter != fMap.end(); ++iter) {
+-            printf("Key: %40s 0x%lx\n", iter->first.c_str(), (unsigned long)iter->second);
++            printf("Key: %40s 0x%lx\n", iter->first.c_str(), (ptrdiff_t)iter->second);
+          }
+       }
+ #else
+@@ -589,7 +589,7 @@ DictFuncPtr_t TClassTable::GetDict(const std::type_info& info)
+    if (!CheckClassTableInit()) return nullptr;
+ 
+    if (gDebug > 9) {
+-      ::Info("GetDict", "searches for %s at 0x%lx", info.name(), (Long_t)&info);
++      ::Info("GetDict", "searches for %s at 0x%lx", info.name(), (ptrdiff_t)&info);
+       fgIdMap->Print();
+    }
+ 
+diff --git a/src/core/cont/src/TClonesArray.cxx b/src/core/cont/src/TClonesArray.cxx
+index 0638e6bb7e..cf85bda227 100644
+--- a/src/core/cont/src/TClonesArray.cxx
++++ b/src/core/cont/src/TClonesArray.cxx
+@@ -859,7 +859,7 @@ void TClonesArray::Streamer(TBuffer &b)
+ TObject *&TClonesArray::operator[](Int_t idx)
+ {
+    if (idx < 0) {
+-      Error("operator[]", "out of bounds at %d in %lx", idx, (Long_t)this);
++      Error("operator[]", "out of bounds at %d in %lx", idx, (ptrdiff_t)this);
+       return fCont[0];
+    }
+    if (!fClass) {
+@@ -893,7 +893,7 @@ TObject *&TClonesArray::operator[](Int_t idx)
+ TObject *TClonesArray::operator[](Int_t idx) const
+ {
+    if (idx < 0 || idx >= fSize) {
+-      Error("operator[]", "out of bounds at %d in %lx", idx, (Long_t)this);
++      Error("operator[]", "out of bounds at %d in %lx", idx, (ptrdiff_t)this);
+       return 0;
+    }
+ 
+@@ -907,7 +907,7 @@ TObject *TClonesArray::operator[](Int_t idx) const
+ TObject *TClonesArray::New(Int_t idx)
+ {
+    if (idx < 0) {
+-      Error("New", "out of bounds at %d in %lx", idx, (Long_t)this);
++      Error("New", "out of bounds at %d in %lx", idx, (ptrdiff_t)this);
+       return 0;
+    }
+    if (!fClass) {
+diff --git a/src/core/base/src/TROOT.cxx b/src/core/base/src/TROOT.cxx
+index 171127d44d..4f3e6d07b3 100644
+--- a/src/core/base/src/TROOT.cxx
++++ b/src/core/base/src/TROOT.cxx
+@@ -2362,7 +2362,12 @@ void  TROOT::Message(Int_t id, const TObject *obj)
+ /// CINT interpreted thread has finished executing the line.
+ /// Returns the result of the command, cast to a Long_t.
+ 
+-Long_t TROOT::ProcessLine(const char *line, Int_t *error)
++#ifdef _WIN64
++Long64_t
++#else
++Long_t
++#endif
++TROOT::ProcessLine(const char *line, Int_t *error)
+ {
+    TString sline = line;
+    sline = sline.Strip(TString::kBoth);
+@@ -2382,7 +2387,12 @@ Long_t TROOT::ProcessLine(const char *line, Int_t *error)
+ /// The possible error codes are defined by TInterpreter::EErrorCode.
+ /// Returns the result of the command, cast to a Long_t.
+ 
+-Long_t TROOT::ProcessLineSync(const char *line, Int_t *error)
++#ifdef _WIN64
++Long64_t
++#else
++Long_t
++#endif
++TROOT::ProcessLineSync(const char *line, Int_t *error)
+ {
+    TString sline = line;
+    sline = sline.Strip(TString::kBoth);
+@@ -2399,7 +2409,12 @@ Long_t TROOT::ProcessLineSync(const char *line, Int_t *error)
+ /// In all other cases use TROOT::ProcessLine().
+ /// The possible error codes are defined by TInterpreter::EErrorCode.
+ 
+-Long_t TROOT::ProcessLineFast(const char *line, Int_t *error)
++#ifdef _WIN64
++Long64_t
++#else
++Long_t
++#endif
++TROOT::ProcessLineFast(const char *line, Int_t *error)
+ {
+    TString sline = line;
+    sline = sline.Strip(TString::kBoth);
+diff --git a/src/core/cont/src/TObjArray.cxx b/src/core/cont/src/TObjArray.cxx
+index 1a97d346ea..9b8948f645 100644
+--- a/src/core/cont/src/TObjArray.cxx
++++ b/src/core/cont/src/TObjArray.cxx
+@@ -236,7 +236,7 @@ void TObjArray::AddAtAndExpand(TObject *obj, Int_t idx)
+    R__COLLECTION_WRITE_LOCKGUARD(ROOT::gCoreMutex);
+ 
+    if (idx < fLowerBound) {
+-      Error("AddAt", "out of bounds at %d in %lx", idx, (Long_t)this);
++      Error("AddAt", "out of bounds at %d in %lx", idx, (ptrdiff_t)this);
+       return;
+    }
+    if (idx-fLowerBound >= fSize)
+@@ -641,7 +641,7 @@ TIterator *TObjArray::MakeIterator(Bool_t dir) const
+ 
+ Bool_t TObjArray::OutOfBoundsError(const char *where, Int_t i) const
+ {
+-   Error(where, "index %d out of bounds (size: %d, this: 0x%lx)", i, fSize, (Long_t)this);
++   Error(where, "index %d out of bounds (size: %d, this: 0x%lx)", i, fSize, (ptrdiff_t)this);
+    return kFALSE;
+ }
+
+diff --git a/src/core/cont/src/TObjectTable.cxx b/src/core/cont/src/TObjectTable.cxx
+index d5c348ac4b..69aabd1ce6 100644
+--- a/src/core/cont/src/TObjectTable.cxx
++++ b/src/core/cont/src/TObjectTable.cxx
+@@ -130,7 +130,7 @@ void TObjectTable::Print(Option_t *option) const
+          if (!fTable[i]) continue;
+          num++;
+          obj = fTable[i];
+-         printf("%-8d 0x%-16lx %-24s %s\n", num, (Long_t)obj, obj->ClassName(),
++         printf("%-8d 0x%-16lx %-24s %s\n", num, (ptrdiff_t)obj, obj->ClassName(),
+                 obj->GetName());
+       }
+       Printf("================================================================================\n");
+@@ -217,10 +217,10 @@ void TObjectTable::Remove(TObject *op)
+ 
+    Int_t i = FindElement(op);
+    if (fTable[i] == 0) {
+-      Warning("Remove", "0x%lx not found at %d", (Long_t)op, i);
++      Warning("Remove", "0x%lx not found at %d", (ptrdiff_t)op, i);
+       for (int j = 0; j < fSize; j++) {
+          if (fTable[j] == op) {
+-            Error("Remove", "0x%lx found at %d !!!", (Long_t)op, j);
++            Error("Remove", "0x%lx found at %d !!!", (ptrdiff_t)op, j);
+             i = j;
+          }
+       }
+@@ -384,7 +384,7 @@ void TObjectTable::UpdateInstCount() const
+          if (op->TestBit(TObject::kNotDeleted))
+             op->IsA()->AddInstance(op->IsOnHeap());
+          else
+-            Error("UpdateInstCount", "oops 0x%lx\n", (Long_t)op);
++            Error("UpdateInstCount", "oops 0x%lx\n", (ptrdiff_t)op);
+       }
+ }
+ 
+@@ -396,7 +396,7 @@ void *TObjectTable::CheckPtrAndWarn(const char *msg, void *vp)
+ {
+    if (fTable && vp && fTable[FindElement((TObject*)vp)]) {
+       Remove((TObject*)vp);
+-      Warning("CheckPtrAndWarn", "%s (0x%lx)\n", msg, (Long_t)vp);
++      Warning("CheckPtrAndWarn", "%s (0x%lx)\n", msg, (ptrdiff_t)vp);
+    }
+    return vp;
+ }
+
+diff --git a/src/core/cont/src/TRefArray.cxx b/src/core/cont/src/TRefArray.cxx
+index 1baeff2878..eb64f60591 100644
+--- a/src/core/cont/src/TRefArray.cxx
++++ b/src/core/cont/src/TRefArray.cxx
+@@ -337,7 +337,7 @@ void TRefArray::AddAtAndExpand(TObject *obj, Int_t idx)
+ {
+    if (!obj) return;
+    if (idx < fLowerBound) {
+-      Error("AddAt", "out of bounds at %d in %lx", idx, (Long_t)this);
++      Error("AddAt", "out of bounds at %d in %lx", idx, (ptrdiff_t)this);
+       return;
+    }
+    if (idx-fLowerBound >= fSize)
+@@ -526,7 +526,7 @@ void TRefArray::Streamer(TBuffer &R__b)
+       R__b >> pidf;
+       pidf += R__b.GetPidOffset();
+       fPID = R__b.ReadProcessID(pidf);
+-      if (gDebug > 1) printf("Reading TRefArray, pidf=%d, fPID=%lx, nobjects=%d\n",pidf,(Long_t)fPID,nobjects);
++      if (gDebug > 1) printf("Reading TRefArray, pidf=%d, fPID=%lx, nobjects=%d\n",pidf,(ptrdiff_t)fPID,nobjects);
+       for (Int_t i = 0; i < nobjects; i++) {
+          R__b >> fUIDs[i];
+          if (fUIDs[i] != 0) fLast = i;
+@@ -547,7 +547,7 @@ void TRefArray::Streamer(TBuffer &R__b)
+       R__b << fLowerBound;
+       pidf = R__b.WriteProcessID(fPID);
+       R__b << pidf;
+-      if (gDebug > 1) printf("Writing TRefArray, pidf=%d, fPID=%lx, nobjects=%d\n",pidf,(Long_t)fPID,nobjects);
++      if (gDebug > 1) printf("Writing TRefArray, pidf=%d, fPID=%lx, nobjects=%d\n",pidf,(ptrdiff_t)fPID,nobjects);
+ 
+       for (Int_t i = 0; i < nobjects; i++) {
+          R__b << fUIDs[i];
+@@ -711,7 +711,7 @@ TIterator *TRefArray::MakeIterator(Bool_t dir) const
+ 
+ Bool_t TRefArray::OutOfBoundsError(const char *where, Int_t i) const
+ {
+-   Error(where, "index %d out of bounds (size: %d, this: 0x%lx)", i, fSize, (Long_t)this);
++   Error(where, "index %d out of bounds (size: %d, this: 0x%lx)", i, fSize, (ptrdiff_t)this);
+    return kFALSE;
+ }
+
+diff --git a/src/core/cont/src/TSeqCollection.cxx b/src/core/cont/src/TSeqCollection.cxx
+index a62d89e3ff..1447164453 100644
+--- a/src/core/cont/src/TSeqCollection.cxx
++++ b/src/core/cont/src/TSeqCollection.cxx
+@@ -272,7 +272,7 @@ Long64_t TSeqCollection::Merge(TCollection *list)
+       }
+       // Merge current object with objects in the temporary list
+       if (mergeable) {
+-         callEnv.SetParam((Long_t) templist);
++         callEnv.SetParam((ptrdiff_t) templist);
+          callEnv.Execute(object);
+          SafeDelete(templist);
+       }
+diff --git a/src/core/winnt/src/TWinNTSystem.cxx b/src/core/winnt/src/TWinNTSystem.cxx
+index 7a477878a0..bfb16a5a09 100644
+--- a/src/core/winnt/src/TWinNTSystem.cxx
++++ b/src/core/winnt/src/TWinNTSystem.cxx
+@@ -943,7 +943,7 @@ namespace {
+       // ensure window title has been updated
+       ::Sleep(40);
+       // look for NewWindowTitle
+-      gConsoleWindow = (ULong_t)::FindWindow(0, pszNewWindowTitle);
++      gConsoleWindow = (void*)::FindWindow(0, pszNewWindowTitle);
+       if (gConsoleWindow) {
+          // restore original window title
+          ::ShowWindow((HWND)gConsoleWindow, SW_RESTORE);
+@@ -964,7 +964,7 @@ namespace {
+ ///////////////////////////////////////////////////////////////////////////////
+ ClassImp(TWinNTSystem);
+ 
+-ULong_t gConsoleWindow = 0;
++void* gConsoleWindow = 0;
+ 
+ ////////////////////////////////////////////////////////////////////////////////
+ ///
+diff --git a/src/core/metacling/src/TClingCallFunc.cxx b/src/core/metacling/src/TClingCallFunc.cxx
+index 92c96215c0..e77026ebe3 100644
+--- a/src/core/metacling/src/TClingCallFunc.cxx
++++ b/src/core/metacling/src/TClingCallFunc.cxx
+@@ -224,7 +224,7 @@ namespace {
+       }
+       if (QT->isPointerType() || QT->isArrayType() || QT->isRecordType() ||
+             QT->isReferenceType()) {
+-         return (returnType)(long) val.getPtr();
++         return (returnType)(ptrdiff_t) val.getPtr();
+       }
+       if (const EnumType *ET = dyn_cast<EnumType>(&*QT)) {
+          if (ET->getDecl()->getIntegerType()->hasSignedIntegerRepresentation())
+@@ -234,10 +234,7 @@ namespace {
+       }
+       if (QT->isMemberPointerType()) {
+          const MemberPointerType *MPT = QT->getAs<MemberPointerType>();
+-         if (MPT->isMemberDataPointer()) {
+-            return (returnType)(ptrdiff_t)val.getPtr();
+-         }
+-         return (returnType)(long) val.getPtr();
++         return (returnType)(ptrdiff_t)val.getPtr();
+       }
+       ::Error("TClingCallFunc::sv_to", "Invalid Type!");
+       QT->dump();
+diff --git a/src/core/metacling/src/TClingClassInfo.cxx b/src/core/metacling/src/TClingClassInfo.cxx
+index 1cb6973800..f052455243 100644
+--- a/src/core/metacling/src/TClingClassInfo.cxx
++++ b/src/core/metacling/src/TClingClassInfo.cxx
+@@ -1223,7 +1223,7 @@ long TClingClassInfo::Tagnum() const
+    if (!IsValid()) {
+       return -1L;
+    }
+-   return reinterpret_cast<long>(fDecl);
++   return (long)fDecl;
+ }
+ 
+ const char *TClingClassInfo::FileName()
+diff --git a/src/core/metacling/src/TClingDataMemberInfo.h b/src/core/metacling/src/TClingDataMemberInfo.h
+index 7fbb19dec0..090a527474 100644
+--- a/src/core/metacling/src/TClingDataMemberInfo.h
++++ b/src/core/metacling/src/TClingDataMemberInfo.h
+@@ -131,7 +131,7 @@ public:
+    int                MaxIndex(int dim) const;
+    int                InternalNext();
+    bool               Next() { return InternalNext(); }
+-   long               Offset();
++   ptrdiff_t          Offset();
+    long               Property() const;
+    long               TypeProperty() const;
+    int                TypeSize() const;
+diff --git a/src/core/metacling/src/TClingDataMemberInfo.cxx b/src/core/metacling/src/TClingDataMemberInfo.cxx
+index 9c8fa9980f..76ff219c8b 100644
+--- a/src/core/metacling/src/TClingDataMemberInfo.cxx
++++ b/src/core/metacling/src/TClingDataMemberInfo.cxx
+@@ -297,7 +297,7 @@ int TClingDataMemberInfo::InternalNext()
+    return 0;
+ }
+ 
+-long TClingDataMemberInfo::Offset()
++ptrdiff_t TClingDataMemberInfo::Offset()
+ {
+    using namespace clang;
+ 
+@@ -321,13 +321,13 @@ long TClingDataMemberInfo::Offset()
+       //   static constexpr Long64_t something = std::numeric_limits<Long64_t>::max();
+       cling::Interpreter::PushTransactionRAII RAII(fInterp);
+ 
+-      if (long addr = reinterpret_cast<long>(fInterp->getAddressOfGlobal(GlobalDecl(VD))))
++      if (ptrdiff_t addr = (ptrdiff_t)fInterp->getAddressOfGlobal(GlobalDecl(VD)))
+          return addr;
+       auto evalStmt = VD->ensureEvaluatedStmt();
+       if (evalStmt && evalStmt->Value) {
+          if (const APValue* val = VD->evaluateValue()) {
+             if (VD->getType()->isIntegralType(C)) {
+-               return reinterpret_cast<long>(val->getInt().getRawData());
++               return (ptrdiff_t)val->getInt().getRawData();
+             } else {
+                // The VD stores the init value; its lifetime should the lifetime of
+                // this offset.
+@@ -337,17 +337,17 @@ long TClingDataMemberInfo::Offset()
+                      fConstInitVal.fLong = (long)val->getInt().getSExtValue();
+                   else
+                      fConstInitVal.fLong = (long)val->getInt().getZExtValue();
+-                  return (long) &fConstInitVal.fLong;
++                  return (ptrdiff_t) &fConstInitVal.fLong;
+                }
+                case APValue::Float:
+                   if (&val->getFloat().getSemantics()
+                       == (const llvm::fltSemantics*)&llvm::APFloat::IEEEsingle()) {
+                      fConstInitVal.fFloat = val->getFloat().convertToFloat();
+-                     return (long)&fConstInitVal.fFloat;
++                     return (ptrdiff_t)&fConstInitVal.fFloat;
+                   } else if (&val->getFloat().getSemantics()
+                              == (const llvm::fltSemantics*) &llvm::APFloat::IEEEdouble()) {
+                      fConstInitVal.fDouble = val->getFloat().convertToDouble();
+-                     return (long)&fConstInitVal.fDouble;
++                     return (ptrdiff_t)&fConstInitVal.fDouble;
+                   }
+                   // else fall-through
+                default:
+@@ -368,7 +368,7 @@ long TClingDataMemberInfo::Offset()
+       // part.
+ #ifdef R__BYTESWAP
+       // In this case at the beginning.
+-      return reinterpret_cast<long>(ECD->getInitVal().getRawData());
++      return (ptrdiff_t)ECD->getInitVal().getRawData();
+ #else
+       // In this case in the second part.
+       return reinterpret_cast<long>(((char*)ECD->getInitVal().getRawData())+sizeof(long) );

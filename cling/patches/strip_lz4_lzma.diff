@@ -1,4 +1,4 @@
-diff --git a/src/core/zip/src/RZip.cxx b/core/zip/src/RZip.cxx
+diff --git a/src/core/zip/src/RZip.cxx b/src/core/zip/src/RZip.cxx
 index d7007966df..fe55d3271c 100644
 --- a/src/core/zip/src/RZip.cxx
 +++ b/src/core/zip/src/RZip.cxx

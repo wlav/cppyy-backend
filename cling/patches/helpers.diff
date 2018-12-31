@@ -1,4 +1,4 @@
-diff --git a/src/core/metacling/src/TCling.cxx b/core/metacling/src/TCling.cxx
+diff --git a/src/core/metacling/src/TCling.cxx b/src/core/metacling/src/TCling.cxx
 index 7df9bc8393..a54d6f81fa 100644
 --- a/src/core/metacling/src/TCling.cxx
 +++ b/src/core/metacling/src/TCling.cxx
