@@ -1179,3 +1179,304 @@ index 9c8fa9980f..76ff219c8b 100644
  #else
        // In this case in the second part.
        return reinterpret_cast<long>(((char*)ECD->getInitVal().getRawData())+sizeof(long) );
+diff --git a/src/core/base/src/TBuffer.cxx b/src/core/base/src/TBuffer.cxx
+index 8243454040..ccf7186c51 100644
+--- a/src/core/base/src/TBuffer.cxx
++++ b/src/core/base/src/TBuffer.cxx
+@@ -227,7 +227,7 @@ void TBuffer::Expand(Int_t newsize, Bool_t copy)
+       } else if (fReAllocFunc == R__NoReAllocChar) {
+          Fatal("Expand","Failed to expand the data buffer because TBuffer does not own it and no custom memory reallocator was provided.");
+       } else {
+-         Fatal("Expand","Failed to expand the data buffer using custom memory reallocator 0x%lx.", (Long_t)fReAllocFunc);
++         Fatal("Expand","Failed to expand the data buffer using custom memory reallocator 0x%lx.", (ptrdiff_t)fReAllocFunc);
+       }
+    }
+    fBufSize = newsize;
+diff --git a/src/core/base/src/TContextMenu.cxx b/src/core/base/src/TContextMenu.cxx
+index f64cfbee55..d2819e6954 100644
+--- a/src/core/base/src/TContextMenu.cxx
++++ b/src/core/base/src/TContextMenu.cxx
+@@ -154,7 +154,7 @@ void TContextMenu::Action(TClassMenuItem *menuitem)
+                // It is a workaround of the "Dead lock under Windows
+                char *cmd = Form("((TContextMenu *)0x%lx)->Execute((TObject *)0x%lx,"
+                                 "(TMethod *)0x%lx,\"\");",
+-                                (Long_t)this,(Long_t)object,(Long_t)method);
++                                (ptrdiff_t)this,(ptrdiff_t)object,(ptrdiff_t)method);
+                //Printf("%s", cmd);
+                gROOT->ProcessLine(cmd);
+                //Execute( object, method, (TObjArray *)NULL );
+@@ -166,8 +166,8 @@ void TContextMenu::Action(TClassMenuItem *menuitem)
+                // It is a workaround of the "Dead lock under Windows
+                char *cmd = Form("((TContextMenu *)0x%lx)->Execute((TObject *)0x%lx,"
+                                 "(TMethod *)0x%lx,(TObject*)0x%lx);",
+-                                (Long_t)this,(Long_t)object,(Long_t)method,
+-                                (Long_t)fSelectedObject);
++                                (ptrdiff_t)this,(ptrdiff_t)object,(ptrdiff_t)method,
++                                (ptrdiff_t)fSelectedObject);
+                //Printf("%s", cmd);
+                gROOT->ProcessLine(cmd);
+                //Execute( object, method, (TObjArray *)NULL );
+@@ -193,7 +193,7 @@ void TContextMenu::Action(TClassMenuItem *menuitem)
+                cmd = Form("%s();", menuitem->GetFunctionName());
+             } else {
+               cmd = Form("%s((TObject*)0x%lx);",
+-                     menuitem->GetFunctionName(), (Long_t)fSelectedObject);
++                     menuitem->GetFunctionName(), (ptrdiff_t)fSelectedObject);
+             }
+             gROOT->ProcessLine(cmd);
+          }
+diff --git a/src/core/base/src/TGuiFactory.cxx b/src/core/base/src/TGuiFactory.cxx
+index 6202c184c5..029b66e7cd 100644
+--- a/src/core/base/src/TGuiFactory.cxx
++++ b/src/core/base/src/TGuiFactory.cxx
+@@ -115,6 +115,6 @@ TInspectorImp *TGuiFactory::CreateInspectorImp(const TObject *obj, UInt_t width,
+       return new TInspectorImp(obj, width, height);
+    }
+ 
+-   gROOT->ProcessLine(Form("TInspectCanvas::Inspector((TObject*)0x%lx);", (ULong_t)obj));
++   gROOT->ProcessLine(Form("TInspectCanvas::Inspector((TObject*)0x%lx);", (ptrdiff_t)obj));
+    return 0;
+ }
+diff --git a/src/core/base/src/TMacro.cxx b/src/core/base/src/TMacro.cxx
+index 36bb598850..8d142e38f2 100644
+--- a/src/core/base/src/TMacro.cxx
++++ b/src/core/base/src/TMacro.cxx
+@@ -181,7 +181,7 @@ void TMacro::Browse(TBrowser * /*b*/)
+       return;
+    }
+    if (opt.Contains(".C")) {
+-      const char *cmd = Form(".x %s((TMacro*)0x%lx)",opt.Data(),(ULong_t)this);
++      const char *cmd = Form(".x %s((TMacro*)0x%lx)",opt.Data(),(ptrdiff_t)this);
+       gROOT->ProcessLine(cmd);
+       return;
+    }
+diff --git a/src/core/base/inc/TObject.h b/src/core/base/inc/TObject.h
+index 15c4ccd265..1613d63995 100644
+--- a/src/core/base/inc/TObject.h
++++ b/src/core/base/inc/TObject.h
+@@ -40,7 +40,7 @@ private:
+    UInt_t         fUniqueID;   ///< object unique identifier
+    UInt_t         fBits;       ///< bit field status word
+ 
+-   static Long_t  fgDtorOnly;    ///< object for which to call dtor only (i.e. no delete)
++   static ptrdiff_t fgDtorOnly;  ///< object for which to call dtor only (i.e. no delete)
+    static Bool_t  fgObjectStat;  ///< if true keep track of objects in TObjectTable
+ 
+    static void AddToTObjectTable(TObject *);
+diff --git a/src/core/base/src/TObject.cxx b/src/core/base/src/TObject.cxx
+index 1cdf15f4ee..c875d9a524 100644
+--- a/src/core/base/src/TObject.cxx
++++ b/src/core/base/src/TObject.cxx
+@@ -976,7 +976,7 @@ Long_t TObject::GetDtorOnly()
+ 
+ void TObject::SetDtorOnly(void *obj)
+ {
+-   fgDtorOnly = (Long_t) obj;
++   fgDtorOnly = (ptrdiff_t) obj;
+ }
+ 
+ ////////////////////////////////////////////////////////////////////////////////
+@@ -984,7 +984,7 @@ void TObject::SetDtorOnly(void *obj)
+ 
+ void TObject::operator delete(void *ptr)
+ {
+-   if ((Long_t) ptr != fgDtorOnly)
++   if ((ptrdiff_t) ptr != fgDtorOnly)
+       TStorage::ObjectDealloc(ptr);
+    else
+       fgDtorOnly = 0;
+@@ -995,7 +995,7 @@ void TObject::operator delete(void *ptr)
+ 
+ void TObject::operator delete[](void *ptr)
+ {
+-   if ((Long_t) ptr != fgDtorOnly)
++   if ((ptrdiff_t) ptr != fgDtorOnly)
+       TStorage::ObjectDealloc(ptr);
+    else
+       fgDtorOnly = 0;
+@@ -1007,7 +1007,7 @@ void TObject::operator delete[](void *ptr)
+ 
+ void TObject::operator delete(void *ptr, size_t size)
+ {
+-   if ((Long_t) ptr != fgDtorOnly)
++   if ((ptrdiff_t) ptr != fgDtorOnly)
+       TStorage::ObjectDealloc(ptr, size);
+    else
+       fgDtorOnly = 0;
+@@ -1018,7 +1018,7 @@ void TObject::operator delete(void *ptr, size_t size)
+ 
+ void TObject::operator delete[](void *ptr, size_t size)
+ {
+-   if ((Long_t) ptr != fgDtorOnly)
++   if ((ptrdiff_t) ptr != fgDtorOnly)
+       TStorage::ObjectDealloc(ptr, size);
+    else
+       fgDtorOnly = 0;
+
+diff --git a/src/core/base/src/TProcessID.cxx b/src/core/base/src/TProcessID.cxx
+index ea24c5c457..3afea9fd75 100644
+--- a/src/core/base/src/TProcessID.cxx
++++ b/src/core/base/src/TProcessID.cxx
+@@ -270,7 +270,7 @@ TProcessID *TProcessID::GetProcessWithUID(UInt_t uid, const void *obj)
+       ULong_t hash = Void_Hash(obj);
+ 
+       R__READ_LOCKGUARD(ROOT::gCoreMutex);
+-      pid = fgObjPIDs->GetValue(hash,(Long_t)obj);
++      pid = fgObjPIDs->GetValue(hash,(ptrdiff_t)obj);
+       return (TProcessID*)fgPIDs->At(pid);
+    } else {
+       auto current = gGetProcessWithUIDCache.load();
+@@ -399,7 +399,7 @@ void TProcessID::PutObjectWithID(TObject *obj, UInt_t uid)
+       // if the address has already been registered, we want to
+       // update it's uniqueID (this can easily happen when the
+       // referenced object have been stored in a TClonesArray.
+-      (*fgObjPIDs)(hash, (Long_t)obj) = GetUniqueID();
++      (*fgObjPIDs)(hash, (ptrdiff_t)obj) = GetUniqueID();
+    }
+ }
+ 
+diff --git a/src/core/base/src/TQCommand.cxx b/src/core/base/src/TQCommand.cxx
+index f073bada46..2ceb134570 100644
+--- a/src/core/base/src/TQCommand.cxx
++++ b/src/core/base/src/TQCommand.cxx
+@@ -1013,7 +1013,7 @@ void TQUndoManager::Add(TObject *obj, Option_t *opt)
+ 
+ void TQUndoManager::CurrentChanged(TQCommand *c)
+ {
+-   Emit("CurrentChanged(TQCommand*)", (long)c);
++   Emit("CurrentChanged(TQCommand*)", (ptrdiff_t)c);
+ }
+ 
+ ////////////////////////////////////////////////////////////////////////////////
+diff --git a/src/core/base/src/TQConnection.cxx b/src/core/base/src/TQConnection.cxx
+index e4e8e3ada3..d79bcbdd33 100644
+--- a/src/core/base/src/TQConnection.cxx
++++ b/src/core/base/src/TQConnection.cxx
+@@ -319,7 +319,7 @@ inline void TQSlot::ExecuteMethod(void *object, Long64_t param)
+ 
+ inline void TQSlot::ExecuteMethod(void *object, Double_t param)
+ {
+-   Long_t *arg = reinterpret_cast<Long_t *>(&param);
++   Long_t *arg = reinterpret_cast<Long_t*>(&param);
+    ExecuteMethod(object, arg, 1);
+ 
+ }
+@@ -329,8 +329,8 @@ inline void TQSlot::ExecuteMethod(void *object, Double_t param)
+ 
+ inline void TQSlot::ExecuteMethod(void *object, const char *param)
+ {
+-   Long_t arg = reinterpret_cast<Long_t>(param);
+-   ExecuteMethod(object, &arg, 1);
++   ptrdiff_t arg = reinterpret_cast<ptrdiff_t>(param);
++   ExecuteMethod(object, (Long_t*)&arg, 1);
+ 
+ }
+ 
+@@ -348,7 +348,7 @@ inline void TQSlot::ExecuteMethod(void *object, Long_t *paramArr, Int_t nparam)
+    void *address = 0;
+    R__LOCKGUARD(gInterpreterMutex);
+    if (paramArr) gCling->CallFunc_SetArgArray(fFunc, paramArr, nparam);
+-   if (object) address = (void *)((Long_t)object + fOffset);
++   if (object) address = (void *)((ptrdiff_t)object + fOffset);
+    fExecuting++;
+    gCling->CallFunc_Exec(fFunc, address);
+    fExecuting--;
+@@ -655,7 +655,7 @@ Bool_t TQConnection::CheckSlot(Int_t nargs) const {
+ /// Return the object address to be passed to the function.
+ 
+ void *TQConnection::GetSlotAddress() const {
+-   if (fReceiver) return (void *)((Long_t)fReceiver + fSlot->GetOffset());
++   if (fReceiver) return (void *)((ptrdiff_t)fReceiver + fSlot->GetOffset());
+    else return nullptr;
+ }
+ 
+diff --git a/src/core/base/src/TRef.cxx b/src/core/base/src/TRef.cxx
+index c3fac0fdaf..a3deef0117 100644
+--- a/src/core/base/src/TRef.cxx
++++ b/src/core/base/src/TRef.cxx
+@@ -496,7 +496,7 @@ void TRef::Streamer(TBuffer &R__b)
+          fPID = pid;
+          SetUniqueID(number);
+          if (gDebug > 1) {
+-            printf("Reading TRef (HasUUID) uid=%d, obj=%lx\n",GetUniqueID(),(Long_t)GetObject());
++            printf("Reading TRef (HasUUID) uid=%d, obj=%lx\n",GetUniqueID(),(ptrdiff_t)GetObject());
+          }
+       } else {
+          R__b >> pidf;
+@@ -509,7 +509,7 @@ void TRef::Streamer(TBuffer &R__b)
+          Int_t execid = R__b.GetTRefExecId();
+          if (execid) SetBit(execid<<16);
+          if (gDebug > 1) {
+-            printf("Reading TRef, pidf=%d, fPID=%lx, uid=%d, obj=%lx\n",pidf,(Long_t)fPID,GetUniqueID(),(Long_t)GetObject());
++            printf("Reading TRef, pidf=%d, fPID=%lx, uid=%d, obj=%lx\n",pidf,(ptrdiff_t)fPID,GetUniqueID(),(ptrdiff_t)GetObject());
+          }
+       }
+    } else {
+@@ -519,13 +519,13 @@ void TRef::Streamer(TBuffer &R__b)
+          TObjString *objs = gROOT->GetUUIDs()->FindUUID(GetUniqueID());
+          objs->String().Streamer(R__b);
+          if (gDebug > 1) {
+-            printf("Writing TRef (HasUUID) uid=%d, obj=%lx\n",GetUniqueID(),(Long_t)GetObject());
++            printf("Writing TRef (HasUUID) uid=%d, obj=%lx\n",GetUniqueID(),(ptrdiff_t)GetObject());
+          }
+       } else {
+          pidf = R__b.WriteProcessID(fPID);
+          R__b << pidf;
+          if (gDebug > 1) {
+-            printf("Writing TRef, pidf=%d, fPID=%lx, uid=%d, obj=%lx\n",pidf,(Long_t)fPID,GetUniqueID(),(Long_t)GetObject());
++            printf("Writing TRef, pidf=%d, fPID=%lx, uid=%d, obj=%lx\n",pidf,(ptrdiff_t)fPID,GetUniqueID(),(ptrdiff_t)GetObject());
+          }
+       }
+    }
+diff --git a/src/core/base/src/TRemoteObject.cxx b/src/core/base/src/TRemoteObject.cxx
+index f288bfe2ed..fb8491aa27 100644
+--- a/src/core/base/src/TRemoteObject.cxx
++++ b/src/core/base/src/TRemoteObject.cxx
+@@ -60,7 +60,7 @@ TRemoteObject::TRemoteObject(const char *name, const char *title,
+        !strcmp(classname, "TSystemFile")) {
+       gSystem->GetPathInfo(name, fFileStat);
+    }
+-   Long_t raddr = (Long_t) this;
++   ptrdiff_t raddr = (ptrdiff_t) this;
+    fRemoteAddress = raddr;
+ }
+ 
+@@ -92,7 +92,7 @@ void TRemoteObject::Browse(TBrowser *b)
+       TObject *obj = (TObject *)gROOT->ProcessLine(Form("((TApplicationServer *)gApplication)->BrowseKey(\"%s\");", GetName()));
+       if (obj) {
+          if (obj->IsA()->GetMethodWithPrototype("SetDirectory", "TDirectory*"))
+-            gROOT->ProcessLine(Form("((%s *)0x%lx)->SetDirectory(0);", obj->ClassName(), (ULong_t)obj));
++            gROOT->ProcessLine(Form("((%s *)0x%lx)->SetDirectory(0);", obj->ClassName(), (ptrdiff_t)obj));
+          obj->Browse(b);
+          b->SetRefreshFlag(kTRUE);
+       }
+
+diff --git a/src/core/base/src/TString.cxx b/src/core/base/src/TString.cxx
+index 31673a53b4..046f26d525 100644
+--- a/src/core/base/src/TString.cxx
++++ b/src/core/base/src/TString.cxx
+@@ -528,7 +528,7 @@ UInt_t Hash(const char *str)
+    UInt_t hv  = len; // Mix in the string length.
+    UInt_t i   = hv*sizeof(char)/sizeof(UInt_t);
+ 
+-   if (((ULong_t)str)%sizeof(UInt_t) == 0) {
++   if (((ptrdiff_t)str)%sizeof(UInt_t) == 0) {
+       // str is word aligned
+       const UInt_t *p = (const UInt_t*)str;
+ 
+(dev_python) [cerebro] ~/pypy-dev/root % vi ./core/base/src/TStyle.cxx
+(dev_python) [cerebro] ~/pypy-dev/root % git diff ./core/base/src/TStyle.cxx
+
+diff --git a/src/core/base/src/TStyle.cxx b/src/core/base/src/TStyle.cxx
+index 2d2ba966e9..a734ba9ebb 100644
+--- a/src/core/base/src/TStyle.cxx
++++ b/src/core/base/src/TStyle.cxx
+@@ -1057,7 +1057,7 @@ Float_t TStyle::GetTitleSize( Option_t *axis) const
+ void TStyle::Paint(Option_t *option)
+ {
+    gROOT->ProcessLine(Form("TStyleManager::PaintStyle((TStyle*)0x%lx,\"%s\")",
+-                           (ULong_t)this,option));
++                           (ptrdiff_t)this,option));
+ }
+ 
+ ////////////////////////////////////////////////////////////////////////////////
