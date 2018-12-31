@@ -528,19 +528,15 @@ index 5413aef378..c8fba08529 100644
  }
  
  ////////////////////////////////////////////////////////////////////////////////
-@@ -4747,10 +4788,10 @@ void TCling::Execute(TObject* obj, TClass* cl, const char* method,
-    // 'obj' is unlikely to be the start of the object (as described by IsA()),
-    // hence gInterpreter->Execute will improperly correct the offset.
-    void* addr = cl->DynamicCast(TObject::Class(), obj, kFALSE);
--   Long_t offset = 0L;
-+   ptrdiff_t offset = 0L;
+@@ -4750,7 +4791,7 @@ void TCling::Execute(TObject* obj, TClass* cl, const char* method,
+    Long_t offset = 0L;
     TClingCallFunc func(fInterpreter,*fNormalizedCtxt);
     func.SetFunc((TClingClassInfo*)cl->GetClassInfo(), method, params, objectIsConst, &offset);
 -   void* address = (void*)((Long_t)addr + offset);
 +   void* address = (void*)((ptrdiff_t)addr + offset);
     func.Exec(address);
  }
- 
+
 @@ -4857,8 +4898,8 @@ void TCling::Execute(TObject* obj, TClass* cl, TMethod* method,
     // Now calculate the 'this' pointer offset for the method
     // when starting from the class described by cl.
@@ -551,7 +547,7 @@ index 5413aef378..c8fba08529 100644
 +   void* address = (void*)((ptrdiff_t)addr + offset);
     func.Exec(address);
  }
- 
+
 diff --git a/src/core/base/inc/TApplication.h b/src/core/base/inc/TApplication.h
 index 456cfe6668..923cce4efe 100644
 --- a/src/core/base/inc/TApplication.h
@@ -731,6 +727,22 @@ diff --git a/src/core/meta/src/TMethodCall.cxx b/src/core/meta/src/TMethodCall.c
 index a79850e7b7..17735b7a5f 100644
 --- a/src/core/meta/src/TMethodCall.cxx
 +++ b/src/core/meta/src/TMethodCall.cxx
+@@ -318,12 +318,12 @@ void TMethodCall::InitImplementation(const char *methodname, const char *params,
+ 
+    R__LOCKGUARD(gInterpreterMutex);
+    if (params && params[0]) {
+-      gCling->CallFunc_SetFunc(fFunc, scope, (char *)methodname, (char *)params, objectIsConst, &fOffset);
++      gCling->CallFunc_SetFunc(fFunc, scope, (char *)methodname, (char *)params, objectIsConst, (Long_t*)&fOffset);
+    } else if (proto && proto[0]) {
+-      gCling->CallFunc_SetFuncProto(fFunc, scope, (char *)methodname, (char *)proto, objectIsConst, &fOffset, mode);
++      gCling->CallFunc_SetFuncProto(fFunc, scope, (char *)methodname, (char *)proto, objectIsConst, (Long_t*)&fOffset, mode);
+    } else {
+       // No parameters
+-      gCling->CallFunc_SetFuncProto(fFunc, scope, (char *)methodname, "", objectIsConst, &fOffset, mode);
++      gCling->CallFunc_SetFuncProto(fFunc, scope, (char *)methodname, "", objectIsConst, (Long_t*)&fOffset, mode);
+    }
+ }
+ 
 @@ -420,7 +420,7 @@ void TMethodCall::Execute(void *object)
     if (!fFunc) return;
  
@@ -885,6 +897,15 @@ diff --git a/src/core/base/src/TROOT.cxx b/src/core/base/src/TROOT.cxx
 index 171127d44d..4f3e6d07b3 100644
 --- a/src/core/base/src/TROOT.cxx
 +++ b/src/core/base/src/TROOT.cxx
+@@ -1619,7 +1619,7 @@ TGlobal *TROOT::GetGlobal(const char *name, Bool_t load) const
+ 
+ TGlobal *TROOT::GetGlobal(const TObject *addr, Bool_t /* load */) const
+ {
+-   if (addr == 0 || ((Long_t)addr) == -1) return 0;
++   if (addr == 0 || ((ptrdiff_t)addr) == -1) return 0;
+ 
+    TInterpreter::DeclId_t decl = gInterpreter->GetDataMemberAtAddr(addr);
+    if (decl) {
 @@ -2362,7 +2362,12 @@ void  TROOT::Message(Int_t id, const TObject *obj)
  /// CINT interpreted thread has finished executing the line.
  /// Returns the result of the command, cast to a Long_t.
@@ -1047,6 +1068,18 @@ index a62d89e3ff..1447164453 100644
           callEnv.Execute(object);
           SafeDelete(templist);
        }
+diff --git a/src/core/winnt/inc/TWinNTSystem.h b/src/core/winnt/inc/TWinNTSystem.h
+index 5a6d2719eb..6c40c34f6a 100644
+--- a/src/core/winnt/inc/TWinNTSystem.h
++++ b/src/core/winnt/inc/TWinNTSystem.h
+@@ -262,6 +262,6 @@ public:
+    ClassDef(TWinNTSystem, 0)
+ };
+ 
+-R__EXTERN ULong_t gConsoleWindow;   // console window handle
++R__EXTERN void* gConsoleWindow;   // console window handle
+ 
+ #endif
 diff --git a/src/core/winnt/src/TWinNTSystem.cxx b/src/core/winnt/src/TWinNTSystem.cxx
 index 7a477878a0..bfb16a5a09 100644
 --- a/src/core/winnt/src/TWinNTSystem.cxx
@@ -1069,6 +1102,15 @@ index 7a477878a0..bfb16a5a09 100644
  
  ////////////////////////////////////////////////////////////////////////////////
  ///
+@@ -3902,7 +3902,7 @@ void TWinNTSystem::Exit(int code, Bool_t mode)
+                   if (((TBrowser*)0x%lx)->GetBrowserImp() &&\
+                       ((TBrowser*)0x%lx)->GetBrowserImp()->GetMainFrame()) \
+                      ((TBrowser*)0x%lx)->GetBrowserImp()->GetMainFrame()->CloseWindow();\
+-                  else delete (TBrowser*)0x%lx", (ULong_t)b, (ULong_t)b, (ULong_t)b, (ULong_t)b));
++                  else delete (TBrowser*)0x%lx", (ptrdiff_t)b, (ptrdiff_t)b, (ptrdiff_t)b, (ptrdiff_t)b));
+          }
+       }
+       gROOT->EndOfProcessCleanups();
 diff --git a/src/core/metacling/src/TClingCallFunc.cxx b/src/core/metacling/src/TClingCallFunc.cxx
 index 92c96215c0..e77026ebe3 100644
 --- a/src/core/metacling/src/TClingCallFunc.cxx
@@ -1103,7 +1145,7 @@ index 1cb6973800..f052455243 100644
        return -1L;
     }
 -   return reinterpret_cast<long>(fDecl);
-+   return (long)fDecl;
++   return (long)(ptrdiff_t)fDecl;
  }
  
  const char *TClingClassInfo::FileName()
@@ -1267,6 +1309,15 @@ diff --git a/src/core/base/src/TObject.cxx b/src/core/base/src/TObject.cxx
 index 1cdf15f4ee..c875d9a524 100644
 --- a/src/core/base/src/TObject.cxx
 +++ b/src/core/base/src/TObject.cxx
+@@ -49,7 +49,7 @@ class hierarchies (watch out for overlaps).
+ #include "TRefTable.h"
+ #include "TProcessID.h"
+ 
+-Long_t TObject::fgDtorOnly = 0;
++ptrdiff_t TObject::fgDtorOnly = 0;
+ Bool_t TObject::fgObjectStat = kTRUE;
+ 
+ ClassImp(TObject);
 @@ -976,7 +976,7 @@ Long_t TObject::GetDtorOnly()
  
  void TObject::SetDtorOnly(void *obj)
@@ -1480,3 +1531,424 @@ index 2d2ba966e9..a734ba9ebb 100644
  }
  
  ////////////////////////////////////////////////////////////////////////////////
+diff --git a/src/core/base/src/TDirectory.cxx b/src/core/base/src/TDirectory.cxx
+index 8fce0f1a59..dfba710076 100644
+--- a/src/core/base/src/TDirectory.cxx
++++ b/src/core/base/src/TDirectory.cxx
+@@ -1188,7 +1188,7 @@ Int_t TDirectory::SaveObjectAs(const TObject *obj, const char *filename, Option_
+    }
+    TString cmd;
+    if (fname.Index(".json") > 0) {
+-      cmd.Form("TBufferJSON::ExportToFile(\"%s\",(TObject*) %s, \"%s\");", fname.Data(), TString::LLtoa((Long_t)obj, 10).Data(), (option ? option : ""));
++      cmd.Form("TBufferJSON::ExportToFile(\"%s\",(TObject*) %s, \"%s\");", fname.Data(), TString::LLtoa((ptrdiff_t)obj, 10).Data(), (option ? option : ""));
+       nbytes = gROOT->ProcessLine(cmd);
+    } else {
+       cmd.Form("TFile::Open(\"%s\",\"recreate\");",fname.Data());
+diff --git a/src/build/win/bindexplib/bindexplib.cxx b/src/build/win/bindexplib/bindexplib.cxx
+index 04ae355059..b513a53a03 100644
+--- a/src/build/win/bindexplib/bindexplib.cxx
++++ b/src/build/win/bindexplib/bindexplib.cxx
+@@ -409,7 +409,7 @@ HaveExportedObjects(PIMAGE_FILE_HEADER pImageFileHeader, PIMAGE_SECTION_HEADER p
+        if (strncmp(lookingForDATA, ",DATA", 5)) break;
+        posImportFlag = lookingForDATA + 5;
+     }
+-    fImportFlag = (int)posImportFlag;
++    fImportFlag = (int)(ptrdiff_t)posImportFlag;
+     return fImportFlag;
+ }
+ 
+@@ -533,11 +533,11 @@ DumpObjFile(PIMAGE_FILE_HEADER pImageFileHeader, FILE *fout, int full, int fort)
+    DWORD COFFSymbolCount;
+ 
+    PCOFFSymbolTable = (PIMAGE_SYMBOL)
+-      ((DWORD)pImageFileHeader + pImageFileHeader->PointerToSymbolTable);
++      ((ptrdiff_t)pImageFileHeader + pImageFileHeader->PointerToSymbolTable);
+    COFFSymbolCount = pImageFileHeader->NumberOfSymbols;
+ 
+    PCOFFSectionHeaders = (PIMAGE_SECTION_HEADER)
+-      ((DWORD)pImageFileHeader          +
++      ((ptrdiff_t)pImageFileHeader          +
+       IMAGE_SIZEOF_FILE_HEADER +
+       pImageFileHeader->SizeOfOptionalHeader);
+ 
+diff --git a/src/core/thread/inc/TThread.h b/src/core/thread/inc/TThread.h
+index a023ef19c3..8635abcd6b 100644
+--- a/src/core/thread/inc/TThread.h
++++ b/src/core/thread/inc/TThread.h
+@@ -75,7 +75,7 @@ private:
+    EState         fState;                 // thread state
+    EState         fStateComing;           // coming thread state
+    Long_t         fId;                    // thread id
+-   Long_t         fHandle;                // Win32 thread handle
++   ptrdiff_t      fHandle;                // Win32 thread handle
+    Bool_t         fDetached;              // kTRUE if thread is Detached
+    Bool_t         fNamed;                 // kTRUE if thread is Named
+    VoidRtnFunc_t  fFcnRetn;               // void* start function of thread
+diff --git a/src/core/thread/src/TThread.cxx b/src/core/thread/src/TThread.cxx
+index 581aa0949e..3ac0e72fcb 100644
+--- a/src/core/thread/src/TThread.cxx
++++ b/src/core/thread/src/TThread.cxx
+@@ -1088,7 +1088,7 @@ void TThread::XAction()
+ 
+       case kERRO:
+          {
+-            int level = (int)Long_t(fgXArr[1]);
++            int level = (int)(ptrdiff_t)fgXArr[1];
+             const char *location = (const char*)fgXArr[2];
+             char *mess = (char*)fgXArr[3];
+             if (level != kFatal)
+@@ -1115,7 +1115,7 @@ void TThread::XAction()
+ 
+             case 2:
+                //((TCanvas*)fgXArr[1])->Constructor();
+-               cmd = Form("((TCanvas *)0x%lx)->Constructor();",(Long_t)fgXArr[1]);
++               cmd = Form("((TCanvas *)0x%lx)->Constructor();",(ptrdiff_t)fgXArr[1]);
+                gROOT->ProcessLine(cmd);
+                break;
+ 
+@@ -1124,7 +1124,7 @@ void TThread::XAction()
+                //                 (char*)fgXArr[2],
+                //                 (char*)fgXArr[3],
+                //                *((Int_t*)(fgXArr[4])));
+-               cmd = Form("((TCanvas *)0x%lx)->Constructor((char*)0x%lx,(char*)0x%lx,*((Int_t*)(0x%lx)));",(Long_t)fgXArr[1],(Long_t)fgXArr[2],(Long_t)fgXArr[3],(Long_t)fgXArr[4]);
++               cmd = Form("((TCanvas *)0x%lx)->Constructor((char*)0x%lx,(char*)0x%lx,*((Int_t*)(0x%lx)));",(ptrdiff_t)fgXArr[1],(ptrdiff_t)fgXArr[2],(ptrdiff_t)fgXArr[3],(ptrdiff_t)fgXArr[4]);
+                gROOT->ProcessLine(cmd);
+                break;
+             case 6:
+@@ -1133,7 +1133,7 @@ void TThread::XAction()
+                //                 (char*)fgXArr[3],
+                //                *((Int_t*)(fgXArr[4])),
+                //                *((Int_t*)(fgXArr[5])));
+-               cmd = Form("((TCanvas *)0x%lx)->Constructor((char*)0x%lx,(char*)0x%lx,*((Int_t*)(0x%lx)),*((Int_t*)(0x%lx)));",(Long_t)fgXArr[1],(Long_t)fgXArr[2],(Long_t)fgXArr[3],(Long_t)fgXArr[4],(Long_t)fgXArr[5]);
++               cmd = Form("((TCanvas *)0x%lx)->Constructor((char*)0x%lx,(char*)0x%lx,*((Int_t*)(0x%lx)),*((Int_t*)(0x%lx)));",(ptrdiff_t)fgXArr[1],(ptrdiff_t)fgXArr[2],(ptrdiff_t)fgXArr[3],(ptrdiff_t)fgXArr[4],(ptrdiff_t)fgXArr[5]);
+                gROOT->ProcessLine(cmd);
+                break;
+ 
+@@ -1145,7 +1145,7 @@ void TThread::XAction()
+                //               *((Int_t*)(fgXArr[5])),
+                //               *((Int_t*)(fgXArr[6])),
+                //               *((Int_t*)(fgXArr[7])));
+-               cmd = Form("((TCanvas *)0x%lx)->Constructor((char*)0x%lx,(char*)0x%lx,*((Int_t*)(0x%lx)),*((Int_t*)(0x%lx)),*((Int_t*)(0x%lx)),*((Int_t*)(0x%lx)));",(Long_t)fgXArr[1],(Long_t)fgXArr[2],(Long_t)fgXArr[3],(Long_t)fgXArr[4],(Long_t)fgXArr[5],(Long_t)fgXArr[6],(Long_t)fgXArr[7]);
++               cmd = Form("((TCanvas *)0x%lx)->Constructor((char*)0x%lx,(char*)0x%lx,*((Int_t*)(0x%lx)),*((Int_t*)(0x%lx)),*((Int_t*)(0x%lx)),*((Int_t*)(0x%lx)));",(ptrdiff_t)fgXArr[1],(ptrdiff_t)fgXArr[2],(ptrdiff_t)fgXArr[3],(ptrdiff_t)fgXArr[4],(ptrdiff_t)fgXArr[5],(ptrdiff_t)fgXArr[6],(ptrdiff_t)fgXArr[7]);
+                gROOT->ProcessLine(cmd);
+                break;
+
+diff --git a/src/core/thread/src/TWin32Thread.cxx b/src/core/thread/src/TWin32Thread.cxx
+index a0ce0ed645..c149258837 100644
+--- a/src/core/thread/src/TWin32Thread.cxx
++++ b/src/core/thread/src/TWin32Thread.cxx
+@@ -37,7 +37,7 @@ Int_t TWin32Thread::Run(TThread *th)
+       ::CloseHandle(hHandle);
+       th->fHandle = 0L;
+    } else
+-      th->fHandle = (Long_t)hHandle;
++      th->fHandle = (ptrdiff_t)hHandle;
+ 
+    th->fId = dwThreadId;
+ 
+@@ -108,7 +108,7 @@ Int_t TWin32Thread::CleanUpPop(void **main,Int_t exe)
+ 
+ Int_t TWin32Thread::CleanUp(void **main)
+ {
+-   fprintf(stderr," CleanUp %lx\n",(ULong_t)*main);
++   fprintf(stderr," CleanUp %lx\n",(ptrdiff_t)*main);
+    while(!CleanUpPop(main,1)) { }
+    return 0;
+ }
+diff --git a/src/io/io/src/TStreamerInfo.cxx b/src/io/io/src/TStreamerInfo.cxx
+index 64eec95d3e..6c19a08258 100644
+--- a/src/io/io/src/TStreamerInfo.cxx
++++ b/src/io/io/src/TStreamerInfo.cxx
+@@ -4988,7 +4988,7 @@ void TStreamerInfo::PrintValue(const char *name, char *pointer, Int_t i, Int_t l
+                TString *st = (TString*)(pointer);
+                printf("%s\n",st->Data());
+             } else {
+-               printf("(%s*)0x%lx\n",GetName(),(ULong_t)pointer);
++               printf("(%s*)0x%lx\n",GetName(),(ptrdiff_t)pointer);
+             }
+          }
+          return;
+@@ -5292,7 +5292,7 @@ void TStreamerInfo::PrintValueAux(char *ladd, Int_t atype, TStreamerElement *aEl
+       case kObjectp: {
+          TObject **obj = (TObject**)(ladd);
+          TStreamerObjectPointer *el = (TStreamerObjectPointer*)aElement;
+-         printf("(%s*)%lx",el ? el->GetClass()->GetName() : "unknown_type",(Long_t)(*obj));
++         printf("(%s*)%lx",el ? el->GetClass()->GetName() : "unknown_type",(ptrdiff_t)(*obj));
+          break;
+       }
+ 
+@@ -5300,7 +5300,7 @@ void TStreamerInfo::PrintValueAux(char *ladd, Int_t atype, TStreamerElement *aEl
+       case kObjectP: {
+          TObject **obj = (TObject**)(ladd);
+          TStreamerObjectPointer *el = (TStreamerObjectPointer*)aElement;
+-         printf("(%s*)%lx",el ? el->GetClass()->GetName() : "unknown_type",(Long_t)(*obj));
++         printf("(%s*)%lx",el ? el->GetClass()->GetName() : "unknown_type",(ptrdiff_t)(*obj));
+          break;
+       }
+ 
+@@ -5332,7 +5332,7 @@ void TStreamerInfo::PrintValueAux(char *ladd, Int_t atype, TStreamerElement *aEl
+       case kAnyp:    {
+          TObject **obj = (TObject**)(ladd);
+          TStreamerObjectAnyPointer *el = (TStreamerObjectAnyPointer*)aElement;
+-         printf("(%s*)0x%lx",el ? el->GetClass()->GetName() : "unknown_type",(Long_t)(*obj));
++         printf("(%s*)0x%lx",el ? el->GetClass()->GetName() : "unknown_type",(ptrdiff_t)(*obj));
+          break;
+       }
+ 
+@@ -5340,7 +5340,7 @@ void TStreamerInfo::PrintValueAux(char *ladd, Int_t atype, TStreamerElement *aEl
+       case kAnyP:    {
+          TObject **obj = (TObject**)(ladd);
+          TStreamerObjectAnyPointer *el = (TStreamerObjectAnyPointer*)aElement;
+-         printf("(%s*)0x%lx",el ? el->GetClass()->GetName() : "unknown_type",(Long_t)(*obj));
++         printf("(%s*)0x%lx",el ? el->GetClass()->GetName() : "unknown_type",(ptrdiff_t)(*obj));
+          break;
+       }
+       // Any Class not derived from TObject
+@@ -5407,10 +5407,10 @@ void TStreamerInfo::PrintValueAux(char *ladd, Int_t atype, TStreamerElement *aEl
+                std::string *st = (std::string*)(ladd);
+                printf("%s",st->c_str());
+             } else {
+-               printf("(%s*)0x%lx",aElement->GetClass()->GetName(),(Long_t)(ladd));
++               printf("(%s*)0x%lx",aElement->GetClass()->GetName(),(ptrdiff_t)(ladd));
+             }
+          } else {
+-            printf("(unknown_type*)0x%lx",(Long_t)(ladd));
++            printf("(unknown_type*)0x%lx",(ptrdiff_t)(ladd));
+          }
+          break;
+       }
+diff --git a/src/io/io/inc/TMapFile.h b/src/io/io/inc/TMapFile.h
+index 8e1dee9dc8..9304c9a56f 100644
+--- a/src/io/io/inc/TMapFile.h
++++ b/src/io/io/inc/TMapFile.h
+@@ -28,7 +28,11 @@ class TMapFile : public TObject {
+ friend class TMapRec;
+ 
+ private:
++#ifdef WIN32
++   HANDLE      fFd;             ///< Descriptor of mapped file
++#else
+    Int_t       fFd;             ///< Descriptor of mapped file
++#endif
+    Int_t       fVersion;        ///< ROOT version (or -1 for shadow map file)
+    char       *fName;           ///< Name of mapped file
+    char       *fTitle;          ///< Title of mapped file
+@@ -90,11 +90,11 @@ public:
+    Int_t         GetSize() const { return fSize; }
+    const char   *GetOption() const { return fOption; }
+    const char   *GetTitle() const { return fTitle; }
+-   TMapRec      *GetFirst() const { return (TMapRec*)((Long_t) fFirst + fOffset); }
+-   TMapRec      *GetLast() const { return (TMapRec*)((Long_t) fLast + fOffset); }
++   TMapRec      *GetFirst() const { return (TMapRec*)((ptrdiff_t) fFirst + fOffset); }
++   TMapRec      *GetLast() const { return (TMapRec*)((ptrdiff_t) fLast + fOffset); }
+    Bool_t        IsFolder() const;
+    Bool_t        IsWritable() const { return fWritable; }
+-   void         *OrgAddress(void *addr) const { return (void *)((Long_t)addr - fOffset); }
++   void         *OrgAddress(void *addr) const { return (void *)((ptrdiff_t)addr - fOffset); }
+    void          Print(Option_t *option="") const;
+    void          ls(Option_t *option="") const;
+    Bool_t        cd(const char *path = 0);
+@@ -143,12 +143,12 @@ private:
+ public:
+    TMapRec(const char *name, const TObject *obj, Int_t size, void *buf);
+    ~TMapRec();
+-   const char   *GetName(Long_t offset = 0) const { return (char *)((Long_t) fName + offset); }
+-   const char   *GetClassName(Long_t offset = 0) const { return (char *)((Long_t) fClassName + offset); }
+-   void         *GetBuffer(Long_t offset = 0) const { return (void *)((Long_t) fBuffer + offset); }
++   const char   *GetName(Long_t offset = 0) const { return (char *)((ptrdiff_t) fName + offset); }
++   const char   *GetClassName(Long_t offset = 0) const { return (char *)((ptrdiff_t) fClassName + offset); }
++   void         *GetBuffer(Long_t offset = 0) const { return (void *)((ptrdiff_t) fBuffer + offset); }
+    Int_t         GetBufSize() const { return fBufSize; }
+    TObject      *GetObject() const;
+-   TMapRec      *GetNext(Long_t offset = 0) const { return (TMapRec *)((Long_t) fNext + offset); }
++   TMapRec      *GetNext(Long_t offset = 0) const { return (TMapRec *)((ptrdiff_t) fNext + offset); }
+ };
+ 
+ #endif
+diff --git a/src/io/io/src/TMapFile.cxx b/src/io/io/src/TMapFile.cxx
+index a9a2e61ad6..c867429110 100644
+--- a/src/io/io/src/TMapFile.cxx
++++ b/src/io/io/src/TMapFile.cxx
+@@ -238,8 +238,8 @@ TMapFile::TMapFile(const char *name, const char *title, Option_t *option,
+    fSemaphore   = -1;
+    fhSemaphore  = 0;
+ #else
+-   fFd          = (Int_t) INVALID_HANDLE_VALUE;
+-   fSemaphore   = (Int_t) INVALID_HANDLE_VALUE;
++   fFd          = (ptrdiff_t)INVALID_HANDLE_VALUE;
++   fSemaphore   = (ptrdiff_t)INVALID_HANDLE_VALUE;
+ #endif
+    fMmallocDesc = 0;
+    fSize        = size;
+@@ -326,7 +326,7 @@ TMapFile::TMapFile(const char *name, const char *title, Option_t *option,
+ #ifndef WIN32
+       fFd = open(fname, O_RDWR | O_CREAT, 0644);
+ #else
+-      fFd = (Int_t) CreateFile(fname,                    // pointer to name of the file
++      fFd = (ptrdiff_t) CreateFile(fname,                // pointer to name of the file
+                      GENERIC_WRITE | GENERIC_READ,       // access (read-write) mode
+                      FILE_SHARE_WRITE | FILE_SHARE_READ, // share mode
+                      NULL,                               // pointer to security attributes
+@@ -334,7 +334,7 @@ TMapFile::TMapFile(const char *name, const char *title, Option_t *option,
+                      FILE_ATTRIBUTE_TEMPORARY,           // file attributes
+                      (HANDLE) NULL);                     // handle to file with attributes to copy
+ #endif
+-      if (fFd == (Int_t)INVALID_HANDLE_VALUE) {
++      if (fFd == (ptrdiff_t)INVALID_HANDLE_VALUE) {
+          SysError("TMapFile", "file %s can not be opened", fname);
+          goto zombie;
+       }
+@@ -343,7 +343,7 @@ TMapFile::TMapFile(const char *name, const char *title, Option_t *option,
+ #ifndef WIN32
+       fFd = open(fname, O_RDONLY);
+ #else
+-      fFd = (Int_t) CreateFile(fname,                    // pointer to name of the file
++      fFd = (ptrdiff_t) CreateFile(fname,                // pointer to name of the file
+                      GENERIC_READ,                       // access (read-write) mode
+                      FILE_SHARE_WRITE | FILE_SHARE_READ, // share mode
+                      NULL,                               // pointer to security attributes
+@@ -351,7 +351,7 @@ TMapFile::TMapFile(const char *name, const char *title, Option_t *option,
+                      FILE_ATTRIBUTE_TEMPORARY,           // file attributes
+                      (HANDLE) NULL);                     // handle to file with attributes to copy
+ #endif
+-      if (fFd == (Int_t)INVALID_HANDLE_VALUE) {
++      if (fFd == (ptrdiff_t)INVALID_HANDLE_VALUE) {
+          SysError("TMapFile", "file %s can not be opened for reading", fname);
+          goto zombie;
+       }
+diff --git a/src/io/io/src/TBufferIO.cxx b/src/io/io/src/TBufferIO.cxx
+index 99e2fe6a12..7453763622 100644
+--- a/src/io/io/src/TBufferIO.cxx
++++ b/src/io/io/src/TBufferIO.cxx
+@@ -169,7 +169,7 @@ void TBufferIO::MapObject(const TObject *obj, UInt_t offset)
+       if (obj) {
+          CheckCount(offset);
+          ULong_t hash = Void_Hash(obj);
+-         fMap->Add(hash, (Long_t)obj, offset);
++         fMap->Add(hash, (ptrdiff_t)obj, offset);
+          // No need to keep track of the class in write mode
+          // fClassMap->Add(hash, (Long_t)obj, (Long_t)((TObject*)obj)->IsA());
+          fMapCount++;
+@@ -178,8 +178,8 @@ void TBufferIO::MapObject(const TObject *obj, UInt_t offset)
+       if (!fMap || !fClassMap)
+          InitMap();
+ 
+-      fMap->Add(offset, (Long_t)obj);
+-      fClassMap->Add(offset, (obj && obj != (TObject *)-1) ? (Long_t)((TObject *)obj)->IsA() : 0);
++      fMap->Add(offset, (ptrdiff_t)obj);
++      fClassMap->Add(offset, (obj && obj != (TObject *)-1) ? (ptrdiff_t)((TObject *)obj)->IsA() : 0);
+       fMapCount++;
+    }
+ }
+@@ -202,7 +202,7 @@ void TBufferIO::MapObject(const void *obj, const TClass *cl, UInt_t offset)
+       if (obj) {
+          CheckCount(offset);
+          ULong_t hash = Void_Hash(obj);
+-         fMap->Add(hash, (Long_t)obj, offset);
++         fMap->Add(hash, (ptrdiff_t)obj, offset);
+          // No need to keep track of the class in write mode
+          // fClassMap->Add(hash, (Long_t)obj, (Long_t)cl);
+          fMapCount++;
+@@ -211,8 +211,8 @@ void TBufferIO::MapObject(const void *obj, const TClass *cl, UInt_t offset)
+       if (!fMap || !fClassMap)
+          InitMap();
+ 
+-      fMap->Add(offset, (Long_t)obj);
+-      fClassMap->Add(offset, (Long_t)cl);
++      fMap->Add(offset, (ptrdiff_t)obj);
++      fClassMap->Add(offset, (ptrdiff_t)cl);
+       fMapCount++;
+    }
+ }
+@@ -244,9 +244,9 @@ Bool_t TBufferIO::CheckObject(const void *obj, const TClass *ptrClass)
+    if (clActual && (ptrClass != clActual)) {
+       const char *temp = (const char *)obj;
+       temp -= clActual->GetBaseClassOffset(ptrClass);
+-      idx = (ULong_t)fMap->GetValue(Void_Hash(temp), (Long_t)temp);
++      idx = (ULong_t)fMap->GetValue(Void_Hash(temp), (ptrdiff_t)temp);
+    } else {
+-      idx = (ULong_t)fMap->GetValue(Void_Hash(obj), (Long_t)obj);
++      idx = (ULong_t)fMap->GetValue(Void_Hash(obj), (ptrdiff_t)obj);
+    }
+ 
+    return idx ? kTRUE : kFALSE;
+@@ -279,7 +279,7 @@ Long64_t TBufferIO::GetObjectTag(const void *obj)
+    if (!obj || !fMap)
+       return 0;
+ 
+-   return fMap->GetValue(Void_Hash(obj), (Long_t)obj);
++   return fMap->GetValue(Void_Hash(obj), (ptrdiff_t)obj);
+ }
+ 
+ ////////////////////////////////////////////////////////////////////////////////
+diff --git a/src/io/io/src/TBufferJSON.cxx b/src/io/io/src/TBufferJSON.cxx
+index 016e988316..9d01730060 100644
+--- a/src/io/io/src/TBufferJSON.cxx
++++ b/src/io/io/src/TBufferJSON.cxx
+@@ -421,7 +421,7 @@ TString TBufferJSON::ConvertToJSON(const TObject *obj, Int_t compact, const char
+       if (!clActual)
+          clActual = TObject::Class();
+       else if (clActual != TObject::Class())
+-         ptr = (void *)((Long_t)obj - clActual->GetBaseClassOffset(TObject::Class()));
++         ptr = (void *)((ptrdiff_t)obj - clActual->GetBaseClassOffset(TObject::Class()));
+    }
+ 
+    return ConvertToJSON(ptr, clActual, compact, member_name);
+diff --git a/src/io/io/src/TBufferFile.cxx b/src/io/io/src/TBufferFile.cxx
+index c3ef08a4a8..923500359f 100644
+--- a/src/io/io/src/TBufferFile.cxx
++++ b/src/io/io/src/TBufferFile.cxx
+@@ -359,10 +359,10 @@ Int_t TBufferFile::CheckByteCount(UInt_t startpos, UInt_t bcnt, const TClass *cl
+ 
+    Int_t  offset = 0;
+ 
+-   Long_t endpos = Long_t(fBuffer) + startpos + bcnt + sizeof(UInt_t);
++   ptrdiff_t endpos = ptrdiff_t(fBuffer) + startpos + bcnt + sizeof(UInt_t);
+ 
+-   if (Long_t(fBufCur) != endpos) {
+-      offset = Int_t(Long_t(fBufCur) - endpos);
++   if (ptrdiff_t(fBufCur) != endpos) {
++      offset = Int_t(ptrdiff_t(fBufCur) - endpos);
+ 
+       const char *name = clss ? clss->GetName() : classname ? classname : 0;
+ 
+@@ -2504,7 +2504,7 @@ void TBufferFile::WriteObjectClass(const void *actualObjectStart, const TClass *
+       UInt_t slot;
+       ULong_t hash = Void_Hash(actualObjectStart);
+ 
+-      if ((idx = (ULong_t)fMap->GetValue(hash, (Long_t)actualObjectStart, slot)) != 0) {
++      if ((idx = (ULong_t)fMap->GetValue(hash, (ptrdiff_t)actualObjectStart, slot)) != 0) {
+ 
+          // truncation is OK the value we did put in the map is an 30-bit offset
+          // and not a pointer
+@@ -2539,10 +2539,10 @@ void TBufferFile::WriteObjectClass(const void *actualObjectStart, const TClass *
+             //MapObject(actualObjectStart, actualClass, cntpos+kMapOffset);
+             UInt_t offset = cntpos+kMapOffset;
+             if (mapsize == fMap->Capacity()) {
+-               fMap->AddAt(slot, hash, (Long_t)actualObjectStart, offset);
++               fMap->AddAt(slot, hash, (ptrdiff_t)actualObjectStart, offset);
+             } else {
+                // The slot depends on the capacity and WriteClass has induced an increase.
+-               fMap->Add(hash, (Long_t)actualObjectStart, offset);
++               fMap->Add(hash, (ptrdiff_t)actualObjectStart, offset);
+             }
+             // No need to keep track of the class in write mode
+             // fClassMap->Add(hash, (Long_t)obj, (Long_t)((TObject*)obj)->IsA());
+@@ -2657,7 +2657,7 @@ void TBufferFile::WriteClass(const TClass *cl)
+    ULong_t hash = Void_Hash(cl);
+    UInt_t slot;
+ 
+-   if ((idx = (ULong_t)fMap->GetValue(hash, (Long_t)cl,slot)) != 0) {
++   if ((idx = (ULong_t)fMap->GetValue(hash, (ptrdiff_t)cl,slot)) != 0) {
+ 
+       // truncation is OK the value we did put in the map is an 30-bit offset
+       // and not a pointer
+@@ -2679,7 +2679,7 @@ void TBufferFile::WriteClass(const TClass *cl)
+ 
+       // store new class reference in fMap (+kMapOffset so it's != kNullTag)
+       CheckCount(offset+kMapOffset);
+-      fMap->AddAt(slot, hash, (Long_t)cl, offset+kMapOffset);
++      fMap->AddAt(slot, hash, (ptrdiff_t)cl, offset+kMapOffset);
+       fMapCount++;
+    }
+ }
