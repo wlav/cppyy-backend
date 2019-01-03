@@ -2121,7 +2121,7 @@ index a9a2e61ad6..c867429110 100644
        Printf("Option:               %s", fOption);
 -      ULong_t size = (ULong_t)((struct mdesc *)fMmallocDesc)->top - fBaseAddr;
 -      Printf("Mapped Memory region: 0x%lx - 0x%lx (%.2f MB)", fBaseAddr, fBaseAddr + size,
-+      uintptr_t size = (ULong_t)((struct mdesc *)fMmallocDesc)->top - fBaseAddr;
++      uintptr_t size = (uintptr_t)((struct mdesc *)fMmallocDesc)->top - fBaseAddr;
 +      Printf("Mapped Memory region: 0x%td - 0x%td (%.2f MB)", fBaseAddr, fBaseAddr + size,
               (float)size/1048576);
 -      Printf("Current breakval:     0x%lx", (ULong_t)GetBreakval());
