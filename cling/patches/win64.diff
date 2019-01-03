@@ -1921,10 +1921,10 @@ index 64eec95d3e..6c19a08258 100644
           break;
        }
 diff --git a/src/io/io/inc/TMapFile.h b/src/io/io/inc/TMapFile.h
-index 8e1dee9dc8..9304c9a56f 100644
+index 8e1dee9dc8..5cb057020c 100644
 --- a/src/io/io/inc/TMapFile.h
 +++ b/src/io/io/inc/TMapFile.h
-@@ -28,7 +28,11 @@ class TMapFile : public TObject {
+@@ -28,13 +28,17 @@ class TMapFile : public TObject {
  friend class TMapRec;
  
  private:
@@ -1936,8 +1936,6 @@ index 8e1dee9dc8..9304c9a56f 100644
     Int_t       fVersion;        ///< ROOT version (or -1 for shadow map file)
     char       *fName;           ///< Name of mapped file
     char       *fTitle;          ///< Title of mapped file
-@@ -34,7 +34,7 @@ private:
-    char       *fTitle;          ///< Title of mapped file
     char       *fOption;         ///< Directory creation options
     void       *fMmallocDesc;    ///< Pointer to mmalloc descriptor
 -   ULong_t     fBaseAddr;       ///< Base address of mapped memory region
@@ -1945,7 +1943,7 @@ index 8e1dee9dc8..9304c9a56f 100644
     Int_t       fSize;           ///< Original start size of memory mapped region
     TMapRec    *fFirst;          ///< List of streamed objects is shared memory
     TMapRec    *fLast;           ///< Last object in list of shared objects
-@@ -43,13 +43,13 @@ private:
+@@ -43,13 +47,13 @@ private:
     TList      *fBrowseList;     ///< List of KeyMapFile objects
     Bool_t      fWritable;       ///< TRUE if mapped file opened in RDWR mode
     Int_t       fSemaphore;      ///< Modification semaphore (or getpid() for WIN32)
@@ -1957,11 +1955,11 @@ index 8e1dee9dc8..9304c9a56f 100644
     Double_t    fSum2Buffer;     ///< Sum of squares of buffer sizes of objects written so far
  
 -   static Long_t fgMapAddress;  ///< Map to this address, set address via SetMapAddress()
-+   static intptr_t fgMapAddress;///< Map to this address, set address via SetMapAddress()
++   static intptr_t fgMapAddress;  ///< Map to this address, set address via SetMapAddress()
     static void  *fgMmallocDesc; ///< Used in Close() and operator delete()
  
  protected:
-@@ -90,11 +90,11 @@ public:
+@@ -90,11 +94,11 @@ public:
     Int_t         GetSize() const { return fSize; }
     const char   *GetOption() const { return fOption; }
     const char   *GetTitle() const { return fTitle; }
@@ -1976,7 +1974,7 @@ index 8e1dee9dc8..9304c9a56f 100644
     void          Print(Option_t *option="") const;
     void          ls(Option_t *option="") const;
     Bool_t        cd(const char *path = 0);
-@@ -143,12 +143,12 @@ private:
+@@ -143,12 +147,12 @@ private:
  public:
     TMapRec(const char *name, const TObject *obj, Int_t size, void *buf);
     ~TMapRec();
@@ -2296,7 +2294,7 @@ index c3ef08a4a8..923500359f 100644
        if (fVersion > 0) {
           // check if class was already read
 -         TClass *cl1 = (TClass *)(Long_t)fMap->GetValue(startpos+kMapOffset);
-+         TClass *cl1 = (TClass *)(ptrdiff_t)fMap->GetValue(startpos+kMapOffset);
++         TClass *cl1 = (TClass *)(intptr_t)fMap->GetValue(startpos+kMapOffset);
           if (cl1 != cl)
              MapObject(cl ? cl : (TObject*) -1, startpos+kMapOffset);
        } else
@@ -2305,7 +2303,7 @@ index c3ef08a4a8..923500359f 100644
 
        // class can be 0 if dictionary was not found
 -      cl = (TClass *)(Long_t)fMap->GetValue(clTag);
-+      cl = (TClass *)(ptrdiff_t)fMap->GetValue(clTag);
++      cl = (TClass *)(intptr_t)fMap->GetValue(clTag);
     }
 
     if (cl && clReq &&
@@ -2439,7 +2437,7 @@ index 45a65fb746..81bf26054a 100644
                 TList listH;
                 TString listHargs;
 -               listHargs.Form("((TCollection*)0x%lx)", (ULong_t)&listH);
-+               listHargs.Form("((TCollection*)0x%td)", (ptrdiff_t)&listH);
++               listHargs.Form("((TCollection*)0x%td)", (uintptr_t)&listH);
  
                 // Loop over all source files and merge same-name object
                 TFile *nextsource = current_file ? (TFile*)sourcelist->After( current_file ) : (TFile*)sourcelist->First();
