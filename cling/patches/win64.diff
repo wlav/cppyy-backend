@@ -779,7 +779,7 @@ index 578d4c9ffe..ef04e56008 100644
     void     SetParamPtrs(void *paramArr, Int_t nparam = -1);
     void     ResetParam();
 +#ifdef _WIN64
-+   void     SetParam(int l);
++   void     SetParam(long l);
 +   void     SetParam(intptr_t ll);
 +#else
     void     SetParam(Long_t l);
@@ -798,8 +798,8 @@ index 578d4c9ffe..ef04e56008 100644
     void     Execute(void *object);
     void     Execute(void *object, const char *params);
 +#ifdef _WIN64
-+   void     Execute(void *object, Long_t &retLong) { intptr_t ret = retLong; Execute(object, ret); }
-+   void     Execute(void *object, const char *params, Long_t &retLong) { intptr_t ret = retLong; Execute(object, params, ret); }
++   void     Execute(void *object, long &retLong) { intptr_t ret = retLong; Execute(object, ret); retLong = (long)ret; }
++   void     Execute(void *object, const char *params, long &retLong) { intptr_t ret = retLong; Execute(object, params, ret); retLong = (long)ret; }
 +   void     Execute(void *object, intptr_t &retLong);
 +   void     Execute(void *object, const char *params, intptr_t &retLong);
 +#else
@@ -814,8 +814,8 @@ index 578d4c9ffe..ef04e56008 100644
     void     Execute();
     void     Execute(const char *params);
 +#ifdef _WIN64
-+   void     Execute(Long_t &retLong);
-+   void     Execute(const char *params, Long_t &retLong);
++   void     Execute(long &retLong);
++   void     Execute(const char *params, long &retLong);
 +   void     Execute(intptr_t &retLong);
 +   void     Execute(const char *params, intptr_t &retLong);
 +#else
@@ -830,9 +830,9 @@ index 578d4c9ffe..ef04e56008 100644
  inline void TMethodCall::Execute(const char *params)
     { Execute((void *)0, params); }
 +#ifdef _WIN64
-+inline void TMethodCall::Execute(int &retLong)
++inline void TMethodCall::Execute(long &retLong)
 +   { Execute((void *)0, retLong); }
-+inline void TMethodCall::Execute(const char *params, int &retLong)
++inline void TMethodCall::Execute(const char *params, long &retLong)
 +   { Execute((void *)0, params, retLong); }
 +inline void TMethodCall::Execute(intptr_t &retLong)
 +   { Execute((void *)0, retLong); }
@@ -993,7 +993,7 @@ index a79850e7b7..924fd0980b 100644
  /// Add a long method parameter.
  
 +#ifdef _WIN64
-+void TMethodCall::SetParam(int l)
++void TMethodCall::SetParam(long l)
 +#else
  void TMethodCall::SetParam(Long_t l)
 +#endif
