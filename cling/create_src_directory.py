@@ -435,12 +435,15 @@ except ImportError:
             self.fdiff = fdiff
 
         def apply(self):
-            os.system('patch -p1 < ' + self.fdiff)
+            res = os.system('patch -p1 < ' + self.fdiff)
+            return res == 0
 
 for fdiff in ('scanner', 'scanner_2', 'faux_typedef', 'template_fwd', 'dep_template',
               'no_long64_t', 'using_decls', 'sfinae', 'typedef_of_private', 'optlevel2_forced',
               'explicit_template', 'helpers', 'pch', 'strip_lz4_lzma', 'msvc', 'win64'):
     pset = patch.fromfile(os.path.join('patches', fdiff+'.diff'))
-    pset.apply()
+    if not pset.apply():
+        print("Failed to apply patch:", fdiff)
+        sys.exit(2)
 
 # done!
