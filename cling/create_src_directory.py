@@ -439,17 +439,8 @@ except ImportError:
 
 for fdiff in ('scanner', 'scanner_2', 'faux_typedef', 'template_fwd', 'dep_template',
               'no_long64_t', 'using_decls', 'sfinae', 'typedef_of_private', 'optlevel2_forced',
-              'explicit_template', 'helpers', 'pch', 'msvc', 'strip_lz4_lzma'):
+              'explicit_template', 'helpers', 'pch', 'strip_lz4_lzma', 'msvc', 'win64'):
     pset = patch.fromfile(os.path.join('patches', fdiff+'.diff'))
     pset.apply()
-
-#
-## final patch for Win64 only (mainly preventing pointer truncations)
-#
-if 'win32' in sys.platform:
-    import platform
-    if '64' in platform.architecture()[0]:
-        pset = patch.fromfile(os.path.join('patches', 'win64.diff'))
-        pset.apply()
 
 # done!
