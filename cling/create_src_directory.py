@@ -356,6 +356,7 @@ enum ESendRecvOptions {
     new_cml.close()
     rename(outp, inp)
 
+print('trimming mathcore')
 inp = os.path.join('math', 'mathcore', 'src', 'Fitter.cxx')
 if os.path.exists(inp):
     outp = inp+'.new'
@@ -366,6 +367,22 @@ if os.path.exists(inp):
         new_cml.write(line)
     new_cml.close()
     rename(outp, inp)
+
+os.remove(os.path.join('math', 'mathcore', 'src', 'triangle.h'))
+os.remove(os.path.join('math', 'mathcore', 'src', 'triangle.c'))
+os.remove(os.path.join('math', 'mathcore', 'inc', 'Math', 'Delaunay2D.h'))
+os.remove(os.path.join('math', 'mathcore', 'src', 'Delaunay2D.cxx'))
+
+inp = os.path.join('math', 'mathcore', 'CMakeLists.txt')
+outp = inp+'.new'
+now_stripping = False
+new_cml = open(outp, 'w')
+for line in open(inp).readlines():
+    if 'Delaunay2D' in line or 'triangle' in line:
+        new_cml.write('#')
+    new_cml.write(line)
+new_cml.close()
+rename(outp, inp)
 
 # done
 os.chdir(os.path.pardir)
@@ -422,8 +439,17 @@ except ImportError:
 
 for fdiff in ('scanner', 'scanner_2', 'faux_typedef', 'template_fwd', 'dep_template',
               'no_long64_t', 'using_decls', 'sfinae', 'typedef_of_private', 'optlevel2_forced',
-              'explicit_template', 'helpers', 'pch', 'msvc', 'win64', 'strip_lz4_lzma'):
+              'explicit_template', 'helpers', 'pch', 'msvc', 'strip_lz4_lzma'):
     pset = patch.fromfile(os.path.join('patches', fdiff+'.diff'))
     pset.apply()
+
+#
+## final patch for Win64 only (mainly preventing pointer truncations)
+#
+if 'win32' in sys.platform:
+    import platform
+    if '64' in platform.architecture()[0]:
+        pset = patch.fromfile(os.path.join('patches', 'win64.diff'))
+        pset.apply()
 
 # done!
