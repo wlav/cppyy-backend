@@ -1,4 +1,4 @@
-import os, sys, subprocess
+import os, sys, subprocess, stat
 import multiprocessing
 from setuptools import setup, find_packages
 from distutils import log
@@ -104,17 +104,18 @@ class my_cmake_build(_build):
         # extra optimization flags for Cling
         if not 'EXTRA_CLING_ARGS' in os.environ:
             has_avx = False
-            try:
-                for line in open('/proc/cpuinfo', 'r'):
-                    if 'avx' in line:
-                        has_avx = True
-                        break
-            except Exception:
+            if not is_manylinux():
                 try:
-                    cli_arg = subprocess.check_output(['sysctl', 'machdep.cpu.features'])
-                    has_avx = 'avx' in cli_arg.decode("utf-8").strip().lower()
+                    for line in open('/proc/cpuinfo', 'r'):
+                        if 'avx' in line:
+                            has_avx = True
+                            break
                 except Exception:
-                    pass
+                    try:
+                        cli_arg = subprocess.check_output(['sysctl', 'machdep.cpu.features'])
+                        has_avx = 'avx' in cli_arg.decode("utf-8").strip().lower()
+                    except Exception:
+                        pass
             extra_args = '-O2'
             if has_avx: extra_args += ' -mavx'
             os.putenv('EXTRA_CLING_ARGS', extra_args)
@@ -228,6 +229,19 @@ class my_install(_install):
          # remove allDict.cxx.pch as it's not portable (rebuild on first run, see cppyy)
             log.info('removing allDict.cxx.pch')
             os.remove(os.path.join(get_prefix(), 'etc', 'allDict.cxx.pch'))
+         # for manylinux, reset the default cxxversion to 17 if no user override
+            if not 'STDCXX' in os.environ and is_manylinux():
+                log.info('updating root-config to C++17 for manylinux')
+                inp = os.path.join(get_prefix(), 'bin', 'root-config')
+                outp = inp+'.new'
+                outfile = open(outp, 'w')
+                for line in open(inp).readlines():
+                    if 'cxxversion=' == line[:11]:
+                        line = 'cxxversion=cxx17\n'
+                    outfile.write(line)
+                outfile.close()
+                os.rename(outp, inp)
+                os.chmod(inp, stat.S_IMODE(os.lstat(inp).st_mode) | stat.S_IXUSR | stat.S_IXGRP | stat.S_IXOTH)
         install_path = self._get_install_path()
         log.info('Copying installation to: %s ...', install_path)
         self.copy_tree(os.path.join(get_prefix(), os.path.pardir), install_path)
