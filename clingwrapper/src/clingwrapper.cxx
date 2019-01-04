@@ -1059,7 +1059,7 @@ std::string Cppyy::GetMethodArgName(TCppMethod_t method, TCppIndex_t iarg)
 {
     if (method) {
         TFunction* f = m2f(method);
-        TMethodArg* arg = (TMethodArg*)f->GetListOfMethodArgs()->At(iarg);
+        TMethodArg* arg = (TMethodArg*)f->GetListOfMethodArgs()->At((int)iarg);
         return arg->GetName();
     }
     return "<unknown>";
@@ -1069,7 +1069,7 @@ std::string Cppyy::GetMethodArgType(TCppMethod_t method, TCppIndex_t iarg)
 {
     if (method) {
         TFunction* f = m2f(method);
-        TMethodArg* arg = (TMethodArg*)f->GetListOfMethodArgs()->At(iarg);
+        TMethodArg* arg = (TMethodArg*)f->GetListOfMethodArgs()->At((int)iarg);
         return arg->GetTypeNormalizedName();
     }
     return "<unknown>";
@@ -1079,7 +1079,7 @@ std::string Cppyy::GetMethodArgDefault(TCppMethod_t method, TCppIndex_t iarg)
 {
     if (method) {
         TFunction* f = m2f(method);
-        TMethodArg* arg = (TMethodArg*)f->GetListOfMethodArgs()->At(iarg);
+        TMethodArg* arg = (TMethodArg*)f->GetListOfMethodArgs()->At((int)iarg);
         const char* def = arg->GetDefault();
         if (def)
             return def;
