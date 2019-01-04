@@ -2,18 +2,28 @@ from __future__ import print_function
 """ cppyy_backend loader
 """
 
+__all__ = [
+    'load_cpp_backend',           # load libcppyy_backend
+    'set_cling_compile_options',  # set EXTRA_CLING_ARGS envar
+    'ensure_precompiled_header'   # build precompiled header as necessary
+]
+
 import os, sys, ctypes, subprocess
 
 if 'win' in sys.platform:
-   soext = '.dll'
+    soext = '.dll'
 else:
-   soext = '.so'
+    soext = '.so'
 
+
+_precompiled_header_ensured = False
 def load_cpp_backend():
-    if 'linux' in sys.platform:
+    set_cling_compile_options()
+
+    if 'linux' in sys.platform and not _precompiled_header_ensured:
      # the precompiled header of standard and system headers is not part of the
      # distribution as there are too many varieties; create it now if needed
-        _ensure_precompiled_header()
+        ensure_precompiled_header()
 
     try:
       # normal load, allowing for user overrides of LD_LIBRARY_PATH
@@ -32,9 +42,16 @@ def load_cpp_backend():
 
     return c
 
-def _set_cling_compile_options():
+
+def set_cling_compile_options(add_defaults = False):
  # extra optimization flags for Cling
     if not 'EXTRA_CLING_ARGS' in os.environ:
+        CURRENT_ARGS = ''
+        add_defaults = True
+    else:
+        CURRENT_ARGS = os.environ['EXTRA_CLING_ARGS']
+
+    if add_defaults:
         has_avx = False
         try:
             for line in open('/proc/cpuinfo', 'r'):
@@ -47,29 +64,41 @@ def _set_cling_compile_options():
                 has_avx = 'avx' in cli_arg.decode("utf-8").strip().lower()
             except Exception:
                 pass
-        extra_args = '-O2'
-        if has_avx: extra_args += ' -mavx'
-        os.putenv('EXTRA_CLING_ARGS', extra_args)
+        CURRENT_ARGS += ' -O2'
+        if has_avx: CURRENT_ARGS += ' -mavx'
+        os.putenv('EXTRA_CLING_ARGS', CURRENT_ARGS)
+        os.environ['EXTRA_CLING_ARGS'] = CURRENT_ARGS
 
-def _ensure_precompiled_header():
-     # the precompiled header of standard and system headers is not part of the
-     # distribution as there are too many varieties; create it now if needed
-        olddir = os.getcwd()
-        try:
-            pkgpath = os.path.dirname(__file__)
-            os.chdir(pkgpath)
-            pchname = 'allDict.cxx.pch'
-            if not os.path.exists(os.path.join('etc', pchname)):
-                if os.access(os.path.join(pkgpath, 'etc'), os.R_OK|os.W_OK):
-                    print('Building pre-compiled headers; this make take a minute ...')
-                    _set_cling_compile_options()
-                    makepch = os.path.join('etc', 'dictpch', 'makepch.py')
-                    incpath = os.path.join(pkgpath, 'include')
-                    if subprocess.call(['python', makepch, os.path.join('etc', pchname), '-I'+incpath]) != 0:
-                        import warnings
-                        warnings.warn('Failed to build precompiled header; this may impact performance.')
-                else:
-                    import warnings
-                    warnings.warn('No precompiled header available; this may impact performance.')
-        finally:
-            os.chdir(olddir)
+
+def _warn_no_pch(msg):
+    import warnings
+    warnings.warn('No precompiled header available (%s); this may impact performance.' % msg)
+
+def ensure_precompiled_header(pchdir = '', pchname = ''):
+  # the precompiled header of standard and system headers is not part of the
+  # distribution as there are too many varieties; create it now if needed
+     global _precompiled_header_ensured
+     _precompiled_header_ensured = True     # only ever call once, even if failed
+
+     olddir = os.getcwd()
+     try:
+         pkgpath = os.path.dirname(__file__)
+         if not pchdir:
+             pchdir = os.path.join(pkgpath, 'etc')
+         if not pchname:
+             pchname = 'allDict.cxx.pch'
+
+         os.chdir(pkgpath)
+         if not os.path.exists(os.path.join(pchdir, pchname)):
+             if os.access(pchdir, os.R_OK|os.W_OK):
+                 print('Building pre-compiled headers (options:%s); this make take a minute ...' % os.environ.get('EXTRA_CLING_ARGS', ' none'))
+                 makepch = os.path.join(pkgpath, 'etc', 'dictpch', 'makepch.py')
+                 incpath = os.path.join(pkgpath, 'include')
+                 if subprocess.call(['python', makepch, os.path.join(pchdir, pchname), '-I'+incpath]) != 0:
+                     _warn_no_pch('failed to build')
+             else:
+                 _warn_no_pch('%s not writable' % pchdir)
+     except Exception as e:
+         _warn_no_pch(str(e))
+     finally:
+         os.chdir(olddir)
