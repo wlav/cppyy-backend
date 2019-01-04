@@ -848,7 +848,7 @@ index 578d4c9ffe..ef04e56008 100644
     { Execute((void *)0, retDouble); }
  inline void TMethodCall::Execute(const char *params, Double_t &retDouble)
 diff --git a/src/core/meta/src/TMethodCall.cxx b/src/core/meta/src/TMethodCall.cxx
-index a79850e7b7..924fd0980b 100644
+index a79850e7b7..778a80883e 100644
 --- a/src/core/meta/src/TMethodCall.cxx
 +++ b/src/core/meta/src/TMethodCall.cxx
 @@ -43,7 +43,7 @@ fFunc(0), fOffset(0), fClass(0), fMetPtr(0), fDtorOnly(kFALSE), fRetType(kNone)
@@ -889,7 +889,7 @@ index a79850e7b7..924fd0980b 100644
  }
  
  ////////////////////////////////////////////////////////////////////////////////
-@@ -420,7 +420,7 @@ void TMethodCall::Execute(void *object)
+@@ -420,7 +422,7 @@ void TMethodCall::Execute(void *object)
     if (!fFunc) return;
  
     void *address = 0;
@@ -898,7 +898,7 @@ index a79850e7b7..924fd0980b 100644
     if (!fDtorOnly && fMethod[0]=='~') {
        Error("Execute","TMethodCall can no longer be use to call the operator delete and the destructor at the same time");
     }
-@@ -438,7 +438,7 @@ void TMethodCall::Execute(void *object, const char *params)
+@@ -438,7 +440,7 @@ void TMethodCall::Execute(void *object, const char *params)
     gCling->CallFunc_SetArgs(fFunc, (char *)params);
  
     void *address = 0;
@@ -907,12 +907,15 @@ index a79850e7b7..924fd0980b 100644
     gCling->SetTempLevel(1);
     gCling->CallFunc_Exec(fFunc,address);
     gCling->SetTempLevel(-1);
-@@ -447,12 +447,12 @@ void TMethodCall::Execute(void *object, const char *params)
+@@ -447,12 +449,16 @@ void TMethodCall::Execute(void *object, const char *params)
  ////////////////////////////////////////////////////////////////////////////////
  /// Execute the method (with preset arguments) for the specified object.
  
--void TMethodCall::Execute(void *object, Long_t &retLong)
++#ifdef _WIN64
 +void TMethodCall::Execute(void *object, intptr_t &retLong)
++#else
+ void TMethodCall::Execute(void *object, Long_t &retLong)
++#endif
  {
     if (!fFunc) return;
  
@@ -922,16 +925,19 @@ index a79850e7b7..924fd0980b 100644
     gCling->SetTempLevel(1);
     retLong = gCling->CallFunc_ExecInt(fFunc,address);
     gCling->SetTempLevel(-1);
-@@ -461,7 +461,7 @@ void TMethodCall::Execute(void *object, Long_t &retLong)
+@@ -461,7 +467,11 @@ void TMethodCall::Execute(void *object, Long_t &retLong)
  ////////////////////////////////////////////////////////////////////////////////
  /// Execute the method for the specified object and argument values.
  
--void TMethodCall::Execute(void *object, const char *params, Long_t &retLong)
++#ifdef _WIN64
 +void TMethodCall::Execute(void *object, const char *params, intptr_t &retLong)
++#else
+ void TMethodCall::Execute(void *object, const char *params, Long_t &retLong)
++#endif
  {
     if (!fFunc) return;
  
-@@ -469,7 +469,7 @@ void TMethodCall::Execute(void *object, const char *params, Long_t &retLong)
+@@ -469,7 +479,7 @@ void TMethodCall::Execute(void *object, const char *params, Long_t &retLong)
     gCling->CallFunc_SetArgs(fFunc, (char *)params);
  
     void *address = 0;
@@ -940,7 +946,7 @@ index a79850e7b7..924fd0980b 100644
     gCling->SetTempLevel(1);
     retLong = gCling->CallFunc_ExecInt(fFunc,address);
     gCling->SetTempLevel(-1);
-@@ -483,7 +483,7 @@ void TMethodCall::Execute(void *object, Double_t &retDouble)
+@@ -483,7 +493,7 @@ void TMethodCall::Execute(void *object, Double_t &retDouble)
     if (!fFunc) return;
  
     void *address = 0;
@@ -949,7 +955,7 @@ index a79850e7b7..924fd0980b 100644
     gCling->SetTempLevel(1);
     retDouble = gCling->CallFunc_ExecDouble(fFunc,address);
     gCling->SetTempLevel(-1);
-@@ -499,7 +499,7 @@ void TMethodCall::Execute(void *object, const char *params, Double_t &retDouble)
+@@ -499,7 +509,7 @@ void TMethodCall::Execute(void *object, const char *params, Double_t &retDouble)
     gCling->CallFunc_SetArgs(fFunc, (char *)params);
  
     void *address = 0;
@@ -958,7 +964,7 @@ index a79850e7b7..924fd0980b 100644
     gCling->SetTempLevel(1);
     retDouble = gCling->CallFunc_ExecDouble(fFunc,address);
     gCling->SetTempLevel(-1);
-@@ -513,9 +513,13 @@ void TMethodCall::Execute(void *object, char **retText)
+@@ -513,9 +523,13 @@ void TMethodCall::Execute(void *object, char **retText)
     if (!fFunc) return;
  
     void *address = 0;
@@ -973,7 +979,7 @@ index a79850e7b7..924fd0980b 100644
     gCling->SetTempLevel(-1);
  }
  
-@@ -530,9 +534,13 @@ void TMethodCall::Execute(void *object, const char *params, char **retText)
+@@ -530,9 +544,13 @@ void TMethodCall::Execute(void *object, const char *params, char **retText)
     gCling->CallFunc_SetArgs(fFunc, (char *)params);
  
     void *address = 0;
@@ -988,7 +994,7 @@ index a79850e7b7..924fd0980b 100644
     gCling->SetTempLevel(-1);
  }
  
-@@ -600,7 +610,11 @@ void TMethodCall::ResetParam()
+@@ -600,7 +618,11 @@ void TMethodCall::ResetParam()
  ////////////////////////////////////////////////////////////////////////////////
  /// Add a long method parameter.
  
@@ -1000,7 +1006,7 @@ index a79850e7b7..924fd0980b 100644
  {
     if (!fFunc) return;
     gCling->CallFunc_SetArg(fFunc,l);
-@@ -627,7 +641,11 @@ void TMethodCall::SetParam(Double_t d)
+@@ -627,7 +649,11 @@ void TMethodCall::SetParam(Double_t d)
  ////////////////////////////////////////////////////////////////////////////////
  /// Add a long long method parameter.
  
@@ -1241,15 +1247,18 @@ index 1baeff2878..eb64f60591 100644
  }
 
 diff --git a/src/core/cont/src/TSeqCollection.cxx b/src/core/cont/src/TSeqCollection.cxx
-index a62d89e3ff..1447164453 100644
+index a62d89e3ff..229d3b4a65 100644
 --- a/src/core/cont/src/TSeqCollection.cxx
 +++ b/src/core/cont/src/TSeqCollection.cxx
-@@ -272,7 +272,7 @@ Long64_t TSeqCollection::Merge(TCollection *list)
+@@ -272,7 +272,11 @@ Long64_t TSeqCollection::Merge(TCollection *list)
        }
        // Merge current object with objects in the temporary list
        if (mergeable) {
--         callEnv.SetParam((Long_t) templist);
++#ifdef _WIN64
 +         callEnv.SetParam((intptr_t) templist);
++#else
+          callEnv.SetParam((Long_t) templist);
++#endif
           callEnv.Execute(object);
           SafeDelete(templist);
        }
@@ -2356,7 +2365,7 @@ index 68855f0ff1..18da9d3b8c 100644
    return (keyval);
  }
 diff --git a/src/core/base/inc/TPluginManager.h b/src/core/base/inc/TPluginManager.h
-index adf1d96e28..74d596db89 100644
+index adf1d96e28..0a7093bb64 100644
 --- a/src/core/base/inc/TPluginManager.h
 +++ b/src/core/base/inc/TPluginManager.h
 @@ -146,7 +146,7 @@ public:
@@ -2368,12 +2377,15 @@ index adf1d96e28..74d596db89 100644
     {
        auto nargs = sizeof...(params);
        if (!CheckForExecPlugin(nargs)) return 0;
-@@ -158,13 +158,13 @@ public:
+@@ -158,13 +158,17 @@ public:
        R__LOCKGUARD(gInterpreterMutex);
        fCallEnv->SetParams(params...);
  
--      Long_t ret;
++#ifdef _WIN64
 +      intptr_t ret;
++#else
+       Long_t ret;
++#endif
        fCallEnv->Execute(ret);
  
        return ret;
