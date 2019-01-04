@@ -208,7 +208,7 @@ namespace Cppyy {
     RPY_EXPORTED
     std::string GetDatamemberType(TCppScope_t scope, TCppIndex_t idata);
     RPY_EXPORTED
-    ptrdiff_t   GetDatamemberOffset(TCppScope_t scope, TCppIndex_t idata);
+    intptr_t    GetDatamemberOffset(TCppScope_t scope, TCppIndex_t idata);
     RPY_EXPORTED
     TCppIndex_t GetDatamemberIndex(TCppScope_t scope, const std::string& name);
 

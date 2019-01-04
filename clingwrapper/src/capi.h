@@ -195,7 +195,7 @@ extern "C" {
     RPY_EXPORTED
     char* cppyy_datamember_type(cppyy_scope_t scope, int datamember_index);
     RPY_EXPORTED
-    ptrdiff_t cppyy_datamember_offset(cppyy_scope_t scope, int datamember_index);
+    intptr_t cppyy_datamember_offset(cppyy_scope_t scope, int datamember_index);
     RPY_EXPORTED
     int cppyy_datamember_index(cppyy_scope_t scope, const char* name);
 

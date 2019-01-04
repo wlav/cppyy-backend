@@ -1369,11 +1369,11 @@ std::string Cppyy::GetDatamemberType(TCppScope_t scope, TCppIndex_t idata)
     return "<unknown>";
 }
 
-ptrdiff_t Cppyy::GetDatamemberOffset(TCppScope_t scope, TCppIndex_t idata)
+intptr_t Cppyy::GetDatamemberOffset(TCppScope_t scope, TCppIndex_t idata)
 {
     if (scope == GLOBAL_HANDLE) {
         TGlobal* gbl = g_globalvars[idata];
-        return (ptrdiff_t)gbl->GetAddress();
+        return (intptr_t)gbl->GetAddress();
     }
 
     TClassRef& cr = type_from_handle(scope);
@@ -1384,11 +1384,11 @@ ptrdiff_t Cppyy::GetDatamemberOffset(TCppScope_t scope, TCppIndex_t idata)
     // duplicate instantiations later.
         if ((m->Property() & kIsStatic) && strchr(cr->GetName(), '<'))
             gInterpreter->ProcessLine(((std::string)cr->GetName()+"::"+m->GetName()+";").c_str());
-        return (ptrdiff_t)m->GetOffsetCint();    // yes, CINT (GetOffset() is both wrong
+        return (intptr_t)m->GetOffsetCint();    // yes, CINT (GetOffset() is both wrong
                                                  // and caches that wrong result!
     }
 
-    return (ptrdiff_t)-1;
+    return (intptr_t)-1;
 }
 
 Cppyy::TCppIndex_t Cppyy::GetDatamemberIndex(TCppScope_t scope, const std::string& name)
@@ -1904,8 +1904,8 @@ char* cppyy_datamember_type(cppyy_scope_t scope, int datamember_index) {
     return cppstring_to_cstring(Cppyy::GetDatamemberType(scope, datamember_index));
 }
 
-ptrdiff_t cppyy_datamember_offset(cppyy_scope_t scope, int datamember_index) {
-    return ptrdiff_t(Cppyy::GetDatamemberOffset(scope, datamember_index));
+intptr_t cppyy_datamember_offset(cppyy_scope_t scope, int datamember_index) {
+    return intptr_t(Cppyy::GetDatamemberOffset(scope, datamember_index));
 }
 
 int cppyy_datamember_index(cppyy_scope_t scope, const char* name) {
