@@ -152,6 +152,8 @@ extern "C" {
     RPY_EXPORTED
     int cppyy_method_req_args(cppyy_method_t);
     RPY_EXPORTED
+    char* cppyy_method_arg_name(cppyy_method_t,int arg_index);
+    RPY_EXPORTED
     char* cppyy_method_arg_type(cppyy_method_t, int arg_index);
     RPY_EXPORTED
     char* cppyy_method_arg_default(cppyy_method_t, int arg_index);

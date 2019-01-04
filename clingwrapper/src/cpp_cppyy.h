@@ -162,11 +162,11 @@ namespace Cppyy {
     RPY_EXPORTED
     TCppIndex_t GetMethodReqArgs(TCppMethod_t);
     RPY_EXPORTED
-    std::string GetMethodArgName(TCppMethod_t, int iarg);
+    std::string GetMethodArgName(TCppMethod_t, TCppIndex_t iarg);
     RPY_EXPORTED
-    std::string GetMethodArgType(TCppMethod_t, int iarg);
+    std::string GetMethodArgType(TCppMethod_t, TCppIndex_t iarg);
     RPY_EXPORTED
-    std::string GetMethodArgDefault(TCppMethod_t, int iarg);
+    std::string GetMethodArgDefault(TCppMethod_t, TCppIndex_t iarg);
     RPY_EXPORTED
     std::string GetMethodSignature(TCppMethod_t, bool show_formalargs);
     RPY_EXPORTED

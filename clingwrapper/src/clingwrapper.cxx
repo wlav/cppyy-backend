@@ -1055,7 +1055,7 @@ Cppyy::TCppIndex_t Cppyy::GetMethodReqArgs(TCppMethod_t method)
     return (TCppIndex_t)0;
 }
 
-std::string Cppyy::GetMethodArgName(TCppMethod_t method, int iarg)
+std::string Cppyy::GetMethodArgName(TCppMethod_t method, TCppIndex_t iarg)
 {
     if (method) {
         TFunction* f = m2f(method);
@@ -1065,7 +1065,7 @@ std::string Cppyy::GetMethodArgName(TCppMethod_t method, int iarg)
     return "<unknown>";
 }
 
-std::string Cppyy::GetMethodArgType(TCppMethod_t method, int iarg)
+std::string Cppyy::GetMethodArgType(TCppMethod_t method, TCppIndex_t iarg)
 {
     if (method) {
         TFunction* f = m2f(method);
@@ -1075,7 +1075,7 @@ std::string Cppyy::GetMethodArgType(TCppMethod_t method, int iarg)
     return "<unknown>";
 }
 
-std::string Cppyy::GetMethodArgDefault(TCppMethod_t method, int iarg)
+std::string Cppyy::GetMethodArgDefault(TCppMethod_t method, TCppIndex_t iarg)
 {
     if (method) {
         TFunction* f = m2f(method);
@@ -1827,12 +1827,16 @@ int cppyy_method_req_args(cppyy_method_t method) {
     return (int)Cppyy::GetMethodReqArgs((Cppyy::TCppMethod_t)method);
 }
 
+char* cppyy_method_arg_name(cppyy_method_t method, int arg_index) {
+    return cppstring_to_cstring(Cppyy::GetMethodArgName((Cppyy::TCppMethod_t)method, (Cppyy::TCppIndex_t)arg_index));
+}
+
 char* cppyy_method_arg_type(cppyy_method_t method, int arg_index) {
-    return cppstring_to_cstring(Cppyy::GetMethodArgType((Cppyy::TCppMethod_t)method, arg_index));
+    return cppstring_to_cstring(Cppyy::GetMethodArgType((Cppyy::TCppMethod_t)method, (Cppyy::TCppIndex_t)arg_index));
 }
 
 char* cppyy_method_arg_default(cppyy_method_t method, int arg_index) {
-    return cppstring_to_cstring(Cppyy::GetMethodArgDefault((Cppyy::TCppMethod_t)method, arg_index));
+    return cppstring_to_cstring(Cppyy::GetMethodArgDefault((Cppyy::TCppMethod_t)method, (Cppyy::TCppIndex_t)arg_index));
 }
 
 char* cppyy_method_signature(cppyy_method_t method, int show_formalargs) {
