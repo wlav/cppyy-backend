@@ -6,6 +6,7 @@
 #include <string>
 #include <vector>
 #include <stddef.h>
+#include <stdint.h>
 
 
 // ROOT types
@@ -14,12 +15,12 @@ typedef unsigned long long   ULong64_t;
 typedef long double          LongDouble_t;
 
 namespace Cppyy {
-    typedef ptrdiff_t   TCppScope_t;
+    typedef size_t      TCppScope_t;
     typedef TCppScope_t TCppType_t;
     typedef void*       TCppObject_t;
-    typedef ptrdiff_t   TCppMethod_t;
+    typedef intptr_t    TCppMethod_t;
 
-    typedef ptrdiff_t   TCppIndex_t;
+    typedef size_t      TCppIndex_t;
     typedef void*       TCppFuncAddr_t;
 
 // direct interpreter access -------------------------------------------------

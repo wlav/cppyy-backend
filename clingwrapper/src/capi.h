@@ -2,18 +2,19 @@
 #define CPPYY_CAPI
 
 #include <stddef.h>
+#include <stdint.h>
 #include "precommondefs.h"
 
 #ifdef __cplusplus
 extern "C" {
 #endif // ifdef __cplusplus
 
-    typedef ptrdiff_t     cppyy_scope_t;
+    typedef size_t        cppyy_scope_t;
     typedef cppyy_scope_t cppyy_type_t;
     typedef void*         cppyy_object_t;
-    typedef ptrdiff_t     cppyy_method_t;
+    typedef intptr_t      cppyy_method_t;
 
-    typedef ptrdiff_t     cppyy_index_t;
+    typedef size_t        cppyy_index_t;
     typedef void*         cppyy_funcaddr_t;
 
     typedef unsigned long cppyy_exctype_t;
