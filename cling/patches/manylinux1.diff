@@ -1,3 +1,64 @@
+diff --git a/src/core/clingutils/CMakeLists.txt b/src/core/clingutils/CMakeLists.txt
+index 4be71a05fb..b126c3d9b4 100644
+--- a/src/core/clingutils/CMakeLists.txt
++++ b/src/core/clingutils/CMakeLists.txt
+@@ -30,31 +30,31 @@ ROOT_INSTALL_HEADERS()
+ 
+ #### STL dictionary (replacement for cintdlls)##############################
+ 
+-set(stldicts
+-    vector
+-    list
+-    forward_list
+-    deque
+-    map map2 unordered_map
+-    multimap multimap2 unordered_multimap
+-    set unordered_set
+-    multiset unordered_multiset
+-    complex)
+-if(NOT WIN32)
+-  list(APPEND stldicts valarray)
+-endif()
+-include_directories(${CMAKE_BINARY_DIR}/etc/cling/cint)
+-foreach(dict ${stldicts})
+-  string(REPLACE "2" "" header ${dict})
+-  string(REPLACE "complex" "root_std_complex.h" header ${header})
+-  string(REPLACE "multi" "" header ${header})
+-  ROOT_STANDARD_LIBRARY_PACKAGE(${dict}Dict
+-                                NO_SOURCES NO_INSTALL_HEADERS NO_MODULE
+-                                STAGE1
+-                                HEADERS ${header}
+-                                LINKDEF src/${dict}Linkdef.h
+-                                DEPENDENCIES Core)
+-endforeach()
++#set(stldicts
++#    vector
++#    list
++#    forward_list
++#    deque
++#    map map2 unordered_map
++#    multimap multimap2 unordered_multimap
++#    set unordered_set
++#    multiset unordered_multiset
++#    complex)
++#if(NOT WIN32)
++#  list(APPEND stldicts valarray)
++#endif()
++#include_directories(${CMAKE_BINARY_DIR}/etc/cling/cint)
++#foreach(dict ${stldicts})
++#  string(REPLACE "2" "" header ${dict})
++#  string(REPLACE "complex" "root_std_complex.h" header ${header})
++#  string(REPLACE "multi" "" header ${header})
++#  ROOT_STANDARD_LIBRARY_PACKAGE(${dict}Dict
++#                                NO_SOURCES NO_INSTALL_HEADERS NO_MODULE
++#                                STAGE1
++#                                HEADERS ${header}
++#                                LINKDEF src/${dict}Linkdef.h
++#                                DEPENDENCIES Core)
++#endforeach()
+ 
+ set(CLANG_RESOURCE_DIR_STEM)
+ set(CLANG_RESOURCE_DIR_VERSION)
 diff --git a/src/interpreter/cling/lib/Interpreter/IncrementalParser.cpp b/src/interpreter/cling/lib/Interpreter/IncrementalParser.cpp
 index 2593c21fb2..dbe8caa04b 100644
 --- a/src/interpreter/cling/lib/Interpreter/IncrementalParser.cpp
@@ -25,14 +86,21 @@ index 2593c21fb2..dbe8caa04b 100644
  
    class FilteringDiagConsumer : public cling::utils::DiagnosticsOverride {
 diff --git a/src/interpreter/cling/lib/Interpreter/CIFactory.cpp b/src/interpreter/cling/lib/Interpreter/CIFactory.cpp
-index ad1cc34de7..62263de537 100644
+index ad1cc34de7..f78875e70b 100644
 --- a/src/interpreter/cling/lib/Interpreter/CIFactory.cpp
 +++ b/src/interpreter/cling/lib/Interpreter/CIFactory.cpp
-@@ -62,15 +62,7 @@ namespace {
+@@ -57,20 +57,13 @@ using namespace clang;
+ using namespace cling;
+ 
+ namespace {
+-  static constexpr unsigned CxxStdCompiledWith() {
++  static unsigned CxxStdCompiledWith() {
+     // The value of __cplusplus in GCC < 5.0 (e.g. 4.9.3) when
      // either -std=c++1y or -std=c++14 is specified is 201300L, which fails
      // the test for C++14 or more (201402L) as previously specified.
      // I would claim that the check should be relaxed to:
 -#if __cplusplus > 201402L
++    if (getenv("MANYLINUX_BUILD")) return 11;
      return 17;
 -#elif __cplusplus > 201103L || (defined(LLVM_ON_WIN32) && _MSC_VER >= 1900)
 -    return 14;
