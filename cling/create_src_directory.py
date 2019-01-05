@@ -15,6 +15,17 @@ if 'win' in sys.platform:
 else:
     rename = os.rename
 
+def is_manylinux():
+    _is_manylinux = False
+    try:
+        for line in open('/etc/redhat-release').readlines():
+            if 'CentOS release 5.11' in line:
+                _is_manylinux = True
+                break
+    except (OSError, IOError):
+        pass
+    return _is_manylinux
+
 
 DEBUG_TESTBUILD = False
 
@@ -445,5 +456,11 @@ for fdiff in ('scanner', 'scanner_2', 'faux_typedef', 'template_fwd', 'dep_templ
     if not pset.apply():
         print("Failed to apply patch:", fdiff)
         sys.exit(2)
+
+#
+## manylinux1 specific patch, as there a different, older, compiler is used
+#
+if is_manylinux():
+    patch.fromfile(os.path.join('patches', 'manylinux1.diff')).apply()
 
 # done!
