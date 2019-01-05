@@ -122,7 +122,7 @@ class my_cmake_build(_build):
 
         if is_manylinux():
            # run-time flag marking this as a manylinux build
-            os.putenv('MANYLINUX_BUILD') = 1
+            os.putenv('MANYLINUX_BUILD', '1')
 
         CMAKE_COMMAND = ['cmake', srcdir,
                 stdcxx, '-DLLVM_ENABLE_TERMINFO=0',
