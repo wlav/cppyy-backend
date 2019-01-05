@@ -59,6 +59,19 @@ index 4be71a05fb..b126c3d9b4 100644
  
  set(CLANG_RESOURCE_DIR_STEM)
  set(CLANG_RESOURCE_DIR_VERSION)
+diff --git a/src/main/CMakeLists.txt b/src/main/CMakeLists.txt
+index 32094d55bd..30d55635b1 100644
+--- a/src/main/CMakeLists.txt
++++ b/src/main/CMakeLists.txt
+@@ -78,7 +78,7 @@ ROOT_EXECUTABLE(rootcling src/rootcling.cxx
+ # rootcling includes the ROOT complex header which would build the complex
+ # dictionary with modules. To make sure that rootcling_stage1 builds this
+ # dict before we use it, we add a dependency here.
+-add_dependencies(rootcling complexDict)
++#add_dependencies(rootcling complexDict)
+ 
+ target_include_directories(rootcling PRIVATE
+         ${CMAKE_CURRENT_SOURCE_DIR}/../core/metacling/res
 diff --git a/src/interpreter/cling/lib/Interpreter/IncrementalParser.cpp b/src/interpreter/cling/lib/Interpreter/IncrementalParser.cpp
 index 2593c21fb2..dbe8caa04b 100644
 --- a/src/interpreter/cling/lib/Interpreter/IncrementalParser.cpp
