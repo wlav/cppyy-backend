@@ -1170,7 +1170,7 @@ index d5c348ac4b..69aabd1ce6 100644
           num++;
           obj = fTable[i];
 -         printf("%-8d 0x%-16lx %-24s %s\n", num, (Long_t)obj, obj->ClassName(),
-+         printf("%-8d 0x%-16t %-24s %s\n", num, (intptr_t)obj, obj->ClassName(),
++         printf("%-8d 0x%-16td %-24s %s\n", num, (intptr_t)obj, obj->ClassName(),
                  obj->GetName());
        }
        Printf("================================================================================\n");
