@@ -24,3 +24,92 @@ index 2593c21fb2..dbe8caa04b 100644
    }
  
    class FilteringDiagConsumer : public cling::utils::DiagnosticsOverride {
+diff --git a/src/interpreter/cling/lib/Interpreter/CIFactory.cpp b/src/interpreter/cling/lib/Interpreter/CIFactory.cpp
+index ad1cc34de7..62263de537 100644
+--- a/src/interpreter/cling/lib/Interpreter/CIFactory.cpp
++++ b/src/interpreter/cling/lib/Interpreter/CIFactory.cpp
+@@ -62,15 +62,7 @@ namespace {
+     // either -std=c++1y or -std=c++14 is specified is 201300L, which fails
+     // the test for C++14 or more (201402L) as previously specified.
+     // I would claim that the check should be relaxed to:
+-#if __cplusplus > 201402L
+     return 17;
+-#elif __cplusplus > 201103L || (defined(LLVM_ON_WIN32) && _MSC_VER >= 1900)
+-    return 14;
+-#elif __cplusplus >= 201103L
+-    return 11;
+-#else
+-#error "Unknown __cplusplus version"
+-#endif
+   }
+ 
+   // This function isn't referenced outside its translation unit, but it
+diff --git a/src/config/RConfigure.in b/src/config/RConfigure.in
+index e8210e2f65..63b2a8dc99 100644
+--- a/src/config/RConfigure.in
++++ b/src/config/RConfigure.in
+@@ -59,4 +59,64 @@
+ #@hastmvacpu@ R__HAS_TMVACPU /**/
+ #@hastmvagpu@ R__HAS_TMVAGPU /**/
+ 
++#if __cplusplus > 201402L
++#ifndef R__USE_CXX17
++#define R__USE_CXX17
++#endif
++#ifdef R__USE_CXX14
++#undef R__USE_CXX14
++#endif
++#ifdef R__USE_CXX11
++#undef R__USE_CXX11
++#endif
++
++#ifndef R__HAS_STD_STRING_VIEW
++#define R__HAS_STD_STRING_VIEW
++#endif
++#ifdef R__HAS_STD_EXPERIMENTAL_STRING_VIEW
++#undef R__HAS_STD_EXPERIMENTAL_STRING_VIEW
++#endif
++#ifdef R__HAS_STOD_STRING_VIEW
++#undef R__HAS_STOD_STRING_VIEW
++#endif
++
++#ifndef R__HAS_STD_INVOKE
++#define R__HAS_STD_INVOKE
++#endif
++#ifndef R__HAS_STD_APPLY
++#define R__HAS_STD_APPLY
++#endif
++
++#ifndef R__HAS_STD_INDEX_SEQUENCE
++#define R__HAS_STD_INDEX_SEQUENCE
++#endif
++
++#elif __cplusplus > 201103L
++#ifdef R__USE_CXX17
++#undef R__USE_CXX17
++#endif
++#ifndef R__USE_CXX14
++#define R__USE_CXX14
++#endif
++#ifdef R__USE_CXX11
++#undef R__USE_CXX11
++#endif
++
++#ifndef R__HAS_STD_INDEX_SEQUENCE
++#define R__HAS_STD_INDEX_SEQUENCE
++#endif
++
++#else
++#ifdef R__USE_CXX17
++#undef R__USE_CXX17
++#endif
++#ifdef R__USE_CXX14
++#undef R__USE_CXX14
++#endif
++#ifndef R__USE_CXX11
++#define R__USE_CXX11
++#endif
++
++#endif
++
+ #endif
