@@ -10,13 +10,6 @@ use the verbose flag to see progress:
 
   $ MAKE_NPROCS=32 pip install --verbose cppyy-cling
 
-Alternatively, there are binary wheels (Mac 10.12, Linux/Gentoo)
-available here:
-  https://cern.ch/wlav/wheels
-
-Use '--extra-index https://cern.ch/wlav/wheels' as an argument to pip to
-pick them up.
-
 Cling documentation is here:
   https://root.cern.ch/cling
 
