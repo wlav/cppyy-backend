@@ -243,7 +243,6 @@ class my_install(_install):
                 os.rename(outp, inp)
                 os.chmod(inp, stat.S_IMODE(os.lstat(inp).st_mode) | stat.S_IXUSR | stat.S_IXGRP | stat.S_IXOTH)
 
-                etc/dictpch/allCppflags.txt
                 log.info('updating allCppflags.txt to C++17 for manylinux')
                 inp = os.path.join(get_prefix(), 'etc', 'dictpch', 'allCppflags.txt')
                 outp = inp+'.new'
