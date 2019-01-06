@@ -83,10 +83,14 @@ def ensure_precompiled_header(pchdir = '', pchname = ''):
      olddir = os.getcwd()
      try:
          pkgpath = os.path.dirname(__file__)
-         if not pchdir:
-             pchdir = os.path.join(pkgpath, 'etc')
-         if not pchname:
-             pchname = 'allDict.cxx.pch'
+         if 'CLING_STANDARD_PCH' in os.environ:
+             pchdir = os.path.dirname(os.environ['CLING_STANDARD_PCH'])
+             pchname = os.path.basename(os.environ['CLING_STANDARD_PCH'])
+         else:
+             if not pchdir:
+                 pchdir = os.path.join(pkgpath, 'etc')
+             if not pchname:
+                 pchname = 'allDict.cxx.pch'
 
          os.chdir(pkgpath)
          if not os.path.exists(os.path.join(pchdir, pchname)):
