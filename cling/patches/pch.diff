@@ -21,3 +21,102 @@ index 5413aef378..cc94115b85 100644
        }
  
        clingArgsStorage.push_back("-Wno-undefined-inline");
+diff --git a/src/core/dictgen/src/rootcling_impl.cxx b/src/core/dictgen/src/rootcling_impl.cxx
+index b53b7352f9..b6045d772d 100644
+--- a/src/core/dictgen/src/rootcling_impl.cxx
++++ b/src/core/dictgen/src/rootcling_impl.cxx
+@@ -236,6 +236,7 @@ const char *rootClingHelp =
+ 
+ #include "llvm/Bitcode/BitstreamWriter.h"
+ #include "llvm/Support/Path.h"
++#include "llvm/Support/Process.h"
+ 
+ #include "RtypesCore.h"
+ #include "TModuleGenerator.h"
+@@ -4611,6 +4612,17 @@ int RootClingMain(int argc,
+    ROOT::TMetaUtils::TClingLookupHelper helper(interp, normCtxt, 0, 0);
+    TClassEdit::Init(&helper);
+ 
++   // Process externally passed arguments if present.
++   llvm::Optional<std::string> EnvOpt = llvm::sys::Process::GetEnv("EXTRA_CLING_ARGS");
++   if (EnvOpt.hasValue()) {
++      StringRef Env(*EnvOpt);
++      while (!Env.empty()) {
++         StringRef Arg;
++         std::tie(Arg, Env) = Env.split(' ');
++         clingArgs.push_back(Arg.str());
++      }
++   }
++
+    // flags used only for the pragma parser:
+    clingArgs.push_back("-D__CINT__");
+    clingArgs.push_back("-D__MAKECINT__");
+diff --git a/src/config/RConfigure.in b/src/config/RConfigure.in
+index e8210e2f65..63b2a8dc99 100644
+--- a/src/config/RConfigure.in
++++ b/src/config/RConfigure.in
+@@ -59,4 +59,64 @@
+ #@hastmvacpu@ R__HAS_TMVACPU /**/
+ #@hastmvagpu@ R__HAS_TMVAGPU /**/
+ 
++#if __cplusplus > 201402L
++#ifndef R__USE_CXX17
++#define R__USE_CXX17
++#endif
++#ifdef R__USE_CXX14
++#undef R__USE_CXX14
++#endif
++#ifdef R__USE_CXX11
++#undef R__USE_CXX11
++#endif
++
++#ifndef R__HAS_STD_STRING_VIEW
++#define R__HAS_STD_STRING_VIEW
++#endif
++#ifdef R__HAS_STD_EXPERIMENTAL_STRING_VIEW
++#undef R__HAS_STD_EXPERIMENTAL_STRING_VIEW
++#endif
++#ifdef R__HAS_STOD_STRING_VIEW
++#undef R__HAS_STOD_STRING_VIEW
++#endif
++
++#ifndef R__HAS_STD_INVOKE
++#define R__HAS_STD_INVOKE
++#endif
++#ifndef R__HAS_STD_APPLY
++#define R__HAS_STD_APPLY
++#endif
++
++#ifndef R__HAS_STD_INDEX_SEQUENCE
++#define R__HAS_STD_INDEX_SEQUENCE
++#endif
++
++#elif __cplusplus > 201103L
++#ifdef R__USE_CXX17
++#undef R__USE_CXX17
++#endif
++#ifndef R__USE_CXX14
++#define R__USE_CXX14
++#endif
++#ifdef R__USE_CXX11
++#undef R__USE_CXX11
++#endif
++
++#ifndef R__HAS_STD_INDEX_SEQUENCE
++#define R__HAS_STD_INDEX_SEQUENCE
++#endif
++
++#else
++#ifdef R__USE_CXX17
++#undef R__USE_CXX17
++#endif
++#ifdef R__USE_CXX14
++#undef R__USE_CXX14
++#endif
++#ifndef R__USE_CXX11
++#define R__USE_CXX11
++#endif
++
++#endif
++
+ #endif
