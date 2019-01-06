@@ -269,6 +269,7 @@ cmdclass = {
         'build': my_cmake_build,
         'clean': my_clean,
         'install': my_install }
+
 if has_wheel:
     class my_bdist_wheel(_bdist_wheel):
         def finalize_options(self):
