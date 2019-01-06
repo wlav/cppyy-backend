@@ -20,7 +20,20 @@ def main():
                 cli_arg = subprocess.check_output(
                     [os.path.join(MYHOME, 'bin', 'root-config'), options],
                     stderr=subprocess.STDOUT)
-                print(cli_arg.decode("utf-8").strip())
+                out = cli_arg.decode("utf-8").strip()
+                if 'flags' in options and 'STDCXX' in os.environ and '-std=' in out:
+                    req = os.environ['STDCXX']
+                    true_flags = None
+                    if req == '17':
+                        true_flags = '-std=c++1z'
+                    elif req == '14':
+                        true_flags = '-std=c++14'
+                    elif req == '11':
+                        true_flags = '-std=c++11'
+                    if true_flags:
+                        pos = out.find('std=')
+                        out = out[:pos] + true_flags + out[pos+9:]
+                print(out)
                 return 0
             except OSError:
                 if not os.path.exists(rcfg) or not 'win' in sys.platform:
@@ -29,11 +42,6 @@ def main():
                 # happens on Windows b/c root-config is a bash script; the
                 # following covers the most important options until that
                 # gets fixed upstream
-
-                import platform
-                win32 = False
-                if '32' in platform.architecture()[0]:
-                    win32 = True
 
                 def get_include_dir():
                     return os.path.join(MYHOME, 'include')
