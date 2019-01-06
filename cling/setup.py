@@ -120,10 +120,6 @@ class my_cmake_build(_build):
             if has_avx: extra_args += ' -mavx'
             os.putenv('EXTRA_CLING_ARGS', extra_args)
 
-        if is_manylinux():
-           # run-time flag marking this as a manylinux build
-            os.putenv('MANYLINUX_BUILD', '1')
-
         CMAKE_COMMAND = ['cmake', srcdir,
                 stdcxx, '-DLLVM_ENABLE_TERMINFO=0',
                 '-Dminimal=ON', '-Dasimage=OFF', '-Droot7=OFF', '-Dhttp=OFF',
@@ -246,6 +242,19 @@ class my_install(_install):
                 outfile.close()
                 os.rename(outp, inp)
                 os.chmod(inp, stat.S_IMODE(os.lstat(inp).st_mode) | stat.S_IXUSR | stat.S_IXGRP | stat.S_IXOTH)
+
+                etc/dictpch/allCppflags.txt
+                log.info('updating allCppflags.txt to C++17 for manylinux')
+                inp = os.path.join(get_prefix(), 'etc', 'dictpch', 'allCppflags.txt')
+                outp = inp+'.new'
+                outfile = open(outp, 'w')
+                for line in open(inp).readlines():
+                    if '-std=' == line[:5]:
+                        line = '-std=c++1z\n'
+                    outfile.write(line)
+                outfile.close()
+                os.rename(outp, inp)
+
         install_path = self._get_install_path()
         log.info('Copying installation to: %s ...', install_path)
         self.copy_tree(os.path.join(get_prefix(), os.path.pardir), install_path)
