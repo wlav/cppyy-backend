@@ -92,6 +92,8 @@ class my_cmake_build(_build):
         except KeyError:
             if is_manylinux():
                 stdcxx = '11'
+            elif 'win32' in sys.platform:
+                stdcxx = '14'     # current cmake claims MSVC'17 does not support C++17 yet
             else:
                 stdcxx = '17'
 
