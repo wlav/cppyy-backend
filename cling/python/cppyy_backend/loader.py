@@ -10,7 +10,7 @@ __all__ = [
 
 import os, sys, ctypes, subprocess
 
-if 'win' in sys.platform:
+if 'win32' in sys.platform:
     soext = '.dll'
 else:
     soext = '.so'

@@ -34,7 +34,7 @@ def main():
                 print(out)
                 return 0
             except OSError:
-                if not os.path.exists(rcfg) or not 'win' in sys.platform:
+                if not os.path.exists(rcfg) or not 'win32' in sys.platform:
                     raise
 
                 # happens on Windows b/c root-config is a bash script; the
