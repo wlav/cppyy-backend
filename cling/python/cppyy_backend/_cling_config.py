@@ -26,10 +26,8 @@ def main():
                     true_flags = None
                     if req == '17':
                         true_flags = '-std=c++1z'
-                    elif req == '14':
-                        true_flags = '-std=c++14'
-                    elif req == '11':
-                        true_flags = '-std=c++11'
+                    else:
+                        true_flags = '-std=c++'+req
                     if true_flags:
                         pos = out.find('std=')
                         out = out[:pos] + true_flags + out[pos+9:]
@@ -46,19 +44,23 @@ def main():
                 def get_include_dir():
                     return os.path.join(MYHOME, 'include')
 
-                def get_stdflags():
-                    for line in open(rcfg):
-                        flags = ''
-                        if 'cxxversion' in line:
-                            if 'cxx11' in line:
-                                return flags+'/std:c++11'
-                            elif 'cxx14' in line:
-                                return flags+'/std:c++14'
-                            elif 'cxx17' in line:
-                                return flags+'/std:c++17'
-                            else:
-                                return flags+'/std:c++latest'
-                    raise
+                def get_basic_cppflags():
+                    flags = '-Zc:__cplusplus '
+                    if 'STDCXX' in os.environ:
+                        return flags + '/std:c++'+os.environ['STDCXX']
+                    else:
+                        for line in open(rcfg):
+                            if 'cxxversion' in line:
+                                if 'cxx11' in line:
+                                    return flags+'/std:c++11'
+                                elif 'cxx14' in line:
+                                    return flags+'/std:c++14'
+                                elif 'cxx17' in line:
+                                    return flags+'/std:c++17'
+                                else:
+                                    # return flags+'/std:c++latest'
+                                    return flags+'/std:c++17'
+                        raise
 
                 if options == '--incdir':
                     print(get_include_dir())
@@ -66,12 +68,12 @@ def main():
 
                 elif options == '--auxcflags':
                 # most important is get the C++ version flag right
-                    print(get_stdflags())
+                    print(get_basic_cppflags())
                     return 0
 
                 elif options == '--cflags':
                 # most important are C++ flag and include directory
-                    print(get_stdflags(), '-I'+get_include_dir())
+                    print(get_basic_cppflags(), '-I'+get_include_dir())
                     return 0
 
             except subprocess.CalledProcessError:
