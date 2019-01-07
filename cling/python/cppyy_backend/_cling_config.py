@@ -59,7 +59,7 @@ def main():
                                     return flags+'/std:c++17'
                                 else:
                                     # return flags+'/std:c++latest'
-                                    return flags+'/std:c++17'
+                                    return flags+'/std:c++14'
                         raise
 
                 if options == '--incdir':
