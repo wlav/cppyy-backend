@@ -41,7 +41,7 @@ except KeyError:
     requirements = ['cppyy-cling>6.15.0.0']
     add_pkg = []
 
-if 'win' in sys.platform:
+if 'win32' in sys.platform:
     link_libraries = ['libCore', 'libThread', 'libRIO', 'libCling']
     import cppyy_backend
     link_dirs = [os.path.join(os.path.dirname(cppyy_backend.__file__), 'lib')]
@@ -87,7 +87,7 @@ class my_build_cpplib(_build_ext):
         extra_postargs = list()
         if 'linux' in sys.platform:
             extra_postargs.append('-Wl,-Bsymbolic-functions')
-        elif 'win' in sys.platform:
+        elif 'win32' in sys.platform:
             # force the export results in the proper directory.
             extra_postargs.append('/IMPLIB:'+os.path.join(output_dir, libname_base+'.lib'))
 

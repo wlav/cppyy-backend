@@ -8,7 +8,7 @@ try:
 except ModuleNotFoundError:
     import urllib.request as urllib2  # p3
 
-if 'win' in sys.platform:
+if 'win32' in sys.platform:
     def rename(f1, f2):
         os.remove(f2)
         os.rename(f1, f2)
