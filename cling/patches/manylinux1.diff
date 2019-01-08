@@ -98,3 +98,164 @@ index 2593c21fb2..dbe8caa04b 100644
    }
  
    class FilteringDiagConsumer : public cling::utils::DiagnosticsOverride {
+diff --git a/src/core/metacling/src/TCling.cxx b/src/core/metacling/src/TCling.cxx
+index 5413aef378..e611986dbf 100644
+--- a/src/core/metacling/src/TCling.cxx
++++ b/src/core/metacling/src/TCling.cxx
+@@ -1737,26 +1754,7 @@ namespace {
+ static const std::unordered_set<std::string> gIgnoredPCMNames = {"libCore",
+                                                                  "libRint",
+                                                                  "libThread",
+-                                                                 "libRIO",
+-                                                                 "libImt",
+-                                                                 "libcomplexDict",
+-                                                                 "libdequeDict",
+-                                                                 "liblistDict",
+-                                                                 "libforward_listDict",
+-                                                                 "libvectorDict",
+-                                                                 "libmapDict",
+-                                                                 "libmultimap2Dict",
+-                                                                 "libmap2Dict",
+-                                                                 "libmultimapDict",
+-                                                                 "libsetDict",
+-                                                                 "libmultisetDict",
+-                                                                 "libunordered_setDict",
+-                                                                 "libunordered_multisetDict",
+-                                                                 "libunordered_mapDict",
+-                                                                 "libunordered_multimapDict",
+-                                                                 "libvalarrayDict",
+-                                                                 "G__GenVector32",
+-                                                                 "G__Smatrix32"};
++                                                                 "libRIO"};
+
+ ////////////////////////////////////////////////////////////////////////////////
+ /// Inject the module named "modulename" into cling; load all headers.
+diff --git a/src/core/cont/inc/LinkDef.h b/src/core/cont/inc/LinkDef.h
+index 2fdcd76639..39b362cca4 100644
+--- a/src/core/cont/inc/LinkDef.h
++++ b/src/core/cont/inc/LinkDef.h
+@@ -55,17 +55,6 @@
+ #pragma link C++ class TRefTable-;
+ #pragma link C++ class TVirtualCollectionProxy-;
+
+-#pragma link C++ class std::vector<Int_t>;
+-#pragma link C++ operators std::vector<Int_t>;
+-#ifdef G__VECTOR_HAS_CLASS_ITERATOR
+-#pragma link C++ class std::vector<Int_t>::iterator;
+-#pragma link C++ operators std::vector<Int_t>::iterator;
+-#pragma link C++ class std::vector<Int_t>::const_iterator;
+-#pragma link C++ operators std::vector<Int_t>::const_iterator;
+-#pragma link C++ class std::vector<Int_t>::reverse_iterator;
+-#pragma link C++ operators std::vector<Int_t>::reverse_iterator;
+-#endif
+-
+ #pragma link C++ nestedclass;
+ #pragma link C++ nestedtypedef;
+
+diff --git a/src/core/base/inc/LinkDef2.h b/src/core/base/inc/LinkDef2.h
+index 44883b3c03..4274e00e22 100644
+--- a/src/core/base/inc/LinkDef2.h
++++ b/src/core/base/inc/LinkDef2.h
+@@ -10,42 +10,6 @@
+
+ #ifdef __CINT__
+
+-#ifdef __CLING__
+-#include <string>
+-#pragma link C++ class string::iterator;
+-#pragma link C++ class string::const_iterator;
+-#else
+-#include "dll_stl/str.h"
+-#endif
+-
+-#pragma extra_include "vector";
+-#pragma extra_include "string";
+-
+-#pragma create TClass string;
+-#pragma link C++ class std::vector<string>;
+-#pragma link C++ operator std::vector<string>;
+-#ifdef G__VECTOR_HAS_CLASS_ITERATOR
+-#pragma link C++ class std::vector<string>::iterator;
+-#pragma link C++ class std::vector<string>::const_iterator;
+-#pragma link C++ class std::vector<string>::reverse_iterator;
+-#pragma link C++ operator std::vector<string>::iterator;
+-#pragma link C++ operator std::vector<string>::const_iterator;
+-#pragma link C++ operator std::vector<string>::reverse_iterator;
+-#endif
+-
+-#pragma link C++ class std::vector<TString>;
+-#pragma link C++ operators std::vector<TString>;
+-#ifdef G__VECTOR_HAS_CLASS_ITERATOR
+-#pragma link C++ class std::vector<TString>::iterator;
+-#pragma link C++ class std::vector<TString>::const_iterator;
+-#pragma link C++ class std::vector<TString>::reverse_iterator;
+-#pragma link C++ operator std::vector<TString>::iterator;
+-#pragma link C++ operator std::vector<TString>::const_iterator;
+-#pragma link C++ operator std::vector<TString>::reverse_iterator;
+-#endif
+-
+-#include <vector>
+-
+ #pragma link C++ global gTQSender;
+ #pragma link C++ global gTQSlotParams;
+
+diff --git a/src/core/meta/inc/LinkDef.h b/src/core/meta/inc/LinkDef.h
+index e36a6a09f1..17101803f4 100644
+--- a/src/core/meta/inc/LinkDef.h
++++ b/src/core/meta/inc/LinkDef.h
+@@ -62,7 +62,6 @@
+ #pragma link C++ class TStreamerElement-;
+ #pragma link C++ class TToggle;
+ #pragma link C++ class TToggleGroup;
+-#pragma link C++ class std::vector<std::pair<Int_t, Int_t> >+;
+ #pragma link C++ class TFileMergeInfo;
+ #pragma link C++ class TListOfFunctions+;
+ #pragma link C++ class TListOfFunctionsIter;
+@@ -72,8 +71,5 @@
+ #pragma link C++ class TListOfEnumsWithLock+;
+ #pragma link C++ class TListOfEnumsWithLockIter;
+ #pragma link C++ class ROOT::Detail::TStatusBitsChecker-;
+-//for new protoclasses
+-#pragma link C++ class std::vector<TDataMember * >+;
+-#pragma link C++ class std::vector<TProtoClass::TProtoRealData >+;
+
+ #endif
+diff --git a/src/math/mathcore/inc/LinkDef2.h b/src/math/mathcore/inc/LinkDef2.h
+index c3e163b919..3259ba9488 100644
+--- a/src/math/mathcore/inc/LinkDef2.h
++++ b/src/math/mathcore/inc/LinkDef2.h
+@@ -22,15 +22,6 @@
+ //#pragma link C++ class ROOT::Math;
+ #endif
+
+-#ifdef G__VECTOR_HAS_CLASS_ITERATOR
+-#pragma link C++ class std::vector<Double_t>::iterator;
+-#pragma link C++ class std::vector<Double_t>::const_iterator;
+-#pragma link C++ class std::vector<Double_t>::reverse_iterator;
+-#pragma link C++ operators std::vector<Double_t>::iterator;
+-#pragma link C++ operators std::vector<Double_t>::const_iterator;
+-#pragma link C++ operators std::vector<Double_t>::reverse_iterator;
+-#endif
+-
+ #pragma link C++ global gRandom;
+
+ #pragma link C++ class TRandom+;
+@@ -179,7 +170,6 @@
+ #pragma link C++ class ROOT::Math::DistSampler+;
+ #pragma link C++ class ROOT::Math::DistSamplerOptions+;
+ #pragma link C++ class ROOT::Math::GoFTest+;
+-#pragma link C++ class std::vector<std::vector<double> >+;
+
+ #pragma link C++ class ROOT::Math::Delaunay2D+;
+
+diff --git a/src/math/mathcore/inc/LinkDef3.h b/src/math/mathcore/inc/LinkDef3.h
+index 16006bc20f..f89fa58b90 100644
+--- a/src/math/mathcore/inc/LinkDef3.h
++++ b/src/math/mathcore/inc/LinkDef3.h
+@@ -55,6 +55,4 @@
+ #pragma link C++ function ROOT::Fit::Fitter::LikelihoodFit(const ROOT::Fit::BinData &, bool);
+ #pragma link C++ function ROOT::Fit::Fitter::LikelihoodFit(const ROOT::Fit::UnBinData &, bool);
+
+-#pragma link C++ class std::vector<ROOT::Fit::ParameterSettings>;
+-
+ #endif
