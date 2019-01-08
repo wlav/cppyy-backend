@@ -137,3 +137,52 @@ index e8210e2f65..63b2a8dc99 100644
 +#endif
 +
  #endif
+diff --git a/src/build/unix/makepchinput.py b/src/build/unix/makepchinput.py
+index 1468a87277..c823c5eef7 100755
+--- a/src/build/unix/makepchinput.py
++++ b/src/build/unix/makepchinput.py
+@@ -64,9 +64,10 @@ def getGuardedStlInclude(headerName):
+ #-------------------------------------------------------------------------------
+ def getSTLIncludes():
+    """
+-   Here we include the list of c++11 stl headers
++   Here we include the list of c++11/14/17 stl headers
+    From http://en.cppreference.com/w/cpp/header
+    valarray is removed because it causes lots of compilation at startup.
++   codecvt, ctgmath, and cstdbool are removed as they are deprecated in C++17
+    """
+    stlHeadersList = ("cstdlib",
+                      "csignal",
+@@ -134,7 +135,7 @@ def getSTLIncludes():
+                      "cstdio",
+                      "locale",
+                      "clocale",
+-                     "codecvt",
++#                    "codecvt",
+                      "atomic",
+                      "thread",
+                      "mutex",
+@@ -142,9 +143,21 @@ def getSTLIncludes():
+                      "condition_variable",
+                      "ciso646",
+                      "ccomplex",
+-                     "ctgmath",
++#                    "ctgmath",
+                      "regex",
+-                     "cstdbool")
++#                    "cstdbool",
++                     # add C++14 headers
++                     "shared_mutex",
++                     # add C++17 headers
++                     "any",
++                     "optional",
++                     "variant",
++                     "memory_resource",
++                     "string_view",
++                     "charconv",
++                     "execution",
++                     "filesystem",
++                     )
+
+    allHeadersPartContent = "// STL headers\n"
+
