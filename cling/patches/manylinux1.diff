@@ -153,13 +153,13 @@ index 2fdcd76639..39b362cca4 100644
  #pragma link C++ nestedtypedef;
 
 diff --git a/src/core/base/inc/LinkDef2.h b/src/core/base/inc/LinkDef2.h
-index 44883b3c03..4274e00e22 100644
+index 44883b3c03..8f4d6c64a6 100644
 --- a/src/core/base/inc/LinkDef2.h
 +++ b/src/core/base/inc/LinkDef2.h
-@@ -10,42 +10,6 @@
-
+@@ -10,44 +10,11 @@
+ 
  #ifdef __CINT__
-
+ 
 -#ifdef __CLING__
 -#include <string>
 -#pragma link C++ class string::iterator;
@@ -167,11 +167,13 @@ index 44883b3c03..4274e00e22 100644
 -#else
 -#include "dll_stl/str.h"
 -#endif
--
++#pragma link C++ global gTQSender;
++#pragma link C++ global gTQSlotParams;
+ 
 -#pragma extra_include "vector";
--#pragma extra_include "string";
+ #pragma extra_include "string";
 -
--#pragma create TClass string;
+ #pragma create TClass string;
 -#pragma link C++ class std::vector<string>;
 -#pragma link C++ operator std::vector<string>;
 -#ifdef G__VECTOR_HAS_CLASS_ITERATOR
@@ -196,8 +198,11 @@ index 44883b3c03..4274e00e22 100644
 -
 -#include <vector>
 -
- #pragma link C++ global gTQSender;
- #pragma link C++ global gTQSlotParams;
+-#pragma link C++ global gTQSender;
+-#pragma link C++ global gTQSlotParams;
+ 
+ #pragma link C++ enum EAccessMode;
+ #pragma link C++ enum ESignals;
 
 diff --git a/src/core/meta/inc/LinkDef.h b/src/core/meta/inc/LinkDef.h
 index e36a6a09f1..17101803f4 100644
