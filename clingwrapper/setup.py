@@ -1,5 +1,6 @@
 import os, sys, glob, subprocess
 from setuptools import setup, find_packages, Extension
+from setuptools.command.bdist_egg import bdist_egg as _bdist_egg
 from distutils import log
 from distutils.command.build_ext import build_ext as _build_ext
 from distutils.command.clean import clean as _clean
@@ -171,6 +172,13 @@ if has_wheel:
             self.root_is_pure = True
     cmdclass['bdist_wheel'] = my_bdist_wheel
 
+# same for bdist_egg as for bdist_wheel (see above)
+class my_bdist_egg(_bdist_egg):
+    def run(self, *args):
+        if is_manylinux():
+            return _bdist_egg.run(self, *args)
+cmdclass['bdist_egg'] = my_bdist_egg
+
 
 setup(
     name='cppyy-backend',
@@ -182,7 +190,7 @@ setup(
     author='PyPy Developers',
     author_email='pypy-dev@python.org',
 
-    version='1.5.0',
+    version='1.5.1',
 
     license='LBNL BSD',
 
