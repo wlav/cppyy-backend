@@ -294,7 +294,7 @@ setup(
     author='ROOT Developers',
     author_email='rootdev@cern.ch',
 
-    version='6.15.2.1',
+    version='6.15.2.2',
 
     license='LLVM: UoI-NCSA; ROOT: LGPL 2.1',
 
@@ -332,7 +332,7 @@ setup(
     package_dir={'': 'python'},
     packages=find_packages('python', include=['cppyy_backend']),
 
-    cmdclass = cmdclass,
+    cmdclass=cmdclass,
 
     entry_points={
         "console_scripts": [
@@ -342,4 +342,6 @@ setup(
             "cppyy-generator = cppyy_backend._cppyy_generator:main",
         ],
     },
+
+    zip_safe=False,
 )
