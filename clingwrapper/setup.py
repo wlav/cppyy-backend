@@ -188,6 +188,8 @@ class MyDistribution(Distribution):
                     self.run_command(cmd)
                 else:
                     log.info('Command "%s" is disabled', cmd)
+                    cmd_obj = self.get_command_obj(cmd)
+                    cmd_obj.get_outputs = lambda: None
         else:
             return Distribution.run_commands(self)
 
