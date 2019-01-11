@@ -14,7 +14,6 @@ except ImportError:
 from distutils.errors import DistutilsSetupError
 from codecs import open
 
-
 here = os.path.abspath(os.path.dirname(__file__))
 with open(os.path.join(here, 'README.rst'), encoding='utf-8') as f:
     long_description = f.read()
@@ -33,15 +32,6 @@ def is_manylinux():
             pass
     return _is_manylinux
 
-try:
-    root_install = os.environ["ROOTSYS"]
-    requirements = []
-    add_pkg = ['cppyy_backend']
-except KeyError:
-    root_install = None
-    requirements = ['cppyy-cling>6.15.0.0']
-    add_pkg = []
-
 if 'win32' in sys.platform:
     link_libraries = ['libCore', 'libThread', 'libRIO', 'libCling']
     import cppyy_backend
@@ -51,8 +41,6 @@ else:
     link_dirs = None
 
 def _get_config_exec():
-    if root_install:
-        return ['root-config']
     return ['python', '-m', 'cppyy_backend._cling_config']
 
 def get_include_path():
@@ -190,7 +178,7 @@ setup(
     author='PyPy Developers',
     author_email='pypy-dev@python.org',
 
-    version='1.5.1',
+    version='1.6.0',
 
     license='LBNL BSD',
 
@@ -217,15 +205,11 @@ setup(
 
     keywords='C++ bindings data science',
 
-    setup_requires=['wheel']+requirements,
-    install_requires=requirements,
-
-    package_dir={'': 'python'},
-    packages=find_packages('python', include=add_pkg),
+    setup_requires=['wheel'],
+    install_requires=['cppyy-cling>6.15.0.0'],
 
     ext_modules=[Extension(os.path.join('cppyy_backend', 'lib', 'libcppyy_backend'),
         sources=glob.glob(os.path.join('src', 'clingwrapper.cxx')))],
-    zip_safe=False,
 
-    cmdclass = cmdclass
+    cmdclass=cmdclass,
 )
