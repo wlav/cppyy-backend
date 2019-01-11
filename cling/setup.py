@@ -1,7 +1,8 @@
-import os, sys, subprocess, stat
-import multiprocessing
+import codecs, multiprocessing, os, sys, subprocess, stat
 from setuptools import setup, find_packages
 from distutils import log
+
+from setuptools.dist import Distribution
 from distutils.command.build import build as _build
 from distutils.command.clean import clean as _clean
 from distutils.dir_util import remove_tree
@@ -12,12 +13,19 @@ try:
 except ImportError:
     has_wheel = False
 from distutils.errors import DistutilsSetupError
-from codecs import open
+
+
+requirements = []
+setup_requirements = ['wheel']+requirements
 
 here = os.path.abspath(os.path.dirname(__file__))
-with open(os.path.join(here, 'README.rst'), encoding='utf-8') as f:
+with codecs.open(os.path.join(here, 'README.rst'), encoding='utf-8') as f:
     long_description = f.read()
 
+
+#
+# platform-dependent helpers
+#
 _is_manylinux = None
 def is_manylinux():
     global _is_manylinux
@@ -65,6 +73,9 @@ def get_prefix():
     return prefix
 
 
+#
+# customized commands
+#
 class my_cmake_build(_build):
     def run(self):
         # base run
@@ -267,11 +278,11 @@ class my_install(_install):
         outputs.append(os.path.join(self._get_install_path(), 'cppyy_backend'))
         return outputs
 
+
 cmdclass = {
         'build': my_cmake_build,
         'clean': my_clean,
         'install': my_install }
-
 if has_wheel:
     class my_bdist_wheel(_bdist_wheel):
         def finalize_options(self):
@@ -282,6 +293,22 @@ if has_wheel:
             _bdist_wheel.finalize_options(self)
             self.root_is_pure = True
     cmdclass['bdist_wheel'] = my_bdist_wheel
+
+
+#
+# customized distribition to disable binaries
+#
+class MyDistribution(Distribution):
+    def run_commands(self):
+        # disable bdist_egg as it only packages the python code, skipping the build
+        if not is_manylinux():
+            for cmd in self.commands:
+                if cmd != 'bdist_egg':
+                    self.run_command(cmd)
+                else:
+                    log.info('Command "%s" is disabled', cmd)
+        else:
+            return Distribution.run_commands(self)
 
 
 setup(
@@ -333,6 +360,7 @@ setup(
     packages=find_packages('python', include=['cppyy_backend']),
 
     cmdclass=cmdclass,
+    distclass=MyDistribution,
 
     entry_points={
         "console_scripts": [
