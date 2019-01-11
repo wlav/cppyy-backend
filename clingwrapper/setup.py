@@ -26,19 +26,14 @@ with codecs.open(os.path.join(here, 'README.rst'), encoding='utf-8') as f:
 #
 # platform-dependent helpers
 #
-_is_manylinux = None
 def is_manylinux():
-    global _is_manylinux
-    if _is_manylinux is None:
-        _is_manylinux = False
-        try:
-            for line in open('/etc/redhat-release').readlines():
-                if 'CentOS release 5.11' in line:
-                    _is_manylinux = True
-                    break
-        except (OSError, IOError):
-            pass
-    return _is_manylinux
+    try:
+        for line in open('/etc/redhat-release').readlines():
+            if 'CentOS release 5.11' in line:
+                return True
+    except (OSError, IOError):
+        pass
+    return False
 
 def _get_linker_options():
     if 'win32' in sys.platform:
