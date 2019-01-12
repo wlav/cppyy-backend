@@ -1038,9 +1038,16 @@ std::string Cppyy::GetMethodResultType(TCppMethod_t method)
         if (restype == "(lambda)") {
             std::ostringstream s;
             // TODO: what if there are parameters to the lambda?
-            s << "__cling_internal::FT<decltype(" << GetMethodFullName(method) << "())>::F";
+            s << "__cling_internal::FT<decltype("
+              << GetMethodFullName(method) << "(";
+            for (Cppyy::TCppIndex_t i = 0; i < Cppyy::GetMethodNumArgs(method); ++i) {
+                if (i != 0) s << ", ";
+                s << Cppyy::GetMethodArgType(method, i) << "{}";
+            }
+            s << "))>::F";
             TClass* cl = TClass::GetClass(s.str().c_str());
             if (cl) return cl->GetName();
+            // TODO: signal some type of error (or should that be upstream?
         }
         return restype;
     }
