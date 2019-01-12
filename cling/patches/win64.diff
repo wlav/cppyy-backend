@@ -1318,18 +1318,22 @@ index 92c96215c0..e77026ebe3 100644
        }
        if (const EnumType *ET = dyn_cast<EnumType>(&*QT)) {
           if (ET->getDecl()->getIntegerType()->hasSignedIntegerRepresentation())
-@@ -234,10 +234,7 @@ namespace {
+@@ -232,13 +232,8 @@ namespace {
+          else
+             return (returnType) val.getULL();
        }
-       if (QT->isMemberPointerType()) {
-          const MemberPointerType *MPT = QT->getAs<MemberPointerType>();
+-      if (QT->isMemberPointerType()) {
+-         const MemberPointerType *MPT = QT->getAs<MemberPointerType>();
 -         if (MPT->isMemberDataPointer()) {
 -            return (returnType)(ptrdiff_t)val.getPtr();
 -         }
 -         return (returnType)(long) val.getPtr();
+-      }
++      if (QT->isMemberPointerType())
 +         return (returnType)(intptr_t)val.getPtr();
-       }
        ::Error("TClingCallFunc::sv_to", "Invalid Type!");
        QT->dump();
+       return 0;
 diff --git a/src/core/metacling/src/TClingClassInfo.cxx b/src/core/metacling/src/TClingClassInfo.cxx
 index 1cb6973800..f052455243 100644
 --- a/src/core/metacling/src/TClingClassInfo.cxx

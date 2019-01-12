@@ -1034,7 +1034,15 @@ std::string Cppyy::GetMethodResultType(TCppMethod_t method)
         TFunction* f = m2f(method);
         if (f->ExtraProperty() & kIsConstructor)
             return "constructor";
-        return f->GetReturnTypeNormalizedName();
+        std::string restype = f->GetReturnTypeNormalizedName();
+        if (restype == "(lambda)") {
+            std::ostringstream s;
+            // TODO: what if there are parameters to the lambda?
+            s << "__cling_internal::FT<decltype(" << GetMethodFullName(method) << "())>::F";
+            TClass* cl = TClass::GetClass(s.str().c_str());
+            if (cl) return cl->GetName();
+        }
+        return restype;
     }
     return "<unknown>";
 }
