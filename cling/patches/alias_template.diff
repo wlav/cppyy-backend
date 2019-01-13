@@ -1,0 +1,55 @@
+diff --git a/src/interpreter/cling/lib/Interpreter/LookupHelper.cpp b/src/interpreter/cling/lib/Interpreter/LookupHelper.cpp
+index a863eb7db1..b5384d579f 100644
+--- a/src/interpreter/cling/lib/Interpreter/LookupHelper.cpp
++++ b/src/interpreter/cling/lib/Interpreter/LookupHelper.cpp
+@@ -766,8 +766,8 @@ namespace cling {
+     return TheDecl;
+   }
+ 
+-  const ClassTemplateDecl* LookupHelper::findClassTemplate(llvm::StringRef Name,
+-                                                           DiagSetting diagOnOff) const {
++  const TemplateDecl* LookupHelper::findClassTemplate(llvm::StringRef Name,
++                                                      DiagSetting diagOnOff) const {
+     //
+     //  Find a class template decl given its name.
+     //
+@@ -858,6 +858,14 @@ namespace cling {
+           if (auto TD = DTST->getTemplateName().getAsTemplateDecl()) {
+             if (auto CTD = dyn_cast<ClassTemplateDecl>(TD))
+               return CTD;
++            else if (auto TAT = dyn_cast<TypeAliasTemplateDecl>(TD)) {
++              TypeAliasDecl* Pattern = TAT->getCanonicalDecl()->getTemplatedDecl();
++              if (!Pattern->isInvalidDecl()) {
++                 QualType QT = Pattern->getUnderlyingType().getCanonicalType();
++                 if (!QT.isNull())
++                     return (dyn_cast<TemplateSpecializationType>(QT.getTypePtr()))->getTemplateName().getAsTemplateDecl();
++              }
++            }
+           }
+         }
+       }
+diff --git a/src/interpreter/cling/include/cling/Interpreter/LookupHelper.h b/src/interpreter/cling/include/cling/Interpreter/LookupHelper.h
+index 5c344223c6..2c1cfc284d 100644
+--- a/src/interpreter/cling/include/cling/Interpreter/LookupHelper.h
++++ b/src/interpreter/cling/include/cling/Interpreter/LookupHelper.h
+@@ -18,7 +18,7 @@
+ #include <memory>
+ 
+ namespace clang {
+-  class ClassTemplateDecl;
++  class TemplateDecl;
+   class Decl;
+   class Expr;
+   class FunctionDecl;
+@@ -109,9 +109,9 @@ namespace cling {
+     ///
+     ///\param [in] Name   - The name of the class template to lookup.
+     ///\param [in] diagOnOff - Whether to diagnose lookup failures.
+-    ///\returns The found declaration or null.
++    ///\returns The found declaration (class or alias) or null.
+     ///
+-    const clang::ClassTemplateDecl*
++    const clang::TemplateDecl*
+     findClassTemplate(llvm::StringRef Name, DiagSetting diagOnOff) const;
+ 
+     ///\brief Lookup a data member based on its Decl(Context), name.
