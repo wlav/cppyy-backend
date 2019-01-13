@@ -15,7 +15,7 @@ except ImportError:
 from distutils.errors import DistutilsSetupError
 
 
-requirements = ['cppyy-cling>6.15.0.0']
+requirements = ['cppyy-cling>=6.15.2.2']
 setup_requirements = ['wheel']+requirements
 
 here = os.path.abspath(os.path.dirname(__file__))
