@@ -16,7 +16,9 @@ from distutils.errors import DistutilsSetupError
 
 
 requirements = ['cppyy-cling>=6.15.2.2']
-setup_requirements = ['wheel']+requirements
+setup_requirements = ['wheel']
+if 'build' in sys.argv or 'install' in sys.argv:
+    setup_requirements += requirements
 
 here = os.path.abspath(os.path.dirname(__file__))
 with codecs.open(os.path.join(here, 'README.rst'), encoding='utf-8') as f:
