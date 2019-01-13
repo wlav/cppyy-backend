@@ -108,13 +108,30 @@ public:
         if (getenv("CPPYY_DISABLE_FASTPATH")) gEnableFastPath = false;
 
     // fill the set of STL names
-        const char* stl_names[] = {"string", "bitset", "pair", "allocator",
-            "auto_ptr", "shared_ptr", "unique_ptr", "weak_ptr",
-            "vector", "list", "forward_list", "deque", "map", "multimap",
-            "set", "multiset", "unordered_set", "unordered_multiset",
-            "unordered_map", "unordered_multimap",
-            "iterator", "reverse_iterator", "basic_string",
-            "complex", "valarray"};
+        const char* stl_names[] = {"allocator", "auto_ptr", "bad_alloc", "bad_cast",
+            "bad_exception", "bad_typeid", "basic_filebuf", "basic_fstream", "basic_ifstream",
+            "basic_ios", "basic_iostream", "basic_istream", "basic_istringstream",
+            "basic_ofstream", "basic_ostream", "basic_ostringstream", "basic_streambuf",
+            "basic_string", "basic_stringbuf", "basic_stringstream", "binary_function",
+            "binary_negate", "bitset", "char_traits", "codecvt_byname", "codecvt", "collate",
+            "collate_byname", "compare", "complex", "ctype_byname", "ctype", "default_delete",
+            "deque", "divides", "domain_error", "equal_to", "exception", "forward_list", "fpos",
+            "greater_equal", "greater", "gslice_array", "gslice", "hash", "indirect_array",
+            "invalid_argument", "ios_base", "istream_iterator", "istreambuf_iterator",
+            "istrstream", "iterator_traits", "iterator", "length_error", "less_equal", "less",
+            "list", "locale", "localedef utility", "locale utility", "logic_error", "logical_and",
+            "logical_not", "logical_or", "map", "mask_array", "mem_fun", "mem_fun_ref", "messages",
+            "messages_byname", "minus", "modulus", "money_get", "money_put", "moneypunct",
+            "moneypunct_byname", "multimap", "multiplies", "multiset", "negate", "not_equal_to",
+            "num_get", "num_put", "numeric_limits", "numpunct", "numpunct_byname",
+            "ostream_iterator", "ostreambuf_iterator", "ostrstream", "out_of_range",
+            "overflow_error", "pair", "plus", "pointer_to_binary_function",
+            "pointer_to_unary_function", "priority_queue", "queue", "range_error",
+            "raw_storage_iterator", "reverse_iterator", "runtime_error", "set", "shared_ptr",
+            "slice_array", "slice", "stack", "string", "strstream", "strstreambuf",
+            "time_get_byname", "time_get", "time_put_byname", "time_put", "unary_function",
+            "unary_negate", "unique_ptr", "underflow_error", "unordered_map", "unordered_multimap",
+            "unordered_multiset", "unordered_set", "valarray", "vector", "weak_ptr", "wstring"};
         for (auto& name : stl_names)
             gSTLNames.insert(name);
 
