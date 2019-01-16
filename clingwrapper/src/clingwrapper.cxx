@@ -1284,15 +1284,24 @@ Cppyy::TCppMethod_t Cppyy::GetMethodTemplate(
 Cppyy::TCppIndex_t Cppyy::GetGlobalOperator(
     TCppScope_t scope, TCppType_t lc, TCppType_t rc, const std::string& opname)
 {
-// Find a global operator function with a matching signature
-    std::string proto = GetScopedFinalName(lc) + ", " + GetScopedFinalName(rc);
+// Find a global operator function with a matching signature; prefer by-ref, but
+// fall back on by-value if that fails.
+    const std::string& lcname = GetScopedFinalName(lc);
+    const std::string& rcname = GetScopedFinalName(rc);
+    std::string proto = lcname + "&, " + rcname + "&";
     if (scope == (cppyy_scope_t)GLOBAL_HANDLE) {
         TFunction* func = gROOT->GetGlobalFunctionWithPrototype(opname.c_str(), proto.c_str());
+        if (func) return (TCppIndex_t)new_CallWrapper(func);
+        proto = lcname + ", " + rcname;
+        func = gROOT->GetGlobalFunctionWithPrototype(opname.c_str(), proto.c_str());
         if (func) return (TCppIndex_t)new_CallWrapper(func);
     } else {
         TClassRef& cr = type_from_handle(scope);
         if (cr.GetClass()) {
             TFunction* func = cr->GetMethodWithPrototype(opname.c_str(), proto.c_str());
+            if (func) return (TCppIndex_t)cr->GetListOfMethods()->IndexOf(func);
+            proto = lcname + ", " + rcname;
+            func = cr->GetMethodWithPrototype(opname.c_str(), proto.c_str());
             if (func) return (TCppIndex_t)cr->GetListOfMethods()->IndexOf(func);
         }
     }
@@ -1417,7 +1426,7 @@ intptr_t Cppyy::GetDatamemberOffset(TCppScope_t scope, TCppIndex_t idata)
         if ((m->Property() & kIsStatic) && strchr(cr->GetName(), '<'))
             gInterpreter->ProcessLine(((std::string)cr->GetName()+"::"+m->GetName()+";").c_str());
         return (intptr_t)m->GetOffsetCint();    // yes, CINT (GetOffset() is both wrong
-                                                 // and caches that wrong result!
+                                                // and caches that wrong result!
     }
 
     return (intptr_t)-1;
