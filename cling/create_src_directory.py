@@ -464,4 +464,10 @@ for fdiff in ('scanner', 'scanner_2', 'faux_typedef', 'classrules', 'template_fw
 if is_manylinux():
     patch.fromfile(os.path.join('patches', 'manylinux1.diff')).apply()
 
+#
+## finally, remove the ROOT source directory, as it can not be reused
+#
+print("removing", pkgdir)
+shutil.rmtree(pkgdir)
+
 # done!
