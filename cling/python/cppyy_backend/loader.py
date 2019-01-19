@@ -26,11 +26,22 @@ def load_cpp_backend():
         ensure_precompiled_header()
 
     try:
+        bkname = os.environ['CPPYY_BACKEND_LIBRARY']
+        if bkname.rfind(soext) < 0:
+            bkname += soext
+    except KeyError:
+        bkname = 'libcppyy_backend'+soext
+
+    try:
       # normal load, allowing for user overrides of LD_LIBRARY_PATH
-        c = ctypes.CDLL('libcppyy_backend'+soext, ctypes.RTLD_GLOBAL)
+        c = ctypes.CDLL(bkname, ctypes.RTLD_GLOBAL)
     except OSError:
       # failed ... load dependencies explicitly
-        pkgpath = os.path.dirname(__file__)
+        pkgpath = os.path.dirname(bkname)
+        if not pkgpath:
+            pkgpath = os.path.dirname(__file__)
+        elif os.path.basename(pkgpath) in ['lib', 'bin']:
+            pkgpath = os.path.dirname(pkgpath)
         for dep in ['liblzma', 'libCore', 'libThread', 'libRIO', 'libCling']:
             for loc in ['lib', 'bin']:
                 fpath = os.path.join(pkgpath, loc, dep+soext)
@@ -38,7 +49,7 @@ def load_cpp_backend():
                     dep = fpath
                     ctypes.CDLL(dep, ctypes.RTLD_GLOBAL)
                     break
-        c = ctypes.CDLL(os.path.join(pkgpath, 'lib', 'libcppyy_backend'+soext), ctypes.RTLD_GLOBAL)
+        c = ctypes.CDLL(os.path.join(pkgpath, 'lib', bkname), ctypes.RTLD_GLOBAL)
 
     return c
 
