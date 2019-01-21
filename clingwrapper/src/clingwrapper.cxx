@@ -1266,7 +1266,7 @@ Cppyy::TCppMethod_t Cppyy::GetMethodTemplate(
              auto existing = gMethodTemplates.find(declid);
              if (existing == gMethodTemplates.end()) {
                  MethodInfo_t* mi = gInterpreter->MethodInfo_Factory(declid);
-                 auto cw = new_CallWrapper(new TFunction(mi));
+                 auto cw = new CallWrapper(new TFunction(mi));
                  existing = gMethodTemplates.insert(std::make_pair(declid, cw)).first;
              }
              return (TCppMethod_t)existing->second;
