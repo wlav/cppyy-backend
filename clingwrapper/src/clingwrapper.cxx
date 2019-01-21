@@ -1223,10 +1223,12 @@ bool Cppyy::IsMethodTemplate(TCppScope_t scope, TCppIndex_t imeth)
 }
 
 // helpers for Cppyy::GetMethodTemplate()
-static std::vector<TFunction*> s_method_templates;
+static std::map<TDictionary::DeclId_t, CallWrapper*> gMethodTemplates;
 namespace {
     struct CleanMethodTemplates {
-        ~CleanMethodTemplates() { for (auto& x : s_method_templates) delete x; }
+        ~CleanMethodTemplates() {
+            for (auto& x : gMethodTemplates) { delete x.second->fMetaFunction; delete x.second; }
+        }
     } _clean;
 }
 
@@ -1261,9 +1263,13 @@ Cppyy::TCppMethod_t Cppyy::GetMethodTemplate(
     // try again, ignoring proto in case full name is complete template
         auto declid = gInterpreter->GetFunction(cl, name.c_str());
         if (declid) {
-             MethodInfo_t* mi = gInterpreter->MethodInfo_Factory(declid);
-             s_method_templates.push_back(new TFunction(mi));
-             func = s_method_templates.back();
+             auto existing = gMethodTemplates.find(declid);
+             if (existing == gMethodTemplates.end()) {
+                 MethodInfo_t* mi = gInterpreter->MethodInfo_Factory(declid);
+                 auto cw = new_CallWrapper(new TFunction(mi));
+                 existing = gMethodTemplates.insert(std::make_pair(declid, cw)).first;
+             }
+             return (TCppMethod_t)existing->second;
         }
     }
 
