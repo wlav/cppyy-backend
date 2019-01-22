@@ -1550,6 +1550,19 @@ int Cppyy::GetDimensionSize(TCppScope_t scope, TCppIndex_t idata, int dimension)
 }
 
 
+//- creator callback (note C-linkage to allow easy use of dlsym --------------
+static void* (*cppyy_converter_creator)(const char*, long*) = nullptr;
+extern "C" void cppyy_set_converter_creator(void* (*cc)(const char*, long*)) {
+    cppyy_converter_creator = cc;
+}
+
+extern "C" void* cppyy_create_converter(const char* type_name, long* dims) {
+    if (cppyy_converter_creator)
+        return cppyy_converter_creator(type_name, dims);
+    return nullptr;
+}
+
+
 //- C-linkage wrappers -------------------------------------------------------
 
 extern "C" {

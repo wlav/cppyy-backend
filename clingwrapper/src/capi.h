@@ -238,6 +238,11 @@ extern "C" {
     RPY_EXPORTED
     void        cppyy_vectorbool_setitem(cppyy_object_t ptr, int idx, int value);
 
+    RPY_EXPORTED
+    void cppyy_set_converter_creator(void* (*)(const char*, long*));
+    RPY_EXPORTED
+    void* cppyy_create_converter(const char* type_name, long* dims);
+
 #ifdef __cplusplus
 }
 #endif // ifdef __cplusplus

@@ -226,4 +226,11 @@ namespace Cppyy {
 
 } // namespace Cppyy
 
+extern "C" {
+    RPY_EXPORTED
+    void cppyy_set_converter_creator(void* (*)(const char*, long*));
+    RPY_EXPORTED
+    void* cppyy_create_converter(const char* type_name, long* dims);
+}
+
 #endif // !CPYCPPYY_CPPYY_H
