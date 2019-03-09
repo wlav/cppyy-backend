@@ -20,7 +20,7 @@ _precompiled_header_ensured = False
 def load_cpp_backend():
     set_cling_compile_options()
 
-    if 'linux' in sys.platform and not _precompiled_header_ensured:
+    if not _precompiled_header_ensured:
      # the precompiled header of standard and system headers is not part of the
      # distribution as there are too many varieties; create it now if needed
         ensure_precompiled_header()
