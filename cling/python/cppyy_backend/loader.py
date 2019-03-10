@@ -103,7 +103,7 @@ def ensure_precompiled_header(pchdir = '', pchname = ''):
 
      olddir = os.getcwd()
      try:
-         pkgpath = os.path.dirname(__file__)
+         pkgpath = os.path.abspath(os.path.dirname(__file__))
          if 'CLING_STANDARD_PCH' in os.environ:
              stdpch = os.environ['CLING_STANDARD_PCH']
              if stdpch.lower() == 'none':   # magic keyword to disable pch
