@@ -36,3 +36,17 @@ index 55494193c8..a09f591cff 100644
  
  // Return first of a variadic list of types.
  template <typename T, typename... Rest>
+diff --git a/src/core/clingutils/CMakeLists.txt b/src/core/clingutils/CMakeLists.txt
+index 4be71a05fb..11535a0105 100644
+--- a/src/core/clingutils/CMakeLists.txt
++++ b/src/core/clingutils/CMakeLists.txt
+@@ -127,6 +127,9 @@ set(stamp_file ${CMAKE_BINARY_DIR}${CMAKE_FILES_DIRECTORY}/LLVMRES.stamp)
+ if(MSVC)
+   add_custom_command(OUTPUT ${stamp_file}
+         COMMAND ${CMAKE_COMMAND} -E make_directory ${CMAKE_BINARY_DIR}/etc/cling/lib/clang/${CLANG_RESOURCE_DIR_VERSION}/include
++        COMMAND ${CMAKE_COMMAND} -E copy_directory
++        ${CLANG_RESOURCE_DIR}
++        ${CMAKE_BINARY_DIR}/etc/cling/lib/clang/${CLANG_RESOURCE_DIR_VERSION}/include
+         ${copy_commands}
+         COMMAND ${CMAKE_COMMAND} -E touch ${stamp_file}
+         DEPENDS ${files_to_copy}
