@@ -10,6 +10,8 @@ def main():
         return 0
     os.environ['LD_LIBRARY_PATH'] = os.path.join(MYHOME, 'lib')
     genreflex = os.path.join(MYHOME, 'bin', 'genreflex')
+    if 'win32' in sys.platform:
+        genreflex += '.exe'
     if not os.path.exists(genreflex):
         raise RuntimeError("genreflex not installed in standard location")
     return subprocess.call([genreflex] + sys.argv[1:])
