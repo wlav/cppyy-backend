@@ -44,6 +44,9 @@ def main():
                 def get_include_dir():
                     return os.path.join(MYHOME, 'include')
 
+                def get_library_dir():
+                    return os.path.join(MYHOME, 'lib')
+
                 def get_basic_cppflags():
                     flags = '-Zc:__cplusplus '
                     if 'STDCXX' in os.environ:
@@ -73,7 +76,11 @@ def main():
 
                 elif options == '--cflags':
                 # most important are C++ flag and include directory
-                    print(get_basic_cppflags(), '-I'+get_include_dir())
+                    print(get_basic_cppflags(), '/I'+get_include_dir(), /FIw32pragma.h)
+                    return 0
+
+                elif option == '--ldflags':
+                    print('/LIBPATH:'+get_library_dir(), 'libCore.lib', 'libRIO.lib')
                     return 0
 
             except subprocess.CalledProcessError:
