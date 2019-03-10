@@ -69,6 +69,10 @@ def main():
                     print(get_include_dir())
                     return 0
 
+                elif options == '--libdir':
+                    print(get_library_dir())
+                    return 0
+
                 elif options == '--auxcflags':
                 # most important is get the C++ version flag right
                     print(get_basic_cppflags())
@@ -76,10 +80,10 @@ def main():
 
                 elif options == '--cflags':
                 # most important are C++ flag and include directory
-                    print(get_basic_cppflags(), '/I'+get_include_dir(), /FIw32pragma.h)
+                    print(get_basic_cppflags(), '/I'+get_include_dir(), '/FIw32pragma.h')
                     return 0
 
-                elif option == '--ldflags':
+                elif options == '--ldflags':
                     print('/LIBPATH:'+get_library_dir(), 'libCore.lib', 'libRIO.lib')
                     return 0
 
