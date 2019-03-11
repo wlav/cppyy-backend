@@ -333,6 +333,10 @@ bool Cppyy::IsTemplate(const std::string& template_name)
 
 Cppyy::TCppType_t Cppyy::GetActualClass(TCppType_t klass, TCppObject_t obj)
 {
+#ifdef WIN32
+    // TODO: figure out why this always crashes otherwise
+    return klass;
+#else
     TClassRef& cr = type_from_handle(klass);
     TClass* clActual = cr->GetActualClass((void*)obj);
     if (clActual && clActual != cr.GetClass()) {
@@ -340,6 +344,7 @@ Cppyy::TCppType_t Cppyy::GetActualClass(TCppType_t klass, TCppObject_t obj)
         return (TCppType_t)GetScope(clActual->GetName());
     }
     return klass;
+#endif
 }
 
 size_t Cppyy::SizeOf(TCppType_t klass)
