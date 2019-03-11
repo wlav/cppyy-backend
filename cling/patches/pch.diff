@@ -33,7 +33,7 @@ index b53b7352f9..90ff286c1b 100644
  
  #include "RtypesCore.h"
  #include "TModuleGenerator.h"
-@@ -4299,6 +4300,18 @@ int RootClingMain(int argc,
+@@ -4367,6 +4368,18 @@ int RootClingMain(int argc,
              continue;
           }
  
@@ -52,7 +52,7 @@ index b53b7352f9..90ff286c1b 100644
           if ((ic + 1) < argc && strcmp("-isysroot", argv[ic]) == 0) {
              clingArgs.push_back(argv[ic++]);
              clingArgs.push_back(argv[ic++]);
-@@ -4543,6 +4556,17 @@ int RootClingMain(int argc,
+@@ -4611,6 +4624,17 @@ int RootClingMain(int argc,
     ROOT::TMetaUtils::TClingLookupHelper helper(interp, normCtxt, 0, 0);
     TClassEdit::Init(&helper);
  
