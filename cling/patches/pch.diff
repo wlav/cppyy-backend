@@ -25,6 +25,14 @@ diff --git a/src/core/dictgen/src/rootcling_impl.cxx b/src/core/dictgen/src/root
 index b53b7352f9..90ff286c1b 100644
 --- a/src/core/dictgen/src/rootcling_impl.cxx
 +++ b/src/core/dictgen/src/rootcling_impl.cxx
+@@ -236,6 +236,7 @@ const char *rootClingHelp =
+ 
+ #include "llvm/Bitcode/BitstreamWriter.h"
+ #include "llvm/Support/Path.h"
++#include "llvm/Support/Process.h"
+ 
+ #include "RtypesCore.h"
+ #include "TModuleGenerator.h"
 @@ -4299,6 +4300,18 @@ int RootClingMain(int argc,
              continue;
           }
