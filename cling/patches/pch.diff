@@ -22,18 +22,29 @@ index 5413aef378..cc94115b85 100644
  
        clingArgsStorage.push_back("-Wno-undefined-inline");
 diff --git a/src/core/dictgen/src/rootcling_impl.cxx b/src/core/dictgen/src/rootcling_impl.cxx
-index b53b7352f9..b6045d772d 100644
+index b53b7352f9..90ff286c1b 100644
 --- a/src/core/dictgen/src/rootcling_impl.cxx
 +++ b/src/core/dictgen/src/rootcling_impl.cxx
-@@ -236,6 +236,7 @@ const char *rootClingHelp =
+@@ -4299,6 +4300,18 @@ int RootClingMain(int argc,
+             continue;
+          }
  
- #include "llvm/Bitcode/BitstreamWriter.h"
- #include "llvm/Support/Path.h"
-+#include "llvm/Support/Process.h"
- 
- #include "RtypesCore.h"
- #include "TModuleGenerator.h"
-@@ -4611,6 +4612,17 @@ int RootClingMain(int argc,
++         if (strcmp("-cxxflags", argv[ic]) == 0 && (ic + 1) < argc) {
++            // Add additional flags straight to Cling
++            StringRef Env(argv[ic + 1]);
++            while (!Env.empty()) {
++                StringRef Arg;
++                std::tie(Arg, Env) = Env.split(' ');
++                clingArgs.push_back(Arg.str());
++            }
++            ic += 2;
++            continue;
++         }
++
+          if ((ic + 1) < argc && strcmp("-isysroot", argv[ic]) == 0) {
+             clingArgs.push_back(argv[ic++]);
+             clingArgs.push_back(argv[ic++]);
+@@ -4543,6 +4556,17 @@ int RootClingMain(int argc,
     ROOT::TMetaUtils::TClingLookupHelper helper(interp, normCtxt, 0, 0);
     TClassEdit::Init(&helper);
  
