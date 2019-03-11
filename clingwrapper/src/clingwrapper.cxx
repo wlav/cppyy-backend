@@ -240,12 +240,6 @@ std::string Cppyy::ResolveName(const std::string& cppitem_name)
     std::string tclean = cppitem_name.compare(0, 2, "::") == 0 ?
         cppitem_name.substr(2, std::string::npos) : cppitem_name;
 
-// short circuit common case, to not trigger clang operations like
-// template instantiations:
-    if (auto klass = TClass::GetClass(tclean.c_str())) {
-        if (klass->GetClassInfo()) return klass->GetName();
-    }
-
 // classes (most common)
     tclean = TClassEdit::CleanType(tclean.c_str());
     if (tclean.empty() /* unknown, eg. an operator */) return cppitem_name;
