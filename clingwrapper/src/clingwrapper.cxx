@@ -248,9 +248,10 @@ std::string Cppyy::ResolveName(const std::string& cppitem_name)
     if (tclean[tclean.size()-1] == ']')
         tclean = tclean.substr(0, tclean.rfind('[')) + "[]";
 
-// data types (such as builtins)
+// check data types list (accept only builtins as typedefs will
+// otherwise not be resolved)
     TDataType* dt = gROOT->GetType(tclean.c_str());
-    if (dt) return dt->GetFullTypeName();
+    if (dt && dt->GetType() != kOther_t) return dt->GetFullTypeName();
 
 // special case for enums
     if (IsEnum(cppitem_name))
@@ -313,13 +314,13 @@ Cppyy::TCppScope_t Cppyy::GetScope(const std::string& sname)
         return (TCppType_t)icr->second;
 
 // use TClass directly, to enable auto-loading; class may be stubbed (eg. for
-// function returns) leading to a non-null TClass that is otherwise invalid
+// function returns) or forward declared, leading to a non-null TClass that is
+// otherwise invalid/unusable
     TClassRef cr(TClass::GetClass(scope_name.c_str(), true /* load */, true /* silent */));
     if (!cr.GetClass() || !cr->Property())
         return (TCppScope_t)0;
 
-    // no check for ClassInfo as forward declared classes are okay (fragile)
-
+// memoize found/created TClass
     ClassRefs_t::size_type sz = g_classrefs.size();
     g_name2classrefidx[scope_name] = sz;
     g_classrefs.push_back(TClassRef(scope_name.c_str()));
@@ -822,6 +823,8 @@ std::string Cppyy::GetFinalName(TCppType_t klass)
 
 std::string Cppyy::GetScopedFinalName(TCppType_t klass)
 {
+    if (klass == GLOBAL_HANDLE)
+        return "";
     TClassRef& cr = type_from_handle(klass);
     if (cr.GetClass()) {
         std::string name = cr->GetName();
@@ -963,9 +966,13 @@ Cppyy::TCppIndex_t Cppyy::GetNumMethods(TCppScope_t scope)
         if (nMethods == (TCppIndex_t)0) {
             std::string clName = GetScopedFinalName(scope);
             if (clName.find('<') != std::string::npos) {
-            // chicken-and-egg problem: TClass does not know about methods until instantiation: force it
-                if (TClass::GetClass(("std::"+clName).c_str())) // TODO: this doesn't work for templates
+            // chicken-and-egg problem: TClass does not know about methods until
+            // instantiation, so force it
+                if (clName.find("std::", 0, 5) == std::string::npos &&
+                    TClass::GetClass(("std::"+clName).c_str())) {
+                // TODO: this is too simplistic for template arguments missing std::
                     clName = "std::" + clName;
+                }
                 std::ostringstream stmt;
                 stmt << "template class " << clName << ";";
                 gInterpreter->Declare(stmt.str().c_str());
