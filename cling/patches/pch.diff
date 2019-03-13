@@ -70,6 +70,15 @@ index b53b7352f9..90ff286c1b 100644
     // flags used only for the pragma parser:
     clingArgs.push_back("-D__CINT__");
     clingArgs.push_back("-D__MAKECINT__");
+@@ -5499,7 +5523,7 @@ namespace genreflex {
+       AddToArgVectorSplit(argvVector, pcmsNames, "-m");
+ 
+       // Inline the input header
+-      argvVector.push_back(string2charptr("-inlineInputHeader"));
++      // argvVector.push_back(string2charptr("-inlineInputHeader"));
+ 
+       // Write empty root pcms
+       if (writeEmptyRootPCM)
 diff --git a/src/etc/dictpch/makepch.py b/src/etc/dictpch/makepch.py
 index dd8faabc13..f633342f5c 100755
 --- a/src/etc/dictpch/makepch.py
