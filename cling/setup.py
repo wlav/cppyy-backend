@@ -248,8 +248,10 @@ class my_install(_install):
             outp = inp+'.new'
             outfile = open(outp, 'w')
             for line in open(inp).readlines():
-                if 'cxxversion=' == line[:11]:
+                if line.find('cxxversion=', 0, 11) == 0:
                     line = 'cxxversion=cxx17\n'
+                elif line.find('features=', 0, 9) == 0:
+                    line = line.replace('cxx11', 'cxx17')
                 outfile.write(line)
             outfile.close()
             os.rename(outp, inp)
@@ -262,6 +264,16 @@ class my_install(_install):
             for line in open(inp).readlines():
                 if '-std=' == line[:5]:
                     line = '-std=c++1z\n'
+                outfile.write(line)
+            outfile.close()
+            os.rename(outp, inp)
+
+            log.info('updating compiledata.h to C++17 for manylinux')
+            inp = os.path.join(get_prefix(), 'include', 'compiledata.h')
+            outp = inp+'.new'
+            outfile = open(outp, 'w')
+            for line in open(inp).readlines():
+                line = line.replace('-std=c++11', '-std=c++1z')
                 outfile.write(line)
             outfile.close()
             os.rename(outp, inp)

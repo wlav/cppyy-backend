@@ -22,7 +22,7 @@ index 5413aef378..cc94115b85 100644
  
        clingArgsStorage.push_back("-Wno-undefined-inline");
 diff --git a/src/core/dictgen/src/rootcling_impl.cxx b/src/core/dictgen/src/rootcling_impl.cxx
-index b53b7352f9..90ff286c1b 100644
+index b53b7352f9..0672f3082c 100644
 --- a/src/core/dictgen/src/rootcling_impl.cxx
 +++ b/src/core/dictgen/src/rootcling_impl.cxx
 @@ -236,6 +236,7 @@ const char *rootClingHelp =
@@ -70,7 +70,28 @@ index b53b7352f9..90ff286c1b 100644
     // flags used only for the pragma parser:
     clingArgs.push_back("-D__CINT__");
     clingArgs.push_back("-D__MAKECINT__");
-@@ -5499,7 +5523,7 @@ namespace genreflex {
+@@ -5419,6 +5443,7 @@ namespace genreflex {
+                        const std::vector<std::string> &warnings,
+                        const std::string &rootmapFileName,
+                        const std::string &rootmapLibName,
++                       const std::string &extraFlags,
+                        bool interpreteronly,
+                        bool doSplit,
+                        bool isDeep,
+@@ -5477,6 +5502,12 @@ namespace genreflex {
+          argvVector.push_back(string2charptr(newRootmapLibName));
+       }
+ 
++      // any extra C++ flags picked up
++      if (!extraFlags.empty()) {
++         argvVector.push_back(string2charptr("-cxxflags"));
++         argvVector.push_back(string2charptr(extraFlags));
++      }
++
+       // Interpreter only dictionaries
+       if (interpreteronly)
+          argvVector.push_back(string2charptr("-interpreteronly"));
+@@ -5499,7 +5530,7 @@ namespace genreflex {
        AddToArgVectorSplit(argvVector, pcmsNames, "-m");
  
        // Inline the input header
@@ -79,6 +100,83 @@ index b53b7352f9..90ff286c1b 100644
  
        // Write empty root pcms
        if (writeEmptyRootPCM)
+@@ -5566,6 +5597,7 @@ namespace genreflex {
+                            const std::vector<std::string> &warnings,
+                            const std::string &rootmapFileName,
+                            const std::string &rootmapLibName,
++                           const std::string &extraFlags,
+                            bool interpreteronly,
+                            bool doSplit,
+                            bool isDeep,
+@@ -5602,6 +5634,7 @@ namespace genreflex {
+                                           warnings,
+                                           rootmapFileName,
+                                           rootmapLibName,
++                                          extraFlags,
+                                           interpreteronly,
+                                           doSplit,
+                                           isDeep,
+@@ -5718,6 +5751,7 @@ int GenReflexMain(int argc, char **argv)
+                        SELECTIONFILENAME,
+                        ROOTMAP,
+                        ROOTMAPLIB,
++                       EXTRAFLAGS,
+                        PCMFILENAME,
+                        DEEP,
+                        DEBUG,
+@@ -5838,6 +5872,9 @@ int GenReflexMain(int argc, char **argv)
+    const char *rootmapLibUsage =
+       "--rootmap-lib\tLibrary name for the rootmap file.\n";
+ 
++   const char *cxxflagsUsage =
++      "--cxxflags\textra C++ compiler option flags.\n";
++
+    // The Descriptor
+    const ROOT::option::Descriptor genreflexUsageDescriptor[] = {
+       {
+@@ -5898,6 +5935,14 @@ int GenReflexMain(int argc, char **argv)
+          rootmapLibUsage
+       },
+ 
++      {
++         EXTRAFLAGS,
++         STRING ,
++         "", "cxxflags",
++         ROOT::option::FullArg::Required,
++         cxxflagsUsage
++      }, 
++
+       {
+          INTERPRETERONLY,
+          NOTYPE,
+@@ -6145,6 +6190,11 @@ int GenReflexMain(int argc, char **argv)
+       }
+    }
+ 
++   // Optional extra flags
++   std::string extraFlags;
++   if (options[EXTRAFLAGS])
++       extraFlags = options[EXTRAFLAGS].arg;
++
+    bool multidict = false;
+    if (options[MULTIDICT]) multidict = true;
+ 
+@@ -6234,6 +6284,7 @@ int GenReflexMain(int argc, char **argv)
+                                     warnings,
+                                     rootmapFileName,
+                                     rootmapLibName,
++                                    extraFlags,
+                                     interpreteronly,
+                                     doSplit,
+                                     isDeep,
+@@ -6256,6 +6307,7 @@ int GenReflexMain(int argc, char **argv)
+                                         warnings,
+                                         rootmapFileName,
+                                         rootmapLibName,
++                                        extraFlags,
+                                         interpreteronly,
+                                         doSplit,
+                                         isDeep,
 diff --git a/src/etc/dictpch/makepch.py b/src/etc/dictpch/makepch.py
 index dd8faabc13..f633342f5c 100755
 --- a/src/etc/dictpch/makepch.py
@@ -87,10 +185,10 @@ index dd8faabc13..f633342f5c 100755
     ifile = open(cppflagsFilename)
     lines = ifile.readlines()
     ifile.close()
-+   if "linux" in sys.platform and "-std=" in os.environ.get("EXTRA_CLING_ARGS", ""):
++   if "std" in os.environ.get("EXTRA_CLING_ARGS", ""):
 +      keep = []
 +      for line in lines:
-+         if not "std=" in line:
++         if not "std" in line:
 +             keep.append(line)
 +      lines = keep
     cppFlags = " ".join(map(lambda line: line[:-1], lines))
