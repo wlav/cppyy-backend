@@ -33,6 +33,15 @@ index b53b7352f9..0672f3082c 100644
  
  #include "RtypesCore.h"
  #include "TModuleGenerator.h"
+@@ -2055,6 +2056,8 @@ void GenerateLinkdef(int *argc, char **argv, int firstInputFile,
+    code_for_parser += "#pragma link off all functions;\n\n";
+
+    for (int i = firstInputFile; i < *argc; i++) {
++      if (argv[i][0] == '-') // reached more options
++         break;
+       char *s, trail[3];
+       int   nostr = 0, noinp = 0, bcnt = 0, l = strlen(argv[i]) - 1;
+       for (int j = 0; j < 3; j++) {
 @@ -4367,6 +4368,18 @@ int RootClingMain(int argc,
              continue;
           }

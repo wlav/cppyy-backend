@@ -12,9 +12,34 @@ def main():
 
     from ._get_cppflags import get_cppflags
     extra_flags = get_cppflags()
-    if extra_flags is not None and 1 < len(sys.argv):
+
+    rc_idx = 0
+    for arg in sys.argv:
+        if 'rootcling' in arg:
+            break
+        rc_idx += 1
+
+    if extra_flags is not None:
       # rootcling is picky about order ...
-       args = [sys.argv[1], '-cxxflags', extra_flags] + sys.argv[2:]
+        args = list()
+        try:
+            check_idx = rc_idx+1
+            if sys.argv[check_idx].find('-v', 0, 2) == 0:
+                args.append(sys.argv[check_idx])
+                check_idx += 1
+            if sys.argv[check_idx] == '-f':
+                args += sys.argv[check_idx:check_idx+2]
+                check_idx += 2
+          # skip past either an output file or input header
+            while sys.argv[check_idx][0] != '-':
+                args.append(sys.argv[check_idx])
+                check_idx += 1
+        except IndexError:
+            pass
+        if args:
+            args = args + ['-cxxflags', extra_flags] + sys.argv[check_idx:]
+        else:
+            args = sys.argv[rc_idx+1:] + ['-cxxflags', extra_flags]
     else:
        args = sys.argv[1:]
 
