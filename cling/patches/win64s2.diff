@@ -1,0 +1,629 @@
+diff --git a/src/core/meta/inc/TBaseClass.h b/src/core/meta/inc/TBaseClass.h
+index b8cb31cf85..151db725ff 100644
+--- a/src/core/meta/inc/TBaseClass.h
++++ b/src/core/meta/inc/TBaseClass.h
+@@ -32,13 +32,13 @@ class TClass;
+ 
+ class TBaseClass : public TDictionary {
+ #ifndef __CLING__
+-   using AtomicInt_t = std::atomic<Int_t>;
+-   static_assert(sizeof(std::atomic<Int_t>) == sizeof(Int_t),
+-                 "We requiqre atomic<int> and <int> to have the same size but they are not");
++   using AtomicInt_t = std::atomic<ptrdiff_t>;
++   static_assert(sizeof(std::atomic<ptrdiff_t>) == sizeof(ptrdiff_t),
++                 "We requiqre atomic<ptrdiff_t> and <ptrdiff_t> to have the same size but they are not");
+ #else
+    // std::atomic is not yet supported in the I/O, so
+    // we hide them from Cling
+-   using AtomicInt_t = Int_t;
++   using AtomicInt_t = ptrdiff_t;
+ #endif
+ 
+ private:
+@@ -59,7 +59,7 @@ public:
+    virtual void   Browse(TBrowser *b);
+    const char    *GetTitle() const;
+    TClass        *GetClassPointer(Bool_t load=kTRUE);
+-   Int_t          GetDelta();
++   ptrdiff_t      GetDelta();
+    Bool_t         IsFolder() const {return kTRUE;}
+    ROOT::ESTLType IsSTLContainer();
+    Long_t         Property() const;
+diff --git a/src/core/meta/inc/TClass.h b/src/core/meta/inc/TClass.h
+index be1c4d88b4..eb99fb131c 100644
+--- a/src/core/meta/inc/TClass.h
++++ b/src/core/meta/inc/TClass.h
+@@ -237,7 +237,7 @@ private:
+    }
+    mutable std::atomic<UChar_t> fRuntimeProperties;    //! Properties that can only be evaluated at run-time
+ 
+-   mutable Long_t     fOffsetStreamer;  //!saved info to call Streamer
++   mutable intptr_t   fOffsetStreamer;  //!saved info to call Streamer
+    Int_t              fStreamerType;    //!cached of the streaming method to use
+    EState             fState;           //!Current 'state' of the class (Emulated,Interpreted,Loaded)
+    mutable std::atomic<TVirtualStreamerInfo*>  fCurrentInfo;     //!cached current streamer info.
+@@ -256,7 +256,7 @@ private:
+    TListOfFunctions  *GetMethodList();
+    TMethod           *GetClassMethod(Long_t faddr);
+    TMethod           *FindClassOrBaseMethodWithId(DeclId_t faddr);
+-   Int_t              GetBaseClassOffsetRecurse(const TClass *toBase);
++   ptrdiff_t          GetBaseClassOffsetRecurse(const TClass *toBase);
+    void Init(const char *name, Version_t cversion, const std::type_info *info,
+              TVirtualIsAProxy *isa,
+              const char *dfil, const char *ifil,
+@@ -358,7 +358,7 @@ public:
+    void               AdoptSchemaRules( ROOT::Detail::TSchemaRuleSet *rules );
+    virtual void       Browse(TBrowser *b);
+    void               BuildRealData(void *pointer=0, Bool_t isTransient = kFALSE);
+-   void               BuildEmulatedRealData(const char *name, Long_t offset, TClass *cl);
++   void               BuildEmulatedRealData(const char *name, intptr_t offset, TClass *cl);
+    void               CalculateStreamerOffset() const;
+    Bool_t             CallShowMembers(const void* obj, TMemberInspector &insp, Bool_t isTransient = kFALSE) const;
+    Bool_t             CanSplit() const;
+@@ -391,7 +391,7 @@ public:
+    Version_t          GetClassVersion() const { fVersionUsed = kTRUE; return fClassVersion; }
+    Int_t              GetClassSize() const { return Size(); }
+    TDataMember       *GetDataMember(const char *datamember) const;
+-   Long_t             GetDataMemberOffset(const char *membername) const;
++   intptr_t             GetDataMemberOffset(const char *membername) const;
+    const char        *GetDeclFileName() const { return fDeclFileName; }
+    Short_t            GetDeclFileLine() const { return fDeclFileLine; }
+    ROOT::DelFunc_t    GetDelete() const;
+@@ -423,7 +423,7 @@ public:
+    TClass            *GetActualClass(const void *object) const;
+    TClass            *GetBaseClass(const char *classname);
+    TClass            *GetBaseClass(const TClass *base);
+-   Int_t              GetBaseClassOffset(const TClass *toBase, void *address = 0, bool isDerivedObject = true);
++   intptr_t           GetBaseClassOffset(const TClass *toBase, void *address = 0, bool isDerivedObject = true);
+    TClass            *GetBaseDataMember(const char *datamember);
+    ROOT::ESTLType     GetCollectionType() const;
+    ROOT::DirAutoAdd_t GetDirectoryAutoAdd() const;
+diff --git a/src/core/meta/inc/TDataMember.h b/src/core/meta/inc/TDataMember.h
+index 220f3578d1..b8c863cc1e 100644
+--- a/src/core/meta/inc/TDataMember.h
++++ b/src/core/meta/inc/TDataMember.h
+@@ -39,7 +39,7 @@ private:
+    TClass             *fClass;        //!pointer to the class
+    TDataType          *fDataType;     //!pointer to data basic type descriptor
+ 
+-   Long_t              fOffset;       //offset
++   intptr_t            fOffset;       //offset
+    Int_t               fSTLCont;      //STL type
+    Long_t              fProperty;     //Property
+    Int_t               fArrayDim;     //Number of array dimensions
+@@ -72,8 +72,8 @@ public:
+    Int_t          GetMaxIndex(Int_t dim) const;
+    TClass        *GetClass() const { return fClass; }
+    TDataType     *GetDataType() const { return fDataType; } //only for basic type
+-   Long_t         GetOffset() const;
+-   Long_t         GetOffsetCint() const;
++   intptr_t       GetOffset() const;
++   intptr_t       GetOffsetCint() const;
+    const char    *GetTypeName() const;
+    const char    *GetFullTypeName() const;
+    const char    *GetTrueTypeName() const;
+diff --git a/src/core/meta/inc/TInterpreter.h b/src/core/meta/inc/TInterpreter.h
+index b14fb6ebe0..0c9b8b9a9f 100644
+--- a/src/core/meta/inc/TInterpreter.h
++++ b/src/core/meta/inc/TInterpreter.h
+@@ -372,13 +372,13 @@ public:
+       CallFunc_SetArgImpl(func,args...);
+    }
+ 
+-   virtual void   CallFunc_SetFunc(CallFunc_t * /* func */, ClassInfo_t * /* info */, const char * /* method */, const char * /* params */, bool /* objectIsConst */, Long_t * /* Offset */) const {;}
+-   virtual void   CallFunc_SetFunc(CallFunc_t * /* func */, ClassInfo_t * /* info */, const char * /* method */, const char * /* params */, Long_t * /* Offset */) const {;}
++   virtual void   CallFunc_SetFunc(CallFunc_t * /* func */, ClassInfo_t * /* info */, const char * /* method */, const char * /* params */, bool /* objectIsConst */, intptr_t * /* Offset */) const {;}
++   virtual void   CallFunc_SetFunc(CallFunc_t * /* func */, ClassInfo_t * /* info */, const char * /* method */, const char * /* params */, intptr_t * /* Offset */) const {;}
+    virtual void   CallFunc_SetFunc(CallFunc_t * /* func */, MethodInfo_t * /* info */) const {;}
+-   virtual void   CallFunc_SetFuncProto(CallFunc_t * /* func */, ClassInfo_t * /* info */, const char * /* method */, const char * /* proto */, Long_t * /* Offset */, ROOT::EFunctionMatchMode /* mode */ = ROOT::kConversionMatch) const {;}
++   virtual void   CallFunc_SetFuncProto(CallFunc_t * /* func */, ClassInfo_t * /* info */, const char * /* method */, const char * /* proto */, intptr_t * /* Offset */, ROOT::EFunctionMatchMode /* mode */ = ROOT::kConversionMatch) const {;}
+    virtual void   CallFunc_SetFuncProto(CallFunc_t * /* func */, ClassInfo_t * /* info */, const char * /* method */, const char * /* proto */, bool /* objectIsConst */, Long_t * /* Offset */, ROOT::EFunctionMatchMode /* mode */ = ROOT::kConversionMatch) const {;}
+-   virtual void   CallFunc_SetFuncProto(CallFunc_t* func, ClassInfo_t* info, const char* method, const std::vector<TypeInfo_t*> &proto, Long_t* Offset, ROOT::EFunctionMatchMode mode = ROOT::kConversionMatch) const = 0;
+-   virtual void   CallFunc_SetFuncProto(CallFunc_t* func, ClassInfo_t* info, const char* method, const std::vector<TypeInfo_t*> &proto, bool objectIsConst, Long_t* Offset, ROOT::EFunctionMatchMode mode = ROOT::kConversionMatch) const = 0;
++   virtual void   CallFunc_SetFuncProto(CallFunc_t* func, ClassInfo_t* info, const char* method, const std::vector<TypeInfo_t*> &proto, intptr_t* Offset, ROOT::EFunctionMatchMode mode = ROOT::kConversionMatch) const = 0;
++   virtual void   CallFunc_SetFuncProto(CallFunc_t* func, ClassInfo_t* info, const char* method, const std::vector<TypeInfo_t*> &proto, bool objectIsConst, intptr_t* Offset, ROOT::EFunctionMatchMode mode = ROOT::kConversionMatch) const = 0;
+ 
+    virtual std::string CallFunc_GetWrapperCode(CallFunc_t *func) const = 0;
+ 
+@@ -392,7 +392,7 @@ public:
+    virtual ClassInfo_t  *ClassInfo_Factory(Bool_t /*all*/ = kTRUE) const = 0;
+    virtual ClassInfo_t  *ClassInfo_Factory(ClassInfo_t * /* cl */) const = 0;
+    virtual ClassInfo_t  *ClassInfo_Factory(const char * /* name */) const = 0;
+-   virtual Long_t   ClassInfo_GetBaseOffset(ClassInfo_t* /* fromDerived */,
++   virtual intptr_t ClassInfo_GetBaseOffset(ClassInfo_t* /* fromDerived */,
+                                             ClassInfo_t* /* toBase */, void* /* address */ = 0, bool /*isderived*/ = true) const {return 0;}
+    virtual int    ClassInfo_GetMethodNArg(ClassInfo_t * /* info */, const char * /* method */,const char * /* proto */, Bool_t /* objectIsConst */ = false, ROOT::EFunctionMatchMode /* mode */ = ROOT::kConversionMatch) const {return 0;}
+    virtual Bool_t ClassInfo_HasDefaultConstructor(ClassInfo_t * /* info */) const {return 0;}
+@@ -403,8 +403,8 @@ public:
+    virtual Bool_t ClassInfo_IsEnum(const char * /* name */) const {return 0;}
+    virtual Bool_t ClassInfo_IsLoaded(ClassInfo_t * /* info */) const {return 0;}
+    virtual Bool_t ClassInfo_IsValid(ClassInfo_t * /* info */) const {return 0;}
+-   virtual Bool_t ClassInfo_IsValidMethod(ClassInfo_t * /* info */, const char * /* method */,const char * /* proto */, Long_t * /* offset */, ROOT::EFunctionMatchMode /* mode */ = ROOT::kConversionMatch) const {return 0;}
+-   virtual Bool_t ClassInfo_IsValidMethod(ClassInfo_t * /* info */, const char * /* method */,const char * /* proto */, Bool_t /* objectIsConst */, Long_t * /* offset */, ROOT::EFunctionMatchMode /* mode */ = ROOT::kConversionMatch) const {return 0;}
++   virtual Bool_t ClassInfo_IsValidMethod(ClassInfo_t * /* info */, const char * /* method */,const char * /* proto */, intptr_t * /* offset */, ROOT::EFunctionMatchMode /* mode */ = ROOT::kConversionMatch) const {return 0;}
++   virtual Bool_t ClassInfo_IsValidMethod(ClassInfo_t * /* info */, const char * /* method */,const char * /* proto */, Bool_t /* objectIsConst */, intptr_t * /* offset */, ROOT::EFunctionMatchMode /* mode */ = ROOT::kConversionMatch) const {return 0;}
+    virtual int    ClassInfo_Next(ClassInfo_t * /* info */) const {return 0;}
+    virtual void  *ClassInfo_New(ClassInfo_t * /* info */) const {return 0;}
+    virtual void  *ClassInfo_New(ClassInfo_t * /* info */, int /* n */) const {return 0;}
+@@ -427,7 +427,7 @@ public:
+                                                    ClassInfo_t* /* base */) const {return 0;}
+    virtual int    BaseClassInfo_Next(BaseClassInfo_t * /* bcinfo */) const {return 0;}
+    virtual int    BaseClassInfo_Next(BaseClassInfo_t * /* bcinfo */, int  /* onlyDirect */) const {return 0;}
+-   virtual Long_t BaseClassInfo_Offset(BaseClassInfo_t * /* toBaseClassInfo */, void* /* address */ = 0 /*default for non-virtual*/, bool /*isderived*/ = true /*default for non-virtual*/) const {return 0;}
++   virtual intptr_t BaseClassInfo_Offset(BaseClassInfo_t * /* toBaseClassInfo */, void* /* address */ = 0 /*default for non-virtual*/, bool /*isderived*/ = true /*default for non-virtual*/) const {return 0;}
+    virtual Long_t BaseClassInfo_Property(BaseClassInfo_t * /* bcinfo */) const {return 0;}
+    virtual Long_t BaseClassInfo_Tagnum(BaseClassInfo_t * /* bcinfo */) const {return 0;}
+    virtual ClassInfo_t*BaseClassInfo_ClassInfo(BaseClassInfo_t * /* bcinfo */) const = 0;
+diff --git a/src/core/meta/inc/TRealData.h b/src/core/meta/inc/TRealData.h
+index b53c84bf84..7c9f9b9227 100644
+--- a/src/core/meta/inc/TRealData.h
++++ b/src/core/meta/inc/TRealData.h
+@@ -31,7 +31,7 @@ class TRealData : public TObject {
+ 
+ private:
+    TDataMember     *fDataMember;     //pointer to data member descriptor
+-   Long_t           fThisOffset;     //offset with the THIS object pointer
++   intptr_t         fThisOffset;     //offset with the THIS object pointer
+    TString          fName;           //Concatenated names of this realdata
+    TMemberStreamer *fStreamer;       //Object to stream the data member.
+    Bool_t           fIsObject;       //true if member is an object
+@@ -45,14 +45,14 @@ public:
+    };
+ 
+    TRealData();
+-   TRealData(const char *name, Long_t offset, TDataMember *datamember);
++   TRealData(const char *name, intptr_t offset, TDataMember *datamember);
+    virtual     ~TRealData();
+ 
+    void                AdoptStreamer(TMemberStreamer *p);
+    virtual const char *GetName() const {return fName.Data();}
+    TDataMember        *GetDataMember() const {return fDataMember;}
+    TMemberStreamer    *GetStreamer() const;
+-   Long_t              GetThisOffset() const {return fThisOffset;}
++   intptr_t            GetThisOffset() const {return fThisOffset;}
+    Bool_t              IsObject() const {return fIsObject;}
+    void                SetIsObject(Bool_t isObject) {fIsObject=isObject;}
+    void                WriteRealData(void *pointer, char *&buffer);
+diff --git a/src/core/meta/src/TBaseClass.cxx b/src/core/meta/src/TBaseClass.cxx
+index fdffc4ac76..570db574bc 100644
+--- a/src/core/meta/src/TBaseClass.cxx
++++ b/src/core/meta/src/TBaseClass.cxx
+@@ -72,7 +72,7 @@ TClass *TBaseClass::GetClassPointer(Bool_t load)
+ ////////////////////////////////////////////////////////////////////////////////
+ /// Get offset from "this" to part of base class.
+ 
+-Int_t TBaseClass::GetDelta()
++ptrdiff_t TBaseClass::GetDelta()
+ {
+    // Initialized to INT_MAX to signal that it's unset; -1 is a valid value
+    // meaning "cannot calculate base offset".
+@@ -81,7 +81,7 @@ Int_t TBaseClass::GetDelta()
+       if (Property() & kIsVirtualBase)
+          fDelta = -1;
+       else if (fInfo)
+-         fDelta = (Int_t)gCling->BaseClassInfo_Offset(fInfo);
++         fDelta = (ptrdiff_t)gCling->BaseClassInfo_Offset(fInfo);
+    }
+    return fDelta;
+ }
+diff --git a/src/core/meta/src/TClass.cxx b/src/core/meta/src/TClass.cxx
+index 4ee0e3f3e2..970bdd274d 100644
+--- a/src/core/meta/src/TClass.cxx
++++ b/src/core/meta/src/TClass.cxx
+@@ -1897,7 +1897,7 @@ Int_t TClass::Browse(void *obj, TBrowser *b) const
+       if (!fIsOffsetStreamerSet) {
+          CalculateStreamerOffset();
+       }
+-      TObject* realTObject = (TObject*)((size_t)obj + fOffsetStreamer);
++      TObject* realTObject = (TObject*)((intptr_t)obj + fOffsetStreamer);
+       realTObject->Browse(b);
+       return 1;
+    } else if (actual != this) {
+@@ -2020,7 +2020,7 @@ void TClass::BuildRealData(void* pointer, Bool_t isTransient)
+ ////////////////////////////////////////////////////////////////////////////////
+ /// Build the list of real data for an emulated class
+ 
+-void TClass::BuildEmulatedRealData(const char *name, Long_t offset, TClass *cl)
++void TClass::BuildEmulatedRealData(const char *name, intptr_t offset, TClass *cl)
+ {
+    R__LOCKGUARD(gInterpreterMutex);
+ 
+@@ -2041,7 +2041,7 @@ void TClass::BuildEmulatedRealData(const char *name, Long_t offset, TClass *cl)
+    TStreamerElement *element;
+    while ((element = (TStreamerElement*)next())) {
+       Int_t etype    = element->GetType();
+-      Long_t eoffset = element->GetOffset();
++      intptr_t eoffset = element->GetOffset();
+       TClass *cle    = element->GetClassPointer();
+       if (element->IsBase() || etype == TVirtualStreamerInfo::kBase) {
+          //base class are skipped in this loop, they will be added at the end.
+@@ -2077,7 +2077,7 @@ void TClass::BuildEmulatedRealData(const char *name, Long_t offset, TClass *cl)
+       Int_t etype    = element->GetType();
+       if (element->IsBase() || etype == TVirtualStreamerInfo::kBase) {
+          //base class
+-         Long_t eoffset = element->GetOffset();
++         intptr_t eoffset = element->GetOffset();
+          TClass *cle    = element->GetClassPointer();
+          if (cle) cle->BuildEmulatedRealData(name,offset+eoffset,cl);
+       }
+@@ -2537,7 +2537,7 @@ TClass *TClass::GetActualClass(const void *object) const
+          if (!fIsOffsetStreamerSet) {
+             CalculateStreamerOffset();
+          }
+-         TObject* realTObject = (TObject*)((size_t)object + fOffsetStreamer);
++         TObject* realTObject = (TObject*)((intptr_t)object + fOffsetStreamer);
+ 
+          return realTObject->IsA();
+       }
+@@ -2621,7 +2621,7 @@ TClass *TClass::GetBaseClass(const TClass *cl)
+ ///    because it's virtual.
+ /// Takes care of multiple inheritance.
+ 
+-Int_t TClass::GetBaseClassOffsetRecurse(const TClass *cl)
++ptrdiff_t TClass::GetBaseClassOffsetRecurse(const TClass *cl)
+ {
+    // check if class name itself is equal to classname
+    if (cl == this) return 0;
+@@ -2635,7 +2635,7 @@ Int_t TClass::GetBaseClassOffsetRecurse(const TClass *cl)
+          TVirtualStreamerInfo *sinfo = GetCurrentStreamerInfo();
+          if (!sinfo) return -1;
+          TStreamerElement *element;
+-         Int_t offset = 0;
++         ptrdiff_t offset = 0;
+ 
+          TObjArray &elems = *(sinfo->GetElements());
+          Int_t size = elems.GetLast()+1;
+@@ -2646,7 +2646,7 @@ Int_t TClass::GetBaseClassOffsetRecurse(const TClass *cl)
+                   TStreamerBase *base = (TStreamerBase*)element;
+                   TClass *baseclass = base->GetClassPointer();
+                   if (!baseclass) return -1;
+-                  Int_t subOffset = baseclass->GetBaseClassOffsetRecurse(cl);
++                  ptrdiff_t subOffset = baseclass->GetBaseClassOffsetRecurse(cl);
+                   if (subOffset == -2) return -2;
+                   if (subOffset != -1) return offset+subOffset;
+                   offset += baseclass->Size();
+@@ -2654,7 +2654,7 @@ Int_t TClass::GetBaseClassOffsetRecurse(const TClass *cl)
+                   TStreamerSTL *base = (TStreamerSTL*)element;
+                   TClass *baseclass = base->GetClassPointer();
+                   if (!baseclass) return -1;
+-                  Int_t subOffset = baseclass->GetBaseClassOffsetRecurse(cl);
++                  ptrdiff_t subOffset = baseclass->GetBaseClassOffsetRecurse(cl);
+                   if (subOffset == -2) return -2;
+                   if (subOffset != -1) return offset+subOffset;
+                   offset += baseclass->Size();
+@@ -2707,7 +2707,7 @@ Int_t TClass::GetBaseClassOffsetRecurse(const TClass *cl)
+ ///  - Returns -1 in case "cl" is not a base class.
+ /// Takes care of multiple inheritance.
+ 
+-Int_t TClass::GetBaseClassOffset(const TClass *toBase, void *address, bool isDerivedObject)
++ptrdiff_t TClass::GetBaseClassOffset(const TClass *toBase, void *address, bool isDerivedObject)
+ {
+    // Warning("GetBaseClassOffset","Requires the use of fClassInfo for %s to %s",GetName(),toBase->GetName());
+ 
+@@ -2718,7 +2718,7 @@ Int_t TClass::GetBaseClassOffset(const TClass *toBase, void *address, bool isDer
+       // At least of the ClassInfo have not been loaded in memory yet and
+       // since there is no virtual base class (or we don't have enough so it
+       // would not make a difference) we can use the 'static' information
+-      Int_t offset = GetBaseClassOffsetRecurse (toBase);
++      ptrdiff_t offset = GetBaseClassOffsetRecurse (toBase);
+       if (offset != -2) {
+          return offset;
+       }
+@@ -2732,7 +2732,7 @@ Int_t TClass::GetBaseClassOffset(const TClass *toBase, void *address, bool isDer
+       return gCling->ClassInfo_GetBaseOffset(derived, base, address, isDerivedObject);
+    }
+    else {
+-      Int_t offset = GetBaseClassOffsetRecurse (toBase);
++      ptrdiff_t offset = GetBaseClassOffsetRecurse (toBase);
+       if (offset != -2) {
+          return offset;
+       }
+@@ -3305,7 +3305,7 @@ TDataMember *TClass::GetDataMember(const char *datamember) const
+ ///
+ /// In case of an emulated class, the list of emulated TRealData is built
+ 
+-Long_t TClass::GetDataMemberOffset(const char *name) const
++intptr_t TClass::GetDataMemberOffset(const char *name) const
+ {
+    TRealData *rd = GetRealData(name);
+    if (rd) return rd->GetThisOffset();
+@@ -5833,7 +5833,7 @@ Long_t TClass::Property() const
+       kl->SetBit(kIsTObject);
+ 
+       // Is it DIRECT inheritance from TObject?
+-      Int_t delta = kl->GetBaseClassOffsetRecurse(TObject::Class());
++      ptrdiff_t delta = kl->GetBaseClassOffsetRecurse(TObject::Class());
+       if (delta==0) kl->SetBit(kStartWithTObject);
+ 
+       kl->fStreamerType  = kTObject;
+diff --git a/src/core/meta/src/TDataMember.cxx b/src/core/meta/src/TDataMember.cxx
+index 73323fc27d..82ebdb54fb 100644
+--- a/src/core/meta/src/TDataMember.cxx
++++ b/src/core/meta/src/TDataMember.cxx
+@@ -629,9 +629,9 @@ const char *TDataMember::GetTrueTypeName() const
+ ////////////////////////////////////////////////////////////////////////////////
+ /// Get offset from "this".
+ 
+-Long_t TDataMember::GetOffset() const
++intptr_t TDataMember::GetOffset() const
+ {
+-   if (fOffset>=0) return fOffset;
++   if (fOffset != (intptr_t)-1) return fOffset;
+ 
+    R__LOCKGUARD(gInterpreterMutex);
+    //case of an interpreted or emulated class
+@@ -648,7 +648,7 @@ Long_t TDataMember::GetOffset() const
+    fClass->BuildRealData();
+    TIter next(fClass->GetListOfRealData());
+    TRealData *rdm;
+-   Int_t offset = 0;
++   intptr_t offset = -1;
+    while ((rdm = (TRealData*)next())) {
+       char *rdmc = (char*)rdm->GetName();
+       //next statement required in case a class and one of its parent class
+@@ -678,9 +678,9 @@ Long_t TDataMember::GetOffset() const
+ ////////////////////////////////////////////////////////////////////////////////
+ /// Get offset from "this" using the information in CINT only.
+ 
+-Long_t TDataMember::GetOffsetCint() const
++intptr_t TDataMember::GetOffsetCint() const
+ {
+-   if (fOffset>=0) return fOffset;
++   if (fOffset != (intptr_t)-1) return fOffset;
+ 
+    R__LOCKGUARD(gInterpreterMutex);
+    TDataMember *dm = const_cast<TDataMember*>(this);
+@@ -752,7 +752,7 @@ int TDataMember::IsSTLContainer()
+ 
+ Bool_t TDataMember::IsValid()
+ {
+-   if (fOffset >= 0) return kTRUE;
++   if (fOffset != (intptr_t)-1) return kTRUE;
+ 
+    // Register the transaction when checking the validity of the object.
+    if (!fInfo && UpdateInterpreterStateMarker()) {
+diff --git a/src/core/meta/src/TRealData.cxx b/src/core/meta/src/TRealData.cxx
+index 6d282ab324..983608c3fd 100644
+--- a/src/core/meta/src/TRealData.cxx
++++ b/src/core/meta/src/TRealData.cxx
+@@ -40,7 +40,7 @@ TRealData::TRealData() : TObject(), fDataMember(0), fThisOffset(-1),
+ /// Constructor to define one persistent data member.
+ /// datamember is the pointer to the data member descriptor.
+ 
+-TRealData::TRealData(const char *name, Long_t offset, TDataMember *datamember)
++TRealData::TRealData(const char *name, intptr_t offset, TDataMember *datamember)
+    : TObject(), fDataMember(datamember), fThisOffset(offset), fName(name),
+      fStreamer(0), fIsObject(kFALSE)
+ {
+diff --git a/src/core/metacling/src/TCling.cxx b/src/core/metacling/src/TCling.cxx
+index cf890d63e1..9a59030df4 100644
+--- a/src/core/metacling/src/TCling.cxx
++++ b/src/core/metacling/src/TCling.cxx
+@@ -4478,13 +4478,13 @@ TString TCling::GetMangledName(TClass* cl, const char* method,
+    R__LOCKGUARD(gInterpreterMutex);
+    TClingCallFunc func(fInterpreter,*fNormalizedCtxt);
+    if (cl) {
+-      Long_t offset;
++      intptr_t offset;
+       func.SetFunc((TClingClassInfo*)cl->GetClassInfo(), method, params, objectIsConst,
+          &offset);
+    }
+    else {
+       TClingClassInfo gcl(fInterpreter);
+-      Long_t offset;
++      intptr_t offset;
+       func.SetFunc(&gcl, method, params, &offset);
+    }
+    TClingMethodInfo* mi = (TClingMethodInfo*) func.FactoryMethod();
+@@ -4523,13 +4523,13 @@ void* TCling::GetInterfaceMethod(TClass* cl, const char* method,
+    R__LOCKGUARD(gInterpreterMutex);
+    TClingCallFunc func(fInterpreter,*fNormalizedCtxt);
+    if (cl) {
+-      Long_t offset;
++      intptr_t offset;
+       func.SetFunc((TClingClassInfo*)cl->GetClassInfo(), method, params, objectIsConst,
+                    &offset);
+    }
+    else {
+       TClingClassInfo gcl(fInterpreter);
+-      Long_t offset;
++      intptr_t offset;
+       func.SetFunc(&gcl, method, params, &offset);
+    }
+    return (void*) func.InterfaceMethod();
+@@ -4743,7 +4743,7 @@ void TCling::Execute(const char* function, const char* params, int* error)
+       *error = TInterpreter::kNoError;
+    }
+    TClingClassInfo cl(fInterpreter);
+-   Long_t offset = 0L;
++   intptr_t offset = 0;
+    TClingCallFunc func(fInterpreter,*fNormalizedCtxt);
+    func.SetFunc(&cl, function, params, &offset);
+    func.Exec(0);
+@@ -4771,7 +4771,7 @@ void TCling::Execute(TObject* obj, TClass* cl, const char* method,
+    // 'obj' is unlikely to be the start of the object (as described by IsA()),
+    // hence gInterpreter->Execute will improperly correct the offset.
+    void* addr = cl->DynamicCast(TObject::Class(), obj, kFALSE);
+-   Long_t offset = 0L;
++   intptr_t offset = 0;
+    TClingCallFunc func(fInterpreter,*fNormalizedCtxt);
+    func.SetFunc((TClingClassInfo*)cl->GetClassInfo(), method, params, objectIsConst, &offset);
+    void* address = (void*)((intptr_t)addr + offset);
+@@ -7372,7 +7372,7 @@ void TCling::CallFunc_SetArgs(CallFunc_t* func, const char* param) const
+ 
+ ////////////////////////////////////////////////////////////////////////////////
+ 
+-void TCling::CallFunc_SetFunc(CallFunc_t* func, ClassInfo_t* info, const char* method, const char* params, Long_t* offset) const
++void TCling::CallFunc_SetFunc(CallFunc_t* func, ClassInfo_t* info, const char* method, const char* params, intptr_t* offset) const
+ {
+    TClingCallFunc* f = (TClingCallFunc*) func;
+    TClingClassInfo* ci = (TClingClassInfo*) info;
+@@ -7381,7 +7381,7 @@ void TCling::CallFunc_SetFunc(CallFunc_t* func, ClassInfo_t* info, const char* m
+ 
+ ////////////////////////////////////////////////////////////////////////////////
+ 
+-void TCling::CallFunc_SetFunc(CallFunc_t* func, ClassInfo_t* info, const char* method, const char* params, bool objectIsConst, Long_t* offset) const
++void TCling::CallFunc_SetFunc(CallFunc_t* func, ClassInfo_t* info, const char* method, const char* params, bool objectIsConst, intptr_t* offset) const
+ {
+    TClingCallFunc* f = (TClingCallFunc*) func;
+    TClingClassInfo* ci = (TClingClassInfo*) info;
+@@ -7399,7 +7399,7 @@ void TCling::CallFunc_SetFunc(CallFunc_t* func, MethodInfo_t* info) const
+ ////////////////////////////////////////////////////////////////////////////////
+ /// Interface to cling function
+ 
+-void TCling::CallFunc_SetFuncProto(CallFunc_t* func, ClassInfo_t* info, const char* method, const char* proto, Long_t* offset, EFunctionMatchMode mode /* = kConversionMatch */) const
++void TCling::CallFunc_SetFuncProto(CallFunc_t* func, ClassInfo_t* info, const char* method, const char* proto, intptr_t* offset, EFunctionMatchMode mode /* = kConversionMatch */) const
+ {
+    TClingCallFunc* f = (TClingCallFunc*) func;
+    TClingClassInfo* ci = (TClingClassInfo*) info;
+@@ -7409,7 +7409,7 @@ void TCling::CallFunc_SetFuncProto(CallFunc_t* func, ClassInfo_t* info, const ch
+ ////////////////////////////////////////////////////////////////////////////////
+ /// Interface to cling function
+ 
+-void TCling::CallFunc_SetFuncProto(CallFunc_t* func, ClassInfo_t* info, const char* method, const char* proto, bool objectIsConst, Long_t* offset, EFunctionMatchMode mode /* = kConversionMatch */) const
++void TCling::CallFunc_SetFuncProto(CallFunc_t* func, ClassInfo_t* info, const char* method, const char* proto, bool objectIsConst, intptr_t* offset, EFunctionMatchMode mode /* = kConversionMatch */) const
+ {
+    TClingCallFunc* f = (TClingCallFunc*) func;
+    TClingClassInfo* ci = (TClingClassInfo*) info;
+@@ -7419,7 +7419,7 @@ void TCling::CallFunc_SetFuncProto(CallFunc_t* func, ClassInfo_t* info, const ch
+ ////////////////////////////////////////////////////////////////////////////////
+ /// Interface to cling function
+ 
+-void TCling::CallFunc_SetFuncProto(CallFunc_t* func, ClassInfo_t* info, const char* method, const std::vector<TypeInfo_t*> &proto, Long_t* offset, EFunctionMatchMode mode /* = kConversionMatch */) const
++void TCling::CallFunc_SetFuncProto(CallFunc_t* func, ClassInfo_t* info, const char* method, const std::vector<TypeInfo_t*> &proto, intptr_t* offset, EFunctionMatchMode mode /* = kConversionMatch */) const
+ {
+    TClingCallFunc* f = (TClingCallFunc*) func;
+    TClingClassInfo* ci = (TClingClassInfo*) info;
+@@ -7434,7 +7434,7 @@ void TCling::CallFunc_SetFuncProto(CallFunc_t* func, ClassInfo_t* info, const ch
+ ////////////////////////////////////////////////////////////////////////////////
+ /// Interface to cling function
+ 
+-void TCling::CallFunc_SetFuncProto(CallFunc_t* func, ClassInfo_t* info, const char* method, const std::vector<TypeInfo_t*> &proto, bool objectIsConst, Long_t* offset, EFunctionMatchMode mode /* = kConversionMatch */) const
++void TCling::CallFunc_SetFuncProto(CallFunc_t* func, ClassInfo_t* info, const char* method, const std::vector<TypeInfo_t*> &proto, bool objectIsConst, intptr_t* offset, EFunctionMatchMode mode /* = kConversionMatch */) const
+ {
+    TClingCallFunc* f = (TClingCallFunc*) func;
+    TClingClassInfo* ci = (TClingClassInfo*) info;
+@@ -7621,7 +7621,7 @@ bool TCling::ClassInfo_IsValid(ClassInfo_t* cinfo) const
+ 
+ ////////////////////////////////////////////////////////////////////////////////
+ 
+-bool TCling::ClassInfo_IsValidMethod(ClassInfo_t* cinfo, const char* method, const char* proto, Long_t* offset, EFunctionMatchMode mode /* = kConversionMatch */) const
++bool TCling::ClassInfo_IsValidMethod(ClassInfo_t* cinfo, const char* method, const char* proto, intptr_t* offset, EFunctionMatchMode mode /* = kConversionMatch */) const
+ {
+    TClingClassInfo* TClinginfo = (TClingClassInfo*) cinfo;
+    return TClinginfo->IsValidMethod(method, proto, false, offset, mode);
+@@ -7629,7 +7629,7 @@ bool TCling::ClassInfo_IsValidMethod(ClassInfo_t* cinfo, const char* method, con
+ 
+ ////////////////////////////////////////////////////////////////////////////////
+ 
+-bool TCling::ClassInfo_IsValidMethod(ClassInfo_t* cinfo, const char* method, const char* proto, Bool_t objectIsConst, Long_t* offset, EFunctionMatchMode mode /* = kConversionMatch */) const
++bool TCling::ClassInfo_IsValidMethod(ClassInfo_t* cinfo, const char* method, const char* proto, Bool_t objectIsConst, intptr_t* offset, EFunctionMatchMode mode /* = kConversionMatch */) const
+ {
+    TClingClassInfo* TClinginfo = (TClingClassInfo*) cinfo;
+    return TClinginfo->IsValidMethod(method, proto, objectIsConst, offset, mode);
+@@ -7793,7 +7793,7 @@ int TCling::BaseClassInfo_Next(BaseClassInfo_t* bcinfo, int onlyDirect) const
+ 
+ ////////////////////////////////////////////////////////////////////////////////
+ 
+-Long_t TCling::BaseClassInfo_Offset(BaseClassInfo_t* toBaseClassInfo, void * address, bool isDerivedObject) const
++intptr_t TCling::BaseClassInfo_Offset(BaseClassInfo_t* toBaseClassInfo, void * address, bool isDerivedObject) const
+ {
+    TClingBaseClassInfo* TClinginfo = (TClingBaseClassInfo*) toBaseClassInfo;
+    return TClinginfo->Offset(address, isDerivedObject);
+@@ -7801,7 +7801,7 @@ Long_t TCling::BaseClassInfo_Offset(BaseClassInfo_t* toBaseClassInfo, void * add
+ 
+ ////////////////////////////////////////////////////////////////////////////////
+ 
+-Long_t TCling::ClassInfo_GetBaseOffset(ClassInfo_t* fromDerived, ClassInfo_t* toBase, void * address, bool isDerivedObject) const
++intptr_t TCling::ClassInfo_GetBaseOffset(ClassInfo_t* fromDerived, ClassInfo_t* toBase, void * address, bool isDerivedObject) const
+ {
+    TClingClassInfo* TClinginfo = (TClingClassInfo*) fromDerived;
+    TClingClassInfo* TClinginfoBase = (TClingClassInfo*) toBase;
+diff --git a/src/core/metacling/src/TCling.h b/src/core/metacling/src/TCling.h
+index 60481cc25b..48ad81004c 100644
+--- a/src/core/metacling/src/TCling.h
++++ b/src/core/metacling/src/TCling.h
+@@ -377,13 +377,13 @@ public: // Public Interface
+    virtual void   CallFunc_SetArg(CallFunc_t* func, ULong64_t param) const;
+    virtual void   CallFunc_SetArgArray(CallFunc_t* func, Long_t* paramArr, Int_t nparam) const;
+    virtual void   CallFunc_SetArgs(CallFunc_t* func, const char* param) const;
+-   virtual void   CallFunc_SetFunc(CallFunc_t* func, ClassInfo_t* info, const char* method, const char* params, Long_t* Offset) const;
+-   virtual void   CallFunc_SetFunc(CallFunc_t* func, ClassInfo_t* info, const char* method, const char* params, bool objectIsConst, Long_t* Offset) const;
++   virtual void   CallFunc_SetFunc(CallFunc_t* func, ClassInfo_t* info, const char* method, const char* params, intptr_t* Offset) const;
++   virtual void   CallFunc_SetFunc(CallFunc_t* func, ClassInfo_t* info, const char* method, const char* params, bool objectIsConst, intptr_t* Offset) const;
+    virtual void   CallFunc_SetFunc(CallFunc_t* func, MethodInfo_t* info) const;
+-   virtual void   CallFunc_SetFuncProto(CallFunc_t* func, ClassInfo_t* info, const char* method, const char* proto, Long_t* Offset, ROOT::EFunctionMatchMode mode = ROOT::kConversionMatch) const;
+-   virtual void   CallFunc_SetFuncProto(CallFunc_t* func, ClassInfo_t* info, const char* method, const char* proto, bool objectIsConst, Long_t* Offset, ROOT::EFunctionMatchMode mode = ROOT::kConversionMatch) const;
+-   virtual void   CallFunc_SetFuncProto(CallFunc_t* func, ClassInfo_t* info, const char* method, const std::vector<TypeInfo_t*> &proto, Long_t* Offset, ROOT::EFunctionMatchMode mode = ROOT::kConversionMatch) const;
+-   virtual void   CallFunc_SetFuncProto(CallFunc_t* func, ClassInfo_t* info, const char* method, const std::vector<TypeInfo_t*> &proto, bool objectIsConst, Long_t* Offset, ROOT::EFunctionMatchMode mode = ROOT::kConversionMatch) const;
++   virtual void   CallFunc_SetFuncProto(CallFunc_t* func, ClassInfo_t* info, const char* method, const char* proto, intptr_t* Offset, ROOT::EFunctionMatchMode mode = ROOT::kConversionMatch) const;
++   virtual void   CallFunc_SetFuncProto(CallFunc_t* func, ClassInfo_t* info, const char* method, const char* proto, bool objectIsConst, intptr_t* Offset, ROOT::EFunctionMatchMode mode = ROOT::kConversionMatch) const;
++   virtual void   CallFunc_SetFuncProto(CallFunc_t* func, ClassInfo_t* info, const char* method, const std::vector<TypeInfo_t*> &proto, intptr_t* Offset, ROOT::EFunctionMatchMode mode = ROOT::kConversionMatch) const;
++   virtual void   CallFunc_SetFuncProto(CallFunc_t* func, ClassInfo_t* info, const char* method, const std::vector<TypeInfo_t*> &proto, bool objectIsConst, intptr_t* Offset, ROOT::EFunctionMatchMode mode = ROOT::kConversionMatch) const;
+ 
+    virtual std::string CallFunc_GetWrapperCode(CallFunc_t *func) const;
+ 
+@@ -398,7 +398,7 @@ public: // Public Interface
+    virtual ClassInfo_t*  ClassInfo_Factory(Bool_t all = kTRUE) const;
+    virtual ClassInfo_t*  ClassInfo_Factory(ClassInfo_t* cl) const;
+    virtual ClassInfo_t*  ClassInfo_Factory(const char* name) const;
+-   virtual Long_t   ClassInfo_GetBaseOffset(ClassInfo_t* fromDerived, ClassInfo_t* toBase, void * address, bool isDerivedObject) const;
++   virtual intptr_t   ClassInfo_GetBaseOffset(ClassInfo_t* fromDerived, ClassInfo_t* toBase, void * address, bool isDerivedObject) const;
+    virtual int    ClassInfo_GetMethodNArg(ClassInfo_t* info, const char* method, const char* proto, Bool_t objectIsConst = false, ROOT::EFunctionMatchMode mode = ROOT::kConversionMatch) const;
+    virtual bool   ClassInfo_HasDefaultConstructor(ClassInfo_t* info) const;
+    virtual bool   ClassInfo_HasMethod(ClassInfo_t* info, const char* name) const;
+@@ -408,8 +408,8 @@ public: // Public Interface
+    virtual bool   ClassInfo_IsEnum(const char* name) const;
+    virtual bool   ClassInfo_IsLoaded(ClassInfo_t* info) const;
+    virtual bool   ClassInfo_IsValid(ClassInfo_t* info) const;
+-   virtual bool   ClassInfo_IsValidMethod(ClassInfo_t* info, const char* method, const char* proto, Long_t* offset, ROOT::EFunctionMatchMode /* mode */ = ROOT::kConversionMatch) const;
+-   virtual bool   ClassInfo_IsValidMethod(ClassInfo_t* info, const char* method, const char* proto, Bool_t objectIsConst, Long_t* offset, ROOT::EFunctionMatchMode /* mode */ = ROOT::kConversionMatch) const;
++   virtual bool   ClassInfo_IsValidMethod(ClassInfo_t* info, const char* method, const char* proto, intptr_t* offset, ROOT::EFunctionMatchMode /* mode */ = ROOT::kConversionMatch) const;
++   virtual bool   ClassInfo_IsValidMethod(ClassInfo_t* info, const char* method, const char* proto, Bool_t objectIsConst, intptr_t* offset, ROOT::EFunctionMatchMode /* mode */ = ROOT::kConversionMatch) const;
+    virtual int    ClassInfo_Next(ClassInfo_t* info) const;
+    virtual void*  ClassInfo_New(ClassInfo_t* info) const;
+    virtual void*  ClassInfo_New(ClassInfo_t* info, int n) const;
+@@ -431,7 +431,7 @@ public: // Public Interface
+                                                    ClassInfo_t* base) const;
+    virtual int    BaseClassInfo_Next(BaseClassInfo_t* bcinfo) const;
+    virtual int    BaseClassInfo_Next(BaseClassInfo_t* bcinfo, int onlyDirect) const;
+-   virtual Long_t BaseClassInfo_Offset(BaseClassInfo_t* toBaseClassInfo, void * address, bool isDerivedObject) const;
++   virtual intptr_t BaseClassInfo_Offset(BaseClassInfo_t* toBaseClassInfo, void * address, bool isDerivedObject) const;
+    virtual Long_t BaseClassInfo_Property(BaseClassInfo_t* bcinfo) const;
+    virtual Long_t BaseClassInfo_Tagnum(BaseClassInfo_t* bcinfo) const;
+    virtual ClassInfo_t*BaseClassInfo_ClassInfo(BaseClassInfo_t * /* bcinfo */) const;
+diff --git a/src/core/metacling/src/TClingDataMemberInfo.cxx b/src/core/metacling/src/TClingDataMemberInfo.cxx
+index cebf2425bd..fa0b7a38a6 100644
+--- a/src/core/metacling/src/TClingDataMemberInfo.cxx
++++ b/src/core/metacling/src/TClingDataMemberInfo.cxx
+@@ -302,7 +302,7 @@ intptr_t TClingDataMemberInfo::Offset()
+    using namespace clang;
+ 
+    if (!IsValid()) {
+-      return -1L;
++      return (intptr_t)-1;
+    }
+ 
+    const Decl *D = GetDecl();
+@@ -312,8 +312,7 @@ intptr_t TClingDataMemberInfo::Offset()
+       const clang::RecordDecl *RD = FldD->getParent();
+       const clang::ASTRecordLayout &Layout = C.getASTRecordLayout(RD);
+       uint64_t bits = Layout.getFieldOffset(FldD->getFieldIndex());
+-      int64_t offset = C.toCharUnitsFromBits(bits).getQuantity();
+-      return static_cast<long>(offset);
++      return C.toCharUnitsFromBits(bits).getQuantity();
+    }
+    else if (const VarDecl *VD = dyn_cast<VarDecl>(D)) {
+       // Could trigger deserialization of decls, in particular in case
+@@ -371,9 +370,9 @@ intptr_t TClingDataMemberInfo::Offset()
+       return (intptr_t)ECD->getInitVal().getRawData();
+ #else
+       // In this case in the second part.
+-      return reinterpret_cast<long>(((char*)ECD->getInitVal().getRawData())+sizeof(long) );
++      return reinterpret_cast<intptr_t>(((char*)ECD->getInitVal().getRawData())+sizeof(intptr_t) );
+ #endif
+-   return -1L;
++   return (intptr_t)-1;
+ }
+ 
+ long TClingDataMemberInfo::Property() const
