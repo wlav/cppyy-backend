@@ -382,6 +382,19 @@ index 73323fc27d..82ebdb54fb 100644
  
     // Register the transaction when checking the validity of the object.
     if (!fInfo && UpdateInterpreterStateMarker()) {
+diff --git a/src/core/meta/src/TMethodCall.cxx b/src/core/meta/src/TMethodCall.cxx
+index e419debf8c..6ce0a5821a 100644
+--- a/src/core/meta/src/TMethodCall.cxx
++++ b/src/core/meta/src/TMethodCall.cxx
+@@ -317,7 +317,7 @@ void TMethodCall::InitImplementation(const char *methodname, const char *params,
+    if (!scope) return;
+ 
+    R__LOCKGUARD(gInterpreterMutex);
+-   Long_t offset = fOffset;
++   intptr_t offset = fOffset;
+    if (params && params[0]) {
+       gCling->CallFunc_SetFunc(fFunc, scope, (char *)methodname, (char *)params, objectIsConst, &offset);
+    } else if (proto && proto[0]) {
 diff --git a/src/core/meta/src/TRealData.cxx b/src/core/meta/src/TRealData.cxx
 index 6d282ab324..983608c3fd 100644
 --- a/src/core/meta/src/TRealData.cxx
@@ -592,6 +605,293 @@ index 60481cc25b..48ad81004c 100644
     virtual Long_t BaseClassInfo_Property(BaseClassInfo_t* bcinfo) const;
     virtual Long_t BaseClassInfo_Tagnum(BaseClassInfo_t* bcinfo) const;
     virtual ClassInfo_t*BaseClassInfo_ClassInfo(BaseClassInfo_t * /* bcinfo */) const;
+diff --git a/src/core/metacling/src/TClingBaseClassInfo.cxx b/src/core/metacling/src/TClingBaseClassInfo.cxx
+index 1bba752656..388b705735 100644
+--- a/src/core/metacling/src/TClingBaseClassInfo.cxx
++++ b/src/core/metacling/src/TClingBaseClassInfo.cxx
+@@ -57,7 +57,7 @@ using namespace std;
+ TClingBaseClassInfo::TClingBaseClassInfo(cling::Interpreter* interp,
+                                          TClingClassInfo* ci)
+    : fInterp(interp), fClassInfo(0), fFirstTime(true), fDescend(false),
+-     fDecl(0), fIter(0), fBaseInfo(0), fOffset(0L), fClassInfoOwnership(true)
++     fDecl(0), fIter(0), fBaseInfo(0), fOffset(0), fClassInfoOwnership(true)
+ {
+    // Constructs a base class iterator on ci; ci == 0 means global scope (which
+    // is meaningless). The derived class info passed in as ci is copied.
+@@ -88,7 +88,7 @@ TClingBaseClassInfo::TClingBaseClassInfo(cling::Interpreter* interp,
+                                          TClingClassInfo* derived,
+                                          TClingClassInfo* base)
+    : fInterp(interp), fClassInfo(0), fFirstTime(true), fDescend(false),
+-     fDecl(0), fIter(0), fBaseInfo(0), fOffset(0L), fClassInfoOwnership(false)
++     fDecl(0), fIter(0), fBaseInfo(0), fOffset(0), fClassInfoOwnership(false)
+ {
+    // Constructs a single base class base (no iterator) of derived; derived must be != 0.
+    // The derived class info is referenced during the lifetime of the TClingBaseClassInfo.
+@@ -282,9 +282,9 @@ int TClingBaseClassInfo::InternalNext(int onlyDirect)
+          const clang::RecordDecl *RD = llvm::dyn_cast<clang::RecordDecl>(fDecl);
+          const clang::ASTRecordLayout &Layout = Context.getASTRecordLayout(RD);
+          int64_t offset = Layout.getBaseClassOffset(Base).getQuantity();
+-         fOffset += static_cast<long>(offset);
++         fOffset += static_cast<ptrdiff_t>(offset);
+          fIterStack.push_back(std::make_pair(std::make_pair(fDecl, fIter),
+-                                             static_cast<long>(offset)));
++                                             static_cast<ptrdiff_t>(offset)));
+          fDecl = Base;
+          fIter = Base->bases_begin();
+       }
+diff --git a/src/core/metacling/src/TClingBaseClassInfo.h b/src/core/metacling/src/TClingBaseClassInfo.h
+index a36ff14748..d626cfdbe2 100644
+--- a/src/core/metacling/src/TClingBaseClassInfo.h
++++ b/src/core/metacling/src/TClingBaseClassInfo.h
+@@ -51,7 +51,7 @@ private:
+    clang::CXXRecordDecl::base_class_const_iterator fIter; // Current iterator.
+    TClingClassInfo              *fBaseInfo; // Base class our iterator is currently pointing at, we own.
+    std::vector<std::pair<std::pair<const clang::Decl*, clang::CXXRecordDecl::base_class_const_iterator>, long> > fIterStack; // Iterator stack.
+-   long                          fOffset; // Offset of the current base, fDecl, in the most-derived class.
++   ptrdiff_t                     fOffset; // Offset of the current base, fDecl, in the most-derived class.
+    bool                          fClassInfoOwnership; // We created the fClassInfo and we need to delete it in the constructor.
+ 
+ public:
+diff --git a/src/core/metacling/src/TClingCallFunc.cxx b/src/core/metacling/src/TClingCallFunc.cxx
+index 1bae809e7c..9bc534b3cd 100644
+--- a/src/core/metacling/src/TClingCallFunc.cxx
++++ b/src/core/metacling/src/TClingCallFunc.cxx
+@@ -2314,13 +2314,13 @@ void TClingCallFunc::SetArgs(const char *params)
+ }
+ 
+ void TClingCallFunc::SetFunc(const TClingClassInfo *info, const char *method, const char *arglist,
+-                             long *poffset)
++                             intptr_t *poffset)
+ {
+    SetFunc(info, method, arglist, false, poffset);
+ }
+ 
+ void TClingCallFunc::SetFunc(const TClingClassInfo *info, const char *method, const char *arglist,
+-                             bool objectIsConst, long *poffset)
++                             bool objectIsConst, intptr_t *poffset)
+ {
+    Init(std::unique_ptr<TClingMethodInfo>(new TClingMethodInfo(fInterp)));
+    if (poffset) {
+@@ -2357,14 +2357,14 @@ void TClingCallFunc::SetFunc(const TClingMethodInfo *info)
+ }
+ 
+ void TClingCallFunc::SetFuncProto(const TClingClassInfo *info, const char *method,
+-                                  const char *proto, long *poffset,
++                                  const char *proto, intptr_t *poffset,
+                                   EFunctionMatchMode mode/*=kConversionMatch*/)
+ {
+    SetFuncProto(info, method, proto, false, poffset, mode);
+ }
+ 
+ void TClingCallFunc::SetFuncProto(const TClingClassInfo *info, const char *method,
+-                                  const char *proto, bool objectIsConst, long *poffset,
++                                  const char *proto, bool objectIsConst, intptr_t *poffset,
+                                   EFunctionMatchMode mode/*=kConversionMatch*/)
+ {
+    Init(std::unique_ptr<TClingMethodInfo>(new TClingMethodInfo(fInterp)));
+@@ -2385,7 +2385,7 @@ void TClingCallFunc::SetFuncProto(const TClingClassInfo *info, const char *metho
+ }
+ 
+ void TClingCallFunc::SetFuncProto(const TClingClassInfo *info, const char *method,
+-                                  const llvm::SmallVectorImpl<clang::QualType> &proto, long *poffset,
++                                  const llvm::SmallVectorImpl<clang::QualType> &proto, intptr_t *poffset,
+                                   EFunctionMatchMode mode/*=kConversionMatch*/)
+ {
+    SetFuncProto(info, method, proto, false, poffset, mode);
+@@ -2393,7 +2393,7 @@ void TClingCallFunc::SetFuncProto(const TClingClassInfo *info, const char *metho
+ 
+ void TClingCallFunc::SetFuncProto(const TClingClassInfo *info, const char *method,
+                                   const llvm::SmallVectorImpl<clang::QualType> &proto,
+-                                  bool objectIsConst, long *poffset,
++                                  bool objectIsConst, intptr_t *poffset,
+                                   EFunctionMatchMode mode/*=kConversionMatch*/)
+ {
+    Init(std::unique_ptr<TClingMethodInfo>(new TClingMethodInfo(fInterp)));
+diff --git a/src/core/metacling/src/TClingCallFunc.h b/src/core/metacling/src/TClingCallFunc.h
+index f4caff56ed..5aaee1bcda 100644
+--- a/src/core/metacling/src/TClingCallFunc.h
++++ b/src/core/metacling/src/TClingCallFunc.h
+@@ -220,23 +220,23 @@ public:
+    void SetArgArray(long* argArr, int narg);
+    void SetArgs(const char* args);
+    void SetFunc(const TClingClassInfo* info, const char* method,
+-                const char* arglist, long* poffset);
++                const char* arglist, intptr_t* poffset);
+    void SetFunc(const TClingClassInfo* info, const char* method,
+-                const char* arglist, bool objectIsConst, long* poffset);
++                const char* arglist, bool objectIsConst, intptr_t* poffset);
+    void SetFunc(const TClingMethodInfo* info);
+    void SetFuncProto(const TClingClassInfo* info, const char* method,
+-                     const char* proto, long* poffset,
++                     const char* proto, intptr_t* poffset,
+                      ROOT::EFunctionMatchMode mode = ROOT::kConversionMatch);
+    void SetFuncProto(const TClingClassInfo* info, const char* method,
+-                     const char* proto, bool objectIsConst, long* poffset,
++                     const char* proto, bool objectIsConst, intptr_t* poffset,
+                      ROOT::EFunctionMatchMode mode = ROOT::kConversionMatch);
+    void SetFuncProto(const TClingClassInfo* info, const char* method,
+                      const llvm::SmallVectorImpl<clang::QualType>& proto,
+-                     long* poffset,
++                     intptr_t* poffset,
+                      ROOT::EFunctionMatchMode mode = ROOT::kConversionMatch);
+    void SetFuncProto(const TClingClassInfo* info, const char* method,
+                      const llvm::SmallVectorImpl<clang::QualType>& proto,
+-                     bool objectIsConst, long* poffset,
++                     bool objectIsConst, intptr_t* poffset,
+                      ROOT::EFunctionMatchMode mode = ROOT::kConversionMatch);
+ };
+ 
+diff --git a/src/core/metacling/src/TClingClassInfo.cxx b/src/core/metacling/src/TClingClassInfo.cxx
+index 82034ea4e7..63f4c36159 100644
+--- a/src/core/metacling/src/TClingClassInfo.cxx
++++ b/src/core/metacling/src/TClingClassInfo.cxx
+@@ -54,6 +54,8 @@ but the class metadata comes from the Clang C++ compiler, not CINT.
+ #include <sstream>
+ #include <string>
+ 
++#include <iostream>
++
+ using namespace clang;
+ using namespace ROOT;
+ 
+@@ -324,7 +326,7 @@ TClingMethodInfo TClingClassInfo::GetMethod(const char *fname) const
+ }
+ 
+ TClingMethodInfo TClingClassInfo::GetMethod(const char *fname,
+-      const char *proto, long *poffset, EFunctionMatchMode mode /*= kConversionMatch*/,
++      const char *proto, intptr_t *poffset, EFunctionMatchMode mode /*= kConversionMatch*/,
+       EInheritanceMode imode /*= kWithInheritance*/) const
+ {
+    return GetMethod(fname,proto,false,poffset,mode,imode);
+@@ -332,7 +334,7 @@ TClingMethodInfo TClingClassInfo::GetMethod(const char *fname,
+ 
+ TClingMethodInfo TClingClassInfo::GetMethod(const char *fname,
+       const char *proto, bool objectIsConst,
+-      long *poffset, EFunctionMatchMode mode /*= kConversionMatch*/,
++      intptr_t *poffset, EFunctionMatchMode mode /*= kConversionMatch*/,
+       EInheritanceMode imode /*= kWithInheritance*/) const
+ {
+    if (poffset) {
+@@ -418,7 +420,7 @@ TClingMethodInfo TClingClassInfo::GetMethod(const char *fname,
+ 
+ TClingMethodInfo TClingClassInfo::GetMethod(const char *fname,
+                                             const llvm::SmallVectorImpl<clang::QualType> &proto,
+-                                            long *poffset, EFunctionMatchMode mode /*= kConversionMatch*/,
++                                            intptr_t *poffset, EFunctionMatchMode mode /*= kConversionMatch*/,
+                                             EInheritanceMode imode /*= kWithInheritance*/) const
+ {
+    return GetMethod(fname,proto,false,poffset,mode,imode);
+@@ -426,7 +428,7 @@ TClingMethodInfo TClingClassInfo::GetMethod(const char *fname,
+ 
+ TClingMethodInfo TClingClassInfo::GetMethod(const char *fname,
+                                             const llvm::SmallVectorImpl<clang::QualType> &proto, bool objectIsConst,
+-                                            long *poffset, EFunctionMatchMode mode /*= kConversionMatch*/,
++                                            intptr_t *poffset, EFunctionMatchMode mode /*= kConversionMatch*/,
+                                             EInheritanceMode imode /*= kWithInheritance*/) const
+ {
+    if (poffset) {
+@@ -491,7 +493,7 @@ TClingMethodInfo TClingClassInfo::GetMethod(const char *fname,
+ }
+ 
+ TClingMethodInfo TClingClassInfo::GetMethodWithArgs(const char *fname,
+-      const char *arglist, long *poffset, EFunctionMatchMode mode /* = kConversionMatch*/,
++      const char *arglist, intptr_t *poffset, EFunctionMatchMode mode /* = kConversionMatch*/,
+       EInheritanceMode imode /* = kWithInheritance*/) const
+ {
+    return GetMethodWithArgs(fname,arglist,false,poffset,mode,imode);
+@@ -499,7 +501,7 @@ TClingMethodInfo TClingClassInfo::GetMethodWithArgs(const char *fname,
+ 
+ TClingMethodInfo TClingClassInfo::GetMethodWithArgs(const char *fname,
+       const char *arglist, bool objectIsConst,
+-      long *poffset, EFunctionMatchMode /*mode = kConversionMatch*/,
++      intptr_t *poffset, EFunctionMatchMode /*mode = kConversionMatch*/,
+       EInheritanceMode /* imode = kWithInheritance*/) const
+ {
+ 
+@@ -522,7 +524,7 @@ TClingMethodInfo TClingClassInfo::GetMethodWithArgs(const char *fname,
+ 
+    }
+    if (poffset) {
+-      *poffset = 0L;
++      *poffset = 0;
+    }
+    if (!IsLoaded()) {
+       TClingMethodInfo tmi(fInterp);
+@@ -576,12 +578,12 @@ int TClingClassInfo::GetMethodNArg(const char *method, const char *proto,
+    return clang_val;
+ }
+ 
+-long TClingClassInfo::GetOffset(const CXXMethodDecl* md) const
++ptrdiff_t TClingClassInfo::GetOffset(const CXXMethodDecl* md) const
+ {
+ 
+    R__LOCKGUARD(gInterpreterMutex);
+ 
+-   long offset = 0L;
++   ptrdiff_t offset = 0;
+    const CXXRecordDecl* definer = md->getParent();
+    const CXXRecordDecl* accessor =
+       llvm::cast<CXXRecordDecl>(fDecl);
+@@ -809,7 +838,7 @@ bool TClingClassInfo::IsValid() const
+ 
+ bool TClingClassInfo::IsValidMethod(const char *method, const char *proto,
+                                     Bool_t objectIsConst,
+-                                    long *offset,
++                                    intptr_t *offset,
+                                     EFunctionMatchMode mode /*= kConversionMatch*/) const
+ {
+    // Check if the method with the given prototype exist.
+@@ -817,7 +846,7 @@ bool TClingClassInfo::IsValidMethod(const char *method, const char *proto,
+       return false;
+    }
+    if (offset) {
+-      *offset = 0L;
++      *offset = 0;
+    }
+    TClingMethodInfo mi = GetMethod(method, proto, offset, mode);
+    return mi.IsValid();
+diff --git a/src/core/metacling/src/TClingClassInfo.h b/src/core/metacling/src/TClingClassInfo.h
+index ff8ef597e3..c0dad58149 100644
+--- a/src/core/metacling/src/TClingClassInfo.h
++++ b/src/core/metacling/src/TClingClassInfo.h
+@@ -97,22 +97,22 @@ public:
+                                   long *poffset, ROOT::EFunctionMatchMode mode = ROOT::kConversionMatch,
+                                   EInheritanceMode imode = kWithInheritance) const;
+    TClingMethodInfo     GetMethodWithArgs(const char *fname, const char *arglist,
+-                                  long *poffset, ROOT::EFunctionMatchMode mode = ROOT::kConversionMatch,
++                                  intptr_t *poffset, ROOT::EFunctionMatchMode mode = ROOT::kConversionMatch,
+                                   EInheritanceMode imode = kWithInheritance) const;
+    TClingMethodInfo     GetMethod(const char *fname, const char *proto, bool objectIsConst,
+-                                  long *poffset, ROOT::EFunctionMatchMode mode = ROOT::kConversionMatch,
++                                  intptr_t *poffset, ROOT::EFunctionMatchMode mode = ROOT::kConversionMatch,
+                                   EInheritanceMode imode = kWithInheritance) const;
+    TClingMethodInfo     GetMethodWithArgs(const char *fname, const char *arglist, bool objectIsConst,
+-                                  long *poffset, ROOT::EFunctionMatchMode mode = ROOT::kConversionMatch,
++                                  intptr_t *poffset, ROOT::EFunctionMatchMode mode = ROOT::kConversionMatch,
+                                   EInheritanceMode imode = kWithInheritance) const;
+    TClingMethodInfo     GetMethod(const char *fname, const llvm::SmallVectorImpl<clang::QualType> &proto,
+-                                  long *poffset, ROOT::EFunctionMatchMode mode = ROOT::kConversionMatch,
++                                  intptr_t *poffset, ROOT::EFunctionMatchMode mode = ROOT::kConversionMatch,
+                                   EInheritanceMode imode = kWithInheritance) const;
+    TClingMethodInfo     GetMethod(const char *fname, const llvm::SmallVectorImpl<clang::QualType> &proto, bool objectIsConst,
+-                                  long *poffset, ROOT::EFunctionMatchMode mode = ROOT::kConversionMatch,
++                                  intptr_t *poffset, ROOT::EFunctionMatchMode mode = ROOT::kConversionMatch,
+                                   EInheritanceMode imode = kWithInheritance) const;
+    int                  GetMethodNArg(const char *method, const char *proto, Bool_t objectIsConst, ROOT::EFunctionMatchMode mode = ROOT::kConversionMatch) const;
+-   long                 GetOffset(const clang::CXXMethodDecl* md) const;
++   ptrdiff_t            GetOffset(const clang::CXXMethodDecl* md) const;
+    ptrdiff_t            GetBaseOffset(TClingClassInfo* toBase, void* address, bool isDerivedObject);
+    const clang::Type   *GetType() const { return fType; } // Underlying representation with Double32_t
+    bool                 HasDefaultConstructor() const;
+@@ -125,7 +125,7 @@ public:
+    static bool          IsEnum(cling::Interpreter *interp, const char *name);
+    bool                 IsLoaded() const;
+    bool                 IsValid() const;
+-   bool                 IsValidMethod(const char *method, const char *proto, Bool_t objectIsConst, long *offset, ROOT::EFunctionMatchMode mode = ROOT::kConversionMatch) const;
++   bool                 IsValidMethod(const char *method, const char *proto, Bool_t objectIsConst, intptr_t *offset, ROOT::EFunctionMatchMode mode = ROOT::kConversionMatch) const;
+    int                  InternalNext();
+    int                  Next();
+    void                *New(const ROOT::TMetaUtils::TNormalizedCtxt &normCtxt) const;
 diff --git a/src/core/metacling/src/TClingDataMemberInfo.cxx b/src/core/metacling/src/TClingDataMemberInfo.cxx
 index cebf2425bd..fa0b7a38a6 100644
 --- a/src/core/metacling/src/TClingDataMemberInfo.cxx
