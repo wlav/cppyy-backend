@@ -808,6 +808,28 @@ void Cppyy::GetAllCppNames(TCppScope_t scope, std::set<std::string>& cppnames)
 
 
 // class reflection information ----------------------------------------------
+std::vector<Cppyy::TCppScope_t> Cppyy::GetUsingNamespaces(TCppScope_t scope)
+{
+    std::vector<Cppyy::TCppScope_t> res;
+    if (!IsNamespace(scope))
+        return res;
+
+    TClassRef& cr = type_from_handle(scope);
+    if (!cr.GetClass() || !cr->GetClassInfo())
+        return res;
+
+    const std::vector<std::string>& v = gInterpreter->GetUsingNamespaces(cr->GetClassInfo());
+    res.reserve(v.size());
+    for (auto uid : v) {
+        Cppyy::TCppScope_t uscope = GetScope(uid);
+        if (uscope) res.push_back(uscope);
+    }
+
+    return res;
+}
+
+
+// class reflection information ----------------------------------------------
 std::string Cppyy::GetFinalName(TCppType_t klass)
 {
     if (klass == GLOBAL_HANDLE)
@@ -1793,6 +1815,20 @@ const char** cppyy_get_all_cpp_names(cppyy_scope_t scope, size_t* count) {
     }
     *count = cppnames.size();
     return c_cppnames;
+}
+
+
+/* namespace reflection information --------------------------------------- */
+cppyy_scope_t* cppyy_get_using_namespaces(cppyy_scope_t scope) {
+    const std::vector<Cppyy::TCppScope_t>& uv = Cppyy::GetUsingNamespaces((Cppyy::TCppScope_t)scope);
+
+    if (uv.empty())
+        return (cppyy_index_t*)nullptr;
+
+    cppyy_scope_t* llresult = (cppyy_scope_t*)malloc(sizeof(cppyy_scope_t)*(uv.size()+1));
+    for (int i = 0; i < (int)uv.size(); ++i) llresult[i] = uv[i];
+    llresult[uv.size()] = (cppyy_scope_t)0;
+    return llresult;
 }
 
 

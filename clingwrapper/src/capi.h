@@ -108,6 +108,10 @@ extern "C" {
     RPY_EXPORTED
     const char** cppyy_get_all_cpp_names(cppyy_scope_t scope, size_t* count);
 
+    /* namespace reflection information --------------------------------------- */
+    RPY_EXPORTED
+    cppyy_index_t* cppyy_get_using_namespaces(cppyy_scope_t scope);
+
     /* class reflection information ------------------------------------------- */
     RPY_EXPORTED
     char* cppyy_final_name(cppyy_type_t type);

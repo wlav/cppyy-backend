@@ -1,0 +1,98 @@
+diff --git a/src/core/meta/inc/TInterpreter.h b/src/core/meta/inc/TInterpreter.h
+index 68fc50b91c..7499e31f2b 100644
+--- a/src/core/meta/inc/TInterpreter.h
++++ b/src/core/meta/inc/TInterpreter.h
+@@ -296,6 +296,7 @@ public:
+    virtual DeclId_t GetFunctionTemplate(ClassInfo_t *cl, const char *funcname) = 0;
+    virtual void     GetFunctionOverloads(ClassInfo_t *cl, const char *funcname, std::vector<DeclId_t>& res) const = 0;
+    virtual void     LoadFunctionTemplates(TClass* cl) const = 0;
++   virtual std::vector<std::string> GetUsingNamespaces(ClassInfo_t* cl) const = 0;
+ 
+    // CallFunc interface
+    virtual void   CallFunc_Delete(CallFunc_t * /* func */) const {;}
+diff --git a/src/core/metacling/src/TCling.cxx b/src/core/metacling/src/TCling.cxx
+index 9a59030df4..ea911a0afe 100644
+--- a/src/core/metacling/src/TCling.cxx
++++ b/src/core/metacling/src/TCling.cxx
+@@ -4000,6 +4000,17 @@ void TCling::LoadFunctionTemplates(TClass* cl) const
+       }
+    }
+ }
++
++
++////////////////////////////////////////////////////////////////////////////////
++// get the scopes representing using declarations of namespace
++std::vector<std::string> TCling::GetUsingNamespaces(ClassInfo_t* cl) const
++{
++    TClingClassInfo* ci = (TClingClassInfo*)cl;
++    return ci->GetUsingNamespaces();
++}
++
++
+ ////////////////////////////////////////////////////////////////////////////////
+ /// Create list of pointers to data members for TClass cl.
+ /// This is now a nop.  The creation and updating is handled in
+diff --git a/src/core/metacling/src/TCling.h b/src/core/metacling/src/TCling.h
+index 48ad81004c..c594258c3d 100644
+--- a/src/core/metacling/src/TCling.h
++++ b/src/core/metacling/src/TCling.h
+@@ -286,6 +286,8 @@ public: // Public Interface
+    void     GetFunctionOverloads(ClassInfo_t *cl, const char *funcname, std::vector<DeclId_t>& res) const;
+    virtual void     LoadFunctionTemplates(TClass* cl) const;
+ 
++   virtual std::vector<std::string> GetUsingNamespaces(ClassInfo_t* cl) const;
++
+    void    GetInterpreterTypeName(const char* name, std::string &output, Bool_t full = kFALSE);
+    void    Execute(const char* function, const char* params, int* error = 0);
+    void    Execute(TObject* obj, TClass* cl, const char* method, const char* params, int* error = 0);
+diff --git a/src/core/metacling/src/TClingClassInfo.cxx b/src/core/metacling/src/TClingClassInfo.cxx
+index 58158868d3..14522babfc 100644
+--- a/src/core/metacling/src/TClingClassInfo.cxx
++++ b/src/core/metacling/src/TClingClassInfo.cxx
+@@ -634,6 +634,34 @@ ptrdiff_t TClingClassInfo::GetBaseOffset(TClingClassInfo* base, void* address, b
+    return binfo.Offset(address, isDerivedObject);
+ }
+ 
++std::vector<std::string> TClingClassInfo::GetUsingNamespaces()
++{
++   // Find and return all 'using' declarations of namespaces.
++   std::vector<std::string> res;
++
++   R__LOCKGUARD(gInterpreterMutex);
++
++   cling::Interpreter::PushTransactionRAII RAII(fInterp);
++   const clang::DeclContext *DC = cast<DeclContext>(fDecl);
++   if (!DC)
++       return res;
++
++   clang::DeclContext::decl_iterator iter = DC->noload_decls_begin();
++   while (iter != DC->noload_decls_end()) {
++      if (iter->getKind() == Decl::UsingDirective) {
++         UsingDirectiveDecl* udecl = llvm::cast<UsingDirectiveDecl>(*iter);
++         if (udecl) {
++             NamespaceDecl* target = udecl->getNominatedNamespace();
++             if (target) res.push_back(target->getName().str());
++         }
++      }
++      ++iter;
++   }
++
++   return res;
++}
++
++
+ bool TClingClassInfo::HasDefaultConstructor() const
+ {
+    // Return true if there a constructor taking no arguments (including
+diff --git a/src/core/metacling/src/TClingClassInfo.h b/src/core/metacling/src/TClingClassInfo.h
+index 2d42a7548b..e03ed82c5e 100644
+--- a/src/core/metacling/src/TClingClassInfo.h
++++ b/src/core/metacling/src/TClingClassInfo.h
+@@ -115,6 +115,7 @@ public:
+    ptrdiff_t            GetOffset(const clang::CXXMethodDecl* md) const;
+    ptrdiff_t            GetBaseOffset(TClingClassInfo* toBase, void* address, bool isDerivedObject);
+    const clang::Type   *GetType() const { return fType; } // Underlying representation with Double32_t
++   std::vector<std::string> GetUsingNamespaces();
+    bool                 HasDefaultConstructor() const;
+    bool                 HasMethod(const char *name) const;
+    void                 Init(const char *name);

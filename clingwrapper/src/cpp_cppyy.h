@@ -117,6 +117,10 @@ namespace Cppyy {
     RPY_EXPORTED
     void GetAllCppNames(TCppScope_t scope, std::set<std::string>& cppnames);
 
+// namespace reflection information ------------------------------------------
+    RPY_EXPORTED
+    std::vector<TCppScope_t> GetUsingNamespaces(TCppScope_t);
+
 // class reflection information ----------------------------------------------
     RPY_EXPORTED
     std::string GetFinalName(TCppType_t type);
