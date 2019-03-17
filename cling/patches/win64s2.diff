@@ -954,3 +954,25 @@ index cebf2425bd..fa0b7a38a6 100644
  }
  
  long TClingDataMemberInfo::Property() const
+diff --git a/src/core/base/src/TROOT.cxx b/src/core/base/src/TROOT.cxx
+index e16976afaf..604a74ce8b 100644
+--- a/src/core/base/src/TROOT.cxx
++++ b/src/core/base/src/TROOT.cxx
+@@ -1182,7 +1182,7 @@ void TROOT::CloseFiles()
+          fSockets->SetBit(kMustCleanup);
+       }
+       CallFunc_t *socketCloser = gInterpreter->CallFunc_Factory();
+-      Long_t offset = 0;
++      intptr_t offset = 0;
+       TClass *socketClass = TClass::GetClass("TSocket");
+       gInterpreter->CallFunc_SetFuncProto(socketCloser, socketClass->GetClassInfo(), "Close", "", &offset);
+       if (gInterpreter->CallFunc_IsValid(socketCloser)) {
+@@ -1208,7 +1208,7 @@ void TROOT::CloseFiles()
+                fClosedObjects->AddLast(socket);
+             } else {
+                // Crap ... this is not a socket, likely Proof or something, let's try to find a Close
+-               Long_t other_offset;
++               intptr_t other_offset;
+                CallFunc_t *otherCloser = gInterpreter->CallFunc_Factory();
+                gInterpreter->CallFunc_SetFuncProto(otherCloser, socket->IsA()->GetClassInfo(), "Close", "", &other_offset);
+                if (gInterpreter->CallFunc_IsValid(otherCloser)) {
