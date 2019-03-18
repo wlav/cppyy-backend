@@ -990,8 +990,8 @@ Cppyy::TCppIndex_t Cppyy::GetNumMethods(TCppScope_t scope)
             if (clName.find('<') != std::string::npos) {
             // chicken-and-egg problem: TClass does not know about methods until
             // instantiation, so force it
-                if (clName.find("std::", 0, 5) == std::string::npos &&
-                    TClass::GetClass(("std::"+clName).c_str())) {
+                if (clName.find("std::", 0, 5) == std::string::npos && \
+                        is_missclassified_stl(clName)) {
                 // TODO: this is too simplistic for template arguments missing std::
                     clName = "std::" + clName;
                 }
