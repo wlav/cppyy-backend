@@ -33,7 +33,7 @@ index b8cb31cf85..151db725ff 100644
 -                 "We requiqre atomic<int> and <int> to have the same size but they are not");
 +   using AtomicInt_t = std::atomic<ptrdiff_t>;
 +   static_assert(sizeof(std::atomic<ptrdiff_t>) == sizeof(ptrdiff_t),
-+                 "We requiqre atomic<ptrdiff_t> and <ptrdiff_t> to have the same size but they are not");
++                 "We require atomic<ptrdiff_t> and <ptrdiff_t> to have the same size but they are not");
  #else
     // std::atomic is not yet supported in the I/O, so
     // we hide them from Cling
