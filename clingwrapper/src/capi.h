@@ -164,6 +164,8 @@ extern "C" {
     RPY_EXPORTED
     char* cppyy_method_signature(cppyy_method_t, int show_formalargs);
     RPY_EXPORTED
+    char* cppyy_method_signature_max(cppyy_method_t, int show_formalargs, int maxargs);
+    RPY_EXPORTED
     char* cppyy_method_prototype(cppyy_scope_t scope, cppyy_method_t, int show_formalargs);
     RPY_EXPORTED
     int cppyy_is_const_method(cppyy_method_t);

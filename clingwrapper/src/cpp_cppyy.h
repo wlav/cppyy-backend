@@ -172,7 +172,7 @@ namespace Cppyy {
     RPY_EXPORTED
     std::string GetMethodArgDefault(TCppMethod_t, TCppIndex_t iarg);
     RPY_EXPORTED
-    std::string GetMethodSignature(TCppMethod_t, bool show_formalargs);
+    std::string GetMethodSignature(TCppMethod_t, bool show_formalargs, TCppIndex_t maxargs = (TCppIndex_t)-1);
     RPY_EXPORTED
     std::string GetMethodPrototype(TCppScope_t scope, TCppMethod_t, bool show_formalargs);
     RPY_EXPORTED

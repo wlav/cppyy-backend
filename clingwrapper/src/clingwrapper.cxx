@@ -1149,13 +1149,14 @@ std::string Cppyy::GetMethodArgDefault(TCppMethod_t method, TCppIndex_t iarg)
     return "";
 }
 
-std::string Cppyy::GetMethodSignature(TCppMethod_t method, bool show_formalargs)
+std::string Cppyy::GetMethodSignature(TCppMethod_t method, bool show_formalargs, TCppIndex_t maxargs)
 {
     TFunction* f = m2f(method);
     if (f) {
         std::ostringstream sig;
         sig << "(";
         int nArgs = f->GetNargs();
+        if (maxargs != (TCppIndex_t)-1) nArgs = std::min(nArgs, (int)maxargs);
         for (int iarg = 0; iarg < nArgs; ++iarg) {
             TMethodArg* arg = (TMethodArg*)f->GetListOfMethodArgs()->At(iarg);
             sig << arg->GetFullTypeName();
@@ -1931,6 +1932,10 @@ char* cppyy_method_arg_default(cppyy_method_t method, int arg_index) {
 
 char* cppyy_method_signature(cppyy_method_t method, int show_formalargs) {
     return cppstring_to_cstring(Cppyy::GetMethodSignature((Cppyy::TCppMethod_t)method, (bool)show_formalargs));
+}
+
+char* cppyy_method_signature_max(cppyy_method_t method, int show_formalargs, int maxargs) {
+    return cppstring_to_cstring(Cppyy::GetMethodSignature((Cppyy::TCppMethod_t)method, (bool)show_formalargs, (Cppyy::TCppIndex_t)maxargs));
 }
 
 char* cppyy_method_prototype(cppyy_scope_t scope, cppyy_method_t method, int show_formalargs) {
