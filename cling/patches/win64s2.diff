@@ -976,3 +976,32 @@ index e16976afaf..604a74ce8b 100644
                 CallFunc_t *otherCloser = gInterpreter->CallFunc_Factory();
                 gInterpreter->CallFunc_SetFuncProto(otherCloser, socket->IsA()->GetClassInfo(), "Close", "", &other_offset);
                 if (gInterpreter->CallFunc_IsValid(otherCloser)) {
+diff --git a/src/core/meta/src/TMethodCall.cxx b/src/core/meta/src/TMethodCall.cxx
+index 1d5ebe9039..a9c9a991ba 100644
+--- a/src/core/meta/src/TMethodCall.cxx
++++ b/src/core/meta/src/TMethodCall.cxx
+@@ -460,7 +460,11 @@ void TMethodCall::Execute(void *object, Long_t &retLong)
+    void *address = 0;
+    if (object) address = (void*)((intptr_t)object + fOffset);
+    gCling->SetTempLevel(1);
++#ifdef _WIN64
++   retLong = gCling->CallFunc_ExecInt64(fFunc,address);
++#else
+    retLong = gCling->CallFunc_ExecInt(fFunc,address);
++#endif
+    gCling->SetTempLevel(-1);
+ }
+ 
+@@ -481,7 +485,11 @@ void TMethodCall::Execute(void *object, const char *params, Long_t &retLong)
+    void *address = 0;
+    if (object) address = (void*)((intptr_t)object + fOffset);
+    gCling->SetTempLevel(1);
++#ifdef _WIN64
++   retLong = gCling->CallFunc_ExecInt64(fFunc,address);
++#else
+    retLong = gCling->CallFunc_ExecInt(fFunc,address);
++#endif
+    gCling->SetTempLevel(-1);
+ }
+ 
+
