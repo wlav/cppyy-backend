@@ -334,6 +334,11 @@ bool Cppyy::IsTemplate(const std::string& template_name)
 
 Cppyy::TCppType_t Cppyy::GetActualClass(TCppType_t klass, TCppObject_t obj)
 {
+#ifdef _WIN64
+// on 64b Windows, the RTTI typeinfo "trick" crashes; it's better not to have auto-cast
+// then to crash also on innocuous cases. TODO: fix this
+    return klass;
+#else
     TClassRef& cr = type_from_handle(klass);
     TClass* clActual = cr->GetActualClass((void*)obj);
     if (clActual && clActual != cr.GetClass()) {
@@ -341,6 +346,7 @@ Cppyy::TCppType_t Cppyy::GetActualClass(TCppType_t klass, TCppObject_t obj)
         return (TCppType_t)GetScope(clActual->GetName());
     }
     return klass;
+#endif
 }
 
 size_t Cppyy::SizeOf(TCppType_t klass)
