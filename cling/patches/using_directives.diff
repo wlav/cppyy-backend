@@ -71,7 +71,7 @@ index 58158868d3..14522babfc 100644
 +         UsingDirectiveDecl* udecl = llvm::cast<UsingDirectiveDecl>(*iter);
 +         if (udecl) {
 +             NamespaceDecl* target = udecl->getNominatedNamespace();
-+             if (target) res.push_back(target->getName().str());
++             if (target) res.push_back(target->getQualifiedNameAsString());  // TODO: getQualifiedNameAsString is deprecated
 +         }
 +      }
 +      ++iter;
