@@ -1022,3 +1022,34 @@ index bbfb6aa962..44ecc2e9c7 100644
 
           SpecIterator subiter(templateDecl);
           if (subiter) {
+diff --git a/src/core/base/src/TROOT.cxx b/src/core/base/src/TROOT.cxx
+index 604a74ce8b..4e68101d34 100644
+--- a/src/core/base/src/TROOT.cxx
++++ b/src/core/base/src/TROOT.cxx
+@@ -2422,7 +2422,12 @@ TROOT::ProcessLineFast(const char *line, Int_t *error)
+    if (!fApplication.load())
+       TApplication::CreateApplication();
+
+-   Long_t result = 0;
++#ifdef _WIN64
++Long64_t
++#else
++Long_t
++#endif
++   result = 0;
+
+    if (fInterpreter) {
+       TInterpreter::EErrorCode *code = (TInterpreter::EErrorCode*)error;
+diff --git a/src/core/meta/src/TIsAProxy.cxx b/src/core/meta/src/TIsAProxy.cxx
+index 890510168e..16cb8ee392 100644
+--- a/src/core/meta/src/TIsAProxy.cxx
++++ b/src/core/meta/src/TIsAProxy.cxx
+@@ -95,7 +95,7 @@ TClass* TIsAProxy::operator()(const void *obj)
+    }
+    // Avoid the case that the first word is a virtual_base_offset_table instead of
+    // a virtual_function_table
+-   Long_t offset = **(Long_t**)obj;
++   intptr_t offset = **(intptr_t**)obj;
+    if ( offset == 0 ) {
+       return fClass.load();
+    }
