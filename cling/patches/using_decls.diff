@@ -2,7 +2,7 @@ diff --git a/src/core/metacling/src/TClingMethodInfo.cxx b/src/core/metacling/sr
 index 0dbf27a298..bbfb6aa962 100644
 --- a/src/core/metacling/src/TClingMethodInfo.cxx
 +++ b/src/core/metacling/src/TClingMethodInfo.cxx
-@@ -82,6 +82,42 @@ private:
+@@ -82,6 +82,48 @@ private:
     Iterator fEnd;
  };
  
@@ -22,6 +22,12 @@ index 0dbf27a298..bbfb6aa962 100644
 +          if (base_ctor) {
 +              if (base_ctor->isImplicit()) return nullptr; // skip as Cling will generate these anyway
 +              return fInterp->getSema().findInheritingConstructor(base_ctor->getLocStart(), base_ctor, shadow_ctor);
++          }
++      } else {
++          clang::UsingShadowDecl* shadow_decl = llvm::dyn_cast<clang::UsingShadowDecl>(*fIter);
++          if (shadow_decl) {
++              clang::CXXMethodDecl* method = llvm::dyn_cast<clang::CXXMethodDecl>(shadow_decl->getTargetDecl());
++              if (method) return method;
 +          }
 +      }
 +      return llvm::dyn_cast<clang::FunctionDecl>((*fIter)->getTargetDecl()); }
@@ -182,3 +188,55 @@ index 8b7f50bf1c..7e3156def0 100644
  
     TClingMethodInfo(const TClingMethodInfo&);
  
+diff --git a/src/core/meta/inc/TListOfFunctions.h b/src/core/meta/inc/TListOfFunctions.h
+index 58fae3025d..5e8b74c936 100644
+--- a/src/core/meta/inc/TListOfFunctions.h
++++ b/src/core/meta/inc/TListOfFunctions.h
+@@ -79,7 +79,7 @@ public:
+ 
+ 
+    TFunction *Find(DeclId_t id) const;
+-   TFunction *Get(DeclId_t id);
++   TFunction *Get(DeclId_t id, bool verify = true);
+ 
+    void       AddFirst(TObject *obj);
+    void       AddFirst(TObject *obj, Option_t *opt);
+diff --git a/src/core/meta/src/TListOfFunctions.cxx b/src/core/meta/src/TListOfFunctions.cxx
+index 5248cb8d0d..916e9a1e8e 100644
+--- a/src/core/meta/src/TListOfFunctions.cxx
++++ b/src/core/meta/src/TListOfFunctions.cxx
+@@ -259,7 +259,7 @@ TFunction *TListOfFunctions::Find(DeclId_t id) const
+ /// Return (after creating it if necessary) the TMethod or TFunction
+ /// describing the function corresponding to the Decl 'id'.
+ 
+-TFunction *TListOfFunctions::Get(DeclId_t id)
++TFunction *TListOfFunctions::Get(DeclId_t id, bool verify)
+ {
+    if (!id) return 0;
+ 
+@@ -268,10 +268,12 @@ TFunction *TListOfFunctions::Get(DeclId_t id)
+    TFunction *f = Find(id);
+    if (f) return f;
+ 
+-   if (fClass) {
+-      if (!gInterpreter->ClassInfo_Contains(fClass->GetClassInfo(),id)) return 0;
+-   } else {
+-      if (!gInterpreter->ClassInfo_Contains(0,id)) return 0;
++   if (verify) { 
++      if (fClass) {
++         if (!gInterpreter->ClassInfo_Contains(fClass->GetClassInfo(),id)) std::endl; return 0;
++      } else {
++         if (!gInterpreter->ClassInfo_Contains(0,id)) return 0;
++      }
+    }
+ 
+    MethodInfo_t *m = gInterpreter->MethodInfo_Factory(id);
+@@ -393,7 +395,7 @@ void TListOfFunctions::Load()
+          TDictionary::DeclId_t mid = gInterpreter->GetDeclId(t);
+          // Get will check if there is already there or create a new one
+          // (or re-use a previously unloaded version).
+-         Get(mid);
++         Get(mid, false /* verify */);
+       }
+    }
+    gInterpreter->MethodInfo_Delete(t);

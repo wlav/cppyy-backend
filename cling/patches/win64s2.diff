@@ -1008,7 +1008,7 @@ diff --git a/src/core/metacling/src/TClingMethodInfo.cxx b/src/core/metacling/sr
 index bbfb6aa962..44ecc2e9c7 100644
 --- a/src/core/metacling/src/TClingMethodInfo.cxx
 +++ b/src/core/metacling/src/TClingMethodInfo.cxx
-@@ -493,8 +493,13 @@ int TClingMethodInfo::InternalNext()
+@@ -499,8 +499,13 @@ int TClingMethodInfo::InternalNext()
           // enable_if'ed functions.
           // Whatever this finds / instantiates will be picked up by the
           // SpecIterator below.
