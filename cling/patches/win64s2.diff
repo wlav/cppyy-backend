@@ -1004,4 +1004,21 @@ index 1d5ebe9039..a9c9a991ba 100644
     gCling->SetTempLevel(-1);
  }
  
+diff --git a/src/core/metacling/src/TClingMethodInfo.cxx b/src/core/metacling/src/TClingMethodInfo.cxx
+index bbfb6aa962..44ecc2e9c7 100644
+--- a/src/core/metacling/src/TClingMethodInfo.cxx
++++ b/src/core/metacling/src/TClingMethodInfo.cxx
+@@ -493,8 +493,13 @@ int TClingMethodInfo::InternalNext()
+          // enable_if'ed functions.
+          // Whatever this finds / instantiates will be picked up by the
+          // SpecIterator below.
++         /* WLAV: the above argument makes no rational sense. For sure the
++            code below causes assertion failures in Windows, but more
++            probably needs wholesale disabling/removal */
++#ifndef WIN32
+          InstantiateFuncTemplateWithDefaults(templateDecl, fInterp->getSema(),
+                                              fInterp->getLookupHelper());
++#endif
 
+          SpecIterator subiter(templateDecl);
+          if (subiter) {
