@@ -332,21 +332,40 @@ bool Cppyy::IsTemplate(const std::string& template_name)
     return (bool)gInterpreter->CheckClassTemplate(template_name.c_str());
 }
 
+namespace {
+    class AutoCastRTTI {
+    public:
+        virtual ~AutoCastRTTI() {}
+    };
+}
+
 Cppyy::TCppType_t Cppyy::GetActualClass(TCppType_t klass, TCppObject_t obj)
 {
-#ifdef _WIN64
-// on 64b Windows, the RTTI typeinfo "trick" crashes; it's better not to have auto-cast
-// then to crash also on innocuous cases. TODO: fix this
-    return klass;
-#else
     TClassRef& cr = type_from_handle(klass);
+    if (!cr.GetClass() || !obj) return klass;
+
+#ifdef _WIN64
+    try {
+        AutoCastRTTI* pcst = (AutoCastRTTI*)obj;
+        const char* raw = typeid(*pcst).raw_name();
+    // if the raw name is the empty string then there is no RTTI info available
+    // and getting the unmangled name will crash ...
+        if (!raw || raw[0] == '\0')
+            return klass;    // TODO: fix whatever is hampering RTTI (linking?)
+    } catch (std::bad_typeid) {
+        return klass;        // can't risk passing to ROOT/meta as it may do RTTI
+    }
+#endif
+
     TClass* clActual = cr->GetActualClass((void*)obj);
     if (clActual && clActual != cr.GetClass()) {
-    // TODO: lookup through name should not be needed
+        auto itt = g_name2classrefidx.find(clActual->GetName());
+        if (itt != g_name2classrefidx.end())
+            return (TCppType_t)itt->second;
         return (TCppType_t)GetScope(clActual->GetName());
     }
+
     return klass;
-#endif
 }
 
 size_t Cppyy::SizeOf(TCppType_t klass)
