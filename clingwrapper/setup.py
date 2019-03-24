@@ -73,12 +73,15 @@ class my_build_cpplib(_build_ext):
         if not os.path.exists(self.build_temp):
             log.info('creating %s', self.build_temp)
             os.makedirs(self.build_temp)
+        extra_postargs = ['-O2']+get_cflags().split()
+        if 'win32' in sys.platform:
+            extra_postargs += ['/GR', '/EHsc-']  # note '/EHsc' hardwired by distutils :(
         objects = self.compiler.compile(
             ext.sources,
             output_dir=self.build_temp,
             include_dirs=include_dirs,
             debug=self.debug,
-            extra_postargs=['-O2']+get_cflags().split())
+            extra_postargs=extra_postargs)
 
         ext_path = self.get_ext_fullpath(ext.name)
         output_dir = os.path.dirname(ext_path)
@@ -90,6 +93,13 @@ class my_build_cpplib(_build_ext):
         elif 'win32' in sys.platform:
             # force the export results in the proper directory.
             extra_postargs.append('/IMPLIB:'+os.path.join(output_dir, libname_base+'.lib'))
+            import platform
+            if '64' in platform.architecture()[0]:
+                extra_postargs += ['/EXPORT:?_Facet_Register@std@@YAXPEAV_Facet_base@1@@Z',
+                    '/EXPORT:??3@YAXPEAX_K@Z', '/EXPORT:??_7type_info@@6B@']
+            else:
+                extra_postargs += ['/EXPORT:_Init_thread_abort', '/EXPORT:_Init_thread_epoch',
+                    '/EXPORT:_Init_thread_footer', '/EXPORT:_Init_thread_header', '/EXPORT:_tls_index']
 
         log.info("now building %s", libname)
         link_libraries, link_dirs = _get_linker_options()
