@@ -1053,3 +1053,21 @@ index 890510168e..16cb8ee392 100644
     if ( offset == 0 ) {
        return fClass.load();
     }
+diff --git a/src/interpreter/llvm/src/tools/clang/lib/AST/MicrosoftMangle.cpp b/src/interpreter/llvm/src/tools/clang/lib/AST/MicrosoftMangle.cpp
+index 24b16f892e..978af8e81e 100644
+--- a/src/interpreter/llvm/src/tools/clang/lib/AST/MicrosoftMangle.cpp
++++ b/src/interpreter/llvm/src/tools/clang/lib/AST/MicrosoftMangle.cpp
+@@ -2298,11 +2298,13 @@ void MicrosoftCXXNameMangler::mangleType(const MemberPointerType *T, Qualifiers
+ 
+ void MicrosoftCXXNameMangler::mangleType(const TemplateTypeParmType *T,
+                                          Qualifiers, SourceRange Range) {
++/*
+   DiagnosticsEngine &Diags = Context.getDiags();
+   unsigned DiagID = Diags.getCustomDiagID(DiagnosticsEngine::Error,
+     "cannot mangle this template type parameter type yet");
+   Diags.Report(Range.getBegin(), DiagID)
+     << Range;
++*/
+ }
+ 
+ void MicrosoftCXXNameMangler::mangleType(const SubstTemplateTypeParmPackType *T,
