@@ -1054,7 +1054,7 @@ index 890510168e..16cb8ee392 100644
        return fClass.load();
     }
 diff --git a/src/interpreter/llvm/src/tools/clang/lib/AST/MicrosoftMangle.cpp b/src/interpreter/llvm/src/tools/clang/lib/AST/MicrosoftMangle.cpp
-index 24b16f892e..978af8e81e 100644
+index 24b16f892e..2b1590625f 100644
 --- a/src/interpreter/llvm/src/tools/clang/lib/AST/MicrosoftMangle.cpp
 +++ b/src/interpreter/llvm/src/tools/clang/lib/AST/MicrosoftMangle.cpp
 @@ -2298,11 +2298,13 @@ void MicrosoftCXXNameMangler::mangleType(const MemberPointerType *T, Qualifiers
@@ -1071,3 +1071,17 @@ index 24b16f892e..978af8e81e 100644
  }
  
  void MicrosoftCXXNameMangler::mangleType(const SubstTemplateTypeParmPackType *T,
+@@ -2459,11 +2461,13 @@ void MicrosoftCXXNameMangler::mangleType(const InjectedClassNameType *,
+ 
+ void MicrosoftCXXNameMangler::mangleType(const TemplateSpecializationType *T,
+                                          Qualifiers, SourceRange Range) {
++/*
+   DiagnosticsEngine &Diags = Context.getDiags();
+   unsigned DiagID = Diags.getCustomDiagID(DiagnosticsEngine::Error,
+     "cannot mangle this template specialization type yet");
+   Diags.Report(Range.getBegin(), DiagID)
+     << Range;
++*/
+ }
+ 
+ void MicrosoftCXXNameMangler::mangleType(const DependentNameType *T, Qualifiers,
