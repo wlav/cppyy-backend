@@ -97,9 +97,9 @@ class my_build_cpplib(_build_ext):
             if '64' in platform.architecture()[0]:
                 extra_postargs += ['/EXPORT:?_Facet_Register@std@@YAXPEAV_Facet_base@1@@Z',
                     '/EXPORT:??3@YAXPEAX_K@Z', '/EXPORT:??_7type_info@@6B@']
-            else:
-                extra_postargs += ['/EXPORT:_Init_thread_abort', '/EXPORT:_Init_thread_epoch',
-                    '/EXPORT:_Init_thread_footer', '/EXPORT:_Init_thread_header', '/EXPORT:_tls_index']
+            #else:
+            #    extra_postargs += ['/EXPORT:_Init_thread_abort', '/EXPORT:_Init_thread_epoch',
+            #        '/EXPORT:_Init_thread_footer', '/EXPORT:_Init_thread_header', '/EXPORT:_tls_index']
 
         log.info("now building %s", libname)
         link_libraries, link_dirs = _get_linker_options()
