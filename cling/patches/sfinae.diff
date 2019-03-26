@@ -13,15 +13,38 @@ index 92c96215c0..626f230d39 100644
        callbuf << "(";
        callbuf << "(";
 diff --git a/src/core/clingutils/src/TClingUtils.cxx b/src/core/clingutils/src/TClingUtils.cxx
-index a7d51a41c6..823e481533 100644
+index a7d51a41c6..e93962db75 100644
 --- a/src/core/clingutils/src/TClingUtils.cxx
 +++ b/src/core/clingutils/src/TClingUtils.cxx
-@@ -3926,7 +3926,7 @@ void ROOT::TMetaUtils::GetNormalizedName(std::string &norm_name, const clang::Qu
+@@ -3921,12 +3921,21 @@ void ROOT::TMetaUtils::GetNormalizedName(std::string &norm_name, const clang::Qu
+       return;
+    }
+ 
+-   clang::QualType normalizedType = GetNormalizedType(type,interpreter,normCtxt);
++// for consistency, use the canonical type instead of type, unless the canonical type
++// is not accessible
++   clang::QualType usetype = type;
++   if (const clang::Type* tptr = usetype.getCanonicalType().getTypePtr()) {
++      clang::Decl* decl = tptr->getAsCXXRecordDecl();
++      if (decl && !(decl->getAccess() == clang::AS_private || decl->getAccess() == clang::AS_protected))
++         usetype = usetype.getCanonicalType();
++   }
++
++   clang::QualType normalizedType = GetNormalizedType(usetype,interpreter,normCtxt);
+ 
     clang::ASTContext &ctxt = interpreter.getCI()->getASTContext();
     clang::PrintingPolicy policy(ctxt.getPrintingPolicy());
     policy.SuppressTagKeyword = true; // Never get the class or struct keyword
 -   policy.SuppressScope = true;      // Force the scope to be coming from a clang::ElaboratedType.
-+   policy.SuppressScope = false;     // Force the scope to be coming from a clang::ElaboratedType. WLAV: changed b/c breaks templates returns
++   policy.SuppressScope = true;      // Force the scope to be coming from a clang::ElaboratedType. WLAV: changed b/c breaks templates returns
     policy.AnonymousTagLocations = false; // Do not extract file name + line number for anonymous types.
     // The scope suppression is required for getting rid of the anonymous part of the name of a class defined in an anonymous namespace.
     // This gives us more control vs not using the clang::ElaboratedType and relying on the Policy.SuppressUnwrittenScope which would
+@@ -3949,7 +3958,6 @@ void ROOT::TMetaUtils::GetNormalizedName(std::string &norm_name, const clang::Qu
+    if (norm_name.length()>2 && norm_name[0]==':' && norm_name[1]==':') {
+       norm_name.erase(0,2);
+    }
+-
+ }
+ 
+ ////////////////////////////////////////////////////////////////////////////////
