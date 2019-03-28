@@ -541,7 +541,7 @@ static inline bool WrapperCall(Cppyy::TCppMethod_t method, size_t nargs, void* a
     return false;
 }
 
-template< typename T >
+template<typename T>
 static inline
 T CallT(Cppyy::TCppMethod_t method, Cppyy::TCppObject_t self, size_t nargs, void* args)
 {
