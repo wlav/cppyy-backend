@@ -1254,6 +1254,22 @@ std::string Cppyy::GetTemplatedMethodName(TCppScope_t scope, TCppIndex_t imeth)
     return "";
 }
 
+bool Cppyy::IsTemplatedConstructor(TCppScope_t scope, TCppIndex_t imeth)
+{
+    if (scope == (TCppScope_t)GLOBAL_HANDLE)
+        return false;
+
+    TClassRef& cr = type_from_handle(scope);
+    if (cr.GetClass()) {
+        TFunction* f = (TFunction*)cr->GetListOfFunctionTemplates(false)->At((int)imeth);
+        // use of f->ExtraProperty() crashes in clang::FunctionDecl::isOverloadedOperator() ??
+        if (!strcmp(f->GetName(), cr->GetName()))
+            return true;
+    }
+
+    return false;
+}
+
 bool Cppyy::ExistsMethodTemplate(TCppScope_t scope, const std::string& name)
 {
     if (scope == (TCppScope_t)GLOBAL_HANDLE)
@@ -1978,6 +1994,10 @@ int cppyy_get_num_templated_methods(cppyy_scope_t scope) {
 
 char* cppyy_get_templated_method_name(cppyy_scope_t scope, cppyy_index_t imeth) {
     return cppstring_to_cstring(Cppyy::GetTemplatedMethodName(scope, imeth));
+}
+
+int cppyy_is_templated_constructor(cppyy_scope_t scope, cppyy_index_t imeth) {
+    return Cppyy::IsTemplatedConstructor((Cppyy::TCppScope_t)scope, (Cppyy::TCppIndex_t)imeth);
 }
 
 int cppyy_exists_method_template(cppyy_scope_t scope, const char* name) {

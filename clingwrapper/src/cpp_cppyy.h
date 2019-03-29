@@ -183,6 +183,8 @@ namespace Cppyy {
     RPY_EXPORTED
     std::string GetTemplatedMethodName(TCppScope_t scope, TCppIndex_t imeth);
     RPY_EXPORTED
+    bool        IsTemplatedConstructor(TCppScope_t scope, TCppIndex_t imeth);
+    RPY_EXPORTED
     bool        ExistsMethodTemplate(TCppScope_t scope, const std::string& name);
     RPY_EXPORTED
     bool        IsMethodTemplate(TCppScope_t scope, TCppIndex_t imeth);
