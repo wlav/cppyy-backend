@@ -1085,3 +1085,22 @@ index 24b16f892e..2b1590625f 100644
  }
  
  void MicrosoftCXXNameMangler::mangleType(const DependentNameType *T, Qualifiers,
+diff --git a/src/core/metacling/src/CMakeLists.txt b/src/core/metacling/src/CMakeLists.txt
+index 483ba33620..a9eed4633d 100644
+--- a/src/core/metacling/src/CMakeLists.txt
++++ b/src/core/metacling/src/CMakeLists.txt
+@@ -84,6 +84,14 @@ if(MSVC)
+       ?setValueNoAlloc@internal@runtime@cling@@YAXPEAX00DPEBX@Z
+       ?setValueNoAlloc@internal@runtime@cling@@YAXPEAX00D_K@Z
+       ?setValueWithAlloc@internal@runtime@cling@@YAPEAXPEAX00D@Z
++      ??1Value@cling@@QEAA@XZ
++      ??_7type_info@@6B@
++      ?__type_info_root_node@@3U__type_info_node@@A
++      ?_Facet_Register@std@@YAXPEAV_Facet_base@1@@Z
++      ??2@YAPEAX_K@Z
++      ??3@YAXPEAX@Z
++      #??3@YAXPEAX_K@Z
++      #??2@YAPEAX_KPEAX@Z
+     )
+   elseif(CMAKE_SIZEOF_VOID_P EQUAL 4)
+     set(cling_exports
