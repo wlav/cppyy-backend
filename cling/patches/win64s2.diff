@@ -1246,7 +1246,7 @@ diff --git a/src/core/metacling/src/CMakeLists.txt b/src/core/metacling/src/CMak
 index 483ba33620..a9eed4633d 100644
 --- a/src/core/metacling/src/CMakeLists.txt
 +++ b/src/core/metacling/src/CMakeLists.txt
-@@ -84,6 +84,14 @@ if(MSVC)
+@@ -84,6 +84,18 @@ if(MSVC)
        ?setValueNoAlloc@internal@runtime@cling@@YAXPEAX00DPEBX@Z
        ?setValueNoAlloc@internal@runtime@cling@@YAXPEAX00D_K@Z
        ?setValueWithAlloc@internal@runtime@cling@@YAPEAXPEAX00D@Z
@@ -1258,6 +1258,10 @@ index 483ba33620..a9eed4633d 100644
 +      ??3@YAXPEAX@Z
 +      ??3@YAXPEAX_K@Z
 +      #??2@YAPEAX_KPEAX@Z
++      ??$endl@DU?$char_traits@D@std@@@std@@YAAEAV?$basic_ostream@DU?$char_traits@D@std@@@0@AEAV10@@Z
++      ??$?6U?$char_traits@D@std@@@std@@YAAEAV?$basic_ostream@DU?$char_traits@D@std@@@0@AEAV10@PEBD@Z
++      ??$?6DU?$char_traits@D@std@@V?$allocator@D@1@@std@@YAAEAV?$basic_ostream@DU?$char_traits@D@std@@@0@AEAV10@AEBV?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@0@@Z
++      ??$_Insert_string@DU?$char_traits@D@std@@_K@std@@YAAEAV?$basic_ostream@DU?$char_traits@D@std@@@0@AEAV10@QEBD_K@Z
      )
    elseif(CMAKE_SIZEOF_VOID_P EQUAL 4)
      set(cling_exports
