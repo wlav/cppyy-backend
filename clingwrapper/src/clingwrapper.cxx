@@ -932,16 +932,16 @@ bool Cppyy::GetSmartPtrInfo(
     if (gSmartPtrTypes.find(rn.substr(0, rn.find("<"))) != gSmartPtrTypes.end()) {
         TClassRef& cr = type_from_handle(GetScope(tname));
         if (cr.GetClass()) {
-            gInterpreter->UpdateListOfMethods(cr.GetClass());
-            TFunction* func = nullptr;
-            TIter next(cr->GetListOfAllPublicMethods()); 
-            while ((func = (TFunction*)next())) {
-                if (strstr(func->GetName(), "operator->")) {
-                    deref = (TCppMethod_t)new_CallWrapper(func);
-                    raw = GetScope(TClassEdit::ShortType(
-                        func->GetReturnTypeNormalizedName().c_str(), 1));
-                    return deref && raw;
-                }
+            TFunction* func = cr->GetMethod("operator->", "");
+            if (!func) {
+                gInterpreter->UpdateListOfMethods(cr.GetClass());
+                func =  cr->GetMethod("operator->", "");
+            }
+            if (func) {
+               deref = (TCppMethod_t)new_CallWrapper(func);
+               raw = GetScope(TClassEdit::ShortType(
+                   func->GetReturnTypeNormalizedName().c_str(), 1));
+               return deref && raw;
             }
         }
     }
