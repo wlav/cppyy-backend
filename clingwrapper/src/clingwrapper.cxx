@@ -1491,9 +1491,13 @@ intptr_t Cppyy::GetDatamemberOffset(TCppScope_t scope, TCppIndex_t idata)
 {
     if (scope == GLOBAL_HANDLE) {
         TGlobal* gbl = g_globalvars[idata];
-        if (!gbl->GetAddress() || gbl->GetAddress() == (void*)-1)
+        if (!gbl->GetAddress() || gbl->GetAddress() == (void*)-1) {
         // CLING WORKAROUND: make sure variable is loaded
-            return (intptr_t)gInterpreter->ProcessLine((std::string("&")+gbl->GetName()+";").c_str());
+            intptr_t addr = (intptr_t)gInterpreter->ProcessLine((std::string("&")+gbl->GetName()+";").c_str());
+            if (gbl->GetAddress() && gbl->GetAddress() != (void*)-1)
+                return (intptr_t)gbl->GetAddress();        // now loaded!
+            return addr;                                   // last resort ...
+        }
         return (intptr_t)gbl->GetAddress();
     }
 
