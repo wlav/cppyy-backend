@@ -1491,6 +1491,9 @@ intptr_t Cppyy::GetDatamemberOffset(TCppScope_t scope, TCppIndex_t idata)
 {
     if (scope == GLOBAL_HANDLE) {
         TGlobal* gbl = g_globalvars[idata];
+        if (!gbl->GetAddress() || gbl->GetAddress() == (void*)-1)
+        // CLING WORKAROUND: make sure variable is loaded
+            return (intptr_t)gInterpreter->ProcessLine((std::string("&")+gbl->GetName()+";").c_str());
         return (intptr_t)gbl->GetAddress();
     }
 
@@ -1513,32 +1516,24 @@ Cppyy::TCppIndex_t Cppyy::GetDatamemberIndex(TCppScope_t scope, const std::strin
 {
     if (scope == GLOBAL_HANDLE) {
         TGlobal* gb = (TGlobal*)gROOT->GetListOfGlobals(true)->FindObject(name.c_str());
-        if (gb && gb->GetAddress()) {
-            if (gb->GetAddress() == (void*)-1) {
-            // name known, but variable not in loaded by Cling yet ... force it
-            // TODO: figure out a less hackish way (problem is that the metaProcessor
-            // is hidden in TCling)
-                gInterpreter->ProcessLine((name+";").c_str());
-            }
-            if (gb->GetAddress() != (void*)-1) {
-                if (strcmp(gb->GetFullTypeName(), "(lambda)") == 0) {
-                // lambdas use a compiler internal closure type, so we wrap
-                // them, then return the wrapper's type
-                // TODO: this current leaks the std::function; also, if possible,
-                //       should instantiate through TClass rather then ProcessLine
-                    std::ostringstream s;
-                    s << "auto __cppyy_internal_wrap_" << name << " = "
-                        "new __cling_internal::FT<decltype(" << name << ")>::F"
-                        "{" << name << "};";
-                    gInterpreter->ProcessLine(s.str().c_str());
-                    TGlobal* wrap = (TGlobal*)gROOT->GetListOfGlobals(true)->FindObject(
-                        ("__cppyy_internal_wrap_"+name).c_str());
-                    if (wrap && wrap->GetAddress()) gb = wrap;
-                }
+        if (gb && strcmp(gb->GetFullTypeName(), "(lambda)") == 0) {
+        // lambdas use a compiler internal closure type, so we wrap
+        // them, then return the wrapper's type
+        // TODO: this current leaks the std::function; also, if possible,
+        //       should instantiate through TClass rather then ProcessLine
+            std::ostringstream s;
+            s << "auto __cppyy_internal_wrap_" << name << " = "
+                 "new __cling_internal::FT<decltype(" << name << ")>::F"
+                 "{" << name << "};";
+            gInterpreter->ProcessLine(s.str().c_str());
+            TGlobal* wrap = (TGlobal*)gROOT->GetListOfGlobals(true)->FindObject(
+                ("__cppyy_internal_wrap_"+name).c_str());
+            if (wrap && wrap->GetAddress()) gb = wrap;
+        }
 
-                g_globalvars.push_back(gb);
-                return TCppIndex_t(g_globalvars.size() - 1);
-            }
+        if (gb) {
+            g_globalvars.push_back(gb);
+            return TCppIndex_t(g_globalvars.size() - 1);
         }
 
     } else {
