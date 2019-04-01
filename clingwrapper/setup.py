@@ -15,7 +15,7 @@ except ImportError:
 from distutils.errors import DistutilsSetupError
 
 
-requirements = ['cppyy-cling>=6.15.2.5']
+requirements = ['cppyy-cling>=6.15.2.6']
 setup_requirements = ['wheel']
 if 'build' in sys.argv or 'install' in sys.argv:
     setup_requirements += requirements
