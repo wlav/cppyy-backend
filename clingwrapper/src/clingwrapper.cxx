@@ -834,6 +834,13 @@ std::vector<Cppyy::TCppScope_t> Cppyy::GetUsingNamespaces(TCppScope_t scope)
     if (!IsNamespace(scope))
         return res;
 
+#ifdef __APPLE__
+    if (scope == STD_HANDLE) {
+        res.push_back(GetScope("__1"));
+        return res;
+    }
+#endif
+
     TClassRef& cr = type_from_handle(scope);
     if (!cr.GetClass() || !cr->GetClassInfo())
         return res;
