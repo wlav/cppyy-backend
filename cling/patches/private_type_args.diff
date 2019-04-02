@@ -1,0 +1,28 @@
+diff --git a/src/core/metacling/src/TClingCallFunc.cxx b/src/core/metacling/src/TClingCallFunc.cxx
+index 52bf69c5b3..0e62dc1199 100644
+--- a/src/core/metacling/src/TClingCallFunc.cxx
++++ b/src/core/metacling/src/TClingCallFunc.cxx
+@@ -358,6 +358,11 @@ void TClingCallFunc::make_narg_ctor(const unsigned N, ostringstream &typedefbuf,
+       const ParmVarDecl *PVD = FD->getParamDecl(i);
+       QualType Ty = PVD->getType();
+       QualType QT = Ty.getCanonicalType();
++      // Break if QT is not publicly accessible; that would fail to compile anyway and typically
++      // such types would have a default value. Unfortunately this may cause silent problems.
++      CXXRecordDecl* rtdecl = QT->getAsCXXRecordDecl();
++      if (rtdecl && (rtdecl->getAccess() == AS_private || rtdecl->getAccess() == AS_protected))
++         break;
+       string type_name;
+       EReferenceType refType = kNotReference;
+       bool isPointer = false;
+@@ -473,6 +478,11 @@ void TClingCallFunc::make_narg_call(const std::string &return_type, const unsign
+       const ParmVarDecl *PVD = FD->getParamDecl(i);
+       QualType Ty = PVD->getType();
+       QualType QT = Ty.getCanonicalType();
++      // Break if QT is not publicly accessible; that would fail to compile anyway and typically
++      // such types would have a default value. Unfortunately this may cause silent problems.
++      CXXRecordDecl* rtdecl = QT->getAsCXXRecordDecl();
++      if (rtdecl && (rtdecl->getAccess() == AS_private || rtdecl->getAccess() == AS_protected))
++         break;
+       string type_name;
+       EReferenceType refType = kNotReference;
+       bool isPointer = false;
