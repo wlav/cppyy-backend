@@ -1268,9 +1268,9 @@ bool Cppyy::IsTemplatedConstructor(TCppScope_t scope, TCppIndex_t imeth)
 
     TClassRef& cr = type_from_handle(scope);
     if (cr.GetClass()) {
-        TFunction* f = (TFunction*)cr->GetListOfFunctionTemplates(false)->At((int)imeth);
-        // use of f->ExtraProperty() crashes in clang::FunctionDecl::isOverloadedOperator() ??
-        if (!strcmp(f->GetName(), cr->GetName()))
+        TFunctionTemplate* f = (TFunctionTemplate*)cr->GetListOfFunctionTemplates(false)->At((int)imeth);
+        // TODO: f->Property() does not fill the kIsConstructor flag :/
+        if (GetFinalName(scope) == f->GetName())  // still flaky ...
             return true;
     }
 
