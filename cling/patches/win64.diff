@@ -552,7 +552,7 @@ index 5413aef378..c8fba08529 100644
  }
  
  ////////////////////////////////////////////////////////////////////////////////
-@@ -4750,7 +4791,7 @@ void TCling::Execute(TObject* obj, TClass* cl, const char* method,
+@@ -4756,7 +4797,7 @@ void TCling::Execute(TObject* obj, TClass* cl, const char* method,
     Long_t offset = 0L;
     TClingCallFunc func(fInterpreter,*fNormalizedCtxt);
     func.SetFunc((TClingClassInfo*)cl->GetClassInfo(), method, params, objectIsConst, &offset);
@@ -561,7 +561,7 @@ index 5413aef378..c8fba08529 100644
     func.Exec(address);
  }
 
-@@ -4857,8 +4898,8 @@ void TCling::Execute(TObject* obj, TClass* cl, TMethod* method,
+@@ -4863,8 +4904,8 @@ void TCling::Execute(TObject* obj, TClass* cl, TMethod* method,
     // Now calculate the 'this' pointer offset for the method
     // when starting from the class described by cl.
     const CXXMethodDecl * mdecl = dyn_cast<CXXMethodDecl>(minfo->GetMethodDecl());
@@ -572,7 +572,7 @@ index 5413aef378..c8fba08529 100644
     func.Exec(address);
  }
 
-@@ -7911,7 +7952,7 @@ int TCling::DataMemberInfo_Next(DataMemberInfo_t* dminfo) const
+@@ -7917,7 +7958,7 @@ int TCling::DataMemberInfo_Next(DataMemberInfo_t* dminfo) const
  
  ////////////////////////////////////////////////////////////////////////////////
  

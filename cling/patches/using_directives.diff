@@ -14,7 +14,7 @@ diff --git a/src/core/metacling/src/TCling.cxx b/src/core/metacling/src/TCling.c
 index 9a59030df4..ea911a0afe 100644
 --- a/src/core/metacling/src/TCling.cxx
 +++ b/src/core/metacling/src/TCling.cxx
-@@ -4000,6 +4000,17 @@ void TCling::LoadFunctionTemplates(TClass* cl) const
+@@ -4006,6 +4000,17 @@ void TCling::LoadFunctionTemplates(TClass* cl) const
        }
     }
  }

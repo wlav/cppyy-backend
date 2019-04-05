@@ -240,3 +240,68 @@ index 5248cb8d0d..916e9a1e8e 100644
        }
     }
     gInterpreter->MethodInfo_Delete(t);
+diff --git a/src/core/meta/inc/TListOfFunctionTemplates.h b/src/core/meta/inc/TListOfFunctionTemplates.h
+index 1534cdc680..cc90b1eb3a 100644
+--- a/src/core/meta/inc/TListOfFunctionTemplates.h
++++ b/src/core/meta/inc/TListOfFunctionTemplates.h
+@@ -62,7 +62,7 @@ public:
+    virtual TList     *GetListForObject(const char* name) const;
+    virtual TList     *GetListForObject(const TObject* obj) const;
+ 
+-   TFunctionTemplate *Get(DeclId_t id);
++   TFunctionTemplate *Get(DeclId_t id, bool verify = true);
+ 
+    void       AddFirst(TObject *obj);
+    void       AddFirst(TObject *obj, Option_t *opt);
+diff --git a/src/core/meta/src/TListOfFunctionTemplates.cxx b/src/core/meta/src/TListOfFunctionTemplates.cxx
+index 2602b33b0d..00a7e49853 100644
+--- a/src/core/meta/src/TListOfFunctionTemplates.cxx
++++ b/src/core/meta/src/TListOfFunctionTemplates.cxx
+@@ -250,16 +250,18 @@ TList* TListOfFunctionTemplates::GetListForObject(const TObject* obj) const
+ /// Return (after creating it if necessary) the TMethod or TFunction
+ /// describing the function corresponding to the Decl 'id'.
+ 
+-TFunctionTemplate *TListOfFunctionTemplates::Get(DeclId_t id)
++TFunctionTemplate *TListOfFunctionTemplates::Get(DeclId_t id, bool verify)
+ {
+    if (!id) return 0;
+ 
+    TFunctionTemplate *f = (TFunctionTemplate*)fIds->GetValue((Long64_t)id);
+    if (!f) {
+-      if (fClass) {
+-         if (!gInterpreter->ClassInfo_Contains(fClass->GetClassInfo(),id)) return 0;
+-      } else {
+-         if (!gInterpreter->ClassInfo_Contains(0,id)) return 0;
++      if (verify) {
++         if (fClass) {
++            if (!gInterpreter->ClassInfo_Contains(fClass->GetClassInfo(),id)) return 0;
++         } else {
++            if (!gInterpreter->ClassInfo_Contains(0,id)) return 0;
++         }
+       }
+ 
+       R__LOCKGUARD(gInterpreterMutex);
+diff --git a/src/core/metacling/src/TCling.cxx b/src/core/metacling/src/TCling.cxx
+index 9a59030df4..a89ea97a87 100644
+--- a/src/core/metacling/src/TCling.cxx
++++ b/src/core/metacling/src/TCling.cxx
+@@ -3951,11 +3951,17 @@ void TCling::LoadFunctionTemplates(TClass* cl) const
+            declEnd = allDeclContexts.end(); declIter != declEnd; ++declIter) {
+          // Iterate on all decls for each context.
+          for (clang::DeclContext::decl_iterator DI = (*declIter)->decls_begin(),
+-              DE = (*declIter)->decls_end(); DI != DE; ++DI) {
++                DE = (*declIter)->decls_end(); DI != DE; ++DI) {
+             if (const clang::FunctionTemplateDecl* FTD = dyn_cast<clang::FunctionTemplateDecl>(*DI)) {
+-                  funcTempList->Get(FTD);
++               funcTempList->Get(FTD);
++            } else if (const clang::UsingDecl* UD = llvm::dyn_cast<clang::UsingDecl>(*DI)) {
++               for (auto it = UD->shadow_begin(); it != UD->shadow_end(); ++it) {
++                  if ((FTD = dyn_cast<clang::FunctionTemplateDecl>(it->getTargetDecl()))) {
++                     funcTempList->Get(FTD, false);
++                  }
++               }
+             }
+          }
+       }
+    }
+ }

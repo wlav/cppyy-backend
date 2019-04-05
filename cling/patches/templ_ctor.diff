@@ -57,7 +57,7 @@ diff --git a/src/core/metacling/src/TCling.cxx b/src/core/metacling/src/TCling.c
 index 5a9606d..ea911a0 100644
 --- a/src/core/metacling/src/TCling.cxx
 +++ b/src/core/metacling/src/TCling.cxx
-@@ -8162,6 +8162,34 @@ Long_t TCling::FuncTempInfo_Property(FuncTempInfo_t *ft_info) const
+@@ -8168,6 +8168,34 @@ Long_t TCling::FuncTempInfo_Property(FuncTempInfo_t *ft_info) const
     return property;
  }
 
