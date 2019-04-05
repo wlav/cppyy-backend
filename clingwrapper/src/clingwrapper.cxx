@@ -1331,7 +1331,19 @@ Cppyy::TCppMethod_t Cppyy::GetMethodTemplate(
         TClassRef& cr = type_from_handle(scope);
         if (cr.GetClass()) {
             func = cr->GetMethodWithPrototype(name.c_str(), proto.c_str());
-            if (!func) cl = cr->GetClassInfo();
+            if (!func) {
+                cl = cr->GetClassInfo();
+            // try base classes to cover a common 'using' case (TODO: this is stupid and misses
+            // out on base classes; fix that with improved access to Cling)
+                TCppIndex_t nbases = GetNumBases(scope);
+                for (TCppIndex_t i = 0; i < nbases; ++i) {
+                    TClassRef& base = type_from_handle(GetScope(GetBaseName(scope, i)));
+                    if (base.GetClass()) {
+                        func = base->GetMethodWithPrototype(name.c_str(), proto.c_str());
+                        if (func) break;
+                    }
+                }
+            }
         }
     }
 
