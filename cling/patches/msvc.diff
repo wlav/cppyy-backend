@@ -50,21 +50,3 @@ index 4be71a05fb..11535a0105 100644
          ${copy_commands}
          COMMAND ${CMAKE_COMMAND} -E touch ${stamp_file}
          DEPENDS ${files_to_copy}
-diff --git a/src/interpreter/cling/lib/Interpreter/Interpreter.cpp b/src/interpreter/cling/lib/Interpreter/Interpreter.cpp
-index 533eea318b..e2172508f6 100644
---- a/src/interpreter/cling/lib/Interpreter/Interpreter.cpp
-+++ b/src/interpreter/cling/lib/Interpreter/Interpreter.cpp
-@@ -1580,6 +1580,12 @@ namespace cling {
-     // Return a symbol's address, and whether it was jitted.
-     std::string mangledName;
-     utils::Analyze::maybeMangleDeclName(GD, mangledName);
-+#if defined(LLVM_ON_WIN32)
-+    if (mangledName.size() > 2 && mangledName[1] == '?' && \
-+         mangledName.find(std::string("?__cling_Un1Qu")) == std::string::npos) {
-+       mangledName.erase(0,1);
-+    }
-+#endif
-     return getAddressOfGlobal(mangledName, fromJIT);
-   }
-
-   void* Interpreter::getAddressOfGlobal(llvm::StringRef SymName,
