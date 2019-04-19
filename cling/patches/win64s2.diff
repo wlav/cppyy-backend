@@ -1545,3 +1545,16 @@ index 483ba33620..a9eed4633d 100644
      )
    elseif(CMAKE_SIZEOF_VOID_P EQUAL 4)
      set(cling_exports
+@@ -94,6 +111,12 @@ if(MSVC)
+       ??_U@YAPAXI@Z
+       ??_V@YAXPAX@Z
+       ??_V@YAXPAXI@Z
++      memcpy
++      memmove
++      memset
++      malloc
++      calloc
++      free
+       ??_7type_info@@6B@
+       ?__type_info_root_node@@3U__type_info_node@@A
+       ?nothrow@std@@3Unothrow_t@1@B
