@@ -1457,6 +1457,66 @@ index 24b16f892e..57a5b6f686 100644
  
    // <char-type>: The "kind" of string literal is encoded into the mangled name.
    if (SL->isWide())
+diff --git a/src/interpreter/llvm/src/include/llvm/IR/DataLayout.h b/src/interpreter/llvm/src/include/llvm/IR/DataLayout.h
+index daf8f8da68..2052e7eb66 100644
+--- a/src/interpreter/llvm/src/include/llvm/IR/DataLayout.h
++++ b/src/interpreter/llvm/src/include/llvm/IR/DataLayout.h
+@@ -256,6 +256,12 @@ public:
+     return ManglingMode == MM_WinCOFFX86;
+   }
+ 
++  /// Returns true if symbols with leading question marks should not receive IR
++  /// mangling. True for Windows mangling modes.
++  bool doNotMangleLeadingQuestionMark() const {
++     return ManglingMode == MM_WinCOFF || ManglingMode == MM_WinCOFFX86;
++  }
++
+   bool hasLinkerPrivateGlobalPrefix() const { return ManglingMode == MM_MachO; }
+ 
+   StringRef getLinkerPrivateGlobalPrefix() const {
+diff --git a/src/interpreter/llvm/src/lib/IR/Mangler.cpp b/src/interpreter/llvm/src/lib/IR/Mangler.cpp
+index 03723bfd2d..ef357377ef 100644
+--- a/src/interpreter/llvm/src/lib/IR/Mangler.cpp
++++ b/src/interpreter/llvm/src/lib/IR/Mangler.cpp
+@@ -44,6 +44,9 @@ static void getNameWithPrefixImpl(raw_ostream &OS, const Twine &GVName,
+     return;
+   }
+ 
++  if (DL.doNotMangleLeadingQuestionMark() && Name[0] == '?')
++    Prefix = '\0';
++
+   if (PrefixTy == Private)
+     OS << DL.getPrivateGlobalPrefix();
+   else if (PrefixTy == LinkerPrivate)
+@@ -135,8 +138,13 @@ void Mangler::getNameWithPrefix(raw_ostream &OS, const GlobalValue *GV,
+   // Mangle functions with Microsoft calling conventions specially.  Only do
+   // this mangling for x86_64 vectorcall and 32-bit x86.
+   const Function *MSFunc = dyn_cast<Function>(GV);
+-  if (Name.startswith("\01"))
+-    MSFunc = nullptr; // Don't mangle when \01 is present.
++ 
++  // Don't add byte count suffixes when '\01' or '?' are in the first
++  // character.
++  if (Name.startswith("\01") ||
++      (DL.doNotMangleLeadingQuestionMark() && Name.startswith("?")))
++    MSFunc = nullptr;
++ 
+   CallingConv::ID CC =
+       MSFunc ? MSFunc->getCallingConv() : (unsigned)CallingConv::C;
+   if (!DL.hasMicrosoftFastStdCallMangling() &&
+diff --git a/src/interpreter/llvm/src/tools/clang/lib/CodeGen/MicrosoftCXXABI.cpp b/src/interpreter/llvm/src/tools/clang/lib/CodeGen/MicrosoftCXXABI.cpp
+index 1bd2937e47..dbc7ce22f5 100644
+--- a/src/interpreter/llvm/src/tools/clang/lib/CodeGen/MicrosoftCXXABI.cpp
++++ b/src/interpreter/llvm/src/tools/clang/lib/CodeGen/MicrosoftCXXABI.cpp
+@@ -3346,7 +3346,7 @@ CGCXXABI *clang::CodeGen::CreateMicrosoftCXXABI(CodeGenModule &CGM) {
+ //   mangled into them so they can be aggressively deduplicated by the linker.
+ 
+ static llvm::GlobalVariable *getTypeInfoVTable(CodeGenModule &CGM) {
+-  StringRef MangledName("\01??_7type_info@@6B@");
++  StringRef MangledName("??_7type_info@@6B@");
+   if (auto VTable = CGM.getModule().getNamedGlobal(MangledName))
+     return VTable;
+   return new llvm::GlobalVariable(CGM.getModule(), CGM.Int8PtrTy,
 diff --git a/src/core/metacling/src/CMakeLists.txt b/src/core/metacling/src/CMakeLists.txt
 index 483ba33620..a9eed4633d 100644
 --- a/src/core/metacling/src/CMakeLists.txt
