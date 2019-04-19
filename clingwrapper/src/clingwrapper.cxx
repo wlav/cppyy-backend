@@ -21,6 +21,7 @@
 #include "THashList.h"
 #include "TInterpreter.h"
 #include "TList.h"
+#include "TListOfDataMembers.h"
 #include "TMethod.h"
 #include "TMethodArg.h"
 #include "TROOT.h"
@@ -1545,7 +1546,19 @@ intptr_t Cppyy::GetDatamemberOffset(TCppScope_t scope, TCppIndex_t idata)
 Cppyy::TCppIndex_t Cppyy::GetDatamemberIndex(TCppScope_t scope, const std::string& name)
 {
     if (scope == GLOBAL_HANDLE) {
-        TGlobal* gb = (TGlobal*)gROOT->GetListOfGlobals(true)->FindObject(name.c_str());
+        TGlobal* gb = (TGlobal*)gROOT->GetListOfGlobals(false /* load */)->FindObject(name.c_str());
+        if (!gb) gb = (TGlobal*)gROOT->GetListOfGlobals(true  /* load */)->FindObject(name.c_str());
+        if (!gb) {
+        // some enums are not loaded as they are not considered part of
+        // the global scope, but of the enum scope; get them w/o checking
+           TDictionary::DeclId_t did = gInterpreter->GetDataMember(nullptr, name.c_str());
+           if (did) {
+               DataMemberInfo_t* t = gInterpreter->DataMemberInfo_Factory(did, nullptr);
+               ((TListOfDataMembers*)gROOT->GetListOfGlobals())->Get(t, true);
+               gb = (TGlobal*)gROOT->GetListOfGlobals(false /* load */)->FindObject(name.c_str());
+           }
+        }
+
         if (gb && strcmp(gb->GetFullTypeName(), "(lambda)") == 0) {
         // lambdas use a compiler internal closure type, so we wrap
         // them, then return the wrapper's type
@@ -1562,6 +1575,7 @@ Cppyy::TCppIndex_t Cppyy::GetDatamemberIndex(TCppScope_t scope, const std::strin
         }
 
         if (gb) {
+        // TODO: do we ever need a reverse lookup?
             g_globalvars.push_back(gb);
             return TCppIndex_t(g_globalvars.size() - 1);
         }
