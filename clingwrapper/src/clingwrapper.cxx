@@ -1127,7 +1127,13 @@ std::string Cppyy::GetMethodResultType(TCppMethod_t method)
         TFunction* f = m2f(method);
         if (f->ExtraProperty() & kIsConstructor)
             return "constructor";
-        std::string restype = f->GetReturnTypeNormalizedName();
+        std::string restype = f->GetReturnTypeName();
+        // TODO: this is ugly, but we can't use GetReturnTypeName() for ostreams
+        // and maybe others, whereas GetReturnTypeNormalizedName() has proven to
+        // be save in all cases (Note: 'int8_t' covers 'int8_t' and 'uint8_t')
+        if (restype.find("int8_t") != std::string::npos)
+            return restype;
+        restype = f->GetReturnTypeNormalizedName();
         if (restype == "(lambda)") {
             std::ostringstream s;
             // TODO: what if there are parameters to the lambda?
@@ -1505,7 +1511,7 @@ std::string Cppyy::GetDatamemberType(TCppScope_t scope, TCppIndex_t idata)
     TClassRef& cr = type_from_handle(scope);
     if (cr.GetClass())  {
         TDataMember* m = (TDataMember*)cr->GetListOfDataMembers()->At((int)idata);
-        std::string fullType = m->GetTrueTypeName();
+        std::string fullType = m->GetFullTypeName();
         if ((int)m->GetArrayDim() > 1 || (!m->IsBasic() && m->IsaPointer()))
             fullType.append("*");
         else if ((int)m->GetArrayDim() == 1) {
