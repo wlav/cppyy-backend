@@ -451,8 +451,9 @@ except ImportError:
 
 for fdiff in ('scanner', 'scanner_2', 'faux_typedef', 'classrules', 'template_fwd', 'dep_template',
               'no_long64_t', 'using_decls', 'sfinae', 'typedef_of_private', 'optlevel2_forced',
-              'explicit_template', 'alias_template', 'lambda', 'templ_ops', 'templ_ctor', 'private_type_args',
-              'helpers', 'pch', 'strip_lz4_lzma', 'msvc', 'win64', 'win64s2', 'using_directives'):
+              'explicit_template', 'alias_template', 'lambda', 'templ_ops', 'templ_ctor',
+              'private_type_args', 'incomplete_types', 'helpers',
+              'pch', 'strip_lz4_lzma', 'msvc', 'win64', 'win64s2', 'using_directives'):
     fpatch = os.path.join('patches', fdiff+'.diff')
     print(' ==> applying patch:', fpatch)
     pset = patch.fromfile(fpatch)

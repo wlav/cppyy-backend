@@ -318,8 +318,13 @@ std::string Cppyy::ResolveEnum(const std::string& enum_type)
 Cppyy::TCppScope_t Cppyy::GetScope(const std::string& sname)
 {
 // TODO: scope_name should always be final already
+    auto icr = g_name2classrefidx.find(sname);
+    if (icr != g_name2classrefidx.end())
+        return (TCppType_t)icr->second;
+
+// Resolve name fully before lookup to make sure all aliases point to the same scope
     std::string scope_name = ResolveName(sname);
-    auto icr = g_name2classrefidx.find(scope_name);
+    icr = g_name2classrefidx.find(scope_name);
     if (icr != g_name2classrefidx.end())
         return (TCppType_t)icr->second;
 
@@ -327,7 +332,7 @@ Cppyy::TCppScope_t Cppyy::GetScope(const std::string& sname)
 // function returns) or forward declared, leading to a non-null TClass that is
 // otherwise invalid/unusable
     TClassRef cr(TClass::GetClass(scope_name.c_str(), true /* load */, true /* silent */));
-    if (!cr.GetClass() || !cr->Property())
+    if (!cr.GetClass())
         return (TCppScope_t)0;
 
 // memoize found/created TClass
