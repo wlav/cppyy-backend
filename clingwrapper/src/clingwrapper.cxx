@@ -315,18 +315,25 @@ std::string Cppyy::ResolveEnum(const std::string& enum_type)
     return restype;     // should default to some int variant
 }
 
+static inline Cppyy::TCppType_t find_memoized(const std::string& name)
+{
+    auto icr = g_name2classrefidx.find(name);
+    if (icr != g_name2classrefidx.end())
+        return (Cppyy::TCppType_t)icr->second;
+    return (Cppyy::TCppType_t)0;
+}
+
 Cppyy::TCppScope_t Cppyy::GetScope(const std::string& sname)
 {
-// TODO: scope_name should always be final already
-    auto icr = g_name2classrefidx.find(sname);
-    if (icr != g_name2classrefidx.end())
-        return (TCppType_t)icr->second;
+// First, try cache
+    TCppType_t result = find_memoized(sname);
+    if (result) return result;
 
+// TODO: scope_name should always be final already?
 // Resolve name fully before lookup to make sure all aliases point to the same scope
     std::string scope_name = ResolveName(sname);
-    icr = g_name2classrefidx.find(scope_name);
-    if (icr != g_name2classrefidx.end())
-        return (TCppType_t)icr->second;
+    result = find_memoized(scope_name);
+    if (result) return result;
 
 // use TClass directly, to enable auto-loading; class may be stubbed (eg. for
 // function returns) or forward declared, leading to a non-null TClass that is
