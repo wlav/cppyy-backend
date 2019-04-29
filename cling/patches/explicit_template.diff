@@ -68,3 +68,55 @@ index 6fee23aa8b..ed30f06ca9 100644
    // Find the function body that we'll be substituting.
    const FunctionDecl *PatternDecl = Function->getTemplateInstantiationPattern();
    assert(PatternDecl && "instantiating a non-template");
+diff --git a/src/core/metacling/src/TClingCallFunc.cxx b/src/core/metacling/src/TClingCallFunc.cxx
+index 52bf69c5b3..94601eb653 100644
+--- a/src/core/metacling/src/TClingCallFunc.cxx
++++ b/src/core/metacling/src/TClingCallFunc.cxx
+@@ -667,11 +677,10 @@ int TClingCallFunc::get_wrapper_code(std::string &wrapper_name, std::string &wra
+             //       header file.
+             break;
+          } else if (!Pattern->hasBody()) {
+-            ::Error("TClingCallFunc::make_wrapper", "Cannot make wrapper for a member function "
+-                                                    "instantiation with no body!");
+-            return 0;
+-         }
+-         if (FD->isImplicitlyInstantiable()) {
++            //::Error("TClingCallFunc::make_wrapper", "Cannot make wrapper for a member function "
++            //                                        "instantiation with no body!");
++            needInstantiation = false;
++         } else if (FD->isImplicitlyInstantiable()) {
+             needInstantiation = true;
+          }
+       } break;
+@@ -716,11 +725,10 @@ int TClingCallFunc::get_wrapper_code(std::string &wrapper_name, std::string &wra
+             break;
+          }
+          if (!Pattern->hasBody()) {
+-            ::Error("TClingCallFunc::make_wrapper", "Cannot make wrapper for a function template"
+-                                                    "instantiation with no body!");
+-            return 0;
+-         }
+-         if (FD->isImplicitlyInstantiable()) {
++         //   ::Error("TClingCallFunc::make_wrapper", "Cannot make wrapper for a function template"
++         //                                           "instantiation with no body!");
++            needInstantiation = false;
++         } else if (FD->isImplicitlyInstantiable()) {
+             needInstantiation = true;
+          }
+       } break;
+@@ -768,11 +776,10 @@ int TClingCallFunc::get_wrapper_code(std::string &wrapper_name, std::string &wra
+             break;
+          }
+          if (!Pattern->hasBody()) {
+-            ::Error("TClingCallFunc::make_wrapper", "Cannot make wrapper for a dependent function template"
+-                                                    "instantiation with no body!");
+-            return 0;
+-         }
+-         if (FD->isImplicitlyInstantiable()) {
++            //::Error("TClingCallFunc::make_wrapper", "Cannot make wrapper for a dependent function template"
++            //                                        "instantiation with no body!");
++            needInstantiation = false;
++         } else if (FD->isImplicitlyInstantiable()) {
+             needInstantiation = true;
+          }
+       } break;
