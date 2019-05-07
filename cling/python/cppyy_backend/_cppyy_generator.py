@@ -3,6 +3,7 @@
 """Cppyy binding description generator."""
 from __future__ import print_function
 import argparse
+import collections
 import gettext
 import inspect
 import json
@@ -328,7 +329,7 @@ class CppyyGenerator(object):
                 #   - first as just the bare fields
                 #   - then as children of the typedef
                 #
-                if "type" in child_info and child_info["type"]["kind"] in ("struct", "union"):
+                if "type" in child_info and isinstance(child_info["type"], collections.Mapping) and child_info["type"]["kind"] in ("struct", "union"):
                     assert children[-1] == child_info["type"]
                     children.pop()
                 children.append(child_info)
