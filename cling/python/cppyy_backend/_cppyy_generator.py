@@ -539,11 +539,13 @@ class CppyyGenerator(object):
                 #
                 tmp = Config().lib.clang_Type_getNumTemplateArguments(typedef.type)
                 if tmp == -1:
-                    logger.error(_("Unexpected template_arg_count={}").format(tmp))
                     #
-                    # Just a WAG...
+                    # Happens e.g. if the template is a dependent type; instead, try to parse
+                    # its definition (brittle, but the original code just had '1' as a guess,
+                    # which is even worse ...).
                     #
-                    tmp = 1
+                    # logger.error(_("Unexpected template_arg_count={} for {}").format(tmp, typedef.type.get_typedef_name()))
+                    tmp = child.get_definition().displayname.count(',')+1
                 template_count_stack.append(tmp)
                 template_info = Info("template", child)
                 template_info["parameters"] = []
@@ -555,6 +557,7 @@ class CppyyGenerator(object):
                     # Non-first template_infos are just parameters.
                     #
                     template_info_stack[template_stack_index]["parameters"].append(template_info)
+                    template_info_stack.append(template_info)
                 template_stack_index += 1
             elif child.kind == CursorKind.TYPE_REF:
                 if template_stack_index > -1:
