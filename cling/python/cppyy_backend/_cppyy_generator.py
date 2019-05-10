@@ -627,6 +627,42 @@ class CppyyGenerator(object):
         logger.debug(_("Ignoring {} {}").format(reason, item_describe(child)))
 
 
+# https://github.com/Rip-Rip/clang_complete/issues/238
+def getBuiltinHeaderPath(library_path):
+    """
+    Locate clang's headers relative to its library (which is given on the
+    command line in --flags.
+    """
+
+    if os.path.isfile(library_path):
+        library_path = os.path.dirname(library_path)
+
+    knownPaths = [
+        library_path + "/../lib/clang",     # default value
+        library_path + "/../clang",         # gentoo
+        library_path + "/clang",            # opensuse
+        library_path + "/",                 # Google
+        "/usr/lib64/clang",                 # x86_64 (openSUSE, Fedora)
+        "/usr/lib/clang"
+    ]
+
+    for path in knownPaths:
+        try:
+            files = os.listdir(path)
+            if len(files) >= 1:
+                files = sorted(files)
+                subDir = files[0]
+            else:
+                subDir = '.'
+            path = os.path.join(path, subDir, "include")
+            if os.path.exists(os.path.join(path, "stddef.h")):
+                return path
+        except:
+            pass
+
+    return None
+
+
 def main(argv=None):
     """
     Takes a set of C++ header files and generate a JSON output file describing
@@ -673,6 +709,9 @@ def main(argv=None):
         #
         if args.libclang:
             Config.set_library_file(args.libclang)
+            hpath = getBuiltinHeaderPath(args.libclang)
+            if hpath:
+                flags = ['-I'+hpath] + flags
         lib = Config().lib
         import ctypes
         from clang.cindex import Type
