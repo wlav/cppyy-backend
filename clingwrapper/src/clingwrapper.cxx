@@ -37,6 +37,7 @@
 #include <sstream>
 #include <stdlib.h>      // for getenv
 #include <string.h>
+#include <typeinfo>
 
 // temp
 #include <iostream>
@@ -367,13 +368,37 @@ Cppyy::TCppType_t Cppyy::GetActualClass(TCppType_t klass, TCppObject_t obj)
     if (!cr.GetClass() || !obj) return klass;
 
 #ifdef _WIN64
+// Cling does not provide a consistent ImageBase address for calculating relative addresses
+// as used in Windows 64b RTTI. So, check for our own RTTI extension instead. If that fails,
+// see whether the unmangled raw_name is available (e.g. if this is an MSVC compiled rather
+// than JITed class) and pass on if it is.
+    volatile const char* raw = nullptr;     // to prevent too aggressive reordering
     try {
+    // this will filter those objects that do not have RTTI to begin with (throws)
         AutoCastRTTI* pcst = (AutoCastRTTI*)obj;
-        const char* raw = typeid(*pcst).raw_name();
-    // if the raw name is the empty string then there is no RTTI info available
+        raw = typeid(*pcst).raw_name();
+
+    // check the signature id (0 == absolute, 1 == relative, 2 == ours)
+        void* vfptr = *(void**)((intptr_t)obj);
+        void* meta = (void*)((intptr_t)*((void**)((intptr_t)vfptr-sizeof(void*))));
+        if (*(intptr_t*)meta == 2) {
+        // access the extra data item which is an absolute pointer to the RTTI
+            void* ptdescr = (void*)((intptr_t)meta + 4*sizeof(unsigned long)+sizeof(void*));
+            if (ptdescr && *(void**)ptdescr) {
+                auto rtti = *(std::type_info**)ptdescr;
+                raw = rtti->raw_name();
+	        if (raw && raw[0] != '\0')    // likely unnecessary
+                    return (TCppType_t)GetScope(rtti->name());
+            }
+
+            return klass;        // do not fall through if no RTTI info available
+        }
+
+    // if the raw name is the empty string (no guarantees that this is so as truly, the
+    // address is corrupt, but it is common to be empty), then there is no accessible RTTI
     // and getting the unmangled name will crash ...
         if (!raw || raw[0] == '\0')
-            return klass;    // TODO: fix whatever is hampering RTTI (linking?)
+            return klass;
     } catch (std::bad_typeid) {
         return klass;        // can't risk passing to ROOT/meta as it may do RTTI
     }

@@ -453,7 +453,7 @@ for fdiff in ('scanner', 'scanner_2', 'faux_typedef', 'classrules', 'template_fw
               'no_long64_t', 'using_decls', 'sfinae', 'typedef_of_private', 'optlevel2_forced',
               'explicit_template', 'alias_template', 'lambda', 'templ_ops', 'templ_ctor',
               'private_type_args', 'incomplete_types', 'helpers', 'clang_printing', 'resolution',
-              'pch', 'strip_lz4_lzma', 'msvc', 'win64', 'win64s2', 'using_directives'):
+              'pch', 'strip_lz4_lzma', 'msvc', 'win64rtti', 'win64', 'win64s2', 'using_directives'):
     fpatch = os.path.join('patches', fdiff+'.diff')
     print(' ==> applying patch:', fpatch)
     pset = patch.fromfile(fpatch)
