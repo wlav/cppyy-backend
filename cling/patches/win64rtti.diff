@@ -2,22 +2,20 @@ diff --git a/src/interpreter/llvm/src/tools/clang/lib/CodeGen/MicrosoftCXXABI.cp
 index 1bd2937e47..108b5d6e66 100644
 --- a/src/interpreter/llvm/src/tools/clang/lib/CodeGen/MicrosoftCXXABI.cpp
 +++ b/src/interpreter/llvm/src/tools/clang/lib/CodeGen/MicrosoftCXXABI.cpp
-@@ -506,10 +506,13 @@ public:
+@@ -506,10 +506,11 @@ public:
          getImageRelativeType(CGM.Int8PtrTy),
          getImageRelativeType(getClassHierarchyDescriptorType()->getPointerTo()),
          getImageRelativeType(CompleteObjectLocatorType),
 +	CGM.VoidPtrTy,
      };
      llvm::ArrayRef<llvm::Type *> FieldTypesRef(FieldTypes);
--    if (!isImageRelative())
-+    if (!isImageRelative()) {
-+      FieldTypesRef = FieldTypesRef.drop_back();
-       FieldTypesRef = FieldTypesRef.drop_back();
-+    }
+     if (!isImageRelative())
+-      FieldTypesRef = FieldTypesRef.drop_back();
++      FieldTypesRef = FieldTypesRef.drop_back(2);
      CompleteObjectLocatorType->setBody(FieldTypesRef);
      return CompleteObjectLocatorType;
    }
-@@ -3662,13 +3665,14 @@ MSRTTIBuilder::getCompleteObjectLocator(const VPtrInfo &Info) {
+@@ -3662,17 +3663,18 @@ MSRTTIBuilder::getCompleteObjectLocator(const VPtrInfo &Info) {
  
    // Initialize the CompleteObjectLocator.
    llvm::Constant *Fields[] = {
@@ -33,3 +31,8 @@ index 1bd2937e47..108b5d6e66 100644
    };
    llvm::ArrayRef<llvm::Constant *> FieldsRef(Fields);
    if (!ABI.isImageRelative())
+-    FieldsRef = FieldsRef.drop_back();
++    FieldsRef = FieldsRef.drop_back(2);
+   COL->setInitializer(llvm::ConstantStruct::get(Type, FieldsRef));
+   if (COL->isWeakForLinker())
+     COL->setComdat(CGM.getModule().getOrInsertComdat(COL->getName()));

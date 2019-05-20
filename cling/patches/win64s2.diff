@@ -1508,7 +1508,7 @@ diff --git a/src/interpreter/llvm/src/tools/clang/lib/CodeGen/MicrosoftCXXABI.cp
 index 1bd2937e47..dbc7ce22f5 100644
 --- a/src/interpreter/llvm/src/tools/clang/lib/CodeGen/MicrosoftCXXABI.cpp
 +++ b/src/interpreter/llvm/src/tools/clang/lib/CodeGen/MicrosoftCXXABI.cpp
-@@ -3349,7 +3349,7 @@ CGCXXABI *clang::CodeGen::CreateMicrosoftCXXABI(CodeGenModule &CGM) {
+@@ -3347,7 +3347,7 @@ CGCXXABI *clang::CodeGen::CreateMicrosoftCXXABI(CodeGenModule &CGM) {
  //   mangled into them so they can be aggressively deduplicated by the linker.
  
  static llvm::GlobalVariable *getTypeInfoVTable(CodeGenModule &CGM) {
