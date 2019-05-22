@@ -1527,7 +1527,7 @@ index 483ba33620..a9eed4633d 100644
        ?setValueWithAlloc@internal@runtime@cling@@YAPEAXPEAX00D@Z
 +      ??1Value@cling@@QEAA@XZ
 +      ??_7type_info@@6B@
-+      #?__type_info_root_node@@3U__type_info_node@@A
++      ?__type_info_root_node@@3U__type_info_node@@A
 +      ?_Facet_Register@std@@YAXPEAV_Facet_base@1@@Z
 +      ??2@YAPEAX_K@Z
 +      ??3@YAXPEAX@Z
