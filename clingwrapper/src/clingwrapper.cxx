@@ -137,10 +137,6 @@ public:
         for (auto& name : stl_names)
             gSTLNames.insert(name);
 
-    // save global context before running interpreter thingies
-       gInterpreter->SaveContext();
-       gInterpreter->SaveGlobalsContext();
-
     // set opt level (default to 2 if not given; Cling itself defaults to 0)
         int optLevel = 2;
         if (getenv("CPPYY_OPT_LEVEL")) optLevel = atoi(getenv("CPPYY_OPT_LEVEL"));
@@ -150,13 +146,22 @@ public:
             gInterpreter->ProcessLine(s.str().c_str());
         }
 
+    // load frequently used headers
+        const char* code =
+               "#include <iostream>\n"
+               "#include <string>\n"
+               "#include <DllImport.h>\n";  // defines R__EXTERN
+               "#include <vector>\n"
+               "#include <utility>";
+        gInterpreter->ProcessLine(code);
+
     // create helpers for comparing thingies
-       gInterpreter->Declare(
-           "namespace __cppyy_internal { template<class C1, class C2>"
-           " bool is_equal(const C1& c1, const C2& c2){ return (bool)(c1 == c2); } }");
-       gInterpreter->Declare(
-           "namespace __cppyy_internal { template<class C1, class C2>"
-           " bool is_not_equal(const C1& c1, const C2& c2){ return (bool)(c1 != c2); } }");
+        gInterpreter->Declare(
+            "namespace __cppyy_internal { template<class C1, class C2>"
+            " bool is_equal(const C1& c1, const C2& c2) { return (bool)(c1 == c2); } }");
+        gInterpreter->Declare(
+            "namespace __cppyy_internal { template<class C1, class C2>"
+            " bool is_not_equal(const C1& c1, const C2& c2) { return (bool)(c1 != c2); } }");
 
     // start off with a reasonable size placeholder for wrappers
         gWrapperHolder.reserve(1024);
