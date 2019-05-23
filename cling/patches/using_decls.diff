@@ -289,8 +289,7 @@ index 9a59030df4..a89ea97a87 100644
             declEnd = allDeclContexts.end(); declIter != declEnd; ++declIter) {
           // Iterate on all decls for each context.
           for (clang::DeclContext::decl_iterator DI = (*declIter)->decls_begin(),
--              DE = (*declIter)->decls_end(); DI != DE; ++DI) {
-+                DE = (*declIter)->decls_end(); DI != DE; ++DI) {
+               DE = (*declIter)->decls_end(); DI != DE; ++DI) {
              if (const clang::FunctionTemplateDecl* FTD = dyn_cast<clang::FunctionTemplateDecl>(*DI)) {
 -                  funcTempList->Get(FTD);
 +               funcTempList->Get(FTD);
