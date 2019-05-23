@@ -1352,8 +1352,8 @@ bool Cppyy::IsMethodTemplate(TCppScope_t scope, TCppIndex_t imeth)
     TFunction* f = type_get_method(scope, imeth);
     if (!f) return false;
 
-    auto result = ExistsMethodTemplate(scope, f->GetName());
-    return result;
+    if (strstr(f->GetName(), "<")) return true;
+    return false;
 }
 
 // helpers for Cppyy::GetMethodTemplate()
@@ -1419,8 +1419,12 @@ Cppyy::TCppMethod_t Cppyy::GetMethodTemplate(
         }
     }
 
-    if (func)
-        return (TCppMethod_t)new_CallWrapper(func);
+    if (func) {
+    // make sure we didn't match a non-templated overload
+        if (strstr(func->GetName(), "<"))
+            return (TCppMethod_t)new_CallWrapper(func);
+        return (TCppMethod_t)nullptr;
+    }
 
 // try again with template arguments removed from name, if applicable
     if (name.back() == '>') {
