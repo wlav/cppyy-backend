@@ -392,7 +392,7 @@ Cppyy::TCppType_t Cppyy::GetActualClass(TCppType_t klass, TCppObject_t obj)
             if (ptdescr && *(void**)ptdescr) {
                 auto rtti = *(std::type_info**)ptdescr;
                 raw = rtti->raw_name();
-	        if (raw && raw[0] != '\0')    // likely unnecessary
+                if (raw && raw[0] != '\0')    // likely unnecessary
                     return (TCppType_t)GetScope(rtti->name());
             }
 
