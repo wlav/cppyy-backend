@@ -118,8 +118,8 @@ public:
             "binary_negate", "bitset", "char_traits", "codecvt_byname", "codecvt", "collate",
             "collate_byname", "compare", "complex", "ctype_byname", "ctype", "default_delete",
             "deque", "divides", "domain_error", "equal_to", "exception", "forward_list", "fpos",
-            "greater_equal", "greater", "gslice_array", "gslice", "hash", "indirect_array",
-            "invalid_argument", "ios_base", "istream_iterator", "istreambuf_iterator",
+            "function", "greater_equal", "greater", "gslice_array", "gslice", "hash", "indirect_array",
+            "integer_sequence", "invalid_argument", "ios_base", "istream_iterator", "istreambuf_iterator",
             "istrstream", "iterator_traits", "iterator", "length_error", "less_equal", "less",
             "list", "locale", "localedef utility", "locale utility", "logic_error", "logical_and",
             "logical_not", "logical_or", "map", "mask_array", "mem_fun", "mem_fun_ref", "messages",
@@ -351,7 +351,16 @@ Cppyy::TCppScope_t Cppyy::GetScope(const std::string& sname)
 // memoize found/created TClass
     ClassRefs_t::size_type sz = g_classrefs.size();
     g_name2classrefidx[scope_name] = sz;
+    if (sname != scope_name)
+        g_name2classrefidx[sname] = sz;
     g_classrefs.push_back(TClassRef(scope_name.c_str()));
+
+// TODO: make ROOT/meta NOT remove std :/
+    if (is_missclassified_stl(scope_name))
+        g_name2classrefidx["std::"+scope_name] = sz;
+    if (is_missclassified_stl(sname))
+        g_name2classrefidx["std::"+sname] = sz;
+
     return (TCppScope_t)sz;
 }
 
