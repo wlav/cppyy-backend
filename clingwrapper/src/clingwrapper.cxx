@@ -1592,11 +1592,15 @@ intptr_t Cppyy::GetDatamemberOffset(TCppScope_t scope, TCppIndex_t idata)
     TClassRef& cr = type_from_handle(scope);
     if (cr.GetClass()) {
         TDataMember* m = (TDataMember*)cr->GetListOfDataMembers()->At((int)idata);
-    // CLING WORKAROUND: the following causes templates to be instantiated first
-    // in the proper scope, making the lookup succeed and preventing spurious
-    // duplicate instantiations later.
-        if ((m->Property() & kIsStatic) && strchr(cr->GetName(), '<'))
-            gInterpreter->ProcessLine(((std::string)cr->GetName()+"::"+m->GetName()+";").c_str());
+    // CLING WORKAROUND: the following causes templates to be instantiated first within the proper
+    // scope, making the lookup succeed and preventing spurious duplicate instantiations later. Also,
+    // if the variable is not yet loaded, pull it in through gInterpreter.
+        if (m->Property() & kIsStatic) {
+            if (strchr(cr->GetName(), '<'))
+                gInterpreter->ProcessLine(((std::string)cr->GetName()+"::"+m->GetName()+";").c_str());
+            if ((intptr_t)m->GetOffsetCint() == (intptr_t)-1)
+                return (intptr_t)gInterpreter->ProcessLine((std::string("&")+cr->GetName()+"::"+m->GetName()+";").c_str());
+        }
         return (intptr_t)m->GetOffsetCint();    // yes, CINT (GetOffset() is both wrong
                                                 // and caches that wrong result!
     }
@@ -1612,12 +1616,12 @@ Cppyy::TCppIndex_t Cppyy::GetDatamemberIndex(TCppScope_t scope, const std::strin
         if (!gb) {
         // some enums are not loaded as they are not considered part of
         // the global scope, but of the enum scope; get them w/o checking
-           TDictionary::DeclId_t did = gInterpreter->GetDataMember(nullptr, name.c_str());
-           if (did) {
-               DataMemberInfo_t* t = gInterpreter->DataMemberInfo_Factory(did, nullptr);
-               ((TListOfDataMembers*)gROOT->GetListOfGlobals())->Get(t, true);
-               gb = (TGlobal*)gROOT->GetListOfGlobals(false /* load */)->FindObject(name.c_str());
-           }
+            TDictionary::DeclId_t did = gInterpreter->GetDataMember(nullptr, name.c_str());
+            if (did) {
+                DataMemberInfo_t* t = gInterpreter->DataMemberInfo_Factory(did, nullptr);
+                ((TListOfDataMembers*)gROOT->GetListOfGlobals())->Get(t, true);
+                gb = (TGlobal*)gROOT->GetListOfGlobals(false /* load */)->FindObject(name.c_str());
+            }
         }
 
         if (gb && strcmp(gb->GetFullTypeName(), "(lambda)") == 0) {
