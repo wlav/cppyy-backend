@@ -207,7 +207,7 @@ setup(
     author='PyPy Developers',
     author_email='pypy-dev@python.org',
 
-    version='1.8.5',
+    version='1.9.0',
 
     license='LBNL BSD',
 
