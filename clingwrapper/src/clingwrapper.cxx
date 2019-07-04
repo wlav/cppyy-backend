@@ -283,6 +283,7 @@ std::string Cppyy::ResolveEnum(const std::string& enum_type)
     std::string et_short = TClassEdit::ShortType(enum_type.c_str(), 1);
     if (et_short.find("(anonymous") == std::string::npos) {
         std::ostringstream decl;
+    // TODO: now presumed fixed with https://sft.its.cern.ch/jira/browse/ROOT-6988
         for (auto& itype : {"unsigned int"}) {
             decl << "std::is_same<"
                  << itype
