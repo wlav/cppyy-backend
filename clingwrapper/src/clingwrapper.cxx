@@ -1557,8 +1557,6 @@ std::string Cppyy::GetDatamemberType(TCppScope_t scope, TCppIndex_t idata)
     if (scope == GLOBAL_HANDLE) {
         TGlobal* gbl = g_globalvars[idata];
         std::string fullType = gbl->GetFullTypeName();
-        if (!strcmp(gbl->GetName(), "gInterpreter"))
-            return fullType;
 
         if (fullType[fullType.size()-1] == '*' && \
               fullType.compare(0, 4, "char") != 0)
