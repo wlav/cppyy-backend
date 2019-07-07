@@ -19,7 +19,7 @@ diff --git a/src/interpreter/cling/lib/Utils/AST.cpp b/src/interpreter/cling/lib
 index da3b0724e5..f7ba7623aa 100644
 --- a/src/interpreter/cling/lib/Utils/AST.cpp
 +++ b/src/interpreter/cling/lib/Utils/AST.cpp
-@@ -714,7 +714,12 @@ namespace utils {
+@@ -715,7 +715,12 @@ namespace utils {
                                  const llvm::SmallSet<const Decl*, 4>& ToSkip)
    {
      // Return true, if we should keep this typedef rather than desugaring it.
@@ -33,7 +33,7 @@ index da3b0724e5..f7ba7623aa 100644
      return 0 != ToSkip.count(TT->getDecl()->getCanonicalDecl());
    }
  
-@@ -1138,6 +1143,10 @@ namespace utils {
+@@ -1139,6 +1144,10 @@ namespace utils {
          dyn_cast_or_null<TypedefType>(QT.getTypePtr());
        if (typedeftype) {
          decl = typedeftype->getDecl();

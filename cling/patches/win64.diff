@@ -35,22 +35,19 @@ diff --git a/src/cmake/modules/SetUpWindows.cmake b/src/cmake/modules/SetUpWindo
 index ae7830febb..aa30c4b5d8 100644
 --- a/src/cmake/modules/SetUpWindows.cmake
 +++ b/src/cmake/modules/SetUpWindows.cmake
-@@ -49,6 +49,14 @@ if(CMAKE_COMPILER_IS_GNUCXX)
- 
+@@ -30,5 +30,11 @@ if(CMAKE_COMPILER_IS_GNUCXX)
+   set(CMAKE_SHARED_LIBRARY_CREATE_CXX_FLAGS "${CMAKE_SHARED_LIBRARY_CREATE_CXX_FLAGS}")
  elseif(MSVC)
- 
 +  if(CMAKE_SIZEOF_VOID_P EQUAL 8)
-+     set(ROOT_ARCHITECTURE win64)
 +     set(WIN_EXTRA_DEFS "-D_WINDOWS -DWIN32 -D_AMD64_")
 +  elseif(CMAKE_SIZEOF_VOID_P EQUAL 4)
-+     set(ROOT_ARCHITECTURE win32)
 +     set(WIN_EXTRA_DEFS "-D_WINDOWS -DWIN32 -D_X86_")
 +  endif()
 +
    set(ROOT_ARCHITECTURE win32)
- 
+
    math(EXPR VC_MAJOR "${MSVC_VERSION} / 100")
-@@ -63,13 +71,13 @@ elseif(MSVC)
+@@ -43,13 +51,13 @@ elseif(MSVC)
    endif()
  
    if(CMAKE_PROJECT_NAME STREQUAL ROOT)
@@ -72,7 +69,7 @@ diff --git a/src/interpreter/CMakeLists.txt b/src/interpreter/CMakeLists.txt
 index 3752a6e423..40b2cf2a81 100644
 --- a/src/interpreter/CMakeLists.txt
 +++ b/src/interpreter/CMakeLists.txt
-@@ -94,6 +94,8 @@ elseif(ROOT_ARCHITECTURE MATCHES macosx)
+@@ -82,6 +82,8 @@ elseif(ROOT_ARCHITECTURE MATCHES macosx)
    set(ROOT_CLING_TARGET "X86")
  elseif(ROOT_ARCHITECTURE MATCHES win32)
    set(ROOT_CLING_TARGET "X86")
@@ -85,7 +82,7 @@ diff --git a/src/core/metacling/src/CMakeLists.txt b/src/core/metacling/src/CMak
 index 5ef8d28c86..483ba33620 100644
 --- a/src/core/metacling/src/CMakeLists.txt
 +++ b/src/core/metacling/src/CMakeLists.txt
-@@ -73,7 +73,20 @@ ROOT_LINKER_LIBRARY(Cling
+@@ -90,7 +90,20 @@ ROOT_LINKER_LIBRARY(Cling
  
  if(MSVC)
    set_target_properties(Cling PROPERTIES WINDOWS_EXPORT_ALL_SYMBOLS TRUE)
@@ -107,8 +104,8 @@ index 5ef8d28c86..483ba33620 100644
        __std_terminate
        ??2@YAPAXI@Z
        ??3@YAXPAX@Z
-@@ -108,7 +121,8 @@ if(MSVC)
-       ?printValue@cling@@YA?AV?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@std@@PAPBD@Z
+@@ -128,7 +141,8 @@ if(MSVC)
+       ?printValue@cling@@YA?AV?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@std@@PBV23@@Z
        ??$toUTF8@D@cling@@YA?AV?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@std@@QBDID@Z
        ?EvaluateDynamicExpression@internal@runtime@cling@@YA?AVValue@3@PAVInterpreter@3@PAVDynamicExprInfo@123@PAVDeclContext@clang@@@Z
 -  )
@@ -119,8 +116,8 @@ index 5ef8d28c86..483ba33620 100644
    endif()
 diff --git a/src/core/base/inc/ROOT/RConfig.h b/src/core/base/inc/ROOT/RConfig.h
 index 60094b8764..8a62e6ffee 100644
---- a/src/core/base/inc/ROOT/RConfig.h
-+++ b/src/core/base/inc/ROOT/RConfig.h
+--- a/src/core/base/inc/ROOT/RConfig.hxx
++++ b/src/core/base/inc/ROOT/RConfig.hxx
 @@ -375,7 +375,15 @@
  #   endif
  #endif
@@ -142,7 +139,7 @@ diff --git a/src/core/base/inc/TROOT.h b/src/core/base/inc/TROOT.h
 index 0c3fe6f097..5a8636a5b9 100644
 --- a/src/core/base/inc/TROOT.h
 +++ b/src/core/base/inc/TROOT.h
-@@ -302,9 +302,15 @@ public:
+@@ -304,9 +304,15 @@ public:
     TCanvas          *MakeDefCanvas() const;
     void              Message(Int_t id, const TObject *obj);
     Bool_t            MustClean() const { return fMustClean; }
@@ -388,7 +385,7 @@ diff --git a/src/core/meta/inc/TInterpreter.h b/src/core/meta/inc/TInterpreter.h
 index 6e2638abcf..f57c313930 100644
 --- a/src/core/meta/inc/TInterpreter.h
 +++ b/src/core/meta/inc/TInterpreter.h
-@@ -159,8 +159,13 @@ public:
+@@ -172,8 +172,13 @@ public:
     virtual Int_t    ReloadAllSharedLibraryMaps() = 0;
     virtual Int_t    UnloadAllSharedLibraryMaps() = 0;
     virtual Int_t    UnloadLibraryMap(const char *library) = 0;
@@ -402,7 +399,7 @@ index 6e2638abcf..f57c313930 100644
     virtual void     PrintIntro() = 0;
     virtual void     RegisterModule(const char* /*modulename*/,
                                     const char** /*headers*/,
-@@ -199,7 +204,11 @@ public:
+@@ -212,7 +217,11 @@ public:
     virtual ECheckClassInfo CheckClassInfo(const char *name, Bool_t autoload, Bool_t isClassOrNamespaceOnly = kFALSE) = 0;
  
     virtual Bool_t   CheckClassTemplate(const char *name) = 0;
@@ -414,7 +411,7 @@ index 6e2638abcf..f57c313930 100644
     virtual void     CreateListOfBaseClasses(TClass *cl) const = 0;
     virtual void     CreateListOfDataMembers(TClass *cl) const = 0;
     virtual void     CreateListOfMethods(TClass *cl) const = 0;
-@@ -328,13 +337,13 @@ public:
+@@ -341,13 +350,13 @@ public:
  
     void CallFunc_SetArg(CallFunc_t *func, void *arg)
     {
@@ -430,7 +427,7 @@ index 6e2638abcf..f57c313930 100644
     }
  
     void CallFunc_SetArgImpl(CallFunc_t * /* func */)
-@@ -435,7 +444,7 @@ public:
+@@ -448,7 +457,7 @@ public:
     virtual Bool_t DataMemberInfo_IsValid(DataMemberInfo_t * /* dminfo */) const {return 0;}
     virtual int    DataMemberInfo_MaxIndex(DataMemberInfo_t * /* dminfo */, Int_t  /* dim */) const {return 0;}
     virtual int    DataMemberInfo_Next(DataMemberInfo_t * /* dminfo */) const {return 0;}
@@ -443,7 +440,7 @@ diff --git a/src/core/metacling/src/TCling.h b/src/core/metacling/src/TCling.h
 index 66a0dfe392..5f8a553de8 100644
 --- a/src/core/metacling/src/TCling.h
 +++ b/src/core/metacling/src/TCling.h
-@@ -212,9 +212,15 @@ public: // Public Interface
+@@ -213,9 +213,15 @@ public: // Public Interface
     Int_t   ReloadAllSharedLibraryMaps();
     Int_t   UnloadAllSharedLibraryMaps();
     Int_t   UnloadLibraryMap(const char* library);
@@ -459,7 +456,7 @@ index 66a0dfe392..5f8a553de8 100644
     void    PrintIntro();
     void    RegisterModule(const char* modulename,
                            const char** headers,
-@@ -249,7 +255,11 @@ public: // Public Interface
+@@ -250,7 +256,11 @@ public: // Public Interface
     ECheckClassInfo CheckClassInfo(const char *name, Bool_t autoload, Bool_t isClassOrNamespaceOnly = kFALSE);
  
     Bool_t  CheckClassTemplate(const char *name);
@@ -471,7 +468,7 @@ index 66a0dfe392..5f8a553de8 100644
     void    CreateListOfBaseClasses(TClass* cl) const;
     void    CreateListOfDataMembers(TClass* cl) const;
     void    CreateListOfMethods(TClass* cl) const;
-@@ -439,7 +449,7 @@ public: // Public Interface
+@@ -442,7 +452,7 @@ public: // Public Interface
     virtual bool   DataMemberInfo_IsValid(DataMemberInfo_t* dminfo) const;
     virtual int    DataMemberInfo_MaxIndex(DataMemberInfo_t* dminfo, Int_t dim) const;
     virtual int    DataMemberInfo_Next(DataMemberInfo_t* dminfo) const;
@@ -484,7 +481,7 @@ diff --git a/src/core/metacling/src/TCling.cxx b/src/core/metacling/src/TCling.c
 index 5413aef378..c8fba08529 100644
 --- a/src/core/metacling/src/TCling.cxx
 +++ b/src/core/metacling/src/TCling.cxx
-@@ -2188,7 +2205,12 @@ bool TCling::DiagnoseIfInterpreterException(const std::exception &e) const
+@@ -2167,7 +2194,12 @@ bool TCling::DiagnoseIfInterpreterException(const std::exception &e) const
  
  ////////////////////////////////////////////////////////////////////////////////
  
@@ -498,7 +495,7 @@ index 5413aef378..c8fba08529 100644
  {
     // Copy the passed line, it comes from a static buffer in TApplication
     // which can be reentered through the Cling evaluation routines,
-@@ -3151,7 +3173,12 @@ void TCling::LoadMacro(const char* filename, EErrorCode* error)
+@@ -3149,7 +3171,12 @@ void TCling::LoadMacro(const char* filename, EErrorCode* error)
  ////////////////////////////////////////////////////////////////////////////////
  /// Let cling process a command line asynch.
  
@@ -512,7 +509,7 @@ index 5413aef378..c8fba08529 100644
  {
     return ProcessLine(line, error);
  }
-@@ -3160,7 +3187,12 @@ Long_t TCling::ProcessLineAsynch(const char* line, EErrorCode* error)
+@@ -3158,7 +3185,12 @@ Long_t TCling::ProcessLineAsynch(const char* line, EErrorCode* error)
  /// Let cling process a command line synchronously, i.e we are waiting
  /// it will be finished.
  
@@ -526,7 +523,7 @@ index 5413aef378..c8fba08529 100644
  {
     R__LOCKGUARD_CLING(fLockProcessLine ? gInterpreterMutex : 0);
     if (gApplication) {
-@@ -3176,7 +3208,12 @@ Long_t TCling::ProcessLineSynch(const char* line, EErrorCode* error)
+@@ -3174,7 +3206,12 @@ Long_t TCling::ProcessLineSynch(const char* line, EErrorCode* error)
  /// Directly execute an executable statement (e.g. "func()", "3+5", etc.
  /// however not declarations, like "Int_t x;").
  
@@ -540,7 +537,7 @@ index 5413aef378..c8fba08529 100644
  {
  #ifdef R__WIN32
     // Test on ApplicationImp not being 0 is needed because only at end of
-@@ -3223,7 +3240,11 @@ Long_t TCling::Calc(const char* line, EErrorCode* error)
+@@ -3221,7 +3238,11 @@ Long_t TCling::Calc(const char* line, EErrorCode* error)
        gROOT->SetLineHasBeenProcessed();
     }
  #endif // R__WIN32
@@ -552,7 +549,7 @@ index 5413aef378..c8fba08529 100644
  }
  
  ////////////////////////////////////////////////////////////////////////////////
-@@ -4756,7 +4797,7 @@ void TCling::Execute(TObject* obj, TClass* cl, const char* method,
+@@ -4764,7 +4788,7 @@ void TCling::Execute(TObject* obj, TClass* cl, const char* method,
     Long_t offset = 0L;
     TClingCallFunc func(fInterpreter,*fNormalizedCtxt);
     func.SetFunc((TClingClassInfo*)cl->GetClassInfo(), method, params, objectIsConst, &offset);
@@ -561,7 +558,7 @@ index 5413aef378..c8fba08529 100644
     func.Exec(address);
  }
 
-@@ -4863,8 +4904,8 @@ void TCling::Execute(TObject* obj, TClass* cl, TMethod* method,
+@@ -4871,8 +48,8 @@ void TCling::Execute(TObject* obj, TClass* cl, TMethod* method,
     // Now calculate the 'this' pointer offset for the method
     // when starting from the class described by cl.
     const CXXMethodDecl * mdecl = dyn_cast<CXXMethodDecl>(minfo->GetMethodDecl());
@@ -572,7 +569,7 @@ index 5413aef378..c8fba08529 100644
     func.Exec(address);
  }
 
-@@ -7917,7 +7958,7 @@ int TCling::DataMemberInfo_Next(DataMemberInfo_t* dminfo) const
+@@ -8000,7 +8024,7 @@ int TCling::DataMemberInfo_Next(DataMemberInfo_t* dminfo) const
  
  ////////////////////////////////////////////////////////////////////////////////
  
@@ -601,7 +598,7 @@ diff --git a/src/core/base/src/TApplication.cxx b/src/core/base/src/TApplication
 index fe125c55ca..f204349615 100644
 --- a/src/core/base/src/TApplication.cxx
 +++ b/src/core/base/src/TApplication.cxx
-@@ -886,7 +886,12 @@ namespace {
+@@ -881,7 +881,12 @@ namespace {
  /// command starting with a ".".
  /// Return the return value of the command cast to a long.
  
@@ -632,7 +629,7 @@ diff --git a/src/core/meta/src/TClass.cxx b/src/core/meta/src/TClass.cxx
 index c224ed7bd7..e6f9afb330 100644
 --- a/src/core/meta/src/TClass.cxx
 +++ b/src/core/meta/src/TClass.cxx
-@@ -611,7 +611,7 @@ void TDumpMembers::Inspect(TClass *cl, const char *pname, const char *mname, con
+@@ -617,7 +617,7 @@ void TDumpMembers::Inspect(TClass *cl, const char *pname, const char *mname, con
           snprintf(&line[kvalue],kline-kvalue,"->0");
        else if (!isbasic) {
           if (!fNoAddr) {
@@ -641,7 +638,7 @@ index c224ed7bd7..e6f9afb330 100644
           }
        } else if (membertype) {
           if (!strcmp(membertype->GetTypeName(), "char")) {
-@@ -652,7 +652,7 @@ void TDumpMembers::Inspect(TClass *cl, const char *pname, const char *mname, con
+@@ -658,7 +658,7 @@ void TDumpMembers::Inspect(TClass *cl, const char *pname, const char *mname, con
           }
        } else {
           if (!fNoAddr) {
@@ -650,7 +647,7 @@ index c224ed7bd7..e6f9afb330 100644
           }
        }
     } else if (membertype) {
-@@ -674,7 +674,7 @@ void TDumpMembers::Inspect(TClass *cl, const char *pname, const char *mname, con
+@@ -680,7 +680,7 @@ void TDumpMembers::Inspect(TClass *cl, const char *pname, const char *mname, con
           snprintf(&line[kvalue],kline-kvalue,"%s",str->Data());
        } else {
           if (!fNoAddr) {
@@ -659,7 +656,7 @@ index c224ed7bd7..e6f9afb330 100644
           }
        }
     }
-@@ -772,7 +772,7 @@ void TBuildRealData::Inspect(TClass* cl, const char* pname, const char* mname, c
+@@ -776,7 +776,7 @@ void TBuildRealData::Inspect(TClass* cl, const char* pname, const char* mname, c
        }
     }
  
@@ -668,7 +665,7 @@ index c224ed7bd7..e6f9afb330 100644
  
     if (TClassEdit::IsStdArray(dm->GetTypeName())){ // We tackle the std array case
        TString rdName;
-@@ -2455,12 +2455,12 @@ void TClass::Draw(Option_t *option)
+@@ -2459,12 +2459,12 @@ void TClass::Draw(Option_t *option)
  void TClass::Dump(const void *obj, Bool_t noAddr /*=kFALSE*/) const
  {
  
@@ -683,7 +680,7 @@ index c224ed7bd7..e6f9afb330 100644
  
  
        if (sizeof(this) == 4)
-@@ -2784,12 +2784,12 @@ namespace {
+@@ -2788,12 +2788,12 @@ namespace {
              if (*thread_ptr==0) *thread_ptr = new TExMap();
              TExMap *lmap = (TExMap*)(*thread_ptr);
              ULong_t hash = TString::Hash(&cl, sizeof(void*));
@@ -700,7 +697,7 @@ index c224ed7bd7..e6f9afb330 100644
              }
              return (TClassLocalStorage*)local;
           }
-@@ -4347,7 +4347,7 @@ TMethod *TClass::GetClassMethod(Long_t faddr)
+@@ -4358,7 +4358,7 @@ TMethod *TClass::GetClassMethod(Long_t faddr)
     TMethod *m;
     TIter    next(GetListOfMethods());
     while ((m = (TMethod *) next())) {
@@ -709,7 +706,7 @@ index c224ed7bd7..e6f9afb330 100644
           return m;
     }
     return 0;
-@@ -4771,12 +4771,12 @@ void *TClass::DynamicCast(const TClass *cl, void *obj, Bool_t up)
+@@ -4782,12 +4782,12 @@ void *TClass::DynamicCast(const TClass *cl, void *obj, Bool_t up)
  
     if (!HasDataMemberInfo()) return 0;
  
@@ -725,7 +722,7 @@ index c224ed7bd7..e6f9afb330 100644
     }
     return 0;
  }
-@@ -6516,7 +6516,7 @@ void TClass::StreamerTObject(const TClass* pThis, void *object, TBuffer &b, cons
+@@ -6524,7 +6524,7 @@ void TClass::StreamerTObject(const TClass* pThis, void *object, TBuffer &b, cons
     if (!pThis->fIsOffsetStreamerSet) {
        pThis->CalculateStreamerOffset();
     }
@@ -734,7 +731,7 @@ index c224ed7bd7..e6f9afb330 100644
     tobj->Streamer(b);
  }
  
-@@ -6525,7 +6525,7 @@ void TClass::StreamerTObject(const TClass* pThis, void *object, TBuffer &b, cons
+@@ -6533,7 +6533,7 @@ void TClass::StreamerTObject(const TClass* pThis, void *object, TBuffer &b, cons
  
  void TClass::StreamerTObjectInitialized(const TClass* pThis, void *object, TBuffer &b, const TClass * /* onfile_class */)
  {
@@ -1057,7 +1054,7 @@ diff --git a/src/core/cont/src/TClonesArray.cxx b/src/core/cont/src/TClonesArray
 index 0638e6bb7e..cf85bda227 100644
 --- a/src/core/cont/src/TClonesArray.cxx
 +++ b/src/core/cont/src/TClonesArray.cxx
-@@ -859,7 +859,7 @@ void TClonesArray::Streamer(TBuffer &b)
+@@ -906,7 +906,7 @@ void TClonesArray::Streamer(TBuffer &b)
  TObject *&TClonesArray::operator[](Int_t idx)
  {
     if (idx < 0) {
@@ -1066,7 +1063,7 @@ index 0638e6bb7e..cf85bda227 100644
        return fCont[0];
     }
     if (!fClass) {
-@@ -893,7 +893,7 @@ TObject *&TClonesArray::operator[](Int_t idx)
+@@ -940,7 +940,7 @@ TObject *&TClonesArray::operator[](Int_t idx)
  TObject *TClonesArray::operator[](Int_t idx) const
  {
     if (idx < 0 || idx >= fSize) {
@@ -1075,7 +1072,7 @@ index 0638e6bb7e..cf85bda227 100644
        return 0;
     }
  
-@@ -907,7 +907,7 @@ TObject *TClonesArray::operator[](Int_t idx) const
+@@ -954,7 +954,7 @@ TObject *TClonesArray::operator[](Int_t idx) const
  TObject *TClonesArray::New(Int_t idx)
  {
     if (idx < 0) {
@@ -1088,7 +1085,7 @@ diff --git a/src/core/base/src/TROOT.cxx b/src/core/base/src/TROOT.cxx
 index 171127d44d..4f3e6d07b3 100644
 --- a/src/core/base/src/TROOT.cxx
 +++ b/src/core/base/src/TROOT.cxx
-@@ -1619,7 +1619,7 @@ TGlobal *TROOT::GetGlobal(const char *name, Bool_t load) const
+@@ -1616,7 +1616,7 @@ TGlobal *TROOT::GetGlobal(const char *name, Bool_t load) const
  
  TGlobal *TROOT::GetGlobal(const TObject *addr, Bool_t /* load */) const
  {
@@ -1097,7 +1094,7 @@ index 171127d44d..4f3e6d07b3 100644
  
     TInterpreter::DeclId_t decl = gInterpreter->GetDataMemberAtAddr(addr);
     if (decl) {
-@@ -2362,7 +2362,12 @@ void  TROOT::Message(Int_t id, const TObject *obj)
+@@ -2360,7 +2360,12 @@ void  TROOT::Message(Int_t id, const TObject *obj)
  /// CINT interpreted thread has finished executing the line.
  /// Returns the result of the command, cast to a Long_t.
  
@@ -1111,7 +1108,7 @@ index 171127d44d..4f3e6d07b3 100644
  {
     TString sline = line;
     sline = sline.Strip(TString::kBoth);
-@@ -2382,7 +2387,12 @@ Long_t TROOT::ProcessLine(const char *line, Int_t *error)
+@@ -2380,7 +2385,12 @@ Long_t TROOT::ProcessLine(const char *line, Int_t *error)
  /// The possible error codes are defined by TInterpreter::EErrorCode.
  /// Returns the result of the command, cast to a Long_t.
  
@@ -1125,7 +1122,7 @@ index 171127d44d..4f3e6d07b3 100644
  {
     TString sline = line;
     sline = sline.Strip(TString::kBoth);
-@@ -2399,7 +2409,12 @@ Long_t TROOT::ProcessLineSync(const char *line, Int_t *error)
+@@ -2397,7 +2407,12 @@ Long_t TROOT::ProcessLineSync(const char *line, Int_t *error)
  /// In all other cases use TROOT::ProcessLine().
  /// The possible error codes are defined by TInterpreter::EErrorCode.
  
@@ -1152,7 +1149,7 @@ index 1a97d346ea..9b8948f645 100644
        return;
     }
     if (idx-fLowerBound >= fSize)
-@@ -641,7 +641,7 @@ TIterator *TObjArray::MakeIterator(Bool_t dir) const
+@@ -656,7 +656,7 @@ TIterator *TObjArray::MakeIterator(Bool_t dir) const
  
  Bool_t TObjArray::OutOfBoundsError(const char *where, Int_t i) const
  {
@@ -1278,7 +1275,7 @@ diff --git a/src/core/winnt/src/TWinNTSystem.cxx b/src/core/winnt/src/TWinNTSyst
 index 7a477878a0..bfb16a5a09 100644
 --- a/src/core/winnt/src/TWinNTSystem.cxx
 +++ b/src/core/winnt/src/TWinNTSystem.cxx
-@@ -943,7 +943,7 @@ namespace {
+@@ -923,7 +923,7 @@ namespace {
        // ensure window title has been updated
        ::Sleep(40);
        // look for NewWindowTitle
@@ -1287,7 +1284,7 @@ index 7a477878a0..bfb16a5a09 100644
        if (gConsoleWindow) {
           // restore original window title
           ::ShowWindow((HWND)gConsoleWindow, SW_RESTORE);
-@@ -964,7 +964,7 @@ namespace {
+@@ -944,7 +944,7 @@ namespace {
  ///////////////////////////////////////////////////////////////////////////////
  ClassImp(TWinNTSystem);
  
@@ -1296,7 +1293,7 @@ index 7a477878a0..bfb16a5a09 100644
  
  ////////////////////////////////////////////////////////////////////////////////
  ///
-@@ -3902,7 +3902,7 @@ void TWinNTSystem::Exit(int code, Bool_t mode)
+@@ -3882,7 +3882,7 @@ void TWinNTSystem::Exit(int code, Bool_t mode)
                    if (((TBrowser*)0x%lx)->GetBrowserImp() &&\
                        ((TBrowser*)0x%lx)->GetBrowserImp()->GetMainFrame()) \
                       ((TBrowser*)0x%lx)->GetBrowserImp()->GetMainFrame()->CloseWindow();\
@@ -1338,12 +1335,12 @@ diff --git a/src/core/metacling/src/TClingClassInfo.cxx b/src/core/metacling/src
 index 1cb6973800..f052455243 100644
 --- a/src/core/metacling/src/TClingClassInfo.cxx
 +++ b/src/core/metacling/src/TClingClassInfo.cxx
-@@ -1223,7 +1223,7 @@ long TClingClassInfo::Tagnum() const
+@@ -1250,7 +1250,7 @@ long TClingClassInfo::Tagnum() const
     if (!IsValid()) {
        return -1L;
     }
--   return reinterpret_cast<long>(fDecl);
-+   return (long)(intptr_t)fDecl;
+-   return reinterpret_cast<long>(GetDecl());
++   return (long)(intptr_t)GetDecl();
  }
  
  const char *TClingClassInfo::FileName()
@@ -1351,7 +1348,7 @@ diff --git a/src/core/metacling/src/TClingDataMemberInfo.h b/src/core/metacling/
 index 7fbb19dec0..090a527474 100644
 --- a/src/core/metacling/src/TClingDataMemberInfo.h
 +++ b/src/core/metacling/src/TClingDataMemberInfo.h
-@@ -131,7 +131,7 @@ public:
+@@ -134,7 +134,7 @@ public:
     int                MaxIndex(int dim) const;
     int                InternalNext();
     bool               Next() { return InternalNext(); }
@@ -1364,7 +1361,7 @@ diff --git a/src/core/metacling/src/TClingDataMemberInfo.cxx b/src/core/metaclin
 index 9c8fa9980f..76ff219c8b 100644
 --- a/src/core/metacling/src/TClingDataMemberInfo.cxx
 +++ b/src/core/metacling/src/TClingDataMemberInfo.cxx
-@@ -297,7 +297,7 @@ int TClingDataMemberInfo::InternalNext()
+@@ -299,7 +299,7 @@ int TClingDataMemberInfo::InternalNext()
     return 0;
  }
  
@@ -1373,7 +1370,7 @@ index 9c8fa9980f..76ff219c8b 100644
  {
     using namespace clang;
  
-@@ -321,13 +321,13 @@ long TClingDataMemberInfo::Offset()
+@@ -323,13 +323,13 @@ long TClingDataMemberInfo::Offset()
        //   static constexpr Long64_t something = std::numeric_limits<Long64_t>::max();
        cling::Interpreter::PushTransactionRAII RAII(fInterp);
  
@@ -1389,7 +1386,7 @@ index 9c8fa9980f..76ff219c8b 100644
              } else {
                 // The VD stores the init value; its lifetime should the lifetime of
                 // this offset.
-@@ -337,17 +337,17 @@ long TClingDataMemberInfo::Offset()
+@@ -339,17 +339,17 @@ long TClingDataMemberInfo::Offset()
                       fConstInitVal.fLong = (long)val->getInt().getSExtValue();
                    else
                       fConstInitVal.fLong = (long)val->getInt().getZExtValue();
@@ -1410,7 +1407,7 @@ index 9c8fa9980f..76ff219c8b 100644
                    }
                    // else fall-through
                 default:
-@@ -368,7 +368,7 @@ long TClingDataMemberInfo::Offset()
+@@ -370,7 +370,7 @@ long TClingDataMemberInfo::Offset()
        // part.
  #ifdef R__BYTESWAP
        // In this case at the beginning.
@@ -1423,7 +1420,7 @@ diff --git a/src/core/base/src/TBuffer.cxx b/src/core/base/src/TBuffer.cxx
 index 8243454040..ccf7186c51 100644
 --- a/src/core/base/src/TBuffer.cxx
 +++ b/src/core/base/src/TBuffer.cxx
-@@ -227,7 +227,7 @@ void TBuffer::Expand(Int_t newsize, Bool_t copy)
+@@ -248,7 +248,7 @@ void TBuffer::Expand(Int_t newsize, Bool_t copy)
        } else if (fReAllocFunc == R__NoReAllocChar) {
           Fatal("Expand","Failed to expand the data buffer because TBuffer does not own it and no custom memory reallocator was provided.");
        } else {
@@ -1704,7 +1701,7 @@ diff --git a/src/core/base/src/TString.cxx b/src/core/base/src/TString.cxx
 index 31673a53b4..046f26d525 100644
 --- a/src/core/base/src/TString.cxx
 +++ b/src/core/base/src/TString.cxx
-@@ -528,7 +528,7 @@ UInt_t Hash(const char *str)
+@@ -540,7 +540,7 @@ UInt_t Hash(const char *str)
     UInt_t hv  = len; // Mix in the string length.
     UInt_t i   = hv*sizeof(char)/sizeof(UInt_t);
  
@@ -1875,7 +1872,7 @@ diff --git a/src/io/io/src/TStreamerInfo.cxx b/src/io/io/src/TStreamerInfo.cxx
 index 64eec95d3e..6c19a08258 100644
 --- a/src/io/io/src/TStreamerInfo.cxx
 +++ b/src/io/io/src/TStreamerInfo.cxx
-@@ -4988,7 +4988,7 @@ void TStreamerInfo::PrintValue(const char *name, char *pointer, Int_t i, Int_t l
+@@ -5034,7 +5034,7 @@ void TStreamerInfo::PrintValue(const char *name, char *pointer, Int_t i, Int_t l
                 TString *st = (TString*)(pointer);
                 printf("%s\n",st->Data());
              } else {
@@ -1884,7 +1881,7 @@ index 64eec95d3e..6c19a08258 100644
              }
           }
           return;
-@@ -5292,7 +5292,7 @@ void TStreamerInfo::PrintValueAux(char *ladd, Int_t atype, TStreamerElement *aEl
+@@ -5338,7 +5338,7 @@ void TStreamerInfo::PrintValueAux(char *ladd, Int_t atype, TStreamerElement *aEl
        case kObjectp: {
           TObject **obj = (TObject**)(ladd);
           TStreamerObjectPointer *el = (TStreamerObjectPointer*)aElement;
@@ -1893,7 +1890,7 @@ index 64eec95d3e..6c19a08258 100644
           break;
        }
  
-@@ -5300,7 +5300,7 @@ void TStreamerInfo::PrintValueAux(char *ladd, Int_t atype, TStreamerElement *aEl
+@@ -5346,7 +5346,7 @@ void TStreamerInfo::PrintValueAux(char *ladd, Int_t atype, TStreamerElement *aEl
        case kObjectP: {
           TObject **obj = (TObject**)(ladd);
           TStreamerObjectPointer *el = (TStreamerObjectPointer*)aElement;
@@ -1902,7 +1899,7 @@ index 64eec95d3e..6c19a08258 100644
           break;
        }
  
-@@ -5332,7 +5332,7 @@ void TStreamerInfo::PrintValueAux(char *ladd, Int_t atype, TStreamerElement *aEl
+@@ -5378,7 +5378,7 @@ void TStreamerInfo::PrintValueAux(char *ladd, Int_t atype, TStreamerElement *aEl
        case kAnyp:    {
           TObject **obj = (TObject**)(ladd);
           TStreamerObjectAnyPointer *el = (TStreamerObjectAnyPointer*)aElement;
@@ -1911,7 +1908,7 @@ index 64eec95d3e..6c19a08258 100644
           break;
        }
  
-@@ -5340,7 +5340,7 @@ void TStreamerInfo::PrintValueAux(char *ladd, Int_t atype, TStreamerElement *aEl
+@@ -5386,7 +5386,7 @@ void TStreamerInfo::PrintValueAux(char *ladd, Int_t atype, TStreamerElement *aEl
        case kAnyP:    {
           TObject **obj = (TObject**)(ladd);
           TStreamerObjectAnyPointer *el = (TStreamerObjectAnyPointer*)aElement;
@@ -1920,7 +1917,7 @@ index 64eec95d3e..6c19a08258 100644
           break;
        }
        // Any Class not derived from TObject
-@@ -5407,10 +5407,10 @@ void TStreamerInfo::PrintValueAux(char *ladd, Int_t atype, TStreamerElement *aEl
+@@ -5453,10 +5453,10 @@ void TStreamerInfo::PrintValueAux(char *ladd, Int_t atype, TStreamerElement *aEl
                 std::string *st = (std::string*)(ladd);
                 printf("%s",st->c_str());
              } else {
@@ -2233,7 +2230,7 @@ diff --git a/src/io/io/src/TBufferJSON.cxx b/src/io/io/src/TBufferJSON.cxx
 index 016e988316..9d01730060 100644
 --- a/src/io/io/src/TBufferJSON.cxx
 +++ b/src/io/io/src/TBufferJSON.cxx
-@@ -421,7 +421,7 @@ TString TBufferJSON::ConvertToJSON(const TObject *obj, Int_t compact, const char
+@@ -531,7 +531,7 @@ TString TBufferJSON::ConvertToJSON(const TObject *obj, Int_t compact, const char
        if (!clActual)
           clActual = TObject::Class();
        else if (clActual != TObject::Class())
@@ -2372,7 +2369,7 @@ diff --git a/src/core/base/inc/TPluginManager.h b/src/core/base/inc/TPluginManag
 index adf1d96e28..0a7093bb64 100644
 --- a/src/core/base/inc/TPluginManager.h
 +++ b/src/core/base/inc/TPluginManager.h
-@@ -146,7 +146,7 @@ public:
+@@ -145,7 +145,7 @@ public:
     Int_t       CheckPlugin() const;
     Int_t       LoadPlugin();
  
@@ -2381,7 +2378,7 @@ index adf1d96e28..0a7093bb64 100644
     {
        auto nargs = sizeof...(params);
        if (!CheckForExecPlugin(nargs)) return 0;
-@@ -158,13 +158,17 @@ public:
+@@ -157,13 +157,17 @@ public:
        R__LOCKGUARD(gInterpreterMutex);
        fCallEnv->SetParams(params...);
  
@@ -2404,7 +2401,7 @@ diff --git a/src/io/io/src/TMemFile.cxx b/src/io/io/src/TMemFile.cxx
 index 0ccf0ce60a..f5b348907c 100644
 --- a/src/io/io/src/TMemFile.cxx
 +++ b/src/io/io/src/TMemFile.cxx
-@@ -377,7 +377,7 @@ void TMemFile::ResetObjects(TDirectoryFile *directory, TFileMergeInfo *info) con
+@@ -407,7 +407,7 @@ void TMemFile::ResetObjects(TDirectoryFile *directory, TFileMergeInfo *info) con
     }
  
     TString listHargs;
@@ -2417,7 +2414,7 @@ diff --git a/src/io/io/src/TFile.cxx b/src/io/io/src/TFile.cxx
 index adfb461fd6..ba1b3e7204 100644
 --- a/src/io/io/src/TFile.cxx
 +++ b/src/io/io/src/TFile.cxx
-@@ -579,7 +579,7 @@ TFile::~TFile()
+@@ -578,7 +578,7 @@ TFile::~TFile()
     }
  
     if (gDebug)
@@ -2426,7 +2423,7 @@ index adfb461fd6..ba1b3e7204 100644
  }
  
  ////////////////////////////////////////////////////////////////////////////////
-@@ -1861,7 +1861,7 @@ TProcessID  *TFile::ReadProcessID(UShort_t pidf)
+@@ -1860,7 +1860,7 @@ TProcessID  *TFile::ReadProcessID(UShort_t pidf)
     snprintf(pidname,32,"ProcessID%d",pidf);
     pid = (TProcessID *)Get(pidname);
     if (gDebug > 0) {
@@ -2439,7 +2436,7 @@ diff --git a/src/io/io/src/TFileMerger.cxx b/src/io/io/src/TFileMerger.cxx
 index 45a65fb746..81bf26054a 100644
 --- a/src/io/io/src/TFileMerger.cxx
 +++ b/src/io/io/src/TFileMerger.cxx
-@@ -607,7 +607,7 @@ Bool_t TFileMerger::MergeRecursive(TDirectory *target, TList *sourcelist, Int_t
+@@ -608,7 +608,7 @@ Bool_t TFileMerger::MergeRecursive(TDirectory *target, TList *sourcelist, Int_t
  
                 TList listH;
                 TString listHargs;
@@ -2448,7 +2445,7 @@ index 45a65fb746..81bf26054a 100644
  
                 // Loop over all source files and merge same-name object
                 TFile *nextsource = current_file ? (TFile*)sourcelist->After( current_file ) : (TFile*)sourcelist->First();
-@@ -670,7 +670,7 @@ Bool_t TFileMerger::MergeRecursive(TDirectory *target, TList *sourcelist, Int_t
+@@ -671,7 +671,7 @@ Bool_t TFileMerger::MergeRecursive(TDirectory *target, TList *sourcelist, Int_t
  
                 TList listH;
                 TString listHargs;

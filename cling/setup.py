@@ -112,7 +112,7 @@ class my_cmake_build(_build):
             log.fatal('FATAL: envar STDCXX should be one of 11, 14, or 17')
             sys.exit(1)
 
-        stdcxx='-Dcxx'+stdcxx+'=ON'
+        stdcxx='-DCMAKE_CXX_STANDARD='+stdcxx
 
         # extra optimization flags for Cling
         if not 'EXTRA_CLING_ARGS' in os.environ:
@@ -345,7 +345,7 @@ setup(
     author='ROOT Developers',
     author_email='rootdev@cern.ch',
 
-    version='6.15.2.9',
+    version='6.18.0.0',
 
     license='LLVM: UoI-NCSA; ROOT: LGPL 2.1',
 

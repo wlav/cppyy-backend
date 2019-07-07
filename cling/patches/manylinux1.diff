@@ -2,7 +2,7 @@ diff --git a/src/core/clingutils/CMakeLists.txt b/src/core/clingutils/CMakeLists
 index 4be71a05fb..b126c3d9b4 100644
 --- a/src/core/clingutils/CMakeLists.txt
 +++ b/src/core/clingutils/CMakeLists.txt
-@@ -30,31 +30,31 @@ ROOT_INSTALL_HEADERS()
+@@ -35,31 +35,31 @@ ROOT_INSTALL_HEADERS()
  
  #### STL dictionary (replacement for cintdlls)##############################
  
@@ -27,7 +27,7 @@ index 4be71a05fb..b126c3d9b4 100644
 -  ROOT_STANDARD_LIBRARY_PACKAGE(${dict}Dict
 -                                NO_SOURCES NO_INSTALL_HEADERS NO_MODULE
 -                                STAGE1
--                                HEADERS ${header}
+-                                NODEPHEADERS ${header}
 -                                LINKDEF src/${dict}Linkdef.h
 -                                DEPENDENCIES Core)
 -endforeach()
@@ -52,18 +52,18 @@ index 4be71a05fb..b126c3d9b4 100644
 +#  ROOT_STANDARD_LIBRARY_PACKAGE(${dict}Dict
 +#                                NO_SOURCES NO_INSTALL_HEADERS NO_MODULE
 +#                                STAGE1
-+#                                HEADERS ${header}
++#                                NODEPHEADERS ${header}
 +#                                LINKDEF src/${dict}Linkdef.h
 +#                                DEPENDENCIES Core)
 +#endforeach()
  
  set(CLANG_RESOURCE_DIR_STEM)
- set(CLANG_RESOURCE_DIR_VERSION)
+ if (builtin_clang)
 diff --git a/src/main/CMakeLists.txt b/src/main/CMakeLists.txt
 index 32094d55bd..30d55635b1 100644
 --- a/src/main/CMakeLists.txt
 +++ b/src/main/CMakeLists.txt
-@@ -78,7 +78,7 @@ ROOT_EXECUTABLE(rootcling src/rootcling.cxx
+@@ -81,7 +81,7 @@ ROOT_EXECUTABLE(rootcling src/rootcling.cxx
  # rootcling includes the ROOT complex header which would build the complex
  # dictionary with modules. To make sure that rootcling_stage1 builds this
  # dict before we use it, we add a dependency here.
@@ -102,7 +102,7 @@ diff --git a/src/core/metacling/src/TCling.cxx b/src/core/metacling/src/TCling.c
 index 5413aef378..e611986dbf 100644
 --- a/src/core/metacling/src/TCling.cxx
 +++ b/src/core/metacling/src/TCling.cxx
-@@ -1737,26 +1754,7 @@ namespace {
+@@ -1686,26 +1703,7 @@ namespace {
  static const std::unordered_set<std::string> gIgnoredPCMNames = {"libCore",
                                                                   "libRint",
                                                                   "libThread",
@@ -134,20 +134,14 @@ diff --git a/src/core/cont/inc/LinkDef.h b/src/core/cont/inc/LinkDef.h
 index 2fdcd76639..39b362cca4 100644
 --- a/src/core/cont/inc/LinkDef.h
 +++ b/src/core/cont/inc/LinkDef.h
-@@ -55,17 +55,6 @@
+@@ -55,11 +55,6 @@
  #pragma link C++ class TRefTable-;
  #pragma link C++ class TVirtualCollectionProxy-;
 
 -#pragma link C++ class std::vector<Int_t>;
--#pragma link C++ operators std::vector<Int_t>;
--#ifdef G__VECTOR_HAS_CLASS_ITERATOR
 -#pragma link C++ class std::vector<Int_t>::iterator;
--#pragma link C++ operators std::vector<Int_t>::iterator;
 -#pragma link C++ class std::vector<Int_t>::const_iterator;
--#pragma link C++ operators std::vector<Int_t>::const_iterator;
 -#pragma link C++ class std::vector<Int_t>::reverse_iterator;
--#pragma link C++ operators std::vector<Int_t>::reverse_iterator;
--#endif
 -
  #pragma link C++ nestedclass;
  #pragma link C++ nestedtypedef;
@@ -156,7 +150,7 @@ diff --git a/src/core/base/inc/LinkDef2.h b/src/core/base/inc/LinkDef2.h
 index 44883b3c03..8f4d6c64a6 100644
 --- a/src/core/base/inc/LinkDef2.h
 +++ b/src/core/base/inc/LinkDef2.h
-@@ -10,44 +10,11 @@
+@@ -10,34 +10,11 @@
  
  #ifdef __CINT__
  
@@ -176,25 +170,15 @@ index 44883b3c03..8f4d6c64a6 100644
  #pragma create TClass string;
 -#pragma link C++ class std::vector<string>;
 -#pragma link C++ operator std::vector<string>;
--#ifdef G__VECTOR_HAS_CLASS_ITERATOR
 -#pragma link C++ class std::vector<string>::iterator;
 -#pragma link C++ class std::vector<string>::const_iterator;
 -#pragma link C++ class std::vector<string>::reverse_iterator;
--#pragma link C++ operator std::vector<string>::iterator;
--#pragma link C++ operator std::vector<string>::const_iterator;
--#pragma link C++ operator std::vector<string>::reverse_iterator;
--#endif
 -
 -#pragma link C++ class std::vector<TString>;
 -#pragma link C++ operators std::vector<TString>;
--#ifdef G__VECTOR_HAS_CLASS_ITERATOR
 -#pragma link C++ class std::vector<TString>::iterator;
 -#pragma link C++ class std::vector<TString>::const_iterator;
 -#pragma link C++ class std::vector<TString>::reverse_iterator;
--#pragma link C++ operator std::vector<TString>::iterator;
--#pragma link C++ operator std::vector<TString>::const_iterator;
--#pragma link C++ operator std::vector<TString>::reverse_iterator;
--#endif
 -
 -#include <vector>
 -
@@ -229,23 +213,18 @@ diff --git a/src/math/mathcore/inc/LinkDef2.h b/src/math/mathcore/inc/LinkDef2.h
 index c3e163b919..3259ba9488 100644
 --- a/src/math/mathcore/inc/LinkDef2.h
 +++ b/src/math/mathcore/inc/LinkDef2.h
-@@ -22,15 +22,6 @@
+@@ -22,10 +22,6 @@
  //#pragma link C++ class ROOT::Math;
  #endif
 
--#ifdef G__VECTOR_HAS_CLASS_ITERATOR
 -#pragma link C++ class std::vector<Double_t>::iterator;
 -#pragma link C++ class std::vector<Double_t>::const_iterator;
 -#pragma link C++ class std::vector<Double_t>::reverse_iterator;
--#pragma link C++ operators std::vector<Double_t>::iterator;
--#pragma link C++ operators std::vector<Double_t>::const_iterator;
--#pragma link C++ operators std::vector<Double_t>::reverse_iterator;
--#endif
 -
  #pragma link C++ global gRandom;
 
  #pragma link C++ class TRandom+;
-@@ -179,7 +170,6 @@
+@@ -174,7 +170,6 @@
  #pragma link C++ class ROOT::Math::DistSampler+;
  #pragma link C++ class ROOT::Math::DistSamplerOptions+;
  #pragma link C++ class ROOT::Math::GoFTest+;

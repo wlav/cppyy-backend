@@ -2,7 +2,7 @@ diff --git a/src/core/dictgen/src/rootcling_impl.cxx b/src/core/dictgen/src/root
 index 90b0dbed10..f6d5a13ee1 100644
 --- a/src/core/dictgen/src/rootcling_impl.cxx
 +++ b/src/core/dictgen/src/rootcling_impl.cxx
-@@ -3051,6 +3051,7 @@ int GenerateFullDict(std::ostream &dictStream,
+@@ -2853,6 +2853,7 @@ int GenerateFullDict(std::ostream &dictStream,
           EmitStreamerInfo(nsName.c_str());
     }
  
@@ -10,7 +10,7 @@ index 90b0dbed10..f6d5a13ee1 100644
     for (auto const & selClass : scan.fSelectedClasses) {
        if (!selClass.GetRecordDecl()->isCompleteDefinition()) {
           ROOT::TMetaUtils::Error(0, "A dictionary has been requested for %s but there is no declaration!\n", ROOT::TMetaUtils::GetQualifiedName(selClass).c_str());
-@@ -3072,6 +3073,21 @@ int GenerateFullDict(std::ostream &dictStream,
+@@ -2874,6 +2874,21 @@ int GenerateFullDict(std::ostream &dictStream,
        const clang::CXXRecordDecl *CRD = llvm::dyn_cast<clang::CXXRecordDecl>(selClass.GetRecordDecl());
  
        if (CRD) {
@@ -30,9 +30,9 @@ index 90b0dbed10..f6d5a13ee1 100644
 +         }
 +
           ROOT::TMetaUtils::Info(0, "Generating code for class %s\n", selClass.GetNormalizedName());
-          if (TMetaUtils::IsStdClass(*CRD) && 0 != TClassEdit::STLKind(CRD->getName().str() /* unqualified name without template arguement */)) {
+          if (TMetaUtils::IsStdClass(*CRD) && 0 != TClassEdit::STLKind(CRD->getName().str() /* unqualified name without template argument */)) {
              // Register the collections
-@@ -3084,6 +3100,12 @@ int GenerateFullDict(std::ostream &dictStream,
+@@ -2886,6 +2902,12 @@ int GenerateFullDict(std::ostream &dictStream,
        }
     }
  
@@ -45,7 +45,7 @@ index 90b0dbed10..f6d5a13ee1 100644
     //
     // Write all TBuffer &operator>>(...), Class_Name(), Dictionary(), etc.
     // first to allow template specialisation to occur before template
-@@ -3143,6 +3165,11 @@ int GenerateFullDict(std::ostream &dictStream,
+@@ -2945,6 +2967,11 @@ int GenerateFullDict(std::ostream &dictStream,
        if (finRetCode != 0) return finRetCode;
     }
  

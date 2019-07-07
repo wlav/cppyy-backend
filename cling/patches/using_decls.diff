@@ -1,8 +1,8 @@
 diff --git a/src/core/metacling/src/TClingMethodInfo.cxx b/src/core/metacling/src/TClingMethodInfo.cxx
-index 0dbf27a298..bbfb6aa962 100644
+index ca606db037..dcd03d38bd 100644
 --- a/src/core/metacling/src/TClingMethodInfo.cxx
 +++ b/src/core/metacling/src/TClingMethodInfo.cxx
-@@ -82,6 +82,48 @@ private:
+@@ -82,6 +82,49 @@ private:
     Iterator fEnd;
  };
  
@@ -13,24 +13,25 @@ index 0dbf27a298..bbfb6aa962 100644
 +
 +   UsingIterator(cling::Interpreter* interp, Iterator begin, Iterator end) : fInterp(interp), fIter(begin), fEnd(end) {}
 +   explicit UsingIterator(cling::Interpreter* interp, clang::UsingDecl *decl) :
-+       fInterp(interp), fIter(decl->shadow_begin()), fEnd(decl->shadow_end()) {}
++      fInterp(interp), fIter(decl->shadow_begin()), fEnd(decl->shadow_end()) {}
 +
 +   FunctionDecl *operator* () const {
 +      clang::ConstructorUsingShadowDecl* shadow_ctor = llvm::dyn_cast<clang::ConstructorUsingShadowDecl>(*fIter);
 +      if (shadow_ctor) {
-+          clang::CXXConstructorDecl* base_ctor = llvm::dyn_cast<clang::CXXConstructorDecl>(shadow_ctor->getTargetDecl());
-+          if (base_ctor) {
-+              if (base_ctor->isImplicit()) return nullptr; // skip as Cling will generate these anyway
-+              return fInterp->getSema().findInheritingConstructor(base_ctor->getLocStart(), base_ctor, shadow_ctor);
-+          }
++         clang::CXXConstructorDecl* base_ctor = llvm::dyn_cast<clang::CXXConstructorDecl>(shadow_ctor->getTargetDecl());
++         if (base_ctor) {
++            if (base_ctor->isImplicit()) return nullptr; // skip as Cling will generate these anyway
++            return fInterp->getSema().findInheritingConstructor(base_ctor->getLocStart(), base_ctor, shadow_ctor);
++         }
 +      } else {
-+          clang::UsingShadowDecl* shadow_decl = llvm::dyn_cast<clang::UsingShadowDecl>(*fIter);
-+          if (shadow_decl) {
-+              clang::CXXMethodDecl* method = llvm::dyn_cast<clang::CXXMethodDecl>(shadow_decl->getTargetDecl());
-+              if (method) return method;
-+          }
++         clang::UsingShadowDecl* shadow_decl = llvm::dyn_cast<clang::UsingShadowDecl>(*fIter);
++         if (shadow_decl) {
++            clang::CXXMethodDecl* method = llvm::dyn_cast<clang::CXXMethodDecl>(shadow_decl->getTargetDecl());
++            if (method) return method;
++         }
 +      }
-+      return llvm::dyn_cast<clang::FunctionDecl>((*fIter)->getTargetDecl()); }
++      return llvm::dyn_cast<clang::FunctionDecl>((*fIter)->getTargetDecl());
++   }
 +   FunctionDecl *operator-> () const { return this->operator*(); }
 +   UsingIterator & operator++ () { ++fIter; return *this; }
 +   UsingIterator   operator++ (int) {
@@ -49,14 +50,14 @@ index 0dbf27a298..bbfb6aa962 100644
 +
 +
  TClingMethodInfo::TClingMethodInfo(const TClingMethodInfo &rhs) :
+    TClingDeclInfo(rhs),
     fInterp(rhs.fInterp),
-    fContexts(rhs.fContexts),
-@@ -90,20 +126,27 @@ TClingMethodInfo::TClingMethodInfo(const TClingMethodInfo &rhs) :
+@@ -90,13 +133,20 @@ TClingMethodInfo::TClingMethodInfo(const TClingMethodInfo &rhs) :
+    fContextIdx(rhs.fContextIdx),
     fIter(rhs.fIter),
     fTitle(rhs.fTitle),
-    fTemplateSpecIter(nullptr),
--   fSingleDecl(rhs.fSingleDecl)
-+   fSingleDecl(rhs.fSingleDecl),
+-   fTemplateSpecIter(nullptr)
++   fTemplateSpecIter(nullptr),
 +   fUsingIter(nullptr)
  {
     if (rhs.fTemplateSpecIter) {
@@ -73,24 +74,46 @@ index 0dbf27a298..bbfb6aa962 100644
  }
  
  
+@@ -112,6 +162,7 @@ TClingMethodInfo& TClingMethodInfo::operator=(const TClingMethodInfo &rhs) {
+    fIter = rhs.fIter;
+    fTitle = rhs.fTitle;
+    fTemplateSpecIter = nullptr;
++   fUsingIter = nullptr;
+ 
+    if (rhs.fTemplateSpecIter) {
+       // The SpecIterator query the decl.
+@@ -119,6 +170,12 @@ TClingMethodInfo& TClingMethodInfo::operator=(const TClingMethodInfo &rhs) {
+       fTemplateSpecIter = new SpecIterator(*rhs.fTemplateSpecIter);
+    }
+ 
++   if (rhs.fUsingIter) {
++      // The UsingIterator query the decl.
++      R__LOCKGUARD(gInterpreterMutex);
++      fUsingIter = new UsingIterator(*rhs.fUsingIter);
++   }
++
+    return *this;
+ }
+ 
+@@ -126,7 +183,7 @@ TClingMethodInfo& TClingMethodInfo::operator=(const TClingMethodInfo &rhs) {
  TClingMethodInfo::TClingMethodInfo(cling::Interpreter *interp,
                                     TClingClassInfo *ci)
-    : fInterp(interp), fFirstTime(true), fContextIdx(0U), fTitle(""),
--     fTemplateSpecIter(0), fSingleDecl(0)
-+     fTemplateSpecIter(0), fSingleDecl(0), fUsingIter(0)
+    : TClingDeclInfo(nullptr), fInterp(interp), fFirstTime(true), fContextIdx(0U), fTitle(""),
+-     fTemplateSpecIter(0)
++     fTemplateSpecIter(0), fUsingIter(0)
  {
     R__LOCKGUARD(gInterpreterMutex);
  
-@@ -132,7 +175,7 @@ TClingMethodInfo::TClingMethodInfo(cling::Interpreter *interp,
+@@ -155,7 +212,7 @@ TClingMethodInfo::TClingMethodInfo(cling::Interpreter *interp,
  TClingMethodInfo::TClingMethodInfo(cling::Interpreter *interp,
                                     const clang::FunctionDecl *FD)
-    : fInterp(interp), fFirstTime(true), fContextIdx(0U), fTitle(""),
--     fTemplateSpecIter(0), fSingleDecl(FD)
-+     fTemplateSpecIter(0), fSingleDecl(FD), fUsingIter(0)
+    : TClingDeclInfo(FD), fInterp(interp), fFirstTime(true), fContextIdx(0U), fTitle(""),
+-     fTemplateSpecIter(0)
++     fTemplateSpecIter(0), fUsingIter(0)
  {
  
  }
-@@ -140,6 +183,7 @@ TClingMethodInfo::TClingMethodInfo(cling::Interpreter *interp,
+@@ -163,6 +220,7 @@ TClingMethodInfo::TClingMethodInfo(cling::Interpreter *interp,
  TClingMethodInfo::~TClingMethodInfo()
  {
     delete fTemplateSpecIter;
@@ -98,37 +121,37 @@ index 0dbf27a298..bbfb6aa962 100644
  }
  
  TDictionary::DeclId_t TClingMethodInfo::GetDeclId() const
-@@ -162,6 +206,9 @@ const clang::FunctionDecl *TClingMethodInfo::GetMethodDecl() const
-    if (fTemplateSpecIter)
-       return *(*fTemplateSpecIter);
- 
-+   if (fUsingIter)
-+      return *(*fUsingIter);
-+
-    return llvm::dyn_cast<clang::FunctionDecl>(*fIter);
- }
- 
-@@ -204,6 +251,8 @@ void TClingMethodInfo::Init(const clang::FunctionDecl *decl)
+@@ -216,6 +274,8 @@ void TClingMethodInfo::Init(const clang::FunctionDecl *decl)
+    fIter = clang::DeclContext::decl_iterator();
     delete fTemplateSpecIter;
     fTemplateSpecIter = 0;
-    fSingleDecl = decl;
 +   delete fUsingIter;
 +   fUsingIter = 0;
+    fDecl = decl;
  }
  
- void *TClingMethodInfo::InterfaceMethod(const ROOT::TMetaUtils::TNormalizedCtxt &normCtxt) const
-@@ -224,6 +273,10 @@ bool TClingMethodInfo::IsValidSlow() const
+@@ -237,6 +297,10 @@ const clang::Decl* TClingMethodInfo::GetDeclSlow() const
        R__LOCKGUARD(gInterpreterMutex);
        cling::Interpreter::PushTransactionRAII RAII(fInterp);
        return *(*fTemplateSpecIter);
-+   } else if (fUsingIter) {
++   }  else if (fUsingIter) {
 +      R__LOCKGUARD(gInterpreterMutex);
 +      cling::Interpreter::PushTransactionRAII RAII(fInterp);
 +      return *(*fUsingIter);
     }
     return *fIter;
  }
-@@ -397,6 +450,13 @@ int TClingMethodInfo::InternalNext()
+@@ -281,6 +345,9 @@ static bool HasUnexpandedParameterPack(clang::QualType QT, clang::Sema& S) {
+ static void InstantiateFuncTemplateWithDefaults(clang::FunctionTemplateDecl* FTDecl,
+                                                 clang::Sema& S,
+                                                 const cling::LookupHelper& LH) {
++   // NO!!
++   return;
++
+    // Force instantiation if it doesn't exist yet, by looking it up.
+    using namespace clang;
+ 
+@@ -412,6 +479,13 @@ int TClingMethodInfo::InternalNext()
              } else {
                 return 1;
              }
@@ -142,10 +165,11 @@ index 0dbf27a298..bbfb6aa962 100644
           } else {
              ++fIter;
           }
-@@ -444,6 +504,17 @@ int TClingMethodInfo::InternalNext()
+@@ -459,6 +533,18 @@ int TClingMethodInfo::InternalNext()
           }
        }
  
++
 +      clang::UsingDecl* udecl =
 +          llvm::dyn_cast<clang::UsingDecl>(*fIter);
 +
@@ -161,33 +185,33 @@ index 0dbf27a298..bbfb6aa962 100644
        if (llvm::isa<clang::FunctionDecl>(*fIter)) {
           // Iterator is now valid.
 diff --git a/src/core/metacling/src/TClingMethodInfo.h b/src/core/metacling/src/TClingMethodInfo.h
-index 8b7f50bf1c..7e3156def0 100644
+index 573581d09c..5baf8ed93b 100644
 --- a/src/core/metacling/src/TClingMethodInfo.h
 +++ b/src/core/metacling/src/TClingMethodInfo.h
-@@ -52,6 +52,7 @@ class TClingTypeInfo;
- class TClingMethodInfo {
+@@ -54,6 +54,7 @@ class TClingTypeInfo;
+ class TClingMethodInfo final : public TClingDeclInfo {
  private:
     class SpecIterator;
 +   class UsingIterator;
  
     cling::Interpreter                          *fInterp; // Cling interpreter, we do *not* own.
     llvm::SmallVector<clang::DeclContext *, 2>   fContexts; // Set of DeclContext that we will iterate over.
-@@ -61,13 +62,14 @@ private:
+@@ -62,13 +63,14 @@ private:
+    clang::DeclContext::decl_iterator            fIter; // Our iterator.
     std::string                                  fTitle; // The meta info for the method.
     SpecIterator                                *fTemplateSpecIter; // Iter over template specialization. [We own]
-    const clang::FunctionDecl                   *fSingleDecl; // The single member
-+   UsingIterator                               *fUsingIter; // for internal loop over using functions
++   UsingIterator                               *fUsingIter; // for internal loop over using functions. [We own]
  
-    bool IsValidSlow() const;
+    const clang::Decl* GetDeclSlow() const;
  
  public:
     explicit TClingMethodInfo(cling::Interpreter *interp)
-       : fInterp(interp), fFirstTime(true), fContextIdx(0U), fTitle(""),
--        fTemplateSpecIter(0), fSingleDecl(0) {}
-+        fTemplateSpecIter(0), fSingleDecl(0), fUsingIter(0) {}
+       : TClingDeclInfo(nullptr), fInterp(interp), fFirstTime(true), fContextIdx(0U), fTitle(""),
+-        fTemplateSpecIter(0) {}
++        fTemplateSpecIter(0), fUsingIter(0) {}
  
     TClingMethodInfo(const TClingMethodInfo&);
- 
+    TClingMethodInfo& operator=(const TClingMethodInfo &in);
 diff --git a/src/core/meta/inc/TListOfFunctions.h b/src/core/meta/inc/TListOfFunctions.h
 index 58fae3025d..5e8b74c936 100644
 --- a/src/core/meta/inc/TListOfFunctions.h
@@ -285,7 +309,7 @@ diff --git a/src/core/metacling/src/TCling.cxx b/src/core/metacling/src/TCling.c
 index 9a59030df4..a89ea97a87 100644
 --- a/src/core/metacling/src/TCling.cxx
 +++ b/src/core/metacling/src/TCling.cxx
-@@ -3951,11 +3951,17 @@ void TCling::LoadFunctionTemplates(TClass* cl) const
+@@ -3943,11 +3943,17 @@ void TCling::LoadFunctionTemplates(TClass* cl) const
             declEnd = allDeclContexts.end(); declIter != declEnd; ++declIter) {
           // Iterate on all decls for each context.
           for (clang::DeclContext::decl_iterator DI = (*declIter)->decls_begin(),

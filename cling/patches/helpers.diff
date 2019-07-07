@@ -2,7 +2,7 @@ diff --git a/src/core/metacling/src/TCling.cxx b/src/core/metacling/src/TCling.c
 index 7df9bc8393..a54d6f81fa 100644
 --- a/src/core/metacling/src/TCling.cxx
 +++ b/src/core/metacling/src/TCling.cxx
-@@ -1429,6 +1429,17 @@ TCling::TCling(const char *name, const char *title, const char* const argv[])
+@@ -1383,6 +1383,17 @@ TCling::TCling(const char *name, const char *title, const char* const argv[])
     fClingCallbacks->SetAutoParsingSuspended(fIsAutoParsingSuspended);
     fInterpreter->setCallbacks(std::move(clingCallbacks));
  

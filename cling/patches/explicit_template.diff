@@ -72,7 +72,7 @@ diff --git a/src/core/metacling/src/TClingCallFunc.cxx b/src/core/metacling/src/
 index 52bf69c5b3..94601eb653 100644
 --- a/src/core/metacling/src/TClingCallFunc.cxx
 +++ b/src/core/metacling/src/TClingCallFunc.cxx
-@@ -667,11 +677,10 @@ int TClingCallFunc::get_wrapper_code(std::string &wrapper_name, std::string &wra
+@@ -667,11 +675,10 @@ int TClingCallFunc::get_wrapper_code(std::string &wrapper_name, std::string &wra
              //       header file.
              break;
           } else if (!Pattern->hasBody()) {
@@ -88,7 +88,7 @@ index 52bf69c5b3..94601eb653 100644
              needInstantiation = true;
           }
        } break;
-@@ -716,11 +725,10 @@ int TClingCallFunc::get_wrapper_code(std::string &wrapper_name, std::string &wra
+@@ -716,11 +721,10 @@ int TClingCallFunc::get_wrapper_code(std::string &wrapper_name, std::string &wra
              break;
           }
           if (!Pattern->hasBody()) {
@@ -104,7 +104,7 @@ index 52bf69c5b3..94601eb653 100644
              needInstantiation = true;
           }
        } break;
-@@ -768,11 +776,10 @@ int TClingCallFunc::get_wrapper_code(std::string &wrapper_name, std::string &wra
+@@ -768,11 +772,10 @@ int TClingCallFunc::get_wrapper_code(std::string &wrapper_name, std::string &wra
              break;
           }
           if (!Pattern->hasBody()) {

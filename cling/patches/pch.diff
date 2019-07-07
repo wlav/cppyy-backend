@@ -2,7 +2,20 @@ diff --git a/src/core/metacling/src/TCling.cxx b/core/metacling/src/TCling.cxx
 index 5413aef378..cc94115b85 100644
 --- a/src/core/metacling/src/TCling.cxx
 +++ b/src/core/metacling/src/TCling.cxx
-@@ -1217,12 +1217,14 @@ TCling::TCling(const char *name, const char *title, const char* const argv[])
+@@ -1112,6 +1112,12 @@ static std::string GetModuleNameAsString(clang::Module *M, const clang::Preproce
+    return std::string(llvm::sys::path::stem(ModuleName));
+ }
+ 
++static bool FileExists(const char *file)
++{
++   struct stat buf;
++   return (stat(file, &buf) == 0);
++}
++
+ ////////////////////////////////////////////////////////////////////////////////
+ /// Initialize the cling interpreter interface.
+ /// \param argv - array of arguments passed to the cling::Interpreter constructor
+@@ -1160,12 +1166,14 @@ TCling::TCling(const char *name, const char *title, const char* const argv[])
        // same functionality).
        if (!fCxxModulesEnabled) {
           std::string pchFilename = interpInclude + "/allDict.cxx.pch";
@@ -25,15 +38,15 @@ diff --git a/src/core/dictgen/src/rootcling_impl.cxx b/src/core/dictgen/src/root
 index b53b7352f9..0672f3082c 100644
 --- a/src/core/dictgen/src/rootcling_impl.cxx
 +++ b/src/core/dictgen/src/rootcling_impl.cxx
-@@ -236,6 +236,7 @@ const char *rootClingHelp =
- 
- #include "llvm/Bitcode/BitstreamWriter.h"
+@@ -89,6 +89,7 @@ const char *rootClingHelp =
  #include "llvm/Support/Path.h"
+ #include "llvm/Support/PrettyStackTrace.h"
+ #include "llvm/Support/Signals.h"
 +#include "llvm/Support/Process.h"
  
  #include "RtypesCore.h"
  #include "TModuleGenerator.h"
-@@ -2055,6 +2056,8 @@ void GenerateLinkdef(int *argc, char **argv, int firstInputFile,
+@@ -1908,6 +1908,8 @@ void GenerateLinkdef(int *argc, char **argv, int firstInputFile,
     code_for_parser += "#pragma link off all functions;\n\n";
 
     for (int i = firstInputFile; i < *argc; i++) {
@@ -42,7 +55,7 @@ index b53b7352f9..0672f3082c 100644
        char *s, trail[3];
        int   nostr = 0, noinp = 0, bcnt = 0, l = strlen(argv[i]) - 1;
        for (int j = 0; j < 3; j++) {
-@@ -4367,6 +4368,18 @@ int RootClingMain(int argc,
+@@ -4185,6 +4188,18 @@ int RootClingMain(int argc,
              continue;
           }
  
@@ -61,7 +74,7 @@ index b53b7352f9..0672f3082c 100644
           if ((ic + 1) < argc && strcmp("-isysroot", argv[ic]) == 0) {
              clingArgs.push_back(argv[ic++]);
              clingArgs.push_back(argv[ic++]);
-@@ -4611,6 +4624,17 @@ int RootClingMain(int argc,
+@@ -4431,6 +4446,17 @@ int RootClingMain(int argc,
     ROOT::TMetaUtils::TClingLookupHelper helper(interp, normCtxt, 0, 0);
     TClassEdit::Init(&helper);
  
@@ -79,7 +92,7 @@ index b53b7352f9..0672f3082c 100644
     // flags used only for the pragma parser:
     clingArgs.push_back("-D__CINT__");
     clingArgs.push_back("-D__MAKECINT__");
-@@ -5419,6 +5443,7 @@ namespace genreflex {
+@@ -5252,6 +5278,7 @@ namespace genreflex {
                         const std::vector<std::string> &warnings,
                         const std::string &rootmapFileName,
                         const std::string &rootmapLibName,
@@ -87,7 +100,7 @@ index b53b7352f9..0672f3082c 100644
                         bool interpreteronly,
                         bool doSplit,
                         bool isDeep,
-@@ -5477,6 +5502,12 @@ namespace genreflex {
+@@ -5314,6 +5341,12 @@ namespace genreflex {
           argvVector.push_back(string2charptr(newRootmapLibName));
        }
  
@@ -100,7 +113,7 @@ index b53b7352f9..0672f3082c 100644
        // Interpreter only dictionaries
        if (interpreteronly)
           argvVector.push_back(string2charptr("-interpreteronly"));
-@@ -5499,7 +5530,7 @@ namespace genreflex {
+@@ -5336,7 +5369,7 @@ namespace genreflex {
        AddToArgVectorSplit(argvVector, pcmsNames, "-m");
  
        // Inline the input header
@@ -109,7 +122,7 @@ index b53b7352f9..0672f3082c 100644
  
        // Write empty root pcms
        if (writeEmptyRootPCM)
-@@ -5566,6 +5597,7 @@ namespace genreflex {
+@@ -5403,6 +5436,7 @@ namespace genreflex {
                             const std::vector<std::string> &warnings,
                             const std::string &rootmapFileName,
                             const std::string &rootmapLibName,
@@ -117,7 +130,7 @@ index b53b7352f9..0672f3082c 100644
                             bool interpreteronly,
                             bool doSplit,
                             bool isDeep,
-@@ -5602,6 +5634,7 @@ namespace genreflex {
+@@ -5440,6 +5474,7 @@ namespace genreflex {
                                            warnings,
                                            rootmapFileName,
                                            rootmapLibName,
@@ -125,7 +138,7 @@ index b53b7352f9..0672f3082c 100644
                                            interpreteronly,
                                            doSplit,
                                            isDeep,
-@@ -5718,6 +5751,7 @@ int GenReflexMain(int argc, char **argv)
+@@ -5557,6 +5592,7 @@ int GenReflexMain(int argc, char **argv)
                         SELECTIONFILENAME,
                         ROOTMAP,
                         ROOTMAPLIB,
@@ -133,7 +146,7 @@ index b53b7352f9..0672f3082c 100644
                         PCMFILENAME,
                         DEEP,
                         DEBUG,
-@@ -5838,6 +5872,9 @@ int GenReflexMain(int argc, char **argv)
+@@ -5678,6 +5714,9 @@ int GenReflexMain(int argc, char **argv)
     const char *rootmapLibUsage =
        "--rootmap-lib\tLibrary name for the rootmap file.\n";
  
@@ -143,7 +156,7 @@ index b53b7352f9..0672f3082c 100644
     // The Descriptor
     const ROOT::option::Descriptor genreflexUsageDescriptor[] = {
        {
-@@ -5898,6 +5935,14 @@ int GenReflexMain(int argc, char **argv)
+@@ -5738,6 +5777,14 @@ int GenReflexMain(int argc, char **argv)
           rootmapLibUsage
        },
  
@@ -158,10 +171,10 @@ index b53b7352f9..0672f3082c 100644
        {
           INTERPRETERONLY,
           NOTYPE,
-@@ -6145,6 +6190,11 @@ int GenReflexMain(int argc, char **argv)
-       }
-    }
- 
+@@ -5996,6 +6043,11 @@ int GenReflexMain(int argc, char **argv)
+
+    bool isCxxmodule = options[CXXMODULE];
+
 +   // Optional extra flags
 +   std::string extraFlags;
 +   if (options[EXTRAFLAGS])
@@ -170,7 +183,7 @@ index b53b7352f9..0672f3082c 100644
     bool multidict = false;
     if (options[MULTIDICT]) multidict = true;
  
-@@ -6234,6 +6284,7 @@ int GenReflexMain(int argc, char **argv)
+@@ -6085,6 +6137,7 @@ int GenReflexMain(int argc, char **argv)
                                      warnings,
                                      rootmapFileName,
                                      rootmapLibName,
@@ -178,7 +191,7 @@ index b53b7352f9..0672f3082c 100644
                                      interpreteronly,
                                      doSplit,
                                      isDeep,
-@@ -6256,6 +6307,7 @@ int GenReflexMain(int argc, char **argv)
+@@ -6108,6 +6161,7 @@ int GenReflexMain(int argc, char **argv)
                                          warnings,
                                          rootmapFileName,
                                          rootmapLibName,
@@ -208,8 +221,8 @@ index e8210e2f65..63b2a8dc99 100644
 --- a/src/config/RConfigure.in
 +++ b/src/config/RConfigure.in
 @@ -59,4 +59,64 @@
- #@hastmvacpu@ R__HAS_TMVACPU /**/
  #@hastmvagpu@ R__HAS_TMVAGPU /**/
+
  
 +#if __cplusplus > 201402L
 +#ifndef R__USE_CXX17
@@ -276,7 +289,7 @@ diff --git a/src/build/unix/makepchinput.py b/src/build/unix/makepchinput.py
 index 1468a87277..c823c5eef7 100755
 --- a/src/build/unix/makepchinput.py
 +++ b/src/build/unix/makepchinput.py
-@@ -64,9 +64,10 @@ def getGuardedStlInclude(headerName):
+@@ -63,9 +63,10 @@ def getGuardedStlInclude(headerName):
  #-------------------------------------------------------------------------------
  def getSTLIncludes():
     """
@@ -288,7 +301,7 @@ index 1468a87277..c823c5eef7 100755
     """
     stlHeadersList = ("cstdlib",
                       "csignal",
-@@ -134,7 +135,7 @@ def getSTLIncludes():
+@@ -133,7 +134,7 @@ def getSTLIncludes():
                       "cstdio",
                       "locale",
                       "clocale",
@@ -297,7 +310,7 @@ index 1468a87277..c823c5eef7 100755
                       "atomic",
                       "thread",
                       "mutex",
-@@ -142,9 +143,21 @@ def getSTLIncludes():
+@@ -141,9 +142,21 @@ def getSTLIncludes():
                       "condition_variable",
                       "ciso646",
                       "ccomplex",

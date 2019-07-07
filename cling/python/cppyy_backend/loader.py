@@ -125,7 +125,7 @@ def ensure_precompiled_header(pchdir = '', pchname = ''):
          is_uptodate = _is_uptodate(full_pchname, incpath)
          if not os.path.exists(full_pchname) or not is_uptodate:
              if os.access(pchdir, os.R_OK|os.W_OK):
-                 print('(Re-)building pre-compiled headers (options:%s); this make take a minute ...' % os.environ.get('EXTRA_CLING_ARGS', ' none'))
+                 print('(Re-)building pre-compiled headers (options:%s); this may take a minute ...' % os.environ.get('EXTRA_CLING_ARGS', ' none'))
                  makepch = os.path.join(pkgpath, 'etc', 'dictpch', 'makepch.py')
                  if subprocess.call(['python', makepch, full_pchname, '-I'+incpath]) != 0:
                      _warn_no_pch('failed to build')

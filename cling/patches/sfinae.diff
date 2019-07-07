@@ -16,7 +16,7 @@ diff --git a/src/core/clingutils/src/TClingUtils.cxx b/src/core/clingutils/src/T
 index a7d51a41c6..e93962db75 100644
 --- a/src/core/clingutils/src/TClingUtils.cxx
 +++ b/src/core/clingutils/src/TClingUtils.cxx
-@@ -3921,7 +3921,16 @@ void ROOT::TMetaUtils::GetNormalizedName(std::string &norm_name, const clang::Qu
+@@ -3923,7 +3923,16 @@ void ROOT::TMetaUtils::GetNormalizedName(std::string &norm_name, const clang::Qu
        return;
     }
  
@@ -38,7 +38,7 @@ diff --git a/src/core/metacling/src/TClingMethodInfo.cxx b/src/core/metacling/sr
 index bbfb6aa962..fe25edfa46 100644
 --- a/src/core/metacling/src/TClingMethodInfo.cxx
 +++ b/src/core/metacling/src/TClingMethodInfo.cxx
-@@ -667,7 +678,15 @@ TClingTypeInfo *TClingMethodInfo::Type() const
+@@ -691,7 +691,15 @@ TClingTypeInfo *TClingMethodInfo::Type() const
           ti.Init(qt);
        }
     } else {
