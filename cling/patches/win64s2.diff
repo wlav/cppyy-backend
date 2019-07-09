@@ -688,7 +688,7 @@ diff --git a/src/core/metacling/src/TClingCallFunc.cxx b/src/core/metacling/src/
 index 1bae809e7c..9bc534b3cd 100644
 --- a/src/core/metacling/src/TClingCallFunc.cxx
 +++ b/src/core/metacling/src/TClingCallFunc.cxx
-@@ -2335,13 +2335,13 @@ void TClingCallFunc::SetArgs(const char *params)
+@@ -2372,13 +2372,13 @@ void TClingCallFunc::SetArgs(const char *params)
  }
  
  void TClingCallFunc::SetFunc(const TClingClassInfo *info, const char *method, const char *arglist,
@@ -704,7 +704,7 @@ index 1bae809e7c..9bc534b3cd 100644
  {
     Init(std::unique_ptr<TClingMethodInfo>(new TClingMethodInfo(fInterp)));
     if (poffset) {
-@@ -2378,14 +2378,14 @@ void TClingCallFunc::SetFunc(const TClingMethodInfo *info)
+@@ -2415,14 +2415,14 @@ void TClingCallFunc::SetFunc(const TClingMethodInfo *info)
  }
  
  void TClingCallFunc::SetFuncProto(const TClingClassInfo *info, const char *method,
@@ -721,7 +721,7 @@ index 1bae809e7c..9bc534b3cd 100644
                                    EFunctionMatchMode mode/*=kConversionMatch*/)
  {
     Init(std::unique_ptr<TClingMethodInfo>(new TClingMethodInfo(fInterp)));
-@@ -2406,7 +2406,7 @@ void TClingCallFunc::SetFuncProto(const TClingClassInfo *info, const char *metho
+@@ -2443,7 +2443,7 @@ void TClingCallFunc::SetFuncProto(const TClingClassInfo *info, const char *metho
  }
  
  void TClingCallFunc::SetFuncProto(const TClingClassInfo *info, const char *method,
@@ -730,7 +730,7 @@ index 1bae809e7c..9bc534b3cd 100644
                                    EFunctionMatchMode mode/*=kConversionMatch*/)
  {
     SetFuncProto(info, method, proto, false, poffset, mode);
-@@ -2414,7 +2414,7 @@ void TClingCallFunc::SetFuncProto(const TClingClassInfo *info, const char *metho
+@@ -2451,7 +2451,7 @@ void TClingCallFunc::SetFuncProto(const TClingClassInfo *info, const char *metho
  
  void TClingCallFunc::SetFuncProto(const TClingClassInfo *info, const char *method,
                                    const llvm::SmallVectorImpl<clang::QualType> &proto,

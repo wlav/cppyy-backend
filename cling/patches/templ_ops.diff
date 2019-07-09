@@ -1,8 +1,75 @@
 diff --git a/src/core/metacling/src/TClingCallFunc.cxx b/src/core/metacling/src/TClingCallFunc.cxx
-index 9bc534b3cd..52bf69c5b3 100644
+index 48734086ce..2996bcae91 100644
 --- a/src/core/metacling/src/TClingCallFunc.cxx
 +++ b/src/core/metacling/src/TClingCallFunc.cxx
-@@ -437,26 +437,34 @@ void TClingCallFunc::make_narg_call(const std::string &return_type, const unsign
+@@ -388,6 +391,8 @@ void TClingCallFunc::make_narg_ctor(const unsigned N, ostringstream &typedefbuf,
+    callbuf << ")";
+ }
+ 
++static std::map<OverloadedOperatorKind, std::string> binOperatorKinds;
++
+ void TClingCallFunc::make_narg_call(const std::string &return_type, const unsigned N, ostringstream &typedefbuf,
+                                     ostringstream &callbuf, const string &class_name, int indent_level)
+ {
+@@ -398,6 +403,47 @@ void TClingCallFunc::make_narg_call(const std::string &return_type, const unsign
+    //
+    const FunctionDecl *FD = GetDecl();
+ 
++   if (binOperatorKinds.empty()) {
++      // Prepare lookup map for specific binary operators that are supposed to
++      // be left in-place for Cling to resolve.
++      binOperatorKinds[OO_Plus]                   = " + ";
++      binOperatorKinds[OO_Minus]                  = " - ";
++      binOperatorKinds[OO_EqualEqual]             = " == ";
++      binOperatorKinds[OO_Star]                   = " * ";
++      binOperatorKinds[OO_Slash]                  = " / ";
++      binOperatorKinds[OO_Percent]                = " % ";
++      binOperatorKinds[OO_Caret]                  = " ^ ";
++      binOperatorKinds[OO_Amp]                    = " & ";
++      binOperatorKinds[OO_Pipe]                   = " | ";
++      binOperatorKinds[OO_Tilde]                  = " ~ ";
++      binOperatorKinds[OO_Exclaim]                = " ! ";
++      binOperatorKinds[OO_Equal]                  = " = ";
++      binOperatorKinds[OO_Less]                   = " < ";
++      binOperatorKinds[OO_Greater]                = " > ";
++      binOperatorKinds[OO_LessLess]               = " << ";
++      binOperatorKinds[OO_GreaterGreater]         = " >> ";
++      binOperatorKinds[OO_LessLessEqual]          = " <<= ";
++      binOperatorKinds[OO_GreaterGreaterEqual]    = " >>= ";
++      binOperatorKinds[OO_EqualEqual]             = " == ";
++      binOperatorKinds[OO_ExclaimEqual]           = " != ";
++      binOperatorKinds[OO_LessEqual]              = " <= ";
++      binOperatorKinds[OO_GreaterEqual]           = " >= ";
++      binOperatorKinds[OO_AmpAmp]                 = " && ";
++      binOperatorKinds[OO_PipePipe]               = " || ";
++   }
++
++   // Filter out binary operators and replace them simply by that operator
++   // to make Cling do the overload resolution. This is mainly for templates,
++   // some of which won't compile under Clang5, and others which do not have
++   // the proper specialization, even though the argument types match. (It's
++   // to late for silent SFINAE at this point.)
++   std::string optype = "";
++   if (N == 2 && FD->getDeclName().getNameKind() == DeclarationName::CXXOperatorName) {
++       auto res = binOperatorKinds.find(FD->getDeclName().getCXXOverloadedOperator());
++       if (res != binOperatorKinds.end())
++           optype = res->second;
++   }
++
+    // Sometimes it's necessary that we cast the function we want to call first
+    // to its explicit function type before calling it. This is supposed to prevent
+    // that we accidentially ending up in a function that is not the one we're
+@@ -409,7 +455,8 @@ void TClingCallFunc::make_narg_call(const std::string &return_type, const unsign
+    // we supply the object parameter.
+    // Therefore we only use it in cases where we know it works and set this variable
+    // to true when we do.
+-   bool ShouldCastFunction = !isa<CXXMethodDecl>(FD) && N == FD->getNumParams() \
++   bool ShouldCastFunction = optype.empty() && \
++                             !isa<CXXMethodDecl>(FD) && N == FD->getNumParams() \
+                              && !FD->isTemplateInstantiation() && return_type != "(lambda)";
+    if (ShouldCastFunction) {
+       callbuf << "((" << return_type << " (&)(";
+@@ -437,26 +484,29 @@ void TClingCallFunc::make_narg_call(const std::string &return_type, const unsign
        callbuf << "))";
     }
  
@@ -26,12 +93,7 @@ index 9bc534b3cd..52bf69c5b3 100644
 +      FD->getNameForDiagnostic(stream, FD->getASTContext().getPrintingPolicy(), /*Qualified=*/false);
 +   }
 +
-+   int optype = 0;
-+   if (N == 2) {
-+       if (!strncmp(function_name.c_str(), "operator==<", 11)) optype = 1;
-+       else if (!strncmp(function_name.c_str(), "operator!=<", 11)) optype = 2;
-+   }
-+   if (!optype) {
++   if (optype.empty()) {
 +      if (const CXXMethodDecl *MD = dyn_cast<CXXMethodDecl>(FD)) {
 +         // This is a class, struct, or union member.
 +         if (MD->isConst())
@@ -54,7 +116,7 @@ index 9bc534b3cd..52bf69c5b3 100644
     }
     if (ShouldCastFunction) callbuf << ")";
  
-@@ -471,14 +479,20 @@ void TClingCallFunc::make_narg_call(const std::string &return_type, const unsign
+@@ -471,14 +516,18 @@ void TClingCallFunc::make_narg_call(const std::string &return_type, const unsign
        collect_type_info(QT, typedefbuf, callbuf, type_name, refType, isPointer, indent_level, true);
  
        if (i) {
@@ -65,7 +127,7 @@ index 9bc534b3cd..52bf69c5b3 100644
 -            callbuf << "\n";
 -            for (int j = 0; j <= indent_level; ++j) {
 -               callbuf << kIndentString;
-+         if (!optype) {
++         if (optype.empty()) {
 +            callbuf << ',';
 +            if (i % 2) {
 +               callbuf << ' ';
@@ -75,10 +137,8 @@ index 9bc534b3cd..52bf69c5b3 100644
 +                  callbuf << kIndentString;
 +               }
              }
-+         } else if (optype == 1) {
-+            callbuf << " == ";
-+         } else if (optype == 2) {
-+            callbuf << " != ";
++         } else {
++            callbuf << optype;
           }
        }
  

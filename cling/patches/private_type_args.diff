@@ -14,7 +14,7 @@ index 52bf69c5b3..0e62dc1199 100644
        string type_name;
        EReferenceType refType = kNotReference;
        bool isPointer = false;
-@@ -473,6 +478,11 @@ void TClingCallFunc::make_narg_call(const std::string &return_type, const unsign
+@@ -512,6 +517,11 @@ void TClingCallFunc::make_narg_call(const std::string &return_type, const unsign
        const ParmVarDecl *PVD = FD->getParamDecl(i);
        QualType Ty = PVD->getType();
        QualType QT = Ty.getCanonicalType();
