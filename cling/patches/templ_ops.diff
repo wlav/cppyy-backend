@@ -48,7 +48,7 @@ index 48734086ce..2996bcae91 100644
 +   // to make Cling do the overload resolution. This is mainly for templates,
 +   // some of which won't compile under Clang5, and others which do not have
 +   // the proper specialization, even though the argument types match. (It's
-+   // to late for silent SFINAE at this point.)
++   // too late for silent SFINAE at this point.)
 +   std::string optype = "";
 +   if (N == 2 && FD->getDeclName().getNameKind() == DeclarationName::CXXOperatorName) {
 +       auto res = binOperatorKinds.find(FD->getDeclName().getCXXOverloadedOperator());
