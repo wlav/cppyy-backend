@@ -2,15 +2,6 @@ diff --git a/src/core/clingutils/src/TClingUtils.cxx b/src/core/clingutils/src/T
 index a4baa766e8..c042fa3645 100644
 --- a/src/core/clingutils/src/TClingUtils.cxx
 +++ b/src/core/clingutils/src/TClingUtils.cxx
-@@ -42,6 +42,8 @@
- #include "clang/Lex/Preprocessor.h"
- #include "clang/Lex/PreprocessorOptions.h"
- 
-+#include "clang/Basic/LangOptions.h"
-+
- #include "clang/Sema/Sema.h"
- #include "clang/Sema/SemaDiagnostic.h"
- 
 @@ -573,7 +575,8 @@ bool TClingLookupHelper::GetPartiallyDesugaredNameWithScopeHandling(const std::s
           // white space.
           clang::PrintingPolicy policy(fInterpreter->getCI()->getASTContext().getPrintingPolicy());
