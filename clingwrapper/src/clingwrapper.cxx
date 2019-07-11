@@ -310,7 +310,7 @@ std::string Cppyy::ResolveEnum(const std::string& enum_type)
     }
 
 // failed or anonymous ... signal upstream to special case this
-    int ipos = enum_type.size()-1;
+    int ipos = (int)enum_type.size()-1;
     for (; 0 <= ipos; --ipos) {
         char c = enum_type[ipos];
         if (isspace(c)) continue;
@@ -318,7 +318,7 @@ std::string Cppyy::ResolveEnum(const std::string& enum_type)
     }
     bool isConst = enum_type.find("const ", 6) != std::string::npos;
     std::string restype = isConst ? "const " : "";
-    restype += "internal_enum_type_t"+enum_type.substr(ipos+1, std::string::npos);
+    restype += "internal_enum_type_t"+enum_type.substr((std::string::size_type)ipos+1, std::string::npos);
     resolved_enum_types[enum_type] = restype;
     return restype;     // should default to some int variant
 }
