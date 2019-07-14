@@ -80,6 +80,15 @@ static std::set<std::string> gSTLNames;
 // data ----------------------------------------------------------------------
 Cppyy::TCppScope_t Cppyy::gGlobalScope = GLOBAL_HANDLE;
 
+// builtin types (including a few common STL templates as long as they live in
+// the global namespace b/c of choices upstream)
+static std::set<std::string> g_builtins =
+    {"bool", "char", "signed char", "unsigned char", "wchar_t", "short", "unsigned short",
+     "int", "unsigned int", "long", "unsigned long", "long long", "unsigned long long",
+     "float", "double", "long double", "void",
+     "allocator", "array", "basic_string", "complex", "initializer_list", "less", "list",
+     "map", "pair", "set", "vector"};
+
 // smart pointer types
 static std::set<std::string> gSmartPtrTypes =
     {"auto_ptr", "shared_ptr", "weak_ptr", "unique_ptr"};
@@ -336,6 +345,11 @@ Cppyy::TCppScope_t Cppyy::GetScope(const std::string& sname)
 // First, try cache
     TCppType_t result = find_memoized(sname);
     if (result) return result;
+
+// Second, skip builtins before going through the more expensive steps of resolving
+// typedefs and looking up TClass
+    if (g_builtins.find(sname) != g_builtins.end())
+        return (TCppScope_t)0;
 
 // TODO: scope_name should always be final already?
 // Resolve name fully before lookup to make sure all aliases point to the same scope
