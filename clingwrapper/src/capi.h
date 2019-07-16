@@ -183,7 +183,7 @@ extern "C" {
 
     RPY_EXPORTED
     cppyy_index_t cppyy_get_global_operator(
-        cppyy_scope_t scope, cppyy_scope_t lc, cppyy_scope_t rc, const char* op);
+        cppyy_scope_t scope, const char* lc, const char* rc, const char* op);
 
     /* method properties ------------------------------------------------------ */
     RPY_EXPORTED

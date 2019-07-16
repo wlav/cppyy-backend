@@ -1476,12 +1476,13 @@ Cppyy::TCppMethod_t Cppyy::GetMethodTemplate(
 }
 
 Cppyy::TCppIndex_t Cppyy::GetGlobalOperator(
-    TCppScope_t scope, TCppType_t lc, TCppType_t rc, const std::string& opname)
+    TCppType_t scope, const std::string& lc, const std::string& rc, const std::string& opname)
 {
 // Find a global operator function with a matching signature; prefer by-ref, but
 // fall back on by-value if that fails.
-    const std::string& lcname = GetScopedFinalName(lc);
-    const std::string& rcname = GetScopedFinalName(rc);
+    const std::string& lcname = TClassEdit::CleanType(lc.c_str());
+    const std::string& rcname = TClassEdit::CleanType(rc.c_str());
+
     std::string proto = lcname + "&, " + rcname + "&";
     if (scope == (cppyy_scope_t)GLOBAL_HANDLE) {
         TFunction* func = gROOT->GetGlobalFunctionWithPrototype(opname.c_str(), proto.c_str());
@@ -2173,7 +2174,7 @@ cppyy_method_t cppyy_get_method_template(cppyy_scope_t scope, const char* name, 
     return cppyy_method_t(Cppyy::GetMethodTemplate(scope, name, proto));
 }
 
-cppyy_index_t cppyy_get_global_operator(cppyy_scope_t scope, cppyy_scope_t lc, cppyy_scope_t rc, const char* op) {
+cppyy_index_t cppyy_get_global_operator(cppyy_scope_t scope, const char* lc, const char* rc, const char* op) {
     return cppyy_index_t(Cppyy::GetGlobalOperator(scope, lc, rc, op));
 }
 
