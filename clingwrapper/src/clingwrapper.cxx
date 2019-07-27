@@ -91,7 +91,8 @@ static std::set<std::string> g_builtins =
 
 // smart pointer types
 static std::set<std::string> gSmartPtrTypes =
-    {"auto_ptr", "shared_ptr", "weak_ptr", "unique_ptr"};
+    {"auto_ptr", "std::auto_ptr", "shared_ptr", "std::shared_ptr",
+     "unique_ptr", "std::unique_ptr", "weak_ptr", "std::weak_ptr"};
 
 // configuration
 static bool gEnableFastPath = true;
