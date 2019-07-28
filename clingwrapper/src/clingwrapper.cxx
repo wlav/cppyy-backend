@@ -1010,11 +1010,22 @@ bool Cppyy::IsSubtype(TCppType_t derived, TCppType_t base)
     return derived_type->GetBaseClass(base_type) != 0;
 }
 
+bool Cppyy::IsSmartPtr(TCppType_t klass)
+{
+    TClassRef& cr = type_from_handle(klass);
+    const std::string& tn = cr->GetName();
+    if (gSmartPtrTypes.find(tn.substr(0, tn.find("<"))) != gSmartPtrTypes.end())
+        return true;
+    return false;
+}
+
 bool Cppyy::GetSmartPtrInfo(
-    const std::string& tname, TCppType_t& raw, TCppMethod_t& deref)
+    const std::string& tname, TCppType_t* raw, TCppMethod_t* deref)
 {
     const std::string& rn = ResolveName(tname);
     if (gSmartPtrTypes.find(rn.substr(0, rn.find("<"))) != gSmartPtrTypes.end()) {
+        if (!raw && !deref) return true;
+
         TClassRef& cr = type_from_handle(GetScope(tname));
         if (cr.GetClass()) {
             TFunction* func = cr->GetMethod("operator->", "");
@@ -1023,10 +1034,10 @@ bool Cppyy::GetSmartPtrInfo(
                 func =  cr->GetMethod("operator->", "");
             }
             if (func) {
-               deref = (TCppMethod_t)new_CallWrapper(func);
-               raw = GetScope(TClassEdit::ShortType(
+               if (deref) *deref = (TCppMethod_t)new_CallWrapper(func);
+               if (raw) *raw = GetScope(TClassEdit::ShortType(
                    func->GetReturnTypeNormalizedName().c_str(), 1));
-               return deref && raw;
+               return (!deref || *deref) && (!raw || *raw);
             }
         }
     }
@@ -2057,12 +2068,12 @@ int cppyy_is_subtype(cppyy_type_t derived, cppyy_type_t base) {
     return (int)Cppyy::IsSubtype(derived, base);
 }
 
+int cppyy_is_smartptr(cppyy_type_t type) {
+    return (int)Cppyy::IsSmartPtr(type);
+}
+
 int cppyy_smartptr_info(const char* name, cppyy_type_t* raw, cppyy_method_t* deref) {
-    Cppyy::TCppScope_t r2 = *raw;
-    Cppyy::TCppMethod_t d2 = *deref;
-    int result = (int)Cppyy::GetSmartPtrInfo(name, r2, d2);
-    *raw = r2; *deref = d2;
-    return result;
+    return (int)Cppyy::GetSmartPtrInfo(name, raw, deref);
 }
 
 void cppyy_add_smartptr_type(const char* type_name) {

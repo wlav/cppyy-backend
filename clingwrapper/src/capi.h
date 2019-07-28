@@ -126,6 +126,8 @@ extern "C" {
     RPY_EXPORTED
     int cppyy_is_subtype(cppyy_type_t derived, cppyy_type_t base);
     RPY_EXPORTED
+    int cppyy_is_smartptr(cppyy_type_t type);
+    RPY_EXPORTED
     int cppyy_smartptr_info(const char* name, cppyy_type_t* raw, cppyy_method_t* deref);
     RPY_EXPORTED
     void cppyy_add_smartptr_type(const char* type_name);

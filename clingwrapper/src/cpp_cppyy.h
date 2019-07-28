@@ -136,7 +136,9 @@ namespace Cppyy {
     RPY_EXPORTED
     bool        IsSubtype(TCppType_t derived, TCppType_t base);
     RPY_EXPORTED
-    bool        GetSmartPtrInfo(const std::string&, TCppType_t& raw, TCppMethod_t& deref);
+    bool        IsSmartPtr(TCppType_t type);
+    RPY_EXPORTED
+    bool        GetSmartPtrInfo(const std::string&, TCppType_t* raw, TCppMethod_t* deref);
     RPY_EXPORTED
     void        AddSmartPtrType(const std::string&);
 
