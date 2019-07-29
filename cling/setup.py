@@ -248,8 +248,8 @@ class my_install(_install):
             outp = inp+'.new'
             outfile = open(outp, 'w')
             for line in open(inp).readlines():
-                if line.find('cxxversion=', 0, 11) == 0:
-                    line = 'cxxversion=cxx17\n'
+                if line.find('cxxversionflag=', 0, 15) == 0:
+                    line = 'cxxversionflag="-std=c++1z "\n'
                 elif line.find('features=', 0, 9) == 0:
                     line = line.replace('cxx11', 'cxx17')
                 outfile.write(line)
