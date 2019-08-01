@@ -513,6 +513,12 @@ function(cppyy_add_bindings pkg pkg_version author author_email)
     configure_file(${BACKEND_PREFIX}/pkg_templates/setup.cfg.in ${setup_cfg})
 
     #
+    # Copy initializor
+    #
+    set(initializor ${CMAKE_CURRENT_BINARY_DIR}/initializor.py)
+    file(COPY ${BACKEND_PREFIX}/pkg_templates/initializor.py DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/${pkg} USE_SOURCE_PERMISSIONS)
+
+    #
     # Copy README and LICENSE
     #
     if (EXISTS ${README_FILE})
