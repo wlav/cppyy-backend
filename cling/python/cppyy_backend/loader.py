@@ -81,8 +81,15 @@ def set_cling_compile_options(add_defaults = False):
         os.environ['EXTRA_CLING_ARGS'] = CURRENT_ARGS
 
 
-def _warn_no_pch(msg):
-    warnings.warn('No precompiled header available (%s); this may impact performance.' % msg)
+def _disable_pch():
+    os.putenv('CLING_STANDARD_PCH', 'none')
+
+def _warn_no_pch(msg, pchname=None):
+    if pchname is None or not os.path.exists(pchname):
+        _disable_pch()
+        warnings.warn('No precompiled header available (%s); this may impact performance.' % msg)
+    else:
+        warnings.warn('Precompiled header may be out of date (%s).' % msg)
 
 def _is_uptodate(pchname, incpath):
   # test whether the pch is older than the include directory
@@ -92,9 +99,6 @@ def _is_uptodate(pchname, incpath):
         if not os.path.exists(incpath):
             return True     # no point in updating as it will fail 
     return False
-
-def _disable_pch():
-    os.putenv('CLING_STANDARD_PCH', 'none')
 
 def ensure_precompiled_header(pchdir = '', pchname = ''):
   # the precompiled header of standard and system headers is not part of the
@@ -128,13 +132,11 @@ def ensure_precompiled_header(pchdir = '', pchname = ''):
                  print('(Re-)building pre-compiled headers (options:%s); this may take a minute ...' % os.environ.get('EXTRA_CLING_ARGS', ' none'))
                  makepch = os.path.join(pkgpath, 'etc', 'dictpch', 'makepch.py')
                  if subprocess.call(['python', makepch, full_pchname, '-I'+incpath]) != 0:
-                     _warn_no_pch('failed to build')
+                     _warn_no_pch('failed to build', full_pchname)
              else:
-                 _disable_pch()
-                 _warn_no_pch('%s not writable' % pchdir)
+                 _warn_no_pch('%s not writable' % pchdir, full_pchname)
 
      except Exception as e:
-         _disable_pch()
          _warn_no_pch(str(e))
      finally:
          os.chdir(olddir)
