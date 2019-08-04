@@ -128,6 +128,8 @@ namespace Cppyy {
     RPY_EXPORTED
     std::string GetScopedFinalName(TCppType_t type);
     RPY_EXPORTED
+    bool        HasVirtualDestructor(TCppType_t type);
+    RPY_EXPORTED
     bool        HasComplexHierarchy(TCppType_t type);
     RPY_EXPORTED
     TCppIndex_t GetNumBases(TCppType_t type);

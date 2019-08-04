@@ -962,6 +962,19 @@ std::string Cppyy::GetScopedFinalName(TCppType_t klass)
     return "";
 }
 
+bool Cppyy::HasVirtualDestructor(TCppType_t klass)
+{
+    TClassRef& cr = type_from_handle(klass);
+    if (!cr.GetClass())
+        return false;
+
+    TFunction* f = cr->GetMethod(("~"+GetFinalName(klass)).c_str(), "");
+    if (f && (f->Property() & kIsVirtual))
+        return true;
+
+    return false;
+}
+
 bool Cppyy::HasComplexHierarchy(TCppType_t klass)
 {
     int is_complex = 1;
@@ -2050,6 +2063,10 @@ char* cppyy_final_name(cppyy_type_t type) {
 
 char* cppyy_scoped_final_name(cppyy_type_t type) {
     return cppstring_to_cstring(Cppyy::GetScopedFinalName(type));
+}
+
+int cppyy_has_virtual_destructor(cppyy_type_t type) {
+    return (int)Cppyy::HasVirtualDestructor(type);
 }
 
 int cppyy_has_complex_hierarchy(cppyy_type_t type) {

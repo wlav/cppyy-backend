@@ -118,6 +118,8 @@ extern "C" {
     RPY_EXPORTED
     char* cppyy_scoped_final_name(cppyy_type_t type);
     RPY_EXPORTED
+    int cppyy_has_virtual_destructor(cppyy_type_t type);
+    RPY_EXPORTED
     int cppyy_has_complex_hierarchy(cppyy_type_t type);
     RPY_EXPORTED
     int cppyy_num_bases(cppyy_type_t type);
