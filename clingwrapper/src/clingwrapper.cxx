@@ -94,6 +94,9 @@ static std::set<std::string> gSmartPtrTypes =
     {"auto_ptr", "std::auto_ptr", "shared_ptr", "std::shared_ptr",
      "unique_ptr", "std::unique_ptr", "weak_ptr", "std::weak_ptr"};
 
+// to filter out ROOT names
+static std::set<std::string> gInitialNames;
+
 // configuration
 static bool gEnableFastPath = true;
 
@@ -173,6 +176,15 @@ public:
         gInterpreter->Declare(
             "namespace __cppyy_internal { template<class C1, class C2>"
             " bool is_not_equal(const C1& c1, const C2& c2) { return (bool)(c1 != c2); } }");
+
+    // retrieve all initial (ROOT) C++ names in the global scope to allow filtering later
+        if (!getenv("CPPYY_NO_ROOT_FILTER")) {
+            gROOT->GetListOfGlobals(true);             // force initialize
+            gROOT->GetListOfGlobalFunctions(true);     // id.
+            std::set<std::string> initial;
+            Cppyy::GetAllCppNames(GLOBAL_HANDLE, initial);
+            gInitialNames = initial;
+        }
 
     // start off with a reasonable size placeholder for wrappers
         gWrapperHolder.reserve(1024);
@@ -804,9 +816,10 @@ std::string outer_no_template(const std::string& name)
     type* obj = nullptr;                                                      \
     while ((obj = (type*)itr.Next())) {                                       \
         const char* nm = obj->GetName();                                      \
-        if (nm && nm[0] != '_' && !(obj->Property() & (filter)))              \
-            cppnames.insert(nm);                                              \
-    }}
+        if (nm && nm[0] != '_' && !(obj->Property() & (filter))) {            \
+            if (gInitialNames.find(nm) == gInitialNames.end())                \
+                cppnames.insert(nm);                                          \
+    }}}
 
 static inline
 void cond_add(Cppyy::TCppScope_t scope, const std::string& ns_scope,
@@ -816,11 +829,17 @@ void cond_add(Cppyy::TCppScope_t scope, const std::string& ns_scope,
         return;
 
     if (scope == GLOBAL_HANDLE) {
-        if (!is_missclassified_stl(name))
+        std::string to_add = outer_no_template(name);
+        if (gInitialNames.find(to_add) == gInitialNames.end() && !is_missclassified_stl(name))
             cppnames.insert(outer_no_template(name));
     } else if (scope == STD_HANDLE) {
-        if (strncmp(name, "std::", 5) == 0) name += 5;
-        else if (!is_missclassified_stl(name)) return;
+        if (strncmp(name, "std::", 5) == 0) {
+            name += 5;
+#ifdef __APPLE__
+            if (strncmp(name, "__1::", 5) == 0) name += 5;
+#endif
+        } else if (!is_missclassified_stl(name))
+            return;
         cppnames.insert(outer_no_template(name));
     } else {
         if (strncmp(name, ns_scope.c_str(), ns_scope.size()) == 0)
@@ -864,8 +883,9 @@ void Cppyy::GetAllCppNames(TCppScope_t scope, std::set<std::string>& cppnames)
         TIter itr{coll};
         TDataType* dt = nullptr;
         while ((dt = (TDataType*)itr.Next())) {
-            if (!(dt->Property() & kIsFundamental))
+            if (!(dt->Property() & kIsFundamental)) {
                 cond_add(scope, ns_scope, cppnames, dt->GetName());
+            }
         }
     }
 
@@ -878,8 +898,10 @@ void Cppyy::GetAllCppNames(TCppScope_t scope, std::set<std::string>& cppnames)
         while ((obj = (TFunction*)itr.Next())) {
             const char* nm = obj->GetName();
         // skip templated functions, adding only the un-instantiated ones
-            if (nm && nm[0] != '_' && strstr(nm, "<") == 0 && strncmp(nm, "operator", 8) != 0)
-                cppnames.insert(nm);
+            if (nm && nm[0] != '_' && strstr(nm, "<") == 0 && strncmp(nm, "operator", 8) != 0) {
+                if (gInitialNames.find(nm) == gInitialNames.end())
+                    cppnames.insert(nm);
+            }
         }
     }
 
@@ -902,6 +924,12 @@ void Cppyy::GetAllCppNames(TCppScope_t scope, std::set<std::string>& cppnames)
         coll = cr->GetListOfEnums();
         FILL_COLL(TEnum, kIsPrivate | kIsProtected)
     }
+
+#ifdef __APPLE__
+// special case for Apple, add version namespace '__1' entries to std
+    if (scope == STD_HANDLE)
+        GetAllCppNames(GetScope("std::__1"), cppnames);
+#endif
 }
 
 
@@ -1492,8 +1520,18 @@ Cppyy::TCppMethod_t Cppyy::GetMethodTemplate(
 // try again with template arguments removed from name, if applicable
     if (name.back() == '>') {
         auto pos = name.find('<');
-        if (pos != std::string::npos)
-            return GetMethodTemplate(scope, name.substr(0, pos), proto);
+        if (pos != std::string::npos) {
+            TCppMethod_t cppmeth = GetMethodTemplate(scope, name.substr(0, pos), proto);
+            if (cppmeth) {
+            // allow if requested template names match up to the result
+                const std::string& alt = GetMethodFullName(cppmeth);
+                if (name.size() < alt.size() && alt.find('<') == pos) {
+                    const std::string& partial = name.substr(pos, name.size()-1-pos);
+                    if (strncmp(partial.c_str(), alt.substr(pos, alt.size()-1-pos).c_str(), partial.size()) == 0)
+                        return cppmeth;
+                }
+            }
+        }
     }
 
 // failure ...
