@@ -30,7 +30,7 @@
 
 // Standard
 #include <assert.h>
-#include <algorithm>     // for std::count
+#include <algorithm>     // for std::count, std::remove
 #include <stdexcept>
 #include <map>
 #include <new>
@@ -1233,8 +1233,11 @@ std::string Cppyy::GetMethodName(TCppMethod_t method)
 
 std::string Cppyy::GetMethodFullName(TCppMethod_t method)
 {
-    if (method)
-        return m2f(method)->GetName();
+    if (method) {
+        std::string name = m2f(method)->GetName();
+        name.erase(std::remove(name.begin(), name.end(), ' '), name.end());
+        return name;
+    }
     return "<unknown>";
 }
 
