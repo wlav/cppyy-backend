@@ -96,6 +96,7 @@ static std::set<std::string> gSmartPtrTypes =
 
 // to filter out ROOT names
 static std::set<std::string> gInitialNames;
+static std::set<std::string> gRootSOs;
 
 // configuration
 static bool gEnableFastPath = true;
@@ -184,6 +185,11 @@ public:
             std::set<std::string> initial;
             Cppyy::GetAllCppNames(GLOBAL_HANDLE, initial);
             gInitialNames = initial;
+
+            gRootSOs.insert("libCore.so ");
+            gRootSOs.insert("libRIO.so ");
+            gRootSOs.insert("libThread.so ");
+            gRootSOs.insert("libMathCore.so ");
         }
 
     // start off with a reasonable size placeholder for wrappers
@@ -823,14 +829,14 @@ std::string outer_no_template(const std::string& name)
 
 static inline
 void cond_add(Cppyy::TCppScope_t scope, const std::string& ns_scope,
-    std::set<std::string>& cppnames, const char* name)
+    std::set<std::string>& cppnames, const char* name, bool nofilter = false)
 {
     if (!name || name[0] == '_' || strstr(name, ".h") != 0 || strncmp(name, "operator", 8) == 0)
         return;
 
     if (scope == GLOBAL_HANDLE) {
         std::string to_add = outer_no_template(name);
-        if (gInitialNames.find(to_add) == gInitialNames.end() && !is_missclassified_stl(name))
+        if ((nofilter || gInitialNames.find(to_add) == gInitialNames.end()) && !is_missclassified_stl(name))
             cppnames.insert(outer_no_template(name));
     } else if (scope == STD_HANDLE) {
         if (strncmp(name, "std::", 5) == 0) {
@@ -852,7 +858,6 @@ void Cppyy::GetAllCppNames(TCppScope_t scope, std::set<std::string>& cppnames)
 // Collect all known names of C++ entities under scope. This is useful for IDEs
 // employing tab-completion, for example. Note that functions names need not be
 // unique as they can be overloaded.
-
     TClassRef& cr = type_from_handle(scope);
     if (scope != GLOBAL_HANDLE && !(cr.GetClass() && cr->Property()))
         return;
@@ -865,8 +870,12 @@ void Cppyy::GetAllCppNames(TCppScope_t scope, std::set<std::string>& cppnames)
     {
         TIter itr{coll};
         TEnvRec* ev = nullptr;
-        while ((ev = (TEnvRec*)itr.Next()))
-            cond_add(scope, ns_scope, cppnames, ev->GetName());
+        while ((ev = (TEnvRec*)itr.Next())) {
+        // TEnv contains rootmap entries and user-side rootmap files may be already
+        // loaded on startup. Thus, filter on file name rather than load time.
+            if (gRootSOs.find(ev->GetValue()) == gRootSOs.end())
+                cond_add(scope, ns_scope, cppnames, ev->GetName(), true);
+        }
     }
 
 // do we care about the class table or are the rootmap and list of types enough?
