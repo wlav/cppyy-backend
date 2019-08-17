@@ -1,0 +1,30 @@
+diff --git a/src/core/meta/src/TClass.cxx b/src/core/meta/src/TClass.cxx
+index 29eb7f622f..f7e7473c80 100644
+--- a/src/core/meta/src/TClass.cxx
++++ b/src/core/meta/src/TClass.cxx
+@@ -4298,9 +4298,9 @@ TMethod *TClass::GetMethod(const char *method, const char *params,
+    TMethod* f = FindClassOrBaseMethodWithId(decl);
+    if (f) return f;
+ 
+-   Error("GetMethod",
+-         "\nDid not find matching TMethod <%s> with \"%s\" %sfor %s",
+-         method,params,objectIsConst ? "const " : "", GetName());
++   //Error("GetMethod",
++   //      "\nDid not find matching TMethod <%s> with \"%s\" %sfor %s",
++   //      method,params,objectIsConst ? "const " : "", GetName());
+    return 0;
+ }
+ 
+@@ -4341,9 +4341,9 @@ TMethod *TClass::GetMethodWithPrototype(const char *method, const char *proto,
+    if (!decl) return 0;
+    TMethod* f = FindClassOrBaseMethodWithId(decl);
+    if (f) return f;
+-   Error("GetMethodWithPrototype",
+-         "\nDid not find matching TMethod <%s> with \"%s\" %sfor %s",
+-         method,proto,objectIsConst ? "const " : "", GetName());
++   //Error("GetMethodWithPrototype",
++   //      "\nDid not find matching TMethod <%s> with \"%s\" %sfor %s",
++   //      method,proto,objectIsConst ? "const " : "", GetName());
+    return 0;
+ }
+ 
