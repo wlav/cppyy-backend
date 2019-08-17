@@ -50,3 +50,16 @@ index 4be71a05fb..11535a0105 100644
          ${copy_commands}
          COMMAND ${CMAKE_COMMAND} -E touch ${stamp_file}
          DEPENDS ${files_to_copy}
+diff --git a/src/core/winnt/src/TWinNTSystem.cxx b/src/core/winnt/src/TWinNTSystem.cxx
+index 6aebb11354..75e331465d 100644
+--- a/src/core/winnt/src/TWinNTSystem.cxx
++++ b/src/core/winnt/src/TWinNTSystem.cxx
+@@ -1139,7 +1139,7 @@ Bool_t TWinNTSystem::Init()
+       if (buf[0]) AddDynamicPath(buf);
+    }
+    delete [] buf;
+-   SetConsoleWindowName();
++   // SetConsoleWindowName();
+    fGroupsInitDone = kFALSE;
+    fFirstFile = kTRUE;
+ 
