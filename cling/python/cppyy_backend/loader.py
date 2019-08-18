@@ -18,30 +18,15 @@ else:
 soabi = sysconfig.get_config_var("SOABI")
 
 
-_precompiled_header_ensured = False
-def load_cpp_backend():
-    set_cling_compile_options()
-
-    if not _precompiled_header_ensured:
-     # the precompiled header of standard and system headers is not part of the
-     # distribution as there are too many varieties; create it now if needed
-        ensure_precompiled_header()
-
+def _load_helper(bkname):
+ # normal load, allowing for user overrides of LD_LIBRARY_PATH
     try:
-        bkname = os.environ['CPPYY_BACKEND_LIBRARY']
-        if bkname.rfind(soext) < 0:
-            bkname += soext
-    except KeyError:
-        if soabi:
-            bkname = 'libcppyy_backend.'+soabi+soext
-        else:
-            bkname = 'libcppyy_backend'+soext
-
-    try:
-      # normal load, allowing for user overrides of LD_LIBRARY_PATH
-        c = ctypes.CDLL(bkname, ctypes.RTLD_GLOBAL)
+        return ctypes.CDLL(bkname, ctypes.RTLD_GLOBAL)
     except OSError:
-      # failed ... load dependencies explicitly
+         pass
+
+ # failed ... load dependencies explicitly
+    try:
         pkgpath = os.path.dirname(bkname)
         if not pkgpath:
             pkgpath = os.path.dirname(__file__)
@@ -54,7 +39,38 @@ def load_cpp_backend():
                     dep = fpath
                     ctypes.CDLL(dep, ctypes.RTLD_GLOBAL)
                     break
-        c = ctypes.CDLL(os.path.join(pkgpath, 'lib', bkname), ctypes.RTLD_GLOBAL)
+        return ctypes.CDLL(os.path.join(pkgpath, 'lib', bkname), ctypes.RTLD_GLOBAL)
+    except OSError:
+        pass
+
+    return None
+
+
+_precompiled_header_ensured = False
+def load_cpp_backend():
+    set_cling_compile_options()
+
+    if not _precompiled_header_ensured:
+     # the precompiled header of standard and system headers is not part of the
+     # distribution as there are too many varieties; create it now if needed
+        ensure_precompiled_header()
+
+    altbkname = None
+    try:
+        bkname = os.environ['CPPYY_BACKEND_LIBRARY']
+        if bkname.rfind(soext) < 0:
+            bkname += soext
+    except KeyError:
+        bkname = 'libcppyy_backend'+soext
+        if soabi:
+            altbkname = 'libcppyy_backend.'+soabi+soext
+
+    c = _load_helper(bkname)
+    if not c and altbkname is not None:
+        c = _load_helper(altbkname)
+
+    if not c:
+        raise RuntimeError("could not load cppyy_backend library")
 
     return c
 
