@@ -75,7 +75,9 @@ class my_build_cpplib(_build_ext):
             os.makedirs(self.build_temp)
         extra_postargs = ['-O2']+get_cflags().split()
         if 'win32' in sys.platform:
-            extra_postargs += ['/GR', '/EHsc-']  # note '/EHsc' hardwired by distutils :(
+        # /EHsc and sometimes /MT are hardwired in distutils, but the compiler/linker will
+        # let the last argument take precedence
+            extra_postargs += ['/GR', '/EHsc-', '/MD']
         objects = self.compiler.compile(
             ext.sources,
             output_dir=self.build_temp,
