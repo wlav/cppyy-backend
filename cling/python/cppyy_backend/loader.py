@@ -8,12 +8,14 @@ __all__ = [
     'ensure_precompiled_header'   # build precompiled header as necessary
 ]
 
-import os, sys, ctypes, subprocess, warnings
+import os, sys, ctypes, subprocess, sysconfig, warnings
 
 if 'win32' in sys.platform:
     soext = '.dll'
 else:
     soext = '.so'
+
+soabi = sysconfig.get_config_var("SOABI")
 
 
 _precompiled_header_ensured = False
@@ -30,7 +32,10 @@ def load_cpp_backend():
         if bkname.rfind(soext) < 0:
             bkname += soext
     except KeyError:
-        bkname = 'libcppyy_backend'+soext
+        if soabi:
+            bkname = 'libcppyy_backend.'+soabi+soext
+        else:
+            bkname = 'libcppyy_backend'+soext
 
     try:
       # normal load, allowing for user overrides of LD_LIBRARY_PATH
