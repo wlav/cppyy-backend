@@ -2253,8 +2253,8 @@ cppyy_method_t cppyy_get_method_template(cppyy_scope_t scope, const char* name, 
     return cppyy_method_t(Cppyy::GetMethodTemplate(scope, name, proto));
 }
 
-cppyy_index_t cppyy_get_global_operator(cppyy_scope_t scope, const char* lc, const char* rc, const char* op) {
-    return cppyy_index_t(Cppyy::GetGlobalOperator(scope, lc, rc, op));
+cppyy_index_t cppyy_get_global_operator(cppyy_scope_t scope, cppyy_scope_t lc, cppyy_scope_t rc, const char* op) {
+    return cppyy_index_t(Cppyy::GetGlobalOperator(scope, Cppyy::GetScopedFinalName(lc), Cppyy::GetScopedFinalName(rc), op));
 }
 
 
