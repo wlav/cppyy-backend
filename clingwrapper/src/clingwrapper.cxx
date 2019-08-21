@@ -186,10 +186,17 @@ public:
             Cppyy::GetAllCppNames(GLOBAL_HANDLE, initial);
             gInitialNames = initial;
 
+#ifndef WIN32
             gRootSOs.insert("libCore.so ");
             gRootSOs.insert("libRIO.so ");
             gRootSOs.insert("libThread.so ");
             gRootSOs.insert("libMathCore.so ");
+#else
+            gRootSOs.insert("libCore.dll ");
+            gRootSOs.insert("libRIO.dll ");
+            gRootSOs.insert("libThread.dll ");
+            gRootSOs.insert("libMathCore.dll ");
+#endif
         }
 
     // start off with a reasonable size placeholder for wrappers
