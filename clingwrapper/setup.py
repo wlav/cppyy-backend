@@ -14,6 +14,10 @@ except ImportError:
     has_wheel = False
 from distutils.errors import DistutilsSetupError
 
+force_bdist = False
+if '--force-bdist' in sys.argv:
+    force_bdist = True
+    sys.argv.remove('--force-bdist')
 
 requirements = ['cppyy-cling>=6.18.0.0']
 setup_requirements = ['wheel']
@@ -185,7 +189,7 @@ class MyDistribution(Distribution):
         # packages are installed one-by-one, on old install is used or the build
         # will simply fail hard. The following is not completely quiet, but at
         # least a lot less conspicuous.
-        if not is_manylinux():
+        if not is_manylinux() and not force_bdist:
             disabled = set((
                 'bdist_wheel', 'bdist_egg', 'bdist_wininst', 'bdist_rpm'))
             for cmd in self.commands:
