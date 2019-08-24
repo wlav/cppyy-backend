@@ -88,7 +88,7 @@ class my_cmake_build(_build):
         srcdir   = get_srcdir()
         if not os.path.exists(srcdir):
             log.info('No src directory ... creating with "python create_src_directory.py"')
-            if subprocess.call(['python', 'create_src_directory.py']) != 0:
+            if subprocess.call([sys.executable, 'create_src_directory.py']) != 0:
                 log.error('ERROR: the source directory "%s" does not exist' % srcdir)
                 log.error('Please run "python create_src_directory.py" first.')
                 sys.exit(1)

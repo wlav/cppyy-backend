@@ -152,7 +152,7 @@ def ensure_precompiled_header(pchdir = '', pchname = ''):
              if os.access(pchdir, os.R_OK|os.W_OK):
                  print('(Re-)building pre-compiled headers (options:%s); this may take a minute ...' % os.environ.get('EXTRA_CLING_ARGS', ' none'))
                  makepch = os.path.join(pkgpath, 'etc', 'dictpch', 'makepch.py')
-                 if subprocess.call(['python', makepch, full_pchname, '-I'+incpath]) != 0:
+                 if subprocess.call([sys.executable, makepch, full_pchname, '-I'+incpath]) != 0:
                      _warn_no_pch('failed to build', full_pchname)
              else:
                  _warn_no_pch('%s not writable' % pchdir, full_pchname)
