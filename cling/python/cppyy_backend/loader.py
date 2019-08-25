@@ -118,7 +118,7 @@ def _is_uptodate(pchname, incpath):
         return os.stat(pchname).st_mtime >= os.stat(incpath).st_mtime
     except Exception:
         if not os.path.exists(incpath):
-            return True     # no point in updating as it will fail 
+            return True     # no point in updating as it will fail
     return False
 
 def ensure_precompiled_header(pchdir = '', pchname = ''):
