@@ -334,3 +334,15 @@ index 1468a87277..c823c5eef7 100755
 
     allHeadersPartContent = "// STL headers\n"
 
+diff --git a/src/core/CMakeLists.txt b/src/core/CMakeLists.txt
+index f348274986..a21ae827a4 100644
+--- a/src/core/CMakeLists.txt
++++ b/src/core/CMakeLists.txt
+@@ -91,7 +91,6 @@ ROOT_GENERATE_DICTIONARY(G__Core
+   MODULE
+     Core
+   OPTIONS
+-    -writeEmptyRootPCM
+     ${dict_opts}
+   LINKDEF
+     base/inc/LinkDef.h
