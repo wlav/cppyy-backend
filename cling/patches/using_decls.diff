@@ -69,17 +69,12 @@ index ca606db037..dcd03d38bd 100644
  }
  
  
-@@ -82,6 +132,7 @@ TClingMethodInfo& TClingMethodInfo::operator=(const TClingMethodInfo &rhs) {
+@@ -82,7 +132,14 @@ TClingMethodInfo& TClingMethodInfo::operator=(const TClingMethodInfo &rhs) {
     fIter = rhs.fIter;
     fTitle = rhs.fTitle;
     fTemplateSpec = rhs.fTemplateSpec;
 +   fUsingIter = nullptr;
 
-    return *this;
- }
-@@ -84,5 +135,11 @@ TClingMethodInfo& TClingMethodInfo::operator=(const TClingMethodInfo &rhs) {
-    fTemplateSpec = rhs.fTemplateSpec;
- 
 +   if (rhs.fUsingIter) {
 +      // The UsingIterator query the decl.
 +      R__LOCKGUARD(gInterpreterMutex);
@@ -115,15 +110,17 @@ index ca606db037..dcd03d38bd 100644
  }
  
  TDictionary::DeclId_t TClingMethodInfo::GetDeclId() const
-@@ -180,5 +238,7 @@ void TClingMethodInfo::Init(const clang::FunctionDecl *decl)
+@@ -179,6 +179,8 @@ void TClingMethodInfo::Init(const clang::FunctionDecl *decl)
+    fContextIdx = 0U;
     fIter = clang::DeclContext::decl_iterator();
     fTemplateSpec = 0;
 +   delete fUsingIter;
-+   fUsingIter = 0;
++   fUsintIter = 0;
     fDecl = decl;
  }
  
-@@ -198,5 +258,9 @@ const clang::Decl* TClingMethodInfo::GetDeclSlow() const
+@@ -197,6 +199,10 @@ const clang::Decl* TClingMethodInfo::GetDeclSlow() const
+ {
     if (fTemplateSpec) {
        return fTemplateSpec;
 +   }  else if (fUsingIter) {
