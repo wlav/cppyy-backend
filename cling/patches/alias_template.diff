@@ -2,7 +2,7 @@ diff --git a/src/core/metacling/src/TCling.cxx b/src/core/metacling/src/TCling.c
 index 5413aef378..bcbe1d4cfb 100644
 --- a/src/core/metacling/src/TCling.cxx
 +++ b/src/core/metacling/src/TCling.cxx
-@@ -3835,18 +3835,18 @@ TCling::CheckClassInfo(const char *name, Bool_t autoload, Bool_t isClassOrNamesp
+@@ -3864,18 +3864,18 @@ TCling::CheckClassInfo(const char *name, Bool_t autoload, Bool_t isClassOrNamesp
  Bool_t TCling::CheckClassTemplate(const char *name)
  {
     const cling::LookupHelper& lh = fInterpreter->getLookupHelper();

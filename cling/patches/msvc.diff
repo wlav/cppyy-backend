@@ -40,7 +40,7 @@ diff --git a/src/core/clingutils/CMakeLists.txt b/src/core/clingutils/CMakeLists
 index 4be71a05fb..11535a0105 100644
 --- a/src/core/clingutils/CMakeLists.txt
 +++ b/src/core/clingutils/CMakeLists.txt
-@@ -137,6 +137,9 @@ set(stamp_file ${CMAKE_BINARY_DIR}${CMAKE_FILES_DIRECTORY}/LLVMRES.stamp)
+@@ -138,6 +138,9 @@ set(stamp_file ${CMAKE_BINARY_DIR}${CMAKE_FILES_DIRECTORY}/LLVMRES.stamp)
  if(MSVC)
    add_custom_command(OUTPUT ${stamp_file}
          COMMAND ${CMAKE_COMMAND} -E make_directory ${CMAKE_BINARY_DIR}/etc/cling/lib/clang/${CLANG_RESOURCE_DIR_VERSION}/include

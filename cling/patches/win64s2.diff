@@ -128,7 +128,7 @@ diff --git a/src/core/meta/inc/TInterpreter.h b/src/core/meta/inc/TInterpreter.h
 index b14fb6ebe0..68fc50b91c 100644
 --- a/src/core/meta/inc/TInterpreter.h
 +++ b/src/core/meta/inc/TInterpreter.h
-@@ -385,13 +385,13 @@ public:
+@@ -386,13 +386,13 @@ public:
        CallFunc_SetArgImpl(func,args...);
     }
  
@@ -148,17 +148,17 @@ index b14fb6ebe0..68fc50b91c 100644
  
     virtual std::string CallFunc_GetWrapperCode(CallFunc_t *func) const = 0;
  
-@@ -405,7 +405,7 @@ public:
-    virtual ClassInfo_t  *ClassInfo_Factory(Bool_t /*all*/ = kTRUE) const = 0;
+@@ -407,7 +407,7 @@ public:
     virtual ClassInfo_t  *ClassInfo_Factory(ClassInfo_t * /* cl */) const = 0;
     virtual ClassInfo_t  *ClassInfo_Factory(const char * /* name */) const = 0;
+    virtual ClassInfo_t  *ClassInfo_Factory(DeclId_t declid) const = 0;
 -   virtual Long_t   ClassInfo_GetBaseOffset(ClassInfo_t* /* fromDerived */,
 +   virtual intptr_t ClassInfo_GetBaseOffset(ClassInfo_t* /* fromDerived */,
                                              ClassInfo_t* /* toBase */, void* /* address */ = 0, bool /*isderived*/ = true) const {return 0;}
     virtual int    ClassInfo_GetMethodNArg(ClassInfo_t * /* info */, const char * /* method */,const char * /* proto */, Bool_t /* objectIsConst */ = false, ROOT::EFunctionMatchMode /* mode */ = ROOT::kConversionMatch) const {return 0;}
     virtual Bool_t ClassInfo_HasDefaultConstructor(ClassInfo_t * /* info */) const {return 0;}
-@@ -416,8 +416,8 @@ public:
-    virtual Bool_t ClassInfo_IsEnum(const char * /* name */) const {return 0;}
+@@ -420,8 +420,8 @@ public:
+    virtual EDataType ClassInfo_GetUnderlyingType(ClassInfo_t * /* info */) const {return kNumDataTypes;}
     virtual Bool_t ClassInfo_IsLoaded(ClassInfo_t * /* info */) const {return 0;}
     virtual Bool_t ClassInfo_IsValid(ClassInfo_t * /* info */) const {return 0;}
 -   virtual Bool_t ClassInfo_IsValidMethod(ClassInfo_t * /* info */, const char * /* method */,const char * /* proto */, Long_t * /* offset */, ROOT::EFunctionMatchMode /* mode */ = ROOT::kConversionMatch) const {return 0;}
@@ -168,7 +168,7 @@ index b14fb6ebe0..68fc50b91c 100644
     virtual int    ClassInfo_Next(ClassInfo_t * /* info */) const {return 0;}
     virtual void  *ClassInfo_New(ClassInfo_t * /* info */) const {return 0;}
     virtual void  *ClassInfo_New(ClassInfo_t * /* info */, int /* n */) const {return 0;}
-@@ -440,7 +440,7 @@ public:
+@@ -444,7 +444,7 @@ public:
                                                     ClassInfo_t* /* base */) const {return 0;}
     virtual int    BaseClassInfo_Next(BaseClassInfo_t * /* bcinfo */) const {return 0;}
     virtual int    BaseClassInfo_Next(BaseClassInfo_t * /* bcinfo */, int  /* onlyDirect */) const {return 0;}
@@ -444,7 +444,7 @@ diff --git a/src/core/metacling/src/TCling.cxx b/src/core/metacling/src/TCling.c
 index cf890d63e1..9a59030df4 100644
 --- a/src/core/metacling/src/TCling.cxx
 +++ b/src/core/metacling/src/TCling.cxx
-@@ -4492,13 +4492,13 @@ TString TCling::GetMangledName(TClass* cl, const char* method,
+@@ -4521,13 +4521,13 @@ TString TCling::GetMangledName(TClass* cl, const char* method,
     R__LOCKGUARD(gInterpreterMutex);
     TClingCallFunc func(fInterpreter,*fNormalizedCtxt);
     if (cl) {
@@ -460,7 +460,7 @@ index cf890d63e1..9a59030df4 100644
        func.SetFunc(&gcl, method, params, &offset);
     }
     TClingMethodInfo* mi = (TClingMethodInfo*) func.FactoryMethod();
-@@ -4537,13 +4537,13 @@ void* TCling::GetInterfaceMethod(TClass* cl, const char* method,
+@@ -4566,13 +4566,13 @@ void* TCling::GetInterfaceMethod(TClass* cl, const char* method,
     R__LOCKGUARD(gInterpreterMutex);
     TClingCallFunc func(fInterpreter,*fNormalizedCtxt);
     if (cl) {
@@ -476,7 +476,7 @@ index cf890d63e1..9a59030df4 100644
        func.SetFunc(&gcl, method, params, &offset);
     }
     return (void*) func.InterfaceMethod();
-@@ -4757,7 +4757,7 @@ void TCling::Execute(const char* function, const char* params, int* error)
+@@ -4786,7 +4786,7 @@ void TCling::Execute(const char* function, const char* params, int* error)
        *error = TInterpreter::kNoError;
     }
     TClingClassInfo cl(fInterpreter);
@@ -485,7 +485,7 @@ index cf890d63e1..9a59030df4 100644
     TClingCallFunc func(fInterpreter,*fNormalizedCtxt);
     func.SetFunc(&cl, function, params, &offset);
     func.Exec(0);
-@@ -4785,7 +4785,7 @@ void TCling::Execute(TObject* obj, TClass* cl, const char* method,
+@@ -4814,7 +4814,7 @@ void TCling::Execute(TObject* obj, TClass* cl, const char* method,
     // 'obj' is unlikely to be the start of the object (as described by IsA()),
     // hence gInterpreter->Execute will improperly correct the offset.
     void* addr = cl->DynamicCast(TObject::Class(), obj, kFALSE);
@@ -494,7 +494,7 @@ index cf890d63e1..9a59030df4 100644
     TClingCallFunc func(fInterpreter,*fNormalizedCtxt);
     func.SetFunc((TClingClassInfo*)cl->GetClassInfo(), method, params, objectIsConst, &offset);
     void* address = (void*)((intptr_t)addr + offset);
-@@ -7461,7 +7461,7 @@ void TCling::CallFunc_SetArgs(CallFunc_t* func, const char* param) const
+@@ -7490,7 +7490,7 @@ void TCling::CallFunc_SetArgs(CallFunc_t* func, const char* param) const
  
  ////////////////////////////////////////////////////////////////////////////////
  
@@ -503,7 +503,7 @@ index cf890d63e1..9a59030df4 100644
  {
     TClingCallFunc* f = (TClingCallFunc*) func;
     TClingClassInfo* ci = (TClingClassInfo*) info;
-@@ -7470,7 +7470,7 @@ void TCling::CallFunc_SetFunc(CallFunc_t* func, ClassInfo_t* info, const char* m
+@@ -7499,7 +7499,7 @@ void TCling::CallFunc_SetFunc(CallFunc_t* func, ClassInfo_t* info, const char* m
  
  ////////////////////////////////////////////////////////////////////////////////
  
@@ -512,7 +512,7 @@ index cf890d63e1..9a59030df4 100644
  {
     TClingCallFunc* f = (TClingCallFunc*) func;
     TClingClassInfo* ci = (TClingClassInfo*) info;
-@@ -7488,7 +7488,7 @@ void TCling::CallFunc_SetFunc(CallFunc_t* func, MethodInfo_t* info) const
+@@ -7517,7 +7517,7 @@ void TCling::CallFunc_SetFunc(CallFunc_t* func, MethodInfo_t* info) const
  ////////////////////////////////////////////////////////////////////////////////
  /// Interface to cling function
  
@@ -521,7 +521,7 @@ index cf890d63e1..9a59030df4 100644
  {
     TClingCallFunc* f = (TClingCallFunc*) func;
     TClingClassInfo* ci = (TClingClassInfo*) info;
-@@ -7498,7 +7498,7 @@ void TCling::CallFunc_SetFuncProto(CallFunc_t* func, ClassInfo_t* info, const ch
+@@ -7527,7 +7527,7 @@ void TCling::CallFunc_SetFuncProto(CallFunc_t* func, ClassInfo_t* info, const ch
  ////////////////////////////////////////////////////////////////////////////////
  /// Interface to cling function
  
@@ -530,7 +530,7 @@ index cf890d63e1..9a59030df4 100644
  {
     TClingCallFunc* f = (TClingCallFunc*) func;
     TClingClassInfo* ci = (TClingClassInfo*) info;
-@@ -7508,7 +7508,7 @@ void TCling::CallFunc_SetFuncProto(CallFunc_t* func, ClassInfo_t* info, const ch
+@@ -7537,7 +7537,7 @@ void TCling::CallFunc_SetFuncProto(CallFunc_t* func, ClassInfo_t* info, const ch
  ////////////////////////////////////////////////////////////////////////////////
  /// Interface to cling function
  
@@ -539,7 +539,7 @@ index cf890d63e1..9a59030df4 100644
  {
     TClingCallFunc* f = (TClingCallFunc*) func;
     TClingClassInfo* ci = (TClingClassInfo*) info;
-@@ -7523,7 +7523,7 @@ void TCling::CallFunc_SetFuncProto(CallFunc_t* func, ClassInfo_t* info, const ch
+@@ -7552,7 +7552,7 @@ void TCling::CallFunc_SetFuncProto(CallFunc_t* func, ClassInfo_t* info, const ch
  ////////////////////////////////////////////////////////////////////////////////
  /// Interface to cling function
  
@@ -548,7 +548,7 @@ index cf890d63e1..9a59030df4 100644
  {
     TClingCallFunc* f = (TClingCallFunc*) func;
     TClingClassInfo* ci = (TClingClassInfo*) info;
-@@ -7710,7 +7710,7 @@ bool TCling::ClassInfo_IsValid(ClassInfo_t* cinfo) const
+@@ -7764,7 +7764,7 @@ bool TCling::ClassInfo_IsValid(ClassInfo_t* cinfo) const
  
  ////////////////////////////////////////////////////////////////////////////////
  
@@ -557,7 +557,7 @@ index cf890d63e1..9a59030df4 100644
  {
     TClingClassInfo* TClinginfo = (TClingClassInfo*) cinfo;
     return TClinginfo->IsValidMethod(method, proto, false, offset, mode);
-@@ -7718,7 +7718,7 @@ bool TCling::ClassInfo_IsValidMethod(ClassInfo_t* cinfo, const char* method, con
+@@ -7772,7 +7772,7 @@ bool TCling::ClassInfo_IsValidMethod(ClassInfo_t* cinfo, const char* method, con
  
  ////////////////////////////////////////////////////////////////////////////////
  
@@ -566,7 +566,7 @@ index cf890d63e1..9a59030df4 100644
  {
     TClingClassInfo* TClinginfo = (TClingClassInfo*) cinfo;
     return TClinginfo->IsValidMethod(method, proto, objectIsConst, offset, mode);
-@@ -7882,7 +7882,7 @@ int TCling::BaseClassInfo_Next(BaseClassInfo_t* bcinfo, int onlyDirect) const
+@@ -7936,7 +7936,7 @@ int TCling::BaseClassInfo_Next(BaseClassInfo_t* bcinfo, int onlyDirect) const
  
  ////////////////////////////////////////////////////////////////////////////////
  
@@ -575,7 +575,7 @@ index cf890d63e1..9a59030df4 100644
  {
     TClingBaseClassInfo* TClinginfo = (TClingBaseClassInfo*) toBaseClassInfo;
     return TClinginfo->Offset(address, isDerivedObject);
-@@ -7890,7 +7890,7 @@ Long_t TCling::BaseClassInfo_Offset(BaseClassInfo_t* toBaseClassInfo, void * add
+@@ -7944,7 +7944,7 @@ Long_t TCling::BaseClassInfo_Offset(BaseClassInfo_t* toBaseClassInfo, void * add
  
  ////////////////////////////////////////////////////////////////////////////////
  
@@ -608,17 +608,17 @@ index 60481cc25b..48ad81004c 100644
  
     virtual std::string CallFunc_GetWrapperCode(CallFunc_t *func) const;
  
-@@ -401,7 +401,7 @@ public: // Public Interface
-    virtual ClassInfo_t*  ClassInfo_Factory(Bool_t all = kTRUE) const;
+@@ -402,7 +402,7 @@ public: // Public Interface
     virtual ClassInfo_t*  ClassInfo_Factory(ClassInfo_t* cl) const;
     virtual ClassInfo_t*  ClassInfo_Factory(const char* name) const;
+    virtual ClassInfo_t*  ClassInfo_Factory(DeclId_t declid) const;
 -   virtual Long_t   ClassInfo_GetBaseOffset(ClassInfo_t* fromDerived, ClassInfo_t* toBase, void * address, bool isDerivedObject) const;
-+   virtual intptr_t   ClassInfo_GetBaseOffset(ClassInfo_t* fromDerived, ClassInfo_t* toBase, void * address, bool isDerivedObject) const;
++   virtual intptr_t ClassInfo_GetBaseOffset(ClassInfo_t* fromDerived, ClassInfo_t* toBase, void * address, bool isDerivedObject) const;
     virtual int    ClassInfo_GetMethodNArg(ClassInfo_t* info, const char* method, const char* proto, Bool_t objectIsConst = false, ROOT::EFunctionMatchMode mode = ROOT::kConversionMatch) const;
     virtual bool   ClassInfo_HasDefaultConstructor(ClassInfo_t* info) const;
     virtual bool   ClassInfo_HasMethod(ClassInfo_t* info, const char* name) const;
-@@ -411,8 +411,8 @@ public: // Public Interface
-    virtual bool   ClassInfo_IsEnum(const char* name) const;
+@@ -414,8 +414,8 @@ public: // Public Interface
+    virtual EDataType ClassInfo_GetUnderlyingType(ClassInfo_t* info) const;
     virtual bool   ClassInfo_IsLoaded(ClassInfo_t* info) const;
     virtual bool   ClassInfo_IsValid(ClassInfo_t* info) const;
 -   virtual bool   ClassInfo_IsValidMethod(ClassInfo_t* info, const char* method, const char* proto, Long_t* offset, ROOT::EFunctionMatchMode /* mode */ = ROOT::kConversionMatch) const;
@@ -628,7 +628,7 @@ index 60481cc25b..48ad81004c 100644
     virtual int    ClassInfo_Next(ClassInfo_t* info) const;
     virtual void*  ClassInfo_New(ClassInfo_t* info) const;
     virtual void*  ClassInfo_New(ClassInfo_t* info, int n) const;
-@@ -434,7 +434,7 @@ public: // Public Interface
+@@ -437,7 +437,7 @@ public: // Public Interface
                                                     ClassInfo_t* base) const;
     virtual int    BaseClassInfo_Next(BaseClassInfo_t* bcinfo) const;
     virtual int    BaseClassInfo_Next(BaseClassInfo_t* bcinfo, int onlyDirect) const;
@@ -855,7 +855,7 @@ index 82034ea4e7..58158868d3 100644
     const CXXRecordDecl* definer = md->getParent();
     const CXXRecordDecl* accessor =
        llvm::cast<CXXRecordDecl>(GetDecl());
-@@ -833,7 +833,7 @@ bool TClingClassInfo::IsValid() const
+@@ -888,7 +888,7 @@ bool TClingClassInfo::IsValid() const
  
  bool TClingClassInfo::IsValidMethod(const char *method, const char *proto,
                                      Bool_t objectIsConst,
@@ -864,7 +864,7 @@ index 82034ea4e7..58158868d3 100644
                                      EFunctionMatchMode mode /*= kConversionMatch*/) const
  {
     // Check if the method with the given prototype exist.
-@@ -841,7 +841,7 @@ bool TClingClassInfo::IsValidMethod(const char *method, const char *proto,
+@@ -896,7 +896,7 @@ bool TClingClassInfo::IsValidMethod(const char *method, const char *proto,
        return false;
     }
     if (offset) {
@@ -877,7 +877,7 @@ diff --git a/src/core/metacling/src/TClingClassInfo.h b/src/core/metacling/src/T
 index ff8ef597e3..2d42a7548b 100644
 --- a/src/core/metacling/src/TClingClassInfo.h
 +++ b/src/core/metacling/src/TClingClassInfo.h
-@@ -98,25 +98,25 @@ public:
+@@ -99,25 +99,25 @@ public:
     const clang::FunctionTemplateDecl *GetFunctionTemplate(const char *fname) const;
     TClingMethodInfo     GetMethod(const char *fname) const;
     TClingMethodInfo     GetMethod(const char *fname, const char *proto,
@@ -910,9 +910,9 @@ index ff8ef597e3..2d42a7548b 100644
     ptrdiff_t            GetBaseOffset(TClingClassInfo* toBase, void* address, bool isDerivedObject);
     const clang::Type   *GetType() const { return fType; } // Underlying representation with Double32_t
     std::vector<std::string> GetUsingNamespaces();
-@@ -129,7 +129,7 @@ public:
-    bool                 IsBase(const char *name) const;
-    static bool          IsEnum(cling::Interpreter *interp, const char *name);
+@@ -132,7 +132,7 @@ public:
+    bool                 IsScopedEnum() const;
+    EDataType            GetUnderlyingType() const;
     bool                 IsLoaded() const;
 -   bool                 IsValidMethod(const char *method, const char *proto, Bool_t objectIsConst, long *offset, ROOT::EFunctionMatchMode mode = ROOT::kConversionMatch) const;
 +   bool                 IsValidMethod(const char *method, const char *proto, Bool_t objectIsConst, intptr_t *offset, ROOT::EFunctionMatchMode mode = ROOT::kConversionMatch) const;
@@ -1004,24 +1004,6 @@ index 1d5ebe9039..a9c9a991ba 100644
     gCling->SetTempLevel(-1);
  }
  
-diff --git a/src/core/metacling/src/TClingMethodInfo.cxx b/src/core/metacling/src/TClingMethodInfo.cxx
-index bbfb6aa962..44ecc2e9c7 100644
---- a/src/core/metacling/src/TClingMethodInfo.cxx
-+++ b/src/core/metacling/src/TClingMethodInfo.cxx
-@@ -522,8 +522,13 @@ int TClingMethodInfo::InternalNext()
-          // enable_if'ed functions.
-          // Whatever this finds / instantiates will be picked up by the
-          // SpecIterator below.
-+         /* WLAV: the above argument makes no rational sense. For sure the
-+            code below causes assertion failures in Windows, but more
-+            probably needs wholesale disabling/removal */
-+#ifndef WIN32
-          InstantiateFuncTemplateWithDefaults(templateDecl, fInterp->getSema(),
-                                              fInterp->getLookupHelper());
-+#endif
-
-          SpecIterator subiter(templateDecl);
-          if (subiter) {
 diff --git a/src/core/base/src/TROOT.cxx b/src/core/base/src/TROOT.cxx
 index 604a74ce8b..4e68101d34 100644
 --- a/src/core/base/src/TROOT.cxx

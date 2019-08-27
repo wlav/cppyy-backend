@@ -38,7 +38,7 @@ diff --git a/src/core/metacling/src/TClingMethodInfo.cxx b/src/core/metacling/sr
 index bbfb6aa962..fe25edfa46 100644
 --- a/src/core/metacling/src/TClingMethodInfo.cxx
 +++ b/src/core/metacling/src/TClingMethodInfo.cxx
-@@ -691,7 +691,15 @@ TClingTypeInfo *TClingMethodInfo::Type() const
+@@ -633,7 +633,15 @@ TClingTypeInfo *TClingMethodInfo::Type() const
           ti.Init(qt);
        }
     } else {
