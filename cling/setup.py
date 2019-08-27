@@ -378,7 +378,7 @@ setup(
     setup_requires=['wheel'],
 
     include_package_data=True,
-    package_data={'': ['cmake/*.cmake', 'pkg_templates/*.in']},
+    package_data={'': ['cmake/*.cmake', 'pkg_templates/*.in', 'pkg_templates/*.py']},
 
     package_dir={'': 'python'},
     packages=find_packages('python', include=['cppyy_backend']),
