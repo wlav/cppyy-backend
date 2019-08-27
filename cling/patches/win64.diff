@@ -35,7 +35,8 @@ diff --git a/src/cmake/modules/SetUpWindows.cmake b/src/cmake/modules/SetUpWindo
 index ae7830febb..aa30c4b5d8 100644
 --- a/src/cmake/modules/SetUpWindows.cmake
 +++ b/src/cmake/modules/SetUpWindows.cmake
-@@ -30,5 +30,11 @@ if(CMAKE_COMPILER_IS_GNUCXX)
+@@ -29,6 +29,12 @@ if(CMAKE_COMPILER_IS_GNUCXX)
+   set(CMAKE_SHARED_LIBRARY_CREATE_C_FLAGS "${CMAKE_SHARED_LIBRARY_CREATE_C_FLAGS}")
    set(CMAKE_SHARED_LIBRARY_CREATE_CXX_FLAGS "${CMAKE_SHARED_LIBRARY_CREATE_CXX_FLAGS}")
  elseif(MSVC)
 +  if(CMAKE_SIZEOF_VOID_P EQUAL 8)
@@ -45,7 +46,7 @@ index ae7830febb..aa30c4b5d8 100644
 +  endif()
 +
    set(ROOT_ARCHITECTURE win32)
-
+ 
    math(EXPR VC_MAJOR "${MSVC_VERSION} / 100")
 @@ -43,13 +51,13 @@ elseif(MSVC)
    endif()
