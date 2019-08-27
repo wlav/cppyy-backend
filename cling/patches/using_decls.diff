@@ -115,7 +115,7 @@ index ca606db037..dcd03d38bd 100644
     fIter = clang::DeclContext::decl_iterator();
     fTemplateSpec = 0;
 +   delete fUsingIter;
-+   fUsintIter = 0;
++   fUsingIter = 0;
     fDecl = decl;
  }
  
