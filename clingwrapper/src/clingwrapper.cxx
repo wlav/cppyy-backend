@@ -474,7 +474,8 @@ Cppyy::TCppType_t Cppyy::GetActualClass(TCppType_t klass, TCppObject_t obj)
 size_t Cppyy::SizeOf(TCppType_t klass)
 {
     TClassRef& cr = type_from_handle(klass);
-    if (cr.GetClass()) return (size_t)gInterpreter->ClassInfo_Size(cr->GetClassInfo());
+    if (cr.GetClass() && cr->GetClassInfo())
+        return (size_t)gInterpreter->ClassInfo_Size(cr->GetClassInfo());
     return (size_t)0;
 }
 
