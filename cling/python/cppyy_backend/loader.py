@@ -86,10 +86,11 @@ def set_cling_compile_options(add_defaults = False):
     if add_defaults:
         has_avx = False
         try:
-            for line in open('/proc/cpuinfo', 'r'):
-                if 'avx' in line:
-                    has_avx = True
-                    break
+            with open('/proc/cpuinfo', 'r') as ci:
+                for line in ci:
+                    if 'avx' in line:
+                        has_avx = True
+                        break
         except Exception:
             try:
                 cli_arg = subprocess.check_output(['sysctl', 'machdep.cpu.features'])
