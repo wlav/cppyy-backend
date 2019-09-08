@@ -380,7 +380,24 @@ Cppyy::TCppScope_t Cppyy::GetScope(const std::string& sname)
 // TODO: scope_name should always be final already?
 // Resolve name fully before lookup to make sure all aliases point to the same scope
     std::string scope_name = ResolveName(sname);
-    result = find_memoized(scope_name);
+    bool bHasAlias = sname != scope_name;
+    if (bHasAlias) {
+        result = find_memoized(scope_name);
+        if (result) return result;
+    }
+
+// both failed, but may be STL name that's missing 'std::' now, but didn't before
+    bool b_scope_name_missclassified = is_missclassified_stl(scope_name);
+    if (b_scope_name_missclassified) {
+        result = find_memoized("std::"+scope_name);
+        if (result) g_name2classrefidx["std::"+scope_name] = (ClassRefs_t::size_type)result;
+    }
+    bool b_sname_missclassified = bHasAlias ? is_missclassified_stl(sname) : false;
+    if (b_sname_missclassified) {
+        if (!result) result = find_memoized("std::"+sname);
+        if (result) g_name2classrefidx["std::"+sname] = (ClassRefs_t::size_type)result;
+    }
+
     if (result) return result;
 
 // use TClass directly, to enable auto-loading; class may be stubbed (eg. for
@@ -393,14 +410,13 @@ Cppyy::TCppScope_t Cppyy::GetScope(const std::string& sname)
 // memoize found/created TClass
     ClassRefs_t::size_type sz = g_classrefs.size();
     g_name2classrefidx[scope_name] = sz;
-    if (sname != scope_name)
-        g_name2classrefidx[sname] = sz;
+    if (bHasAlias) g_name2classrefidx[sname] = sz;
     g_classrefs.push_back(TClassRef(scope_name.c_str()));
 
 // TODO: make ROOT/meta NOT remove std :/
-    if (is_missclassified_stl(scope_name))
+    if (b_scope_name_missclassified)
         g_name2classrefidx["std::"+scope_name] = sz;
-    if (is_missclassified_stl(sname))
+    if (b_sname_missclassified)
         g_name2classrefidx["std::"+sname] = sz;
 
     return (TCppScope_t)sz;
