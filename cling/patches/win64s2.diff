@@ -548,7 +548,7 @@ index cf890d63e1..9a59030df4 100644
  {
     TClingCallFunc* f = (TClingCallFunc*) func;
     TClingClassInfo* ci = (TClingClassInfo*) info;
-@@ -7764,7 +7764,7 @@ bool TCling::ClassInfo_IsValid(ClassInfo_t* cinfo) const
+@@ -7771,7 +7771,7 @@ bool TCling::ClassInfo_IsValid(ClassInfo_t* cinfo) const
  
  ////////////////////////////////////////////////////////////////////////////////
  
@@ -557,7 +557,7 @@ index cf890d63e1..9a59030df4 100644
  {
     TClingClassInfo* TClinginfo = (TClingClassInfo*) cinfo;
     return TClinginfo->IsValidMethod(method, proto, false, offset, mode);
-@@ -7772,7 +7772,7 @@ bool TCling::ClassInfo_IsValidMethod(ClassInfo_t* cinfo, const char* method, con
+@@ -7779,7 +7779,7 @@ bool TCling::ClassInfo_IsValidMethod(ClassInfo_t* cinfo, const char* method, con
  
  ////////////////////////////////////////////////////////////////////////////////
  
@@ -566,7 +566,7 @@ index cf890d63e1..9a59030df4 100644
  {
     TClingClassInfo* TClinginfo = (TClingClassInfo*) cinfo;
     return TClinginfo->IsValidMethod(method, proto, objectIsConst, offset, mode);
-@@ -7936,7 +7936,7 @@ int TCling::BaseClassInfo_Next(BaseClassInfo_t* bcinfo, int onlyDirect) const
+@@ -7943,7 +7943,7 @@ int TCling::BaseClassInfo_Next(BaseClassInfo_t* bcinfo, int onlyDirect) const
  
  ////////////////////////////////////////////////////////////////////////////////
  
@@ -575,7 +575,7 @@ index cf890d63e1..9a59030df4 100644
  {
     TClingBaseClassInfo* TClinginfo = (TClingBaseClassInfo*) toBaseClassInfo;
     return TClinginfo->Offset(address, isDerivedObject);
-@@ -7944,7 +7944,7 @@ Long_t TCling::BaseClassInfo_Offset(BaseClassInfo_t* toBaseClassInfo, void * add
+@@ -7951,7 +7951,7 @@ Long_t TCling::BaseClassInfo_Offset(BaseClassInfo_t* toBaseClassInfo, void * add
  
  ////////////////////////////////////////////////////////////////////////////////
  
@@ -923,7 +923,7 @@ diff --git a/src/core/metacling/src/TClingDataMemberInfo.cxx b/src/core/metaclin
 index cebf2425bd..fa0b7a38a6 100644
 --- a/src/core/metacling/src/TClingDataMemberInfo.cxx
 +++ b/src/core/metacling/src/TClingDataMemberInfo.cxx
-@@ -304,7 +304,7 @@ intptr_t TClingDataMemberInfo::Offset()
+@@ -317,7 +317,7 @@ intptr_t TClingDataMemberInfo::Offset()
     using namespace clang;
  
     if (!IsValid()) {
@@ -932,8 +932,7 @@ index cebf2425bd..fa0b7a38a6 100644
     }
  
     const Decl *D = GetDecl();
-@@ -314,8 +314,7 @@ intptr_t TClingDataMemberInfo::Offset()
-       const clang::RecordDecl *RD = FldD->getParent();
+@@ -341,7 +341,6 @@ intptr_t TClingDataMemberInfo::Offset()
        const clang::ASTRecordLayout &Layout = C.getASTRecordLayout(RD);
        uint64_t bits = Layout.getFieldOffset(FldD->getFieldIndex());
 -      int64_t offset = C.toCharUnitsFromBits(bits).getQuantity();
@@ -942,7 +941,7 @@ index cebf2425bd..fa0b7a38a6 100644
     }
     else if (const VarDecl *VD = dyn_cast<VarDecl>(D)) {
        // Could trigger deserialization of decls, in particular in case
-@@ -373,9 +372,9 @@ intptr_t TClingDataMemberInfo::Offset()
+@@ -399,9 +398,9 @@ intptr_t TClingDataMemberInfo::Offset()
        return (intptr_t)ECD->getInitVal().getRawData();
  #else
        // In this case in the second part.

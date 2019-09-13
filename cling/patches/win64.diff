@@ -570,7 +570,7 @@ index 5413aef378..c8fba08529 100644
     func.Exec(address);
  }
 
-@@ -8054,7 +8078,7 @@ int TCling::DataMemberInfo_Next(DataMemberInfo_t* dminfo) const
+@@ -8061,7 +8085,7 @@ int TCling::DataMemberInfo_Next(DataMemberInfo_t* dminfo) const
  
  ////////////////////////////////////////////////////////////////////////////////
  
@@ -1362,7 +1362,7 @@ diff --git a/src/core/metacling/src/TClingDataMemberInfo.cxx b/src/core/metaclin
 index 9c8fa9980f..76ff219c8b 100644
 --- a/src/core/metacling/src/TClingDataMemberInfo.cxx
 +++ b/src/core/metacling/src/TClingDataMemberInfo.cxx
-@@ -299,7 +299,7 @@ int TClingDataMemberInfo::InternalNext()
+@@ -312,7 +312,7 @@ int TClingDataMemberInfo::InternalNext()
     return 0;
  }
  
@@ -1371,7 +1371,7 @@ index 9c8fa9980f..76ff219c8b 100644
  {
     using namespace clang;
  
-@@ -323,13 +323,13 @@ long TClingDataMemberInfo::Offset()
+@@ -349,13 +349,13 @@ long TClingDataMemberInfo::Offset()
        //   static constexpr Long64_t something = std::numeric_limits<Long64_t>::max();
        cling::Interpreter::PushTransactionRAII RAII(fInterp);
  
@@ -1387,7 +1387,7 @@ index 9c8fa9980f..76ff219c8b 100644
              } else {
                 // The VD stores the init value; its lifetime should the lifetime of
                 // this offset.
-@@ -339,17 +339,17 @@ long TClingDataMemberInfo::Offset()
+@@ -365,17 +365,17 @@ long TClingDataMemberInfo::Offset()
                       fConstInitVal.fLong = (long)val->getInt().getSExtValue();
                    else
                       fConstInitVal.fLong = (long)val->getInt().getZExtValue();
@@ -1408,7 +1408,7 @@ index 9c8fa9980f..76ff219c8b 100644
                    }
                    // else fall-through
                 default:
-@@ -370,7 +370,7 @@ long TClingDataMemberInfo::Offset()
+@@ -396,7 +396,7 @@ long TClingDataMemberInfo::Offset()
        // part.
  #ifdef R__BYTESWAP
        // In this case at the beginning.
