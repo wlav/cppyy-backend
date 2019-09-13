@@ -1689,7 +1689,8 @@ std::string Cppyy::GetDatamemberType(TCppScope_t scope, TCppIndex_t idata)
     if (cr.GetClass())  {
         TDataMember* m = (TDataMember*)cr->GetListOfDataMembers()->At((int)idata);
         std::string fullType = m->GetFullTypeName();
-        if (fullType.rfind("struct ", 0) != std::string::npos)
+        if (fullType.rfind("struct ", 0) != std::string::npos ||
+            fullType.rfind("union ", 0) != std::string::npos)
             fullType = m->GetTrueTypeName();
 
         if ((int)m->GetArrayDim() > 1 || (!m->IsBasic() && m->IsaPointer()))
