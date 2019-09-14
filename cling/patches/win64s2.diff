@@ -548,7 +548,7 @@ index cf890d63e1..9a59030df4 100644
  {
     TClingCallFunc* f = (TClingCallFunc*) func;
     TClingClassInfo* ci = (TClingClassInfo*) info;
-@@ -7771,7 +7771,7 @@ bool TCling::ClassInfo_IsValid(ClassInfo_t* cinfo) const
+@@ -7775,7 +7775,7 @@ bool TCling::ClassInfo_IsValid(ClassInfo_t* cinfo) const
  
  ////////////////////////////////////////////////////////////////////////////////
  
@@ -557,7 +557,7 @@ index cf890d63e1..9a59030df4 100644
  {
     TClingClassInfo* TClinginfo = (TClingClassInfo*) cinfo;
     return TClinginfo->IsValidMethod(method, proto, false, offset, mode);
-@@ -7779,7 +7779,7 @@ bool TCling::ClassInfo_IsValidMethod(ClassInfo_t* cinfo, const char* method, con
+@@ -7783,7 +7783,7 @@ bool TCling::ClassInfo_IsValidMethod(ClassInfo_t* cinfo, const char* method, con
  
  ////////////////////////////////////////////////////////////////////////////////
  
@@ -566,7 +566,7 @@ index cf890d63e1..9a59030df4 100644
  {
     TClingClassInfo* TClinginfo = (TClingClassInfo*) cinfo;
     return TClinginfo->IsValidMethod(method, proto, objectIsConst, offset, mode);
-@@ -7943,7 +7943,7 @@ int TCling::BaseClassInfo_Next(BaseClassInfo_t* bcinfo, int onlyDirect) const
+@@ -7947,7 +7947,7 @@ int TCling::BaseClassInfo_Next(BaseClassInfo_t* bcinfo, int onlyDirect) const
  
  ////////////////////////////////////////////////////////////////////////////////
  
@@ -575,7 +575,7 @@ index cf890d63e1..9a59030df4 100644
  {
     TClingBaseClassInfo* TClinginfo = (TClingBaseClassInfo*) toBaseClassInfo;
     return TClinginfo->Offset(address, isDerivedObject);
-@@ -7951,7 +7951,7 @@ Long_t TCling::BaseClassInfo_Offset(BaseClassInfo_t* toBaseClassInfo, void * add
+@@ -7955,7 +7955,7 @@ Long_t TCling::BaseClassInfo_Offset(BaseClassInfo_t* toBaseClassInfo, void * add
  
  ////////////////////////////////////////////////////////////////////////////////
  
@@ -932,16 +932,7 @@ index cebf2425bd..fa0b7a38a6 100644
     }
  
     const Decl *D = GetDecl();
-@@ -341,7 +341,6 @@ intptr_t TClingDataMemberInfo::Offset()
-       const clang::ASTRecordLayout &Layout = C.getASTRecordLayout(RD);
-       uint64_t bits = Layout.getFieldOffset(FldD->getFieldIndex());
--      int64_t offset = C.toCharUnitsFromBits(bits).getQuantity();
--      return static_cast<long>(offset);
-+      return C.toCharUnitsFromBits(bits).getQuantity();
-    }
-    else if (const VarDecl *VD = dyn_cast<VarDecl>(D)) {
-       // Could trigger deserialization of decls, in particular in case
-@@ -399,9 +398,9 @@ intptr_t TClingDataMemberInfo::Offset()
+@@ -402,9 +401,9 @@ intptr_t TClingDataMemberInfo::Offset()
        return (intptr_t)ECD->getInitVal().getRawData();
  #else
        // In this case in the second part.

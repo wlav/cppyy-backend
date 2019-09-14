@@ -35,20 +35,24 @@ index 5894a0863b..354b1c4069 100644
 
        if (tci.Property() & propertiesMask) {
           bool hasClassDefInline = false;
-@@ -7567,6 +7599,13 @@ Bool_t TCling::ClassInfo_Contains(ClassInfo_t *info, DeclId_t declid) const
+@@ -7567,6 +7599,17 @@ Bool_t TCling::ClassInfo_Contains(ClassInfo_t *info, DeclId_t declid) const
     else if (decl->getDeclContext()->isTransparentContext() &&
              decl->getDeclContext()->getParent()->Equals(ctxt))
        return kTRUE;
 +   else {
 +       const clang::RecordDecl* rec = llvm::dyn_cast<clang::RecordDecl>(decl->getDeclContext());
-+       if (rec && rec->isAnonymousStructOrUnion() &&
-+               decl->getDeclContext()->getParent()->Equals(ctxt))
-+           return kTRUE;
++       const clang::DeclContext* parent = decl->getDeclContext()->getParent();
++       while (rec && rec->isAnonymousStructOrUnion()) {
++           if (parent->Equals(ctxt))
++               return kTRUE;
++           rec = llvm::dyn_cast<clang::RecordDecl>(parent);
++           parent = parent->getParent();
++       }
 +   }
 +
     return kFALSE;
  }
-
+ 
 diff --git a/src/core/metacling/src/TClingDataMemberInfo.cxx b/src/core/metacling/src/TClingDataMemberInfo.cxx
 index 488f698305..3f6e4c8c5f 100644
 --- a/src/core/metacling/src/TClingDataMemberInfo.cxx
@@ -68,10 +72,10 @@ index 488f698305..3f6e4c8c5f 100644
 +      if (DK == clang::Decl::Field) {
 +         FieldDecl* ff = dyn_cast<FieldDecl>(*fIter);
 +         if (ff->isAnonymousStructOrUnion()) {
-+            fIterStack.push_back(fIter);
 +            cling::Interpreter::PushTransactionRAII RAII(fInterp);
 +            const auto* rec = ff->getType()->getAs<RecordType>()->getDecl();
 +            if (rec) {
++               fIterStack.push_back(fIter);
 +               fIter = rec->decls_begin();
 +               increment = false; // avoid the next incrementation
 +               continue;
@@ -81,24 +85,30 @@ index 488f698305..3f6e4c8c5f 100644
        if ((DK == clang::Decl::Field) || (DK == clang::Decl::EnumConstant) ||
            (DK == clang::Decl::Var)) {
           // Stop on class data members, enumerator values,
-@@ -312,7 +326,20 @@ long TClingDataMemberInfo::Offset()
-    if (const FieldDecl *FldD = dyn_cast<FieldDecl>(D)) {
-       // The current member is a non-static data member.
+@@ -314,8 +327,24 @@ long TClingDataMemberInfo::Offset()
        const clang::RecordDecl *RD = FldD->getParent();
-+      if (RD->isAnonymousStructOrUnion()) {
-+         // calculate the offset of the union in its parent (TODO: this seems silly)
-+         const clang::RecordDecl* outer = llvm::dyn_cast<RecordDecl>(RD->getParent());
-+         for (auto f = outer->field_begin(); f != outer->field_end(); ++f) {
-+             auto* rt = f->getType()->getAs<RecordType>();
-+             if (!rt) continue;
-+             if (RD == rt->getDecl()) {
-+                 FldD = *f;
-+                 break;
-+             }
-+         }
-+         RD = outer;
-+      }
        const clang::ASTRecordLayout &Layout = C.getASTRecordLayout(RD);
        uint64_t bits = Layout.getFieldOffset(FldD->getFieldIndex());
-       int64_t offset = C.toCharUnitsFromBits(bits).getQuantity();
-       return static_cast<long>(offset);
+-      int64_t offset = C.toCharUnitsFromBits(bits).getQuantity();
+-      return static_cast<long>(offset);
++      intptr_t offset = C.toCharUnitsFromBits(bits).getQuantity();
++      while (RD->isAnonymousStructOrUnion()) {
++         // calculate the offset of the union in its parent (TODO: this seems silly)
++         const clang::RecordDecl* anon = RD;
++         RD = llvm::dyn_cast<RecordDecl>(anon->getParent());
++         for (auto f = RD->field_begin(); f != RD->field_end(); ++f) {
++            auto* rt = f->getType()->getAs<RecordType>();
++            if (!rt) continue;
++            if (anon == rt->getDecl()) {
++               FldD = *f;
++               break;
++            }
++         }
++         const auto& ll = C.getASTRecordLayout(RD);
++         uint64_t boff = ll.getFieldOffset(FldD->getFieldIndex());
++         offset += C.toCharUnitsFromBits(boff).getQuantity();
++      }
++      return offset;
+    }
+    else if (const VarDecl *VD = dyn_cast<VarDecl>(D)) {
+       // Could trigger deserialization of decls, in particular in case
