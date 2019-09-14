@@ -550,7 +550,7 @@ index 5413aef378..c8fba08529 100644
  }
  
  ////////////////////////////////////////////////////////////////////////////////
-@@ -4793,7 +4817,7 @@ void TCling::Execute(TObject* obj, TClass* cl, const char* method,
+@@ -4818,7 +4842,7 @@ void TCling::Execute(TObject* obj, TClass* cl, const char* method,
     Long_t offset = 0L;
     TClingCallFunc func(fInterpreter,*fNormalizedCtxt);
     func.SetFunc((TClingClassInfo*)cl->GetClassInfo(), method, params, objectIsConst, &offset);
@@ -559,7 +559,7 @@ index 5413aef378..c8fba08529 100644
     func.Exec(address);
  }
 
-@@ -4900,8 +4924,8 @@ void TCling::Execute(TObject* obj, TClass* cl, TMethod* method,
+@@ -4925,8 +4949,8 @@ void TCling::Execute(TObject* obj, TClass* cl, TMethod* method,
     // Now calculate the 'this' pointer offset for the method
     // when starting from the class described by cl.
     const CXXMethodDecl * mdecl = dyn_cast<CXXMethodDecl>(minfo->GetMethodDecl());
@@ -570,7 +570,7 @@ index 5413aef378..c8fba08529 100644
     func.Exec(address);
  }
 
-@@ -8065,7 +8089,7 @@ int TCling::DataMemberInfo_Next(DataMemberInfo_t* dminfo) const
+@@ -8090,7 +8114,7 @@ int TCling::DataMemberInfo_Next(DataMemberInfo_t* dminfo) const
  
  ////////////////////////////////////////////////////////////////////////////////
  
@@ -698,7 +698,7 @@ index c224ed7bd7..e6f9afb330 100644
              }
              return (TClassLocalStorage*)local;
           }
-@@ -4358,7 +4358,7 @@ TMethod *TClass::GetClassMethod(Long_t faddr)
+@@ -4360,7 +4360,7 @@ TMethod *TClass::GetClassMethod(Long_t faddr)
     TMethod *m;
     TIter    next(GetListOfMethods());
     while ((m = (TMethod *) next())) {
@@ -707,7 +707,7 @@ index c224ed7bd7..e6f9afb330 100644
           return m;
     }
     return 0;
-@@ -4782,12 +4782,12 @@ void *TClass::DynamicCast(const TClass *cl, void *obj, Bool_t up)
+@@ -4784,12 +4784,12 @@ void *TClass::DynamicCast(const TClass *cl, void *obj, Bool_t up)
  
     if (!HasDataMemberInfo()) return 0;
  
@@ -723,7 +723,7 @@ index c224ed7bd7..e6f9afb330 100644
     }
     return 0;
  }
-@@ -6524,7 +6524,7 @@ void TClass::StreamerTObject(const TClass* pThis, void *object, TBuffer &b, cons
+@@ -6526,7 +6526,7 @@ void TClass::StreamerTObject(const TClass* pThis, void *object, TBuffer &b, cons
     if (!pThis->fIsOffsetStreamerSet) {
        pThis->CalculateStreamerOffset();
     }
@@ -732,7 +732,7 @@ index c224ed7bd7..e6f9afb330 100644
     tobj->Streamer(b);
  }
  
-@@ -6533,7 +6533,7 @@ void TClass::StreamerTObject(const TClass* pThis, void *object, TBuffer &b, cons
+@@ -6535,7 +6535,7 @@ void TClass::StreamerTObject(const TClass* pThis, void *object, TBuffer &b, cons
  
  void TClass::StreamerTObjectInitialized(const TClass* pThis, void *object, TBuffer &b, const TClass * /* onfile_class */)
  {
@@ -1336,7 +1336,7 @@ diff --git a/src/core/metacling/src/TClingClassInfo.cxx b/src/core/metacling/src
 index 1cb6973800..f052455243 100644
 --- a/src/core/metacling/src/TClingClassInfo.cxx
 +++ b/src/core/metacling/src/TClingClassInfo.cxx
-@@ -1305,7 +1305,7 @@ long TClingClassInfo::Tagnum() const
+@@ -1329,7 +1329,7 @@ long TClingClassInfo::Tagnum() const
     if (!IsValid()) {
        return -1L;
     }
