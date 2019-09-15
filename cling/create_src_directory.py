@@ -479,6 +479,7 @@ for fdiff in ('scanner', 'scanner_2', 'faux_typedef', 'classrules', 'template_fw
 ## manylinux1 specific patch, as there a different, older, compiler is used
 #
 if is_manylinux():
+    print(' ==> applying patch:', 'manylinux1')
     patch.fromfile(os.path.join('patches', 'manylinux1.diff')).apply()
 
 #
