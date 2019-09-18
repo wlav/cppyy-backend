@@ -333,22 +333,6 @@ for dir_to_remove in ROOT_EXPLICIT_REMOVE:
 
 
 # special fixes
-inp = os.path.join('core', 'base', 'src', 'TVirtualPad.cxx')
-outp = inp+'.new'
-new_cml = open(outp, 'w')
-for line in open(inp):
-    if '#include "X3DBuffer.h"' == line[0:22]:
-        line = """//#include "X3DBuffer.h"
-typedef struct _x3d_sizeof_ {
-   int  numPoints;
-   int  numSegs;
-   int  numPolys;
-} Size3D;
-"""
-    new_cml.write(line)
-new_cml.close()
-rename(outp, inp)
-
 for inp in [os.path.join('core', 'unix', 'src', 'TUnixSystem.cxx'),
             os.path.join('core', 'winnt', 'src', 'TWinNTSystem.cxx')]:
     outp = inp+'.new'
@@ -381,17 +365,6 @@ enum ESendRecvOptions {
     rename(outp, inp)
 
 print('trimming mathcore')
-inp = os.path.join('math', 'mathcore', 'src', 'Fitter.cxx')
-if os.path.exists(inp):
-    outp = inp+'.new'
-    new_cml = open(outp, 'w')
-    for line in open(inp):
-        if '#include "TF1.h"' in line:
-            continue
-        new_cml.write(line)
-    new_cml.close()
-    rename(outp, inp)
-
 os.remove(os.path.join('math', 'mathcore', 'src', 'triangle.h'))
 os.remove(os.path.join('math', 'mathcore', 'src', 'triangle.c'))
 os.remove(os.path.join('math', 'mathcore', 'inc', 'Math', 'Delaunay2D.h'))
