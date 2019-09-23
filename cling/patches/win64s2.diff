@@ -444,7 +444,7 @@ diff --git a/src/core/metacling/src/TCling.cxx b/src/core/metacling/src/TCling.c
 index cf890d63e1..9a59030df4 100644
 --- a/src/core/metacling/src/TCling.cxx
 +++ b/src/core/metacling/src/TCling.cxx
-@@ -4546,13 +4546,13 @@ TString TCling::GetMangledName(TClass* cl, const char* method,
+@@ -4527,13 +4527,13 @@ TString TCling::GetMangledName(TClass* cl, const char* method,
     R__LOCKGUARD(gInterpreterMutex);
     TClingCallFunc func(fInterpreter,*fNormalizedCtxt);
     if (cl) {
@@ -460,7 +460,7 @@ index cf890d63e1..9a59030df4 100644
        func.SetFunc(&gcl, method, params, &offset);
     }
     TClingMethodInfo* mi = (TClingMethodInfo*) func.FactoryMethod();
-@@ -4591,13 +4591,13 @@ void* TCling::GetInterfaceMethod(TClass* cl, const char* method,
+@@ -4572,13 +4572,13 @@ void* TCling::GetInterfaceMethod(TClass* cl, const char* method,
     R__LOCKGUARD(gInterpreterMutex);
     TClingCallFunc func(fInterpreter,*fNormalizedCtxt);
     if (cl) {
@@ -476,7 +476,7 @@ index cf890d63e1..9a59030df4 100644
        func.SetFunc(&gcl, method, params, &offset);
     }
     return (void*) func.InterfaceMethod();
-@@ -4811,7 +4811,7 @@ void TCling::Execute(const char* function, const char* params, int* error)
+@@ -4792,7 +4792,7 @@ void TCling::Execute(const char* function, const char* params, int* error)
        *error = TInterpreter::kNoError;
     }
     TClingClassInfo cl(fInterpreter);
@@ -485,7 +485,7 @@ index cf890d63e1..9a59030df4 100644
     TClingCallFunc func(fInterpreter,*fNormalizedCtxt);
     func.SetFunc(&cl, function, params, &offset);
     func.Exec(0);
-@@ -4839,7 +4839,7 @@ void TCling::Execute(TObject* obj, TClass* cl, const char* method,
+@@ -4820,7 +4820,7 @@ void TCling::Execute(TObject* obj, TClass* cl, const char* method,
     // 'obj' is unlikely to be the start of the object (as described by IsA()),
     // hence gInterpreter->Execute will improperly correct the offset.
     void* addr = cl->DynamicCast(TObject::Class(), obj, kFALSE);
@@ -494,7 +494,7 @@ index cf890d63e1..9a59030df4 100644
     TClingCallFunc func(fInterpreter,*fNormalizedCtxt);
     func.SetFunc((TClingClassInfo*)cl->GetClassInfo(), method, params, objectIsConst, &offset);
     void* address = (void*)((intptr_t)addr + offset);
-@@ -7515,7 +7515,7 @@ void TCling::CallFunc_SetArgs(CallFunc_t* func, const char* param) const
+@@ -7496,7 +7496,7 @@ void TCling::CallFunc_SetArgs(CallFunc_t* func, const char* param) const
  
  ////////////////////////////////////////////////////////////////////////////////
  
@@ -503,7 +503,7 @@ index cf890d63e1..9a59030df4 100644
  {
     TClingCallFunc* f = (TClingCallFunc*) func;
     TClingClassInfo* ci = (TClingClassInfo*) info;
-@@ -7524,7 +7524,7 @@ void TCling::CallFunc_SetFunc(CallFunc_t* func, ClassInfo_t* info, const char* m
+@@ -7505,7 +7505,7 @@ void TCling::CallFunc_SetFunc(CallFunc_t* func, ClassInfo_t* info, const char* m
  
  ////////////////////////////////////////////////////////////////////////////////
  
@@ -512,7 +512,7 @@ index cf890d63e1..9a59030df4 100644
  {
     TClingCallFunc* f = (TClingCallFunc*) func;
     TClingClassInfo* ci = (TClingClassInfo*) info;
-@@ -7542,7 +7542,7 @@ void TCling::CallFunc_SetFunc(CallFunc_t* func, MethodInfo_t* info) const
+@@ -7523,7 +7523,7 @@ void TCling::CallFunc_SetFunc(CallFunc_t* func, MethodInfo_t* info) const
  ////////////////////////////////////////////////////////////////////////////////
  /// Interface to cling function
  
@@ -521,7 +521,7 @@ index cf890d63e1..9a59030df4 100644
  {
     TClingCallFunc* f = (TClingCallFunc*) func;
     TClingClassInfo* ci = (TClingClassInfo*) info;
-@@ -7552,7 +7552,7 @@ void TCling::CallFunc_SetFuncProto(CallFunc_t* func, ClassInfo_t* info, const ch
+@@ -7533,7 +7533,7 @@ void TCling::CallFunc_SetFuncProto(CallFunc_t* func, ClassInfo_t* info, const ch
  ////////////////////////////////////////////////////////////////////////////////
  /// Interface to cling function
  
@@ -530,7 +530,7 @@ index cf890d63e1..9a59030df4 100644
  {
     TClingCallFunc* f = (TClingCallFunc*) func;
     TClingClassInfo* ci = (TClingClassInfo*) info;
-@@ -7562,7 +7562,7 @@ void TCling::CallFunc_SetFuncProto(CallFunc_t* func, ClassInfo_t* info, const ch
+@@ -7543,7 +7543,7 @@ void TCling::CallFunc_SetFuncProto(CallFunc_t* func, ClassInfo_t* info, const ch
  ////////////////////////////////////////////////////////////////////////////////
  /// Interface to cling function
  
@@ -539,7 +539,7 @@ index cf890d63e1..9a59030df4 100644
  {
     TClingCallFunc* f = (TClingCallFunc*) func;
     TClingClassInfo* ci = (TClingClassInfo*) info;
-@@ -7577,7 +7577,7 @@ void TCling::CallFunc_SetFuncProto(CallFunc_t* func, ClassInfo_t* info, const ch
+@@ -7558,7 +7558,7 @@ void TCling::CallFunc_SetFuncProto(CallFunc_t* func, ClassInfo_t* info, const ch
  ////////////////////////////////////////////////////////////////////////////////
  /// Interface to cling function
  
@@ -548,7 +548,7 @@ index cf890d63e1..9a59030df4 100644
  {
     TClingCallFunc* f = (TClingCallFunc*) func;
     TClingClassInfo* ci = (TClingClassInfo*) info;
-@@ -7800,7 +7800,7 @@ bool TCling::ClassInfo_IsValid(ClassInfo_t* cinfo) const
+@@ -7781,7 +7781,7 @@ bool TCling::ClassInfo_IsValid(ClassInfo_t* cinfo) const
  
  ////////////////////////////////////////////////////////////////////////////////
  
@@ -557,7 +557,7 @@ index cf890d63e1..9a59030df4 100644
  {
     TClingClassInfo* TClinginfo = (TClingClassInfo*) cinfo;
     return TClinginfo->IsValidMethod(method, proto, false, offset, mode);
-@@ -7808,7 +7808,7 @@ bool TCling::ClassInfo_IsValidMethod(ClassInfo_t* cinfo, const char* method, con
+@@ -7789,7 +7789,7 @@ bool TCling::ClassInfo_IsValidMethod(ClassInfo_t* cinfo, const char* method, con
  
  ////////////////////////////////////////////////////////////////////////////////
  
@@ -566,7 +566,7 @@ index cf890d63e1..9a59030df4 100644
  {
     TClingClassInfo* TClinginfo = (TClingClassInfo*) cinfo;
     return TClinginfo->IsValidMethod(method, proto, objectIsConst, offset, mode);
-@@ -7972,7 +7972,7 @@ int TCling::BaseClassInfo_Next(BaseClassInfo_t* bcinfo, int onlyDirect) const
+@@ -7953,7 +7953,7 @@ int TCling::BaseClassInfo_Next(BaseClassInfo_t* bcinfo, int onlyDirect) const
  
  ////////////////////////////////////////////////////////////////////////////////
  
@@ -575,7 +575,7 @@ index cf890d63e1..9a59030df4 100644
  {
     TClingBaseClassInfo* TClinginfo = (TClingBaseClassInfo*) toBaseClassInfo;
     return TClinginfo->Offset(address, isDerivedObject);
-@@ -7980,7 +7980,7 @@ Long_t TCling::BaseClassInfo_Offset(BaseClassInfo_t* toBaseClassInfo, void * add
+@@ -7961,7 +7961,7 @@ Long_t TCling::BaseClassInfo_Offset(BaseClassInfo_t* toBaseClassInfo, void * add
  
  ////////////////////////////////////////////////////////////////////////////////
  

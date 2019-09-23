@@ -482,7 +482,7 @@ diff --git a/src/core/metacling/src/TCling.cxx b/src/core/metacling/src/TCling.c
 index 5413aef378..c8fba08529 100644
 --- a/src/core/metacling/src/TCling.cxx
 +++ b/src/core/metacling/src/TCling.cxx
-@@ -2196,7 +2213,12 @@ bool TCling::DiagnoseIfInterpreterException(const std::exception &e) const
+@@ -2177,7 +2194,12 @@ bool TCling::DiagnoseIfInterpreterException(const std::exception &e) const
  
  ////////////////////////////////////////////////////////////////////////////////
  
@@ -496,7 +496,7 @@ index 5413aef378..c8fba08529 100644
  {
     // Copy the passed line, it comes from a static buffer in TApplication
     // which can be reentered through the Cling evaluation routines,
-@@ -3178,7 +3200,12 @@ void TCling::LoadMacro(const char* filename, EErrorCode* error)
+@@ -3159,7 +3181,12 @@ void TCling::LoadMacro(const char* filename, EErrorCode* error)
  ////////////////////////////////////////////////////////////////////////////////
  /// Let cling process a command line asynch.
  
@@ -510,7 +510,7 @@ index 5413aef378..c8fba08529 100644
  {
     return ProcessLine(line, error);
  }
-@@ -3187,7 +3214,12 @@ Long_t TCling::ProcessLineAsynch(const char* line, EErrorCode* error)
+@@ -3168,7 +3195,12 @@ Long_t TCling::ProcessLineAsynch(const char* line, EErrorCode* error)
  /// Let cling process a command line synchronously, i.e we are waiting
  /// it will be finished.
  
@@ -524,7 +524,7 @@ index 5413aef378..c8fba08529 100644
  {
     R__LOCKGUARD_CLING(fLockProcessLine ? gInterpreterMutex : 0);
     if (gApplication) {
-@@ -3203,7 +3235,12 @@ Long_t TCling::ProcessLineSynch(const char* line, EErrorCode* error)
+@@ -3184,7 +3216,12 @@ Long_t TCling::ProcessLineSynch(const char* line, EErrorCode* error)
  /// Directly execute an executable statement (e.g. "func()", "3+5", etc.
  /// however not declarations, like "Int_t x;").
  
@@ -538,7 +538,7 @@ index 5413aef378..c8fba08529 100644
  {
  #ifdef R__WIN32
     // Test on ApplicationImp not being 0 is needed because only at end of
-@@ -3250,7 +3267,11 @@ Long_t TCling::Calc(const char* line, EErrorCode* error)
+@@ -3231,7 +3248,11 @@ Long_t TCling::Calc(const char* line, EErrorCode* error)
        gROOT->SetLineHasBeenProcessed();
     }
  #endif // R__WIN32
@@ -550,7 +550,7 @@ index 5413aef378..c8fba08529 100644
  }
  
  ////////////////////////////////////////////////////////////////////////////////
-@@ -4818,7 +4842,7 @@ void TCling::Execute(TObject* obj, TClass* cl, const char* method,
+@@ -4799,7 +4823,7 @@ void TCling::Execute(TObject* obj, TClass* cl, const char* method,
     Long_t offset = 0L;
     TClingCallFunc func(fInterpreter,*fNormalizedCtxt);
     func.SetFunc((TClingClassInfo*)cl->GetClassInfo(), method, params, objectIsConst, &offset);
@@ -559,7 +559,7 @@ index 5413aef378..c8fba08529 100644
     func.Exec(address);
  }
 
-@@ -4925,8 +4949,8 @@ void TCling::Execute(TObject* obj, TClass* cl, TMethod* method,
+@@ -4906,8 +4930,8 @@ void TCling::Execute(TObject* obj, TClass* cl, TMethod* method,
     // Now calculate the 'this' pointer offset for the method
     // when starting from the class described by cl.
     const CXXMethodDecl * mdecl = dyn_cast<CXXMethodDecl>(minfo->GetMethodDecl());
@@ -570,7 +570,7 @@ index 5413aef378..c8fba08529 100644
     func.Exec(address);
  }
 
-@@ -8090,7 +8114,7 @@ int TCling::DataMemberInfo_Next(DataMemberInfo_t* dminfo) const
+@@ -8071,7 +8095,7 @@ int TCling::DataMemberInfo_Next(DataMemberInfo_t* dminfo) const
  
  ////////////////////////////////////////////////////////////////////////////////
  

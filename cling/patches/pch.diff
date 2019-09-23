@@ -216,6 +216,15 @@ index dd8faabc13..f633342f5c 100755
     cppFlags = " ".join(map(lambda line: line[:-1], lines))
     return cppFlags
  
+@@ -116,7 +116,7 @@ def makepch():
+    if not existing_ldlib: existing_ldlib = ""
+    my_env["LD_LIBRARY_PATH"] = os.path.join(rootdir, "lib") + ":" + existing_ldlib
+ 
+-   ret = subprocess.call(command, env=my_env, shell=True)
++   ret = subprocess.call(command.split(), env=my_env)
+    if ret == 0:
+       shutil.move("allDict_rdict.pch",pchFileName)
+       os.unlink("allDict.cxx")
 diff --git a/src/config/RConfigure.in b/src/config/RConfigure.in
 index e8210e2f65..63b2a8dc99 100644
 --- a/src/config/RConfigure.in
@@ -346,3 +355,290 @@ index f348274986..a21ae827a4 100644
      ${dict_opts}
    LINKDEF
      base/inc/LinkDef.h
+diff --git a/src/interpreter/cling/lib/Interpreter/CIFactory.cpp b/src/interpreter/cling/lib/Interpreter/CIFactory.cpp
+index 80d1b1c52a..58edb8c26d 100644
+--- a/src/interpreter/cling/lib/Interpreter/CIFactory.cpp
++++ b/src/interpreter/cling/lib/Interpreter/CIFactory.cpp
+@@ -53,6 +53,8 @@
+ #include <ctime>
+ #include <memory>
+ 
++#include <sys/stat.h>
++
+ using namespace clang;
+ using namespace cling;
+ 
+@@ -340,7 +342,27 @@ namespace {
+       }
+ 
+   #ifdef CLING_OSX_SYSROOT
+-    sArguments.addArgument("-isysroot", CLING_OSX_SYSROOT);
++      {
++        std::string sysroot{CLING_OSX_SYSROOT};
++        struct stat buf;
++        if (stat(sysroot.c_str(), &buf) != 0) {
++          sArguments.addArgument("-isysroot", CLING_OSX_SYSROOT);
++        } else {
++        // attempt to find a proper sysroot, or leave it up to Clang and user
++        // defined variables such as SDKROOT and MACOSX_DEPLOYMENT_TARGET
++          std::string::size_type pos = sysroot.rfind("SDKs/MacOSX");
++          if (pos != std::string::npos) {
++            if (getenv("MACOSX_DEPLOYMENT_TARGET"))
++              sysroot = sysroot.substr(0, pos+11) + getenv("MACOSX_DEPLOYMENT_TARGET") + ".sdk";
++            else
++              sysroot = sysroot.substr(0, pos+11)+".sdk";  // generic location
++            if (stat(sysroot.c_str(), &buf) == 0)
++              sArguments.addArgument("-isysroot", sysroot.c_str());
++            else
++              cling::errs() << "Warning: sysroot \"" << sysroot << "\" not found (ignoring for now).";
++          }
++        }
++      }
+   #endif
+ 
+ #endif // _MSC_VER
+diff --git a/src/core/clingutils/CMakeLists.txt b/src/core/clingutils/CMakeLists.txt
+index 4be71a05fb..b126c3d9b4 100644
+--- a/src/core/clingutils/CMakeLists.txt
++++ b/src/core/clingutils/CMakeLists.txt
+@@ -35,31 +35,31 @@ ROOT_INSTALL_HEADERS()
+ 
+ #### STL dictionary (replacement for cintdlls)##############################
+ 
+-set(stldicts
+-    vector
+-    list
+-    forward_list
+-    deque
+-    map map2 unordered_map
+-    multimap multimap2 unordered_multimap
+-    set unordered_set
+-    multiset unordered_multiset
+-    complex)
+-if(NOT WIN32)
+-  list(APPEND stldicts valarray)
+-endif()
+-include_directories(${CMAKE_BINARY_DIR}/etc/cling/cint)
+-foreach(dict ${stldicts})
+-  string(REPLACE "2" "" header ${dict})
+-  string(REPLACE "complex" "root_std_complex.h" header ${header})
+-  string(REPLACE "multi" "" header ${header})
+-  ROOT_STANDARD_LIBRARY_PACKAGE(${dict}Dict
+-                                NO_SOURCES NO_INSTALL_HEADERS NO_MODULE
+-                                STAGE1
+-                                NODEPHEADERS ${header}
+-                                LINKDEF src/${dict}Linkdef.h
+-                                DEPENDENCIES Core)
+-endforeach()
++#set(stldicts
++#    vector
++#    list
++#    forward_list
++#    deque
++#    map map2 unordered_map
++#    multimap multimap2 unordered_multimap
++#    set unordered_set
++#    multiset unordered_multiset
++#    complex)
++#if(NOT WIN32)
++#  list(APPEND stldicts valarray)
++#endif()
++#include_directories(${CMAKE_BINARY_DIR}/etc/cling/cint)
++#foreach(dict ${stldicts})
++#  string(REPLACE "2" "" header ${dict})
++#  string(REPLACE "complex" "root_std_complex.h" header ${header})
++#  string(REPLACE "multi" "" header ${header})
++#  ROOT_STANDARD_LIBRARY_PACKAGE(${dict}Dict
++#                                NO_SOURCES NO_INSTALL_HEADERS NO_MODULE
++#                                STAGE1
++#                                NODEPHEADERS ${header}
++#                                LINKDEF src/${dict}Linkdef.h
++#                                DEPENDENCIES Core)
++#endforeach()
+ 
+ set(CLANG_RESOURCE_DIR_STEM)
+ if (builtin_clang)
+diff --git a/src/main/CMakeLists.txt b/src/main/CMakeLists.txt
+index 32094d55bd..30d55635b1 100644
+--- a/src/main/CMakeLists.txt
++++ b/src/main/CMakeLists.txt
+@@ -81,7 +81,7 @@ ROOT_EXECUTABLE(rootcling src/rootcling.cxx
+ # rootcling includes the ROOT complex header which would build the complex
+ # dictionary with modules. To make sure that rootcling_stage1 builds this
+ # dict before we use it, we add a dependency here.
+-add_dependencies(rootcling complexDict)
++#add_dependencies(rootcling complexDict)
+ 
+ target_include_directories(rootcling PRIVATE
+         ${CMAKE_CURRENT_SOURCE_DIR}/../core/metacling/res
+diff --git a/src/interpreter/cling/lib/Interpreter/IncrementalParser.cpp b/src/interpreter/cling/lib/Interpreter/IncrementalParser.cpp
+index 2593c21fb2..dbe8caa04b 100644
+--- a/src/interpreter/cling/lib/Interpreter/IncrementalParser.cpp
++++ b/src/interpreter/cling/lib/Interpreter/IncrementalParser.cpp
+@@ -90,20 +90,7 @@ namespace {
+       "  Failed to extract C++ standard library version.\n";
+     }
+ 
+-    if (CLING_CXXABI_BACKWARDCOMP && CurABI < CLING_CXXABI_VERS) {
+-       // Backward compatible ABIs allow us to interpret old headers
+-       // against a newer stdlib.so.
+-       return true;
+-    }
+-
+-    cling::errs() <<
+-      "Warning in cling::IncrementalParser::CheckABICompatibility():\n"
+-      "  Possible C++ standard library mismatch, compiled with "
+-      << CLING_CXXABI_NAME << " '" << CLING_CXXABI_VERS << "'\n"
+-      "  Extraction of runtime standard library version was: '"
+-      << CurABI << "'\n";
+-
+-    return false;
++    return true;
+   }
+ 
+   class FilteringDiagConsumer : public cling::utils::DiagnosticsOverride {
+diff --git a/src/core/metacling/src/TCling.cxx b/src/core/metacling/src/TCling.cxx
+index 5413aef378..e611986dbf 100644
+--- a/src/core/metacling/src/TCling.cxx
++++ b/src/core/metacling/src/TCling.cxx
+@@ -1714,26 +1754,7 @@ namespace {
+ static const std::unordered_set<std::string> gIgnoredPCMNames = {"libCore",
+                                                                  "libRint",
+                                                                  "libThread",
+-                                                                 "libRIO",
+-                                                                 "libImt",
+-                                                                 "libcomplexDict",
+-                                                                 "libdequeDict",
+-                                                                 "liblistDict",
+-                                                                 "libforward_listDict",
+-                                                                 "libvectorDict",
+-                                                                 "libmapDict",
+-                                                                 "libmultimap2Dict",
+-                                                                 "libmap2Dict",
+-                                                                 "libmultimapDict",
+-                                                                 "libsetDict",
+-                                                                 "libmultisetDict",
+-                                                                 "libunordered_setDict",
+-                                                                 "libunordered_multisetDict",
+-                                                                 "libunordered_mapDict",
+-                                                                 "libunordered_multimapDict",
+-                                                                 "libvalarrayDict",
+-                                                                 "G__GenVector32",
+-                                                                 "G__Smatrix32"};
++                                                                 "libRIO"};
+
+ ////////////////////////////////////////////////////////////////////////////////
+ /// Inject the module named "modulename" into cling; load all headers.
+diff --git a/src/core/cont/inc/LinkDef.h b/src/core/cont/inc/LinkDef.h
+index 2fdcd76639..39b362cca4 100644
+--- a/src/core/cont/inc/LinkDef.h
++++ b/src/core/cont/inc/LinkDef.h
+@@ -55,11 +55,6 @@
+ #pragma link C++ class TRefTable-;
+ #pragma link C++ class TVirtualCollectionProxy-;
+
+-#pragma link C++ class std::vector<Int_t>;
+-#pragma link C++ class std::vector<Int_t>::iterator;
+-#pragma link C++ class std::vector<Int_t>::const_iterator;
+-#pragma link C++ class std::vector<Int_t>::reverse_iterator;
+-
+ #pragma link C++ nestedclass;
+ #pragma link C++ nestedtypedef;
+
+diff --git a/src/core/base/inc/LinkDef2.h b/src/core/base/inc/LinkDef2.h
+index 44883b3c03..8f4d6c64a6 100644
+--- a/src/core/base/inc/LinkDef2.h
++++ b/src/core/base/inc/LinkDef2.h
+@@ -10,34 +10,11 @@
+ 
+ #ifdef __CINT__
+ 
+-#ifdef __CLING__
+-#include <string>
+-#pragma link C++ class string::iterator;
+-#pragma link C++ class string::const_iterator;
+-#else
+-#include "dll_stl/str.h"
+-#endif
++#pragma link C++ global gTQSender;
++#pragma link C++ global gTQSlotParams;
+ 
+-#pragma extra_include "vector";
+ #pragma extra_include "string";
+-
+ #pragma create TClass string;
+-#pragma link C++ class std::vector<string>;
+-#pragma link C++ operator std::vector<string>;
+-#pragma link C++ class std::vector<string>::iterator;
+-#pragma link C++ class std::vector<string>::const_iterator;
+-#pragma link C++ class std::vector<string>::reverse_iterator;
+-
+-#pragma link C++ class std::vector<TString>;
+-#pragma link C++ operators std::vector<TString>;
+-#pragma link C++ class std::vector<TString>::iterator;
+-#pragma link C++ class std::vector<TString>::const_iterator;
+-#pragma link C++ class std::vector<TString>::reverse_iterator;
+-
+-#include <vector>
+-
+-#pragma link C++ global gTQSender;
+-#pragma link C++ global gTQSlotParams;
+ 
+ #pragma link C++ enum EAccessMode;
+ #pragma link C++ enum ESignals;
+
+diff --git a/src/core/meta/inc/LinkDef.h b/src/core/meta/inc/LinkDef.h
+index e36a6a09f1..17101803f4 100644
+--- a/src/core/meta/inc/LinkDef.h
++++ b/src/core/meta/inc/LinkDef.h
+@@ -62,7 +62,6 @@
+ #pragma link C++ class TStreamerElement-;
+ #pragma link C++ class TToggle;
+ #pragma link C++ class TToggleGroup;
+-#pragma link C++ class std::vector<std::pair<Int_t, Int_t> >+;
+ #pragma link C++ class TFileMergeInfo;
+ #pragma link C++ class TListOfFunctions+;
+ #pragma link C++ class TListOfFunctionsIter;
+@@ -72,8 +71,5 @@
+ #pragma link C++ class TListOfEnumsWithLock+;
+ #pragma link C++ class TListOfEnumsWithLockIter;
+ #pragma link C++ class ROOT::Detail::TStatusBitsChecker-;
+-//for new protoclasses
+-#pragma link C++ class std::vector<TDataMember * >+;
+-#pragma link C++ class std::vector<TProtoClass::TProtoRealData >+;
+
+ #endif
+diff --git a/src/math/mathcore/inc/LinkDef2.h b/src/math/mathcore/inc/LinkDef2.h
+index c3e163b919..3259ba9488 100644
+--- a/src/math/mathcore/inc/LinkDef2.h
++++ b/src/math/mathcore/inc/LinkDef2.h
+@@ -22,10 +22,6 @@
+ //#pragma link C++ class ROOT::Math;
+ #endif
+
+-#pragma link C++ class std::vector<Double_t>::iterator;
+-#pragma link C++ class std::vector<Double_t>::const_iterator;
+-#pragma link C++ class std::vector<Double_t>::reverse_iterator;
+-
+ #pragma link C++ global gRandom;
+
+ #pragma link C++ class TRandom+;
+@@ -174,7 +170,6 @@
+ #pragma link C++ class ROOT::Math::DistSampler+;
+ #pragma link C++ class ROOT::Math::DistSamplerOptions+;
+ #pragma link C++ class ROOT::Math::GoFTest+;
+-#pragma link C++ class std::vector<std::vector<double> >+;
+
+ #pragma link C++ class ROOT::Math::Delaunay2D+;
+
+diff --git a/src/math/mathcore/inc/LinkDef3.h b/src/math/mathcore/inc/LinkDef3.h
+index 16006bc20f..f89fa58b90 100644
+--- a/src/math/mathcore/inc/LinkDef3.h
++++ b/src/math/mathcore/inc/LinkDef3.h
+@@ -55,6 +55,4 @@
+ #pragma link C++ function ROOT::Fit::Fitter::LikelihoodFit(const ROOT::Fit::BinData &, bool);
+ #pragma link C++ function ROOT::Fit::Fitter::LikelihoodFit(const ROOT::Fit::UnBinData &, bool);
+
+-#pragma link C++ class std::vector<ROOT::Fit::ParameterSettings>;
+-
+ #endif
