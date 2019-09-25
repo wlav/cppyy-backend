@@ -58,12 +58,29 @@ static const ClassRefs_t::size_type STD_HANDLE = GLOBAL_HANDLE + 1;
 typedef std::map<std::string, ClassRefs_t::size_type> Name2ClassRefIndex_t;
 static Name2ClassRefIndex_t g_name2classrefidx;
 
-struct CallWrapper {
-    CallWrapper(TFunction* f) : fMetaFunction(f), fWrapper(nullptr) {}
-    TFunction*                         fMetaFunction;
+namespace {
+
+class CallWrapper {
+public:
+    typedef const void* DeclId_t;
+
+public:
+    CallWrapper(TFunction* f) : fDecl(f->GetDeclId()), fName(f->GetName()), fTF(nullptr) {}
+    CallWrapper(DeclId_t fid, const std::string& n) : fDecl(fid), fName(n), fTF(nullptr) {}
+    ~CallWrapper() {
+        if (fTF && fDecl == fTF->GetDeclId())
+            delete fTF;
+    }
+
+public:
     TInterpreter::CallFuncIFacePtr_t   fFaceptr;
-    CallFunc_t*                        fWrapper;
+    DeclId_t      fDecl;
+    std::string   fName;
+    TFunction*    fTF;
 };
+
+}
+
 static std::vector<CallWrapper*> gWrapperHolder;
 static inline CallWrapper* new_CallWrapper(TFunction* f) {
     CallWrapper* wrap = new CallWrapper(f);
@@ -71,6 +88,11 @@ static inline CallWrapper* new_CallWrapper(TFunction* f) {
     return wrap;
 }
 
+static inline CallWrapper* new_CallWrapper(CallWrapper::DeclId_t fid, const std::string& n) {
+    CallWrapper* wrap = new CallWrapper(fid, n);
+    gWrapperHolder.push_back(wrap);
+    return wrap;
+}
 
 typedef std::vector<TGlobal*> GlobalVars_t;
 static GlobalVars_t g_globalvars;
@@ -208,11 +230,8 @@ public:
     }
 
     ~ApplicationStarter() {
-        for (auto wrap : gWrapperHolder) {
-            if (wrap->fWrapper)
-                gInterpreter->CallFunc_Delete(wrap->fWrapper);
+        for (auto wrap : gWrapperHolder)
             delete wrap;
-        }
     }
 } _applicationStarter;
 
@@ -227,20 +246,14 @@ TClassRef& type_from_handle(Cppyy::TCppScope_t scope)
     return g_classrefs[(ClassRefs_t::size_type)scope];
 }
 
-// type_from_handle to go here
-static inline
-TFunction* type_get_method(Cppyy::TCppType_t klass, Cppyy::TCppIndex_t idx)
-{
-    TClassRef& cr = type_from_handle(klass);
-    if (cr.GetClass())
-        return (TFunction*)cr->GetListOfMethods(false)->At((int)idx);
-    assert(klass == (Cppyy::TCppType_t)GLOBAL_HANDLE);
-    return ((CallWrapper*)idx)->fMetaFunction;
-}
-
 static inline
 TFunction* m2f(Cppyy::TCppMethod_t method) {
-    return ((CallWrapper*)method)->fMetaFunction;
+    CallWrapper* wrap = ((CallWrapper*)method);
+    if (!wrap->fTF || wrap->fTF->GetDeclId() != wrap->fDecl) {
+        MethodInfo_t* mi = gInterpreter->MethodInfo_Factory(wrap->fDecl);
+        wrap->fTF = new TFunction(mi);
+    }
+    return wrap->fTF;
 }
 
 static inline
@@ -564,10 +577,9 @@ static TInterpreter::CallFuncIFacePtr_t GetCallFunc(Cppyy::TCppMethod_t method)
 {
 // TODO: method should be a callfunc, so that no mapping would be needed.
     CallWrapper* wrap = (CallWrapper*)method;
-    TFunction* func = wrap->fMetaFunction;
 
     CallFunc_t* callf = gInterpreter->CallFunc_Factory();
-    MethodInfo_t* meth = gInterpreter->MethodInfo_Factory(func->GetDeclId());
+    MethodInfo_t* meth = gInterpreter->MethodInfo_Factory(wrap->fDecl);
     gInterpreter->CallFunc_SetFunc(callf, meth);
     gInterpreter->MethodInfo_Delete(meth);
 
@@ -576,15 +588,14 @@ static TInterpreter::CallFuncIFacePtr_t GetCallFunc(Cppyy::TCppMethod_t method)
     /*
         PyErr_Format(PyExc_RuntimeError, "could not resolve %s::%s(%s)",
             const_cast<TClassRef&>(klass).GetClassName(),
-            func ? func->GetName() : const_cast<TClassRef&>(klass).GetClassName(),
-            callString.c_str()); */
+            wrap.fName, callString.c_str()); */
         std::cerr << "TODO: report unresolved function error to Python\n";
         if (callf) gInterpreter->CallFunc_Delete(callf);
         return TInterpreter::CallFuncIFacePtr_t{};
     }
 
     wrap->fFaceptr = gInterpreter->CallFunc_IFacePtr(callf);
-    wrap->fWrapper = callf;
+    gInterpreter->CallFunc_Delete(callf);   // does not touch IFacePtr
     return wrap->fFaceptr;
 }
 
@@ -1238,18 +1249,23 @@ std::vector<Cppyy::TCppIndex_t> Cppyy::GetMethodIndicesFromName(
     return indices;
 }
 
-Cppyy::TCppMethod_t Cppyy::GetMethod(TCppScope_t scope, TCppIndex_t imeth)
+Cppyy::TCppMethod_t Cppyy::GetMethod(TCppScope_t scope, TCppIndex_t idx)
 {
-    TFunction* func = type_get_method(scope, imeth);
-    if (func)
-        return (Cppyy::TCppMethod_t)new_CallWrapper(func);
-    return (Cppyy::TCppMethod_t)nullptr;
+    TClassRef& cr = type_from_handle(scope);
+    if (cr.GetClass()) {
+        TFunction* f = (TFunction*)cr->GetListOfMethods(false)->At((int)idx);
+        if (f) return (Cppyy::TCppMethod_t)new_CallWrapper(f);
+        return (Cppyy::TCppMethod_t)nullptr;
+    }
+
+    assert(klass == (Cppyy::TCppType_t)GLOBAL_HANDLE);
+    return (Cppyy::TCppMethod_t)idx;
 }
 
 std::string Cppyy::GetMethodName(TCppMethod_t method)
 {
     if (method) {
-        std::string name = m2f(method)->GetName();
+        const std::string& name = ((CallWrapper*)method)->fName;
 
         if (name.compare(0, 8, "operator") != 0)
         // strip template instantiation part, if any
@@ -1262,7 +1278,7 @@ std::string Cppyy::GetMethodName(TCppMethod_t method)
 std::string Cppyy::GetMethodFullName(TCppMethod_t method)
 {
     if (method) {
-        std::string name = m2f(method)->GetName();
+        std::string name = ((CallWrapper*)method)->fName;
         name.erase(std::remove(name.begin(), name.end(), ' '), name.end());
         return name;
     }
@@ -1465,24 +1481,22 @@ bool Cppyy::ExistsMethodTemplate(TCppScope_t scope, const std::string& name)
     return false;
 }
 
-bool Cppyy::IsMethodTemplate(TCppScope_t scope, TCppIndex_t imeth)
+bool Cppyy::IsMethodTemplate(TCppScope_t scope, TCppIndex_t idx)
 {
-    TFunction* f = type_get_method(scope, imeth);
-    if (!f) return false;
+    TClassRef& cr = type_from_handle(scope);
+    if (cr.GetClass()) {
+        TFunction* f = (TFunction*)cr->GetListOfMethods(false)->At((int)idx);
+        if (f && strstr(f->GetName(), "<")) return true;
+        return false;
+    }
 
-    if (strstr(f->GetName(), "<")) return true;
+    assert(scope == (Cppyy::TCppType_t)GLOBAL_HANDLE);
+    if (((CallWrapper*)idx)->fName.find('<') != std::string::npos) return true;
     return false;
 }
 
 // helpers for Cppyy::GetMethodTemplate()
 static std::map<TDictionary::DeclId_t, CallWrapper*> gMethodTemplates;
-namespace {
-    struct CleanMethodTemplates {
-        ~CleanMethodTemplates() {
-            for (auto& x : gMethodTemplates) { delete x.second->fMetaFunction; delete x.second; }
-        }
-    } _clean;
-}
 
 Cppyy::TCppMethod_t Cppyy::GetMethodTemplate(
     TCppScope_t scope, const std::string& name, const std::string& proto)
@@ -1529,8 +1543,7 @@ Cppyy::TCppMethod_t Cppyy::GetMethodTemplate(
         if (declid) {
              auto existing = gMethodTemplates.find(declid);
              if (existing == gMethodTemplates.end()) {
-                 MethodInfo_t* mi = gInterpreter->MethodInfo_Factory(declid);
-                 auto cw = new CallWrapper(new TFunction(mi));
+                 auto cw = new_CallWrapper(declid, name);
                  existing = gMethodTemplates.insert(std::make_pair(declid, cw)).first;
              }
              return (TCppMethod_t)existing->second;
