@@ -376,7 +376,7 @@ index 80d1b1c52a..58edb8c26d 100644
 +      {
 +        std::string sysroot{CLING_OSX_SYSROOT};
 +        struct stat buf;
-+        if (stat(sysroot.c_str(), &buf) != 0) {
++        if (stat(sysroot.c_str(), &buf) == 0) {
 +          sArguments.addArgument("-isysroot", CLING_OSX_SYSROOT);
 +        } else {
 +        // attempt to find a proper sysroot, or leave it up to Clang and user
