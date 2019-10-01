@@ -60,6 +60,14 @@ static Name2ClassRefIndex_t g_name2classrefidx;
 
 namespace {
 
+static inline Cppyy::TCppType_t find_memoized(const std::string& name)
+{
+    auto icr = g_name2classrefidx.find(name);
+    if (icr != g_name2classrefidx.end())
+        return (Cppyy::TCppType_t)icr->second;
+    return (Cppyy::TCppType_t)0;
+}
+
 class CallWrapper {
 public:
     typedef const void* DeclId_t;
@@ -82,13 +90,15 @@ public:
 }
 
 static std::vector<CallWrapper*> gWrapperHolder;
-static inline CallWrapper* new_CallWrapper(TFunction* f) {
+static inline CallWrapper* new_CallWrapper(TFunction* f)
+{
     CallWrapper* wrap = new CallWrapper(f);
     gWrapperHolder.push_back(wrap);
     return wrap;
 }
 
-static inline CallWrapper* new_CallWrapper(CallWrapper::DeclId_t fid, const std::string& n) {
+static inline CallWrapper* new_CallWrapper(CallWrapper::DeclId_t fid, const std::string& n)
+{
     CallWrapper* wrap = new CallWrapper(fid, n);
     gWrapperHolder.push_back(wrap);
     return wrap;
@@ -98,6 +108,7 @@ typedef std::vector<TGlobal*> GlobalVars_t;
 static GlobalVars_t g_globalvars;
 
 static std::set<std::string> gSTLNames;
+
 
 // data ----------------------------------------------------------------------
 Cppyy::TCppScope_t Cppyy::gGlobalScope = GLOBAL_HANDLE;
@@ -297,6 +308,12 @@ bool Cppyy::Compile(const std::string& code)
 std::string Cppyy::ResolveName(const std::string& cppitem_name)
 {
 // Fully resolve the given name to the final type name.
+
+// try memoized type cache, in case seen before
+    TCppType_t klass = find_memoized(cppitem_name);
+    if (klass) return GetScopedFinalName(klass);
+
+// remove global scope '::' if present
     std::string tclean = cppitem_name.compare(0, 2, "::") == 0 ?
         cppitem_name.substr(2, std::string::npos) : cppitem_name;
 
@@ -318,7 +335,13 @@ std::string Cppyy::ResolveName(const std::string& cppitem_name)
         return ResolveEnum(cppitem_name);
 
 // typedefs
-    return TClassEdit::ResolveTypedef(tclean.c_str(), true);
+    std::string resolved = TClassEdit::ResolveTypedef(tclean.c_str(), true);
+    if (resolved != tclean) {
+    // TODO: this is a hack and it is ResolveTypdef that needs fixing
+        if (cppitem_name.find("::value_type") != std::string::npos && resolved.rfind("std::", 0) == 0)
+            return resolved.substr(5, std::string::npos);
+    }
+    return resolved;
 }
 
 static std::map<std::string, std::string> resolved_enum_types;
@@ -373,14 +396,6 @@ std::string Cppyy::ResolveEnum(const std::string& enum_type)
     restype += "internal_enum_type_t"+enum_type.substr((std::string::size_type)ipos+1, std::string::npos);
     resolved_enum_types[enum_type] = restype;
     return restype;     // should default to some int variant
-}
-
-static inline Cppyy::TCppType_t find_memoized(const std::string& name)
-{
-    auto icr = g_name2classrefidx.find(name);
-    if (icr != g_name2classrefidx.end())
-        return (Cppyy::TCppType_t)icr->second;
-    return (Cppyy::TCppType_t)0;
 }
 
 Cppyy::TCppScope_t Cppyy::GetScope(const std::string& sname)
