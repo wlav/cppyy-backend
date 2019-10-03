@@ -1,0 +1,80 @@
+diff --git a/src/core/base/inc/TException.h b/src/core/base/inc/TException.h
+index 0e845f0647..8e4a779883 100644
+--- a/src/core/base/inc/TException.h
++++ b/src/core/base/inc/TException.h
+@@ -73,6 +73,14 @@ struct ExceptionContext_t {
+ 
+ R__EXTERN ExceptionContext_t *gException;
+ 
+-extern void Throw(int code);
++R__EXTERN void Throw(int code);
++
++class TExceptionHandler {
++public:
++   virtual ~TExceptionHandler() {}
++   virtual void HandleException(int sig) = 0;
++};
++
++R__EXTERN TExceptionHandler* gExceptionHandler;
+ 
+ #endif
+diff --git a/src/core/base/src/TException.cxx b/src/core/base/src/TException.cxx
+index 28b75f6e7e..6200b3b54e 100644
+--- a/src/core/base/src/TException.cxx
++++ b/src/core/base/src/TException.cxx
+@@ -34,4 +34,4 @@ void Throw(int code)
+ #endif
+ }
+ 
+-
++TExceptionHandler* gExceptionHandler = nullptr;
+diff --git a/src/core/unix/src/TUnixSystem.cxx b/src/core/unix/src/TUnixSystem.cxx
+index 59fbd1e4d5..20fd6e872b 100644
+--- a/src/core/unix/src/TUnixSystem.cxx
++++ b/src/core/unix/src/TUnixSystem.cxx
+@@ -3627,15 +3627,16 @@ void TUnixSystem::DispatchSignals(ESignals sig)
+    case kSigSegmentationViolation:
+    case kSigIllegalInstruction:
+    case kSigFloatingException:
+-      Break("TUnixSystem::DispatchSignals", "%s", UnixSigname(sig));
+-      StackTrace();
+-      if (gApplication)
++      if (gExceptionHandler)
+          //sig is ESignal, should it be mapped to the correct signal number?
+-         gApplication->HandleException(sig);
+-      else
++         gExceptionHandler->HandleException(sig);
++      else {
+          //map to the real signal code + set the
+          //high order bit to indicate a signal (?)
++         Break("TUnixSystem::DispatchSignals", "%s", UnixSigname(sig));
++         StackTrace();
+          Exit(gSignalMap[sig].fCode + 0x80);
++      }
+       break;
+    case kSigSystem:
+    case kSigPipe:
+diff --git a/src/core/winnt/src/TWinNTSystem.cxx b/src/core/winnt/src/TWinNTSystem.cxx
+index c1577c0e37..81b960b112 100644
+--- a/src/core/winnt/src/TWinNTSystem.cxx
++++ b/src/core/winnt/src/TWinNTSystem.cxx
+@@ -1770,9 +1770,16 @@ void TWinNTSystem::DispatchSignals(ESignals sig)
+       fSigcnt++;
+    }
+    else {
+-      StackTrace();
+-      if (TROOT::Initialized()) {
+-         ::Throw(sig);
++      if (gExceptionHandler)
++         //sig is ESignal, should it be mapped to the correct signal number?
++         gExceptionHandler->HandleException(sig);
++      else {
++         //map to the real signal code + set the
++         //high order bit to indicate a signal (?)
++         StackTrace();
++         if (TROOT::Initialized()) {
++             ::Throw(sig);
++         }
+       }
+       Abort(-1);
+    }

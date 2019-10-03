@@ -16,6 +16,7 @@
 #include "TEnumConstant.h"
 #include "TEnv.h"
 #include "TError.h"
+#include "TException.h"
 #include "TFunction.h"
 #include "TFunctionTemplate.h"
 #include "TGlobal.h"
@@ -36,6 +37,7 @@
 #include <new>
 #include <set>
 #include <sstream>
+#include <signal.h>
 #include <stdlib.h>      // for getenv
 #include <string.h>
 #include <typeinfo>
@@ -138,6 +140,49 @@ static bool gEnableFastPath = true;
 // global initialization -----------------------------------------------------
 namespace {
 
+// names copied from TUnixSystem
+static struct Signalmap_t {
+   int               fCode;
+   const char       *fSigName;
+} gSignalMap[kMAXSIGNALS] = {       // the order of the signals should be identical
+   { SIGBUS,   "bus error" }, // to the one in TSysEvtHandler.h
+   { SIGSEGV,  "segmentation violation" },
+   { SIGSYS,    "bad argument to system call" },
+   { SIGPIPE,   "write on a pipe with no one to read it" },
+   { SIGILL,    "illegal instruction" },
+   { SIGQUIT,   "quit" },
+   { SIGINT,    "interrupt" },
+   { SIGWINCH,  "window size change" },
+   { SIGALRM,   "alarm clock" },
+   { SIGCHLD,   "death of a child" },
+   { SIGURG,    "urgent data arrived on an I/O channel" },
+   { SIGFPE,    "floating point exception" },
+   { SIGTERM,   "termination signal" },
+   { SIGUSR1,   "user-defined signal 1" },
+   { SIGUSR2,   "user-defined signal 2" }
+};
+
+class TExceptionHandlerImp : public TExceptionHandler {
+public:
+    virtual void HandleException(Int_t sig) {
+        if (TROOT::Initialized()) {
+            if (gException) {
+                gInterpreter->RewindDictionary();
+                gInterpreter->ClearFileBusy();
+            }
+
+        // check envars or similar for exit/abort/... action
+
+        // jump back, if catch point set
+            Throw(sig);
+        }
+
+        std::cerr << " *** Break *** " << (sig < kMAXSIGNALS ? gSignalMap[sig].fSigName : "") << std::endl;
+        gSystem->StackTrace();
+        gSystem->Exit(128 + sig);
+    }
+};
+
 class ApplicationStarter {
 public:
     ApplicationStarter() {
@@ -238,11 +283,15 @@ public:
 
     // start off with a reasonable size placeholder for wrappers
         gWrapperHolder.reserve(1024);
+
+    // create an exception handler to process signals
+        gExceptionHandler = new TExceptionHandlerImp{};
     }
 
     ~ApplicationStarter() {
         for (auto wrap : gWrapperHolder)
             delete wrap;
+        delete gExceptionHandler; gExceptionHandler = nullptr;
     }
 } _applicationStarter;
 

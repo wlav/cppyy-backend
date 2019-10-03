@@ -1294,7 +1294,7 @@ index 7a477878a0..bfb16a5a09 100644
  
  ////////////////////////////////////////////////////////////////////////////////
  ///
-@@ -3882,7 +3882,7 @@ void TWinNTSystem::Exit(int code, Bool_t mode)
+@@ -3889,7 +3889,7 @@ void TWinNTSystem::Exit(int code, Bool_t mode)
                    if (((TBrowser*)0x%lx)->GetBrowserImp() &&\
                        ((TBrowser*)0x%lx)->GetBrowserImp()->GetMainFrame()) \
                       ((TBrowser*)0x%lx)->GetBrowserImp()->GetMainFrame()->CloseWindow();\
