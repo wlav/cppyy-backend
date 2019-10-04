@@ -1276,7 +1276,7 @@ diff --git a/src/core/winnt/src/TWinNTSystem.cxx b/src/core/winnt/src/TWinNTSyst
 index 7a477878a0..bfb16a5a09 100644
 --- a/src/core/winnt/src/TWinNTSystem.cxx
 +++ b/src/core/winnt/src/TWinNTSystem.cxx
-@@ -923,7 +923,7 @@ namespace {
+@@ -924,7 +924,7 @@ namespace {
        // ensure window title has been updated
        ::Sleep(40);
        // look for NewWindowTitle
@@ -1285,7 +1285,7 @@ index 7a477878a0..bfb16a5a09 100644
        if (gConsoleWindow) {
           // restore original window title
           ::ShowWindow((HWND)gConsoleWindow, SW_RESTORE);
-@@ -944,7 +944,7 @@ namespace {
+@@ -945,7 +945,7 @@ namespace {
  ///////////////////////////////////////////////////////////////////////////////
  ClassImp(TWinNTSystem);
  
@@ -1294,7 +1294,7 @@ index 7a477878a0..bfb16a5a09 100644
  
  ////////////////////////////////////////////////////////////////////////////////
  ///
-@@ -3889,7 +3889,7 @@ void TWinNTSystem::Exit(int code, Bool_t mode)
+@@ -3890,7 +3890,7 @@ void TWinNTSystem::Exit(int code, Bool_t mode)
                    if (((TBrowser*)0x%lx)->GetBrowserImp() &&\
                        ((TBrowser*)0x%lx)->GetBrowserImp()->GetMainFrame()) \
                       ((TBrowser*)0x%lx)->GetBrowserImp()->GetMainFrame()->CloseWindow();\

@@ -1,3 +1,15 @@
+diff --git a/src/core/base/inc/TSysEvtHandler.h b/src/core/base/inc/TSysEvtHandler.h
+index 841f11713c..9703603fea 100644
+--- a/src/core/base/inc/TSysEvtHandler.h
++++ b/src/core/base/inc/TSysEvtHandler.h
+@@ -110,6 +110,7 @@ enum ESignals {
+    kSigSystem,
+    kSigPipe,
+    kSigIllegalInstruction,
++   kSigAbort,
+    kSigQuit,
+    kSigInterrupt,
+    kSigWindowChanged,
 diff --git a/src/core/base/inc/TException.h b/src/core/base/inc/TException.h
 index 0e845f0647..8e4a779883 100644
 --- a/src/core/base/inc/TException.h
@@ -29,12 +41,30 @@ index 28b75f6e7e..6200b3b54e 100644
 -
 +TExceptionHandler* gExceptionHandler = nullptr;
 diff --git a/src/core/unix/src/TUnixSystem.cxx b/src/core/unix/src/TUnixSystem.cxx
-index 59fbd1e4d5..20fd6e872b 100644
+index 59fbd1e4d5..dcbe4d97b5 100644
 --- a/src/core/unix/src/TUnixSystem.cxx
 +++ b/src/core/unix/src/TUnixSystem.cxx
-@@ -3627,15 +3627,16 @@ void TUnixSystem::DispatchSignals(ESignals sig)
+@@ -584,6 +584,7 @@ Bool_t TUnixSystem::Init()
+    UnixSignal(kSigBus,                   SigHandler);
+    UnixSignal(kSigSegmentationViolation, SigHandler);
+    UnixSignal(kSigIllegalInstruction,    SigHandler);
++   UnixSignal(kSigAbort,                 SigHandler);
+    UnixSignal(kSigSystem,                SigHandler);
+    UnixSignal(kSigAlarm,                 SigHandler);
+    UnixSignal(kSigUrgent,                SigHandler);
+@@ -3585,6 +3586,7 @@ static struct Signalmap_t {
+    { SIGSYS,   0, 0, "bad argument to system call" },
+    { SIGPIPE,  0, 0, "write on a pipe with no one to read it" },
+    { SIGILL,   0, 0, "illegal instruction" },
++   { SIGABRT,  0, 0, "abort" },
+    { SIGQUIT,  0, 0, "quit" },
+    { SIGINT,   0, 0, "interrupt" },
+    { SIGWINCH, 0, 0, "window size change" },
+@@ -3626,16 +3628,18 @@ void TUnixSystem::DispatchSignals(ESignals sig)
+    case kSigBus:
     case kSigSegmentationViolation:
     case kSigIllegalInstruction:
++   case kSigAbort:
     case kSigFloatingException:
 -      Break("TUnixSystem::DispatchSignals", "%s", UnixSigname(sig));
 -      StackTrace();
@@ -58,6 +88,14 @@ diff --git a/src/core/winnt/src/TWinNTSystem.cxx b/src/core/winnt/src/TWinNTSyst
 index c1577c0e37..81b960b112 100644
 --- a/src/core/winnt/src/TWinNTSystem.cxx
 +++ b/src/core/winnt/src/TWinNTSystem.cxx
+@@ -168,6 +168,7 @@ namespace {
+       -1 /*SIGSYS*/,   0, "bad argument to system call",
+       -1 /*SIGPIPE*/,  0, "write on a pipe with no one to read it",
+       SIGILL,   0, "illegal instruction",
++      SIGABRT,  9, "abort",
+       -1 /*SIGQUIT*/,  0, "quit",
+       SIGINT,   0, "interrupt",
+       -1 /*SIGWINCH*/, 0, "window size change",
 @@ -1770,9 +1770,16 @@ void TWinNTSystem::DispatchSignals(ESignals sig)
        fSigcnt++;
     }
