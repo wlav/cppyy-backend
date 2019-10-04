@@ -150,6 +150,7 @@ static struct Signalmap_t {
    { SIGSYS,    "bad argument to system call" },
    { SIGPIPE,   "write on a pipe with no one to read it" },
    { SIGILL,    "illegal instruction" },
+   { SIGABRT,   "abort" },
    { SIGQUIT,   "quit" },
    { SIGINT,    "interrupt" },
    { SIGWINCH,  "window size change" },

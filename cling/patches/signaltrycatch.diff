@@ -116,3 +116,16 @@ index c1577c0e37..81b960b112 100644
        }
        Abort(-1);
     }
+diff --git a/src/core/base/inc/Rtypes.h b/src/core/base/inc/Rtypes.h
+index a241e489fc..752edb2f47 100644
+--- a/src/core/base/inc/Rtypes.h
++++ b/src/core/base/inc/Rtypes.h
+@@ -54,7 +54,7 @@ class TString;
+ 
+ //Moved from TSystem.
+ enum ESysConstants {
+-   kMAXSIGNALS       = 15,
++   kMAXSIGNALS       = 16,
+    kMAXPATHLEN       = 8192,
+    kBUFFERSIZE       = 8192,
+    kItimerResolution = 10      // interval-timer resolution in ms
