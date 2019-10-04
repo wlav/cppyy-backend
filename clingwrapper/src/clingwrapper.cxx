@@ -163,6 +163,11 @@ static struct Signalmap_t {
    { SIGUSR2,   "user-defined signal 2" }
 };
 
+static void inline do_trace(int sig) {
+    std::cerr << " *** Break *** " << (sig < kMAXSIGNALS ? gSignalMap[sig].fSigName : "") << std::endl;
+    gSystem->StackTrace();
+}
+
 class TExceptionHandlerImp : public TExceptionHandler {
 public:
     virtual void HandleException(Int_t sig) {
@@ -172,14 +177,14 @@ public:
                 gInterpreter->ClearFileBusy();
             }
 
-        // check envars or similar for exit/abort/... action
+            if (!getenv("CPPYY_CRASH_QUIET"))
+                do_trace(sig);
 
         // jump back, if catch point set
             Throw(sig);
         }
 
-        std::cerr << " *** Break *** " << (sig < kMAXSIGNALS ? gSignalMap[sig].fSigName : "") << std::endl;
-        gSystem->StackTrace();
+        do_trace(sig);
         gSystem->Exit(128 + sig);
     }
 };
