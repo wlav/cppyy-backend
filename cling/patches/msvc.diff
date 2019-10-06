@@ -54,7 +54,7 @@ diff --git a/src/core/winnt/src/TWinNTSystem.cxx b/src/core/winnt/src/TWinNTSyst
 index 6aebb11354..75e331465d 100644
 --- a/src/core/winnt/src/TWinNTSystem.cxx
 +++ b/src/core/winnt/src/TWinNTSystem.cxx
-@@ -1140,7 +1140,7 @@ Bool_t TWinNTSystem::Init()
+@@ -1139,7 +1139,7 @@ Bool_t TWinNTSystem::Init()
        if (buf[0]) AddDynamicPath(buf);
     }
     delete [] buf;
