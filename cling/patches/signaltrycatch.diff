@@ -92,7 +92,7 @@ index c1577c0e37..81b960b112 100644
        -1 /*SIGSYS*/,   0, "bad argument to system call",
        -1 /*SIGPIPE*/,  0, "write on a pipe with no one to read it",
        SIGILL,   0, "illegal instruction",
-+      SIGABRT,  9, "abort",
++      SIGABRT,  0, "abort",
        -1 /*SIGQUIT*/,  0, "quit",
        SIGINT,   0, "interrupt",
        -1 /*SIGWINCH*/, 0, "window size change",
