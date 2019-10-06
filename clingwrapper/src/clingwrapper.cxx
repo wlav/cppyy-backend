@@ -632,7 +632,13 @@ Cppyy::TCppObject_t Cppyy::Construct(TCppType_t type)
 void Cppyy::Destruct(TCppType_t type, TCppObject_t instance)
 {
     TClassRef& cr = type_from_handle(type);
-    cr->Destructor((void*)instance);
+    if (cr->ClassProperty() & (kClassHasExplicitDtor | kClassHasImplicitDtor))
+        cr->Destructor((void*)instance);
+    else {
+        ROOT::DelFunc_t fdel = cr->GetDelete();
+        if (fdel) fdel((void*)instance);
+        else free((void*)instance);
+    }
 }
 
 
