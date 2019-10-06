@@ -440,7 +440,8 @@ for fdiff in ('scanner', 'scanner_2', 'faux_typedef', 'classrules', 'template_fw
               'silence', 'explicit_template', 'alias_template', 'lambda', 'templ_ops',
               'private_type_args', 'incomplete_types', 'helpers', 'clang_printing', 'resolution',
               'stdfunc_printhack', 'anon_union', 'no_inet', 'signaltrycatch', 'nofastmath', 'pch',
-              'stackoverflow', 'strip_lz4_lzma', 'msvc', 'win64rtti', 'win64', 'win64s2'):
+              'stackoverflow', 'stdvalue_type', 'strip_lz4_lzma',
+              'msvc', 'win64rtti', 'win64', 'win64s2'):
     fpatch = os.path.join('patches', fdiff+'.diff')
     print(' ==> applying patch:', fpatch)
     pset = patch.fromfile(fpatch)

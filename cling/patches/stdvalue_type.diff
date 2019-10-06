@@ -1,0 +1,82 @@
+diff --git a/src/core/clingutils/res/TClingUtils.h b/src/core/clingutils/res/TClingUtils.h
+index 6505ceb4a20..9758473e103 100644
+--- a/src/core/clingutils/res/TClingUtils.h
++++ b/src/core/clingutils/res/TClingUtils.h
+@@ -175,7 +175,7 @@ class TClingLookupHelper : public TClassEdit::TInterpreterLookupHelper {
+    virtual void GetPartiallyDesugaredName(std::string &nameLong);
+    virtual bool IsAlreadyPartiallyDesugaredName(const std::string &nondef, const std::string &nameLong);
+    virtual bool IsDeclaredScope(const std::string &base, bool &isInlined);
+-   virtual bool GetPartiallyDesugaredNameWithScopeHandling(const std::string &tname, std::string &result);
++   virtual bool GetPartiallyDesugaredNameWithScopeHandling(const std::string &tname, std::string &result, bool dropstd = true);
+ };
+ 
+ //______________________________________________________________________________
+diff --git a/src/core/clingutils/src/TClingUtils.cxx b/src/core/clingutils/src/TClingUtils.cxx
+index f0cad1aa27f..d5cf0d96f95 100644
+--- a/src/core/clingutils/src/TClingUtils.cxx
++++ b/src/core/clingutils/src/TClingUtils.cxx
+@@ -540,7 +540,8 @@ bool TClingLookupHelper::IsDeclaredScope(const std::string &base, bool &isInline
+ /// [const] typename[*&][const]
+ 
+ bool TClingLookupHelper::GetPartiallyDesugaredNameWithScopeHandling(const std::string &tname,
+-                                                                    std::string &result)
++                                                                    std::string &result,
++                                                                    bool dropstd /* = true */)
+ {
+    if (tname.empty()) return false;
+ 
+@@ -586,13 +587,13 @@ bool TClingLookupHelper::GetPartiallyDesugaredNameWithScopeHandling(const std::s
+          if (strncmp(result.c_str(), "const ", 6) == 0) {
+             offset = 6;
+          }
+-         if (strncmp(result.c_str()+offset, "std::", 5) == 0) {
++         if (dropstd && strncmp(result.c_str()+offset, "std::", 5) == 0) {
+             result.erase(offset,5);
+          }
+          for(unsigned int i = 1; i<result.length(); ++i) {
+             if (result[i]=='s') {
+                if (result[i-1]=='<' || result[i-1]==',' || result[i-1]==' ') {
+-                  if (result.compare(i,5,"std::",5) == 0) {
++                  if (dropstd && result.compare(i,5,"std::",5) == 0) {
+                      result.erase(i,5);
+                   }
+                }
+diff --git a/src/core/foundation/inc/TClassEdit.h b/src/core/foundation/inc/TClassEdit.h
+index 615b02e5799..ef7522168b8 100644
+--- a/src/core/foundation/inc/TClassEdit.h
++++ b/src/core/foundation/inc/TClassEdit.h
+@@ -129,7 +129,8 @@ namespace TClassEdit {
+                                                    const std::string & /*nameLong*/) = 0;
+       virtual bool IsDeclaredScope(const std::string & /*base*/, bool & /*isInlined*/) = 0;
+       virtual bool GetPartiallyDesugaredNameWithScopeHandling(const std::string & /*tname*/,
+-                                                              std::string & /*result*/) = 0;
++                                                              std::string & /*result*/,
++                                                              bool /* dropstd */ = true) = 0;
+    };
+ 
+    struct TSplitType {
+diff --git a/src/core/foundation/src/TClassEdit.cxx b/src/core/foundation/src/TClassEdit.cxx
+index 769a92192ae..95e858bfa11 100644
+--- a/src/core/foundation/src/TClassEdit.cxx
++++ b/src/core/foundation/src/TClassEdit.cxx
+@@ -1372,7 +1372,7 @@ static void ResolveTypedefProcessType(const char *tname,
+                     : string(tname, start_of_type, end_of_type == 0 ? cursor - start_of_type : end_of_type - start_of_type));  // we need to try to avoid this copy
+    string typeresult;
+    if (gInterpreterHelper->ExistingTypeCheck(type, typeresult)
+-       || gInterpreterHelper->GetPartiallyDesugaredNameWithScopeHandling(type, typeresult)) {
++       || gInterpreterHelper->GetPartiallyDesugaredNameWithScopeHandling(type, typeresult, false)) {
+       // it is a known type
+       if (!typeresult.empty()) {
+          // and it is a typedef, we need to replace it in the output.
+@@ -1442,11 +1442,6 @@ static void ResolveTypedefImpl(const char *tname,
+ 
+    }
+ 
+-   // When either of those two is true, we should probably go to modified
+-   // mode. (Otherwise we rely on somebody else to strip the std::)
+-   if (len > 5 && strncmp(tname+cursor,"std::",5) == 0) {
+-      cursor += 5;
+-   }
+    if (len > 2 && strncmp(tname+cursor,"::",2) == 0) {
+       cursor += 2;
+       len -= 2;

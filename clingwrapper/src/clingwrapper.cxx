@@ -390,13 +390,7 @@ std::string Cppyy::ResolveName(const std::string& cppitem_name)
         return ResolveEnum(cppitem_name);
 
 // typedefs
-    std::string resolved = TClassEdit::ResolveTypedef(tclean.c_str(), true);
-    if (resolved != tclean) {
-    // TODO: this is a hack and it is ResolveTypdef that needs fixing
-        if (cppitem_name.find("::value_type") != std::string::npos && resolved.rfind("std::", 0) == 0)
-            return resolved.substr(5, std::string::npos);
-    }
-    return resolved;
+    return TClassEdit::ResolveTypedef(tclean.c_str(), true);
 }
 
 static std::map<std::string, std::string> resolved_enum_types;
