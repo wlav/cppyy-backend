@@ -141,6 +141,19 @@ static bool gEnableFastPath = true;
 namespace {
 
 // names copied from TUnixSystem
+#ifdef WIN32
+const int SIGBUS   = 0;      // simple placeholders for ones that don't exist
+const int SIGSYS   = 0;
+const int SIGPIPE  = 0;
+const int SIGQUIT  = 0;
+const int SIGWINCH = 0;
+const int SIGALRM  = 0;
+const int SIGCHLD  = 0;
+const int SIGURG   = 0;
+const int SIGUSR1  = 0;
+const int SIGUSR2  = 0;
+#endif
+
 static struct Signalmap_t {
    int               fCode;
    const char       *fSigName;
