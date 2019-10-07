@@ -1686,7 +1686,7 @@ Cppyy::TCppIndex_t Cppyy::GetGlobalOperator(
     if (scope == (cppyy_scope_t)GLOBAL_HANDLE) {
         TFunction* func = gROOT->GetGlobalFunctionWithPrototype(opname.c_str(), proto.c_str());
         if (func) return (TCppIndex_t)new_CallWrapper(func);
-        proto = lcname + ", " + rcname;
+        proto = lcname + (rc.empty() ? rc : (", " + rcname));
         func = gROOT->GetGlobalFunctionWithPrototype(opname.c_str(), proto.c_str());
         if (func) return (TCppIndex_t)new_CallWrapper(func);
     } else {
@@ -1694,7 +1694,7 @@ Cppyy::TCppIndex_t Cppyy::GetGlobalOperator(
         if (cr.GetClass()) {
             TFunction* func = cr->GetMethodWithPrototype(opname.c_str(), proto.c_str());
             if (func) return (TCppIndex_t)cr->GetListOfMethods()->IndexOf(func);
-            proto = lcname + ", " + rcname;
+            proto = lcname + (rc.empty() ? rc : (", " + rcname));
             func = cr->GetMethodWithPrototype(opname.c_str(), proto.c_str());
             if (func) return (TCppIndex_t)cr->GetListOfMethods()->IndexOf(func);
         }
