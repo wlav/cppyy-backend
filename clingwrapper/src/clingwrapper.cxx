@@ -1680,9 +1680,9 @@ Cppyy::TCppIndex_t Cppyy::GetGlobalOperator(
 // Find a global operator function with a matching signature; prefer by-ref, but
 // fall back on by-value if that fails.
     const std::string& lcname = TClassEdit::CleanType(lc.c_str());
-    const std::string& rcname = TClassEdit::CleanType(rc.c_str());
+    const std::string& rcname = rc.empty() ? rc : TClassEdit::CleanType(rc.c_str());
 
-    std::string proto = lcname + "&, " + rcname + "&";
+    std::string proto = lcname + "&" + (rc.empty() ? rc : (", " + rcname + "&"));
     if (scope == (cppyy_scope_t)GLOBAL_HANDLE) {
         TFunction* func = gROOT->GetGlobalFunctionWithPrototype(opname.c_str(), proto.c_str());
         if (func) return (TCppIndex_t)new_CallWrapper(func);
