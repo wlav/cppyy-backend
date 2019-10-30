@@ -1,16 +1,20 @@
 diff --git a/src/core/metacling/src/TCling.cxx b/src/core/metacling/src/TCling.cxx
-index a095668c11..c21c443edd 100644
+index e3c5de34b6..bd007cd74c 100644
 --- a/src/core/metacling/src/TCling.cxx
 +++ b/src/core/metacling/src/TCling.cxx
-@@ -2630,7 +2630,7 @@ void TCling::InspectMembers(TMemberInspector& insp, const void* obj,
+@@ -2466,6 +2466,12 @@ void TCling::InspectMembers(TMemberInspector& insp, const void* obj,
+       return;
+    }
  
-       if (!ispointer) {
-          const clang::CXXRecordDecl* fieldRecDecl = memNonPtrType->getAsCXXRecordDecl();
--         if (fieldRecDecl) {
-+         if (fieldRecDecl && !fieldRecDecl->isAnonymousStructOrUnion()) {
-             // nested objects get an extra call to InspectMember
-             // R__insp.InspectMember("FileStat_t", (void*)&fFileStat, "fFileStat.", false);
-             std::string sFieldRecName;
++   if (recordDecl->isAnonymousStructOrUnion()) {
++       // anonymous struct/unions have their members added to their parent scope, so
++       // do not expect them separately (would lead to infinite recursion)
++       return;
++   }
++
+    {
+       // Force possible deserializations first. We need to have no pending
+       // Transaction when passing control flow to the inspector below (ROOT-7779).
 diff --git a/src/core/base/src/TMemberInspector.cxx b/src/core/base/src/TMemberInspector.cxx
 index 8cb8f8d915..6f29f64c39 100644
 --- a/src/core/base/src/TMemberInspector.cxx
