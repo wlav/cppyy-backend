@@ -403,6 +403,32 @@ std::string Cppyy::ResolveName(const std::string& cppitem_name)
     if (IsEnum(cppitem_name))
         return ResolveEnum(cppitem_name);
 
+// special case for clang's builtin __type_pack_element (which does not resolve)
+    if (cppitem_name.rfind("__type_pack_element", 0) != std::string::npos) {
+    // shape is "__type_pack_element<index,type1,type2,...,typeN>cpd": extract
+    // first the index, and from there the indexed type; finally, restore the
+    // qualifiers
+        const char* str = cppitem_name.c_str();
+        char* endptr = nullptr;
+        unsigned long index = strtoul(str+20, &endptr, 0);
+
+        std::string tmplvars{endptr};
+        auto start = tmplvars.find(',') + 1;
+        auto end = tmplvars.find(',', start);
+        while (index != 0) {
+            start = end+1;
+            end = tmplvars.find(',', start);
+            if (end == std::string::npos) end = tmplvars.rfind('>');
+            --index;
+        }
+
+        std::string resolved = tmplvars.substr(start, end-start);
+        auto cpd = tmplvars.rfind('>');
+        if (cpd != std::string::npos && cpd+1 != tmplvars.size())
+            return resolved + tmplvars.substr(cpd+1, std::string::npos);
+        return resolved;
+    }
+
 // typedefs
     return TClassEdit::ResolveTypedef(tclean.c_str(), true);
 }
