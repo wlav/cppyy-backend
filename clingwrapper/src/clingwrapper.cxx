@@ -1815,11 +1815,15 @@ std::string Cppyy::GetDatamemberType(TCppScope_t scope, TCppIndex_t idata)
     TClassRef& cr = type_from_handle(scope);
     if (cr.GetClass())  {
         TDataMember* m = (TDataMember*)cr->GetListOfDataMembers()->At((int)idata);
+    // TODO: fix this upstream. Usually, we want m->GetFullTypeName(), because it does
+    // not resolve typedefs, but it looses scopes for inner classes/structs, so in that
+    // case m->GetTrueTypeName() should be used (this also cleans up the cases where
+    // the "full type" retains spurious "struct" or "union" in the name).
         std::string fullType = m->GetFullTypeName();
-        if (fullType.rfind("struct ", 0) != std::string::npos ||
-                (fullType.rfind("union", 0) != std::string::npos && \
-                 fullType.size() > 5 && (fullType[5] == ' ' || fullType[5] == '('))) {
-            fullType = m->GetTrueTypeName();
+        if (fullType != m->GetTrueTypeName()) {
+            const std::string& trueName = m->GetTrueTypeName();
+            if (fullType.find("::") == std::string::npos && trueName.find("::") != std::string::npos)
+                fullType = trueName;
         }
 
         if ((int)m->GetArrayDim() > 1 || (!m->IsBasic() && m->IsaPointer()))
