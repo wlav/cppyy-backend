@@ -20,7 +20,7 @@ def main():
         rc_idx += 1
 
     linkdef = None
-    if sys.argv and 'inkdef.h' in sys.argv[-1]:
+    if sys.argv and 'linkdef.h' in sys.argv[-1].lower():
         linkdef = sys.argv[-1]
         sysargs = sys.argv[:-1]
     else:
