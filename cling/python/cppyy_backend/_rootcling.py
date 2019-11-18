@@ -20,7 +20,8 @@ def main():
         rc_idx += 1
 
     linkdef = None
-    if sys.argv and 'linkdef.h' in sys.argv[-1].lower():
+    if sys.argv and 'linkdef.h' in sys.argv[-1].lower() or \
+            sys.argv[-1][-4:] == '.xml':
         linkdef = sys.argv[-1]
         sysargs = sys.argv[:-1]
     else:
