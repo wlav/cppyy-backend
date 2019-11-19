@@ -669,6 +669,7 @@ Cppyy::TCppObject_t Cppyy::Construct(TCppType_t type)
     return (TCppObject_t)cr->New();
 }
 
+static std::map<Cppyy::TCppType_t, bool> sHasOperatorDelete;
 void Cppyy::Destruct(TCppType_t type, TCppObject_t instance)
 {
     TClassRef& cr = type_from_handle(type);
@@ -677,7 +678,14 @@ void Cppyy::Destruct(TCppType_t type, TCppObject_t instance)
     else {
         ROOT::DelFunc_t fdel = cr->GetDelete();
         if (fdel) fdel((void*)instance);
-        else free((void*)instance);
+        else {
+            auto ib = sHasOperatorDelete.find(type);
+            if (ib == sHasOperatorDelete.end()) {
+                sHasOperatorDelete[type] = (bool)cr->GetListOfAllPublicMethods()->FindObject("operator delete");
+                ib = sHasOperatorDelete.find(type);
+            }
+            ib->second ? cr->Destructor((void*)instance) : free((void*)instance);
+        }
     }
 }
 
