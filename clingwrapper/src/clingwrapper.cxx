@@ -1238,7 +1238,7 @@ bool Cppyy::GetSmartPtrInfo(
             TFunction* func = cr->GetMethod("operator->", "");
             if (!func) {
                 gInterpreter->UpdateListOfMethods(cr.GetClass());
-                func =  cr->GetMethod("operator->", "");
+                func = cr->GetMethod("operator->", "");
             }
             if (func) {
                if (deref) *deref = (TCppMethod_t)new_CallWrapper(func);
