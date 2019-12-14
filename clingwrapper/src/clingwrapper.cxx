@@ -206,6 +206,10 @@ public:
 class ApplicationStarter {
 public:
     ApplicationStarter() {
+    // initialize ROOT early to guarantee proper order of shutdown later on (gROOT is a
+    // macro that resolves to the ROOT::GetROOT() function call)
+        (void)gROOT;
+
     // setup dummy holders for global and std namespaces
         assert(g_classrefs.size() == GLOBAL_HANDLE);
         g_name2classrefidx[""]      = GLOBAL_HANDLE;
