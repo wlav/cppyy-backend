@@ -2008,7 +2008,7 @@ index a9a2e61ad6..c867429110 100644
 +++ b/src/io/io/src/TMapFile.cxx
 @@ -122,7 +122,7 @@ union semun {
  #endif
- 
+ #define Printf TStringPrintf
  
 -Long_t TMapFile::fgMapAddress = 0;
 +intptr_t TMapFile::fgMapAddress = 0;
