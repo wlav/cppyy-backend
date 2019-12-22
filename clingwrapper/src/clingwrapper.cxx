@@ -716,7 +716,14 @@ static TInterpreter::CallFuncIFacePtr_t GetCallFunc(Cppyy::TCppMethod_t method)
         return TInterpreter::CallFuncIFacePtr_t{};
     }
 
+// generate the wrapper and JIT it; ignore wrapper generation errors (will simply
+// result in a nullptr that is reported upstream if necessary; often, however,
+// there is a different overload available that will do)
+    auto oldErrLvl = gErrorIgnoreLevel;
+    gErrorIgnoreLevel = kFatal;
     wrap->fFaceptr = gInterpreter->CallFunc_IFacePtr(callf);
+    gErrorIgnoreLevel = oldErrLvl;
+
     gInterpreter->CallFunc_Delete(callf);   // does not touch IFacePtr
     return wrap->fFaceptr;
 }
