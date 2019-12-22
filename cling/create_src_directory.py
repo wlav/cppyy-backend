@@ -438,7 +438,7 @@ except ImportError:
 for fdiff in ('cleanup_tstring', 'scanner', 'scanner_2', 'faux_typedef', 'classrules', 'template_fwd',
               'dep_template', 'no_long64_t', 'using_decls', 'sfinae', 'typedef_of_private',
               'optlevel2_forced', 'silence', 'explicit_template', 'alias_template', 'lambda', 'templ_ops',
-              'private_type_args', 'incomplete_types', 'helpers', 'clang_printing', 'resolution',
+              'private_type_args', 'incomplete_types', 'clang_printing', 'resolution',
               'stdfunc_printhack', 'anon_union', 'no_inet', 'signaltrycatch', 'nofastmath', 'pch',
               'stackoverflow', 'stdvalue_type', 'strip_lz4_lzma',
               'msvc', 'win64rtti', 'win64', 'win64s2'):

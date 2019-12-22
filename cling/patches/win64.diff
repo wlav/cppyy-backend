@@ -1276,6 +1276,15 @@ diff --git a/src/core/winnt/src/TWinNTSystem.cxx b/src/core/winnt/src/TWinNTSyst
 index 7a477878a0..bfb16a5a09 100644
 --- a/src/core/winnt/src/TWinNTSystem.cxx
 +++ b/src/core/winnt/src/TWinNTSystem.cxx
+@@ -57,7 +57,7 @@
+ #include <list>
+ #include <shlobj.h>
+ #include <conio.h>
+-
++#define Printf TStringPrintf
+ #if defined (_MSC_VER) && (_MSC_VER >= 1400)
+    #include <intrin.h>
+ #elif defined (_M_IX86)
 @@ -924,7 +924,7 @@ namespace {
        // ensure window title has been updated
        ::Sleep(40);
