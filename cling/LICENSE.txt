@@ -55,6 +55,7 @@ source code):
   Shaheed Haque
   Jonsomi
   Alvaro Moran
+  Tarmo Pikaro
   Matti Picus
   Camille Scott
 
