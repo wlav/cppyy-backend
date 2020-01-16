@@ -886,9 +886,9 @@ Cppyy::TCppObject_t Cppyy::CallO(TCppMethod_t method,
     return (TCppObject_t)0;
 }
 
-Cppyy::TCppFuncAddr_t Cppyy::GetFunctionAddress(TCppMethod_t method)
+Cppyy::TCppFuncAddr_t Cppyy::GetFunctionAddress(TCppMethod_t method, bool check_enabled)
 {
-    if (!gEnableFastPath) return (TCppFuncAddr_t)nullptr;
+    if (check_enabled && !gEnableFastPath) return (TCppFuncAddr_t)nullptr;
     TFunction* f = m2f(method);
     return (TCppFuncAddr_t)gInterpreter->FindSym(f->GetMangledName());
 }
@@ -2244,7 +2244,7 @@ cppyy_object_t cppyy_call_o(cppyy_method_t method, cppyy_object_t self,
 }
 
 cppyy_funcaddr_t cppyy_function_address(cppyy_method_t method) {
-    return cppyy_funcaddr_t(Cppyy::GetFunctionAddress(method));
+    return cppyy_funcaddr_t(Cppyy::GetFunctionAddress(method, true));
 }
 
 
