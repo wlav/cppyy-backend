@@ -216,6 +216,29 @@ index dd8faabc13..f633342f5c 100755
     cppFlags = " ".join(map(lambda line: line[:-1], lines))
     return cppFlags
  
+@@ -79,8 +79,12 @@
+       rootbuildFlag="-rootbuild"
+
+
+-   cppFlags = getCppFlags(cppflagsFilename)
++   cppFlags = getCppFlags(cppflagsFilename).split()
+
++   if "-isystem" in cppFlags:
++      idx = cppFlags.index("-isystem")
++      del cppFlags[idx: idx+2]
++
+    cppflagsList=["-D__CLING__",
+                  "-D__STDC_LIMIT_MACROS",
+                  "-D__STDC_CONSTANT_MACROS",
+@@ -90,7 +94,7 @@
+                  "-I%s" %os.path.join(rootdir,"etc"),
+                  "-I%s" %os.path.join(rootdir,cfgdir),
+                  "-I%s" %os.path.join(rootdir,"etc","cling"),
+-                 cppFlags]
++                ] + cppFlags
+
+    cppflagsList.append(extraCppflags)
+
 @@ -116,7 +116,7 @@ def makepch():
     if not existing_ldlib: existing_ldlib = ""
     my_env["LD_LIBRARY_PATH"] = os.path.join(rootdir, "lib") + ":" + existing_ldlib
