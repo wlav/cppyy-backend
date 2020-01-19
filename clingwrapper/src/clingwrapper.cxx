@@ -232,7 +232,7 @@ public:
             "basic_ios", "basic_iostream", "basic_istream", "basic_istringstream",
             "basic_ofstream", "basic_ostream", "basic_ostringstream", "basic_streambuf",
             "basic_string", "basic_stringbuf", "basic_stringstream", "binary_function",
-            "binary_negate", "bitset", "char_traits", "codecvt_byname", "codecvt", "collate",
+            "binary_negate", "bitset", "byte", "char_traits", "codecvt_byname", "codecvt", "collate",
             "collate_byname", "compare", "complex", "ctype_byname", "ctype", "default_delete",
             "deque", "divides", "domain_error", "equal_to", "exception", "forward_list", "fpos",
             "function", "greater_equal", "greater", "gslice_array", "gslice", "hash", "indirect_array",
@@ -397,6 +397,9 @@ std::string Cppyy::ResolveName(const std::string& cppitem_name)
 // reduce [N] to []
     if (tclean[tclean.size()-1] == ']')
         tclean = tclean.substr(0, tclean.rfind('[')) + "[]";
+
+    if (tclean.rfind("byte", 0) == 0 || tclean.rfind("std::byte", 0) == 0)
+        return tclean;
 
 // check data types list (accept only builtins as typedefs will
 // otherwise not be resolved)
