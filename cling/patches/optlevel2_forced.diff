@@ -60,52 +60,18 @@ index cb3308c360..873bc682ea 100644
    llvm::PassManagerBuilder PMBuilder;
    PMBuilder.OptLevel = OptLevel;
    PMBuilder.SizeLevel = m_CGOpts.OptimizeSize;
-diff --git a/src/interpreter/cling/CMakeLists.txt b/src/interpreter/cling/CMakeLists.txt
-index dae7bedffa..4a33af4d6d 100644
---- a/src/interpreter/cling/CMakeLists.txt
-+++ b/src/interpreter/cling/CMakeLists.txt
-@@ -323,6 +323,12 @@ macro(add_cling_library name)
- 
-   llvm_add_library(${name} ${ARG_ENABLE_SHARED} ${ARG_UNPARSED_ARGUMENTS} ${srcs})
- 
-+  if (MSVC AND ( CMAKE_BUILD_TYPE STREQUAL "Release" OR CMAKE_BUILD_TYPE STREQUAL "RelWithDebInfo") )
-+    if (NOT ARG_SHARED)
-+       target_compile_definitions(obj.${name} PRIVATE NDEBUG)
-+    endif()
-+  endif()
-+
-   if (MSVC AND cling_ex_file_match)
-     # /EHs because cling_runtime_internal_throwIfInvalidPointer is extern “C”
-     if (cling_ex_file_match)
-diff --git a/interpreter/llvm/src/cmake/modules/AddLLVM.cmake b/interpreter/llvm/src/cmake/modules/AddLLVM.cmake
-index e60c253fdf..f8ba7d0252 100644
---- a/src/interpreter/llvm/src/cmake/modules/AddLLVM.cmake
-+++ b/src/interpreter/llvm/src/cmake/modules/AddLLVM.cmake
-@@ -439,6 +439,10 @@ function(llvm_add_library name)
-     add_library(${name} STATIC ${ALL_FILES})
+diff --git a/src/cmake/modules/SetUpWindows.cmake b/src/cmake/modules/SetUpWindows.cmake
+index c8554089e4..d9f383ccda 100644
+--- a/src/cmake/modules/SetUpWindows.cmake
++++ b/src/cmake/modules/SetUpWindows.cmake
+@@ -38,8 +38,8 @@ elseif(MSVC)
+     set(BLDCXXFLAGS "-Zc:__cplusplus -MDd -GR")
+     set(BLDCFLAGS   "-MDd")
+   else()
+-    set(BLDCXXFLAGS "-Zc:__cplusplus -MD -GR")
+-    set(BLDCFLAGS   "-MD")
++    set(BLDCXXFLAGS "-Zc:__cplusplus -MD -GR -DNDEBUG")
++    set(BLDCFLAGS   "-MD -DNDEBUG")
    endif()
  
-+  if (MSVC AND ( CMAKE_BUILD_TYPE STREQUAL "Release" OR CMAKE_BUILD_TYPE STREQUAL "RelWithDebInfo") )
-+    target_compile_definitions(${name} PRIVATE NDEBUG)
-+  endif()
-+
-   setup_dependency_debugging(${name} ${LLVM_COMMON_DEPENDS})
- 
-   if(DEFINED windows_resource_file)
-diff --git a/src/interpreter/llvm/src/utils/TableGen/CodeGenDAGPatterns.cpp b/src/interpreter/llvm/src/utils/TableGen/CodeGenDAGPatterns.cpp
-index f47c6bb13b..9cac50aceb 100644
---- a/src/interpreter/llvm/src/utils/TableGen/CodeGenDAGPatterns.cpp
-+++ b/src/interpreter/llvm/src/utils/TableGen/CodeGenDAGPatterns.cpp
-@@ -875,9 +875,9 @@ std::string PatternToMatch::getPredicateCheck() const {
-     if (DefInit *Pred = dyn_cast<DefInit>(I)) {
-       Record *Def = Pred->getDef();
-       if (!Def->isSubClassOf("Predicate")) {
--#ifndef NDEBUG
--        Def->dump();
--#endif
-+//#ifndef NDEBUG
-+//        Def->dump();
-+//#endif
-         llvm_unreachable("Unknown predicate type!");
-       }
-       PredicateRecs.push_back(Def);
+   if(CMAKE_PROJECT_NAME STREQUAL ROOT)
