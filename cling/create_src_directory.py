@@ -445,7 +445,7 @@ for fdiff in ('cleanup_tstring', 'scanner', 'scanner_2', 'faux_typedef', 'classr
     fpatch = os.path.join('patches', fdiff+'.diff')
     print(' ==> applying patch:', fpatch)
     pset = patch.fromfile(fpatch)
-    if not pset.apply():
+    if not pset or not pset.apply():
         print("Failed to apply patch:", fdiff)
         sys.exit(2)
 
