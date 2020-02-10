@@ -71,23 +71,6 @@ index dae7bedffa..4a33af4d6d 100644
 +  if (MSVC AND ( CMAKE_BUILD_TYPE STREQUAL "Release" OR CMAKE_BUILD_TYPE STREQUAL "RelWithDebInfo") )
 +    if (NOT ARG_SHARED)
 +       target_compile_definitions(obj.${name} PRIVATE NDEBUG)
-diff --git a/src/interpreter/llvm/src/utils/TableGen/CodeGenDAGPatterns.cpp b/src/interpreter/llvm/src/utils/TableGen/CodeGenDAGPatterns.cpp
-index f47c6bb13b..9cac50aceb 100644
---- a/src/interpreter/llvm/src/utils/TableGen/CodeGenDAGPatterns.cpp
-+++ b/src/interpreter/llvm/src/utils/TableGen/CodeGenDAGPatterns.cpp
-@@ -875,9 +875,9 @@ std::string PatternToMatch::getPredicateCheck() const {
-     if (DefInit *Pred = dyn_cast<DefInit>(I)) {
-       Record *Def = Pred->getDef();
-       if (!Def->isSubClassOf("Predicate")) {
--#ifndef NDEBUG
--        Def->dump();
--#endif
-+//#ifndef NDEBUG
-+//        Def->dump();
-+//#endif
-         llvm_unreachable("Unknown predicate type!");
-       }
-       PredicateRecs.push_back(Def);
 +    endif()
 +  endif()
 +
@@ -109,3 +92,20 @@ index e60c253fdf..f8ba7d0252 100644
    setup_dependency_debugging(${name} ${LLVM_COMMON_DEPENDS})
  
    if(DEFINED windows_resource_file)
+diff --git a/src/interpreter/llvm/src/utils/TableGen/CodeGenDAGPatterns.cpp b/src/interpreter/llvm/src/utils/TableGen/CodeGenDAGPatterns.cpp
+index f47c6bb13b..9cac50aceb 100644
+--- a/src/interpreter/llvm/src/utils/TableGen/CodeGenDAGPatterns.cpp
++++ b/src/interpreter/llvm/src/utils/TableGen/CodeGenDAGPatterns.cpp
+@@ -875,9 +875,9 @@ std::string PatternToMatch::getPredicateCheck() const {
+     if (DefInit *Pred = dyn_cast<DefInit>(I)) {
+       Record *Def = Pred->getDef();
+       if (!Def->isSubClassOf("Predicate")) {
+-#ifndef NDEBUG
+-        Def->dump();
+-#endif
++//#ifndef NDEBUG
++//        Def->dump();
++//#endif
+         llvm_unreachable("Unknown predicate type!");
+       }
+       PredicateRecs.push_back(Def);
