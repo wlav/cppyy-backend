@@ -42,7 +42,7 @@ index 74587e6b9f..e43d13384b 100644
 +{
 +    if (gReducableTypes.empty()) return type_in;
 +    std::smatch m;
-+    for (int i = 0; i < (int)gReducableTypes.size(); ++i) {
++    for (int i = (int)gReducableTypes.size()-1; 0 <= i; --i) {
 +        if (std::regex_match(type_in, m, gReducableTypes[i]))
 +            return gReducedTypes[i];
 +    }

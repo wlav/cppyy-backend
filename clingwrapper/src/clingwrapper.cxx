@@ -131,10 +131,6 @@ static std::set<std::string> gSmartPtrTypes =
     {"auto_ptr", "std::auto_ptr", "shared_ptr", "std::shared_ptr",
      "unique_ptr", "std::unique_ptr", "weak_ptr", "std::weak_ptr"};
 
-// type reducers (used to cut down on template type proliferation)
-static std::vector<std::regex>  gReducableTypes;
-static std::vector<std::string> gReducedTypes;
-
 // to filter out ROOT names
 static std::set<std::string> gInitialNames;
 static std::set<std::string> gRootSOs;
@@ -372,17 +368,6 @@ bool is_missclassified_stl(const std::string& name)
     if (pos != std::string::npos)
         return gSTLNames.find(name.substr(0, pos)) != gSTLNames.end();
     return gSTLNames.find(name) != gSTLNames.end();
-}
-
-static inline
-std::string reduce_type(const std::string& type_in) {
-    if (gReducableTypes.empty()) return type_in;
-    std::smatch m;
-    for (int i = 0; i < (int)gReducableTypes.size(); ++i) {
-        if (std::regex_match(type_in, m, gReducableTypes[i]))
-            return gReducedTypes[i];
-    }
-    return type_in;
 }
 
 
@@ -1289,9 +1274,6 @@ void Cppyy::AddSmartPtrType(const std::string& type_name)
 
 void Cppyy::AddTypeReducer(const std::string& reducable, const std::string& reduced)
 {
-    gReducableTypes.emplace_back(reducable, std::regex::extended | std::regex::optimize);
-    gReducedTypes.push_back(reduced);
-
     gInterpreter->AddTypeReducer(reducable, reduced);
 }
 
@@ -1459,7 +1441,7 @@ std::string Cppyy::GetMethodResultType(TCppMethod_t method)
         // and maybe others, whereas GetReturnTypeNormalizedName() has proven to
         // be safe in all cases (Note: 'int8_t' covers 'int8_t' and 'uint8_t')
         if (restype.find("int8_t") != std::string::npos)
-            return reduce_type(restype);
+            return gInterpreter->ReduceType(restype);
         restype = f->GetReturnTypeNormalizedName();
         if (restype == "(lambda)") {
             std::ostringstream s;
@@ -1475,7 +1457,7 @@ std::string Cppyy::GetMethodResultType(TCppMethod_t method)
             if (cl) return cl->GetName();
             // TODO: signal some type of error (or should that be upstream?
         }
-        return reduce_type(restype);
+        return gInterpreter->ReduceType(restype);
     }
     return "<unknown>";
 }
