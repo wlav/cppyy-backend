@@ -1,0 +1,80 @@
+diff --git a/src/core/meta/inc/TInterpreter.h b/src/core/meta/inc/TInterpreter.h
+index 10c29cd583..181dfde1d0 100644
+--- a/src/core/meta/inc/TInterpreter.h
++++ b/src/core/meta/inc/TInterpreter.h
+@@ -137,6 +137,8 @@ public:
+    virtual ~TInterpreter() { }
+ 
+    virtual void     AddIncludePath(const char *path) = 0;
++   virtual void     AddTypeReducer(const std::string& reducable, const std::string& reduced) = 0;
++   virtual std::string ReduceType(const std::string& type_in) = 0;
+    virtual void    *SetAutoLoadCallBack(void* /*cb*/) { return 0; }
+    virtual void    *GetAutoLoadCallBack() const { return 0; }
+    virtual Int_t    AutoLoad(const char *classname, Bool_t knowDictNotLoaded = kFALSE) = 0;
+diff --git a/src/core/metacling/src/TCling.cxx b/src/core/metacling/src/TCling.cxx
+index 74587e6b9f..e43d13384b 100644
+--- a/src/core/metacling/src/TCling.cxx
++++ b/src/core/metacling/src/TCling.cxx
+@@ -120,6 +120,7 @@ clang/LLVM technology.
+ #include <algorithm>
+ #include <iostream>
+ #include <cassert>
++#include <regex>
+ #include <map>
+ #include <set>
+ #include <stdexcept>
+@@ -2361,6 +2362,28 @@ void TCling::AddIncludePath(const char *path)
+    fInterpreter->AddIncludePath(path);
+ }
+ 
++////////////////////////////////////////////////////////////////////////////////
++/// Process type reductions; called by the wrapper generator in TClingCallFunc,
++/// which can be used to collapse/simplify template expression types.
++static std::vector<std::regex>  gReducableTypes;
++static std::vector<std::string> gReducedTypes;
++void TCling::AddTypeReducer(const std::string& reducable, const std::string& reduced)
++{
++    gReducableTypes.emplace_back(reducable, std::regex::extended | std::regex::optimize);
++    gReducedTypes.push_back(reduced);
++}
++
++std::string TCling::ReduceType(const std::string& type_in)
++{
++    if (gReducableTypes.empty()) return type_in;
++    std::smatch m;
++    for (int i = 0; i < (int)gReducableTypes.size(); ++i) {
++        if (std::regex_match(type_in, m, gReducableTypes[i]))
++            return gReducedTypes[i];
++    }
++    return type_in;
++}
++
+ ////////////////////////////////////////////////////////////////////////////////
+ /// Visit all members over members, recursing over base classes.
+ 
+diff --git a/src/core/metacling/src/TCling.h b/src/core/metacling/src/TCling.h
+index 599e179637..457d98570a 100644
+--- a/src/core/metacling/src/TCling.h
++++ b/src/core/metacling/src/TCling.h
+@@ -172,6 +172,8 @@ public: // Public Interface
+    cling::Interpreter *GetInterpreterImpl() { return fInterpreter; }
+ 
+    void    AddIncludePath(const char* path);
++   void    AddTypeReducer(const std::string& reducable, const std::string& reduced);
++   std::string ReduceType(const std::string& type_in);
+    void   *GetAutoLoadCallBack() const { return fAutoLoadCallBack; }
+    void   *SetAutoLoadCallBack(void* cb) { void* prev = fAutoLoadCallBack; fAutoLoadCallBack = cb; return prev; }
+    Int_t   AutoLoad(const char *classname, Bool_t knowDictNotLoaded = kFALSE);
+diff --git a/src/core/metacling/src/TClingCallFunc.cxx b/src/core/metacling/src/TClingCallFunc.cxx
+index e310b3a579..a95f113a5e 100644
+--- a/src/core/metacling/src/TClingCallFunc.cxx
++++ b/src/core/metacling/src/TClingCallFunc.cxx
+@@ -1099,7 +1099,7 @@ void TClingCallFunc::make_narg_call_with_return(const unsigned N, const string &
+             //
+             //  Write the type part of the placement new.
+             //
+-            callbuf << "(" << type_name.c_str();
++            callbuf << "(" << gCling->ReduceType(type_name);
+             if (refType != kNotReference) {
+                callbuf << "*) (&";
+                type_name += "&";

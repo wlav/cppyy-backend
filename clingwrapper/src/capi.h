@@ -134,6 +134,9 @@ extern "C" {
     RPY_EXPORTED
     void cppyy_add_smartptr_type(const char* type_name);
 
+    RPY_EXPORTED
+    void cppyy_add_type_reducer(const char* reducable, const char* reduced);
+
     /* calculate offsets between declared and actual type, up-cast: direction > 0; down-cast: direction < 0 */
     RPY_EXPORTED
     ptrdiff_t cppyy_base_offset(cppyy_type_t derived, cppyy_type_t base, cppyy_object_t address, int direction);

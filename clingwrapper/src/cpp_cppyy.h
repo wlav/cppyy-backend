@@ -144,6 +144,9 @@ namespace Cppyy {
     RPY_EXPORTED
     void        AddSmartPtrType(const std::string&);
 
+    RPY_EXPORTED
+    void        AddTypeReducer(const std::string& reducable, const std::string& reduced);
+
 // calculate offsets between declared and actual type, up-cast: direction > 0; down-cast: direction < 0
     RPY_EXPORTED
     ptrdiff_t GetBaseOffset(
