@@ -946,6 +946,10 @@ bool Cppyy::IsEnum(const std::string& type_name)
     if (type_name.empty()) return false;
     std::string tn_short = TClassEdit::ShortType(type_name.c_str(), 1);
     if (tn_short.empty()) return false;
+// ShortType does not remove 'enum' in 'enum XYZ' that come from C-style enum
+// variable declarations; full resolution does, but simply removing it will do:
+    if (tn_short.rfind("enum ", 0) == 0)
+        tn_short = tn_short.substr(5, std::string::npos);
     return gInterpreter->ClassInfo_IsEnum(tn_short.c_str());
 }
 
