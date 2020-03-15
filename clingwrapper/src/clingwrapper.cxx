@@ -441,6 +441,36 @@ std::string Cppyy::ResolveName(const std::string& cppitem_name)
     return TClassEdit::ResolveTypedef(tclean.c_str(), true);
 }
 
+
+//----------------------------------------------------------------------------
+static std::string extract_namespace(const std::string& name)
+{
+// Find the namespace the named class lives in, take care of templates
+// Note: this code also lives in CPyCppyy (TODO: refactor?)
+    if (name.empty())
+        return name;
+
+    int tpl_open = 0;
+    for (std::string::size_type pos = name.size()-1; 0 < pos; --pos) {
+        std::string::value_type c = name[pos];
+
+    // count '<' and '>' to be able to skip template contents
+        if (c == '>')
+            ++tpl_open;
+        else if (c == '<')
+            --tpl_open;
+
+    // collect name up to "::"
+        else if (tpl_open == 0 && c == ':' && name[pos-1] == ':') {
+        // found the extend of the scope ... done
+            return name.substr(0, pos-1);
+        }
+    }
+
+// no namespace; assume outer scope
+    return "";
+}
+
 static std::map<std::string, std::string> resolved_enum_types;
 std::string Cppyy::ResolveEnum(const std::string& enum_type)
 {
@@ -454,27 +484,32 @@ std::string Cppyy::ResolveEnum(const std::string& enum_type)
 // desugar the type before resolving
     std::string et_short = TClassEdit::ShortType(enum_type.c_str(), 1);
     if (et_short.find("(anonymous") == std::string::npos) {
-        std::ostringstream decl;
-    // TODO: now presumed fixed with https://sft.its.cern.ch/jira/browse/ROOT-6988
-        for (auto& itype : {"unsigned int"}) {
-            decl << "std::is_same<"
-                 << itype
-                 << ", std::underlying_type<"
-                 << et_short
-                 << ">::type>::value;";
-            if (gInterpreter->ProcessLine(decl.str().c_str())) {
-            // TODO: "re-sugaring" like this is brittle, but the top
-            // should be re-translated into AST-based code anyway
+        TEnum* ee = nullptr;
+
+        std::string scope_name = extract_namespace(et_short);
+        if (scope_name.empty())
+            ee = ((TListOfEnums*)gROOT->GetListOfEnums())->GetObject(et_short.c_str());
+        else {
+            TClass* cl = TClass::GetClass(scope_name.c_str());
+            if (cl) ee = ((TListOfEnums*)cl->GetListOfEnums())->GetObject(et_short.c_str());
+        }
+
+        if (ee) {
+            std::string underlying_type = TDataType::GetTypeName(ee->GetUnderlyingType());
+            if (!underlying_type.empty()) {
+                underlying_type = TClassEdit::ResolveTypedef(underlying_type.c_str());
+                // TODO: "re-sugaring" like this is brittle, but the top
+                // should be re-translated into AST-based code anyway
                 std::string resugared;
                 if (et_short.size() != enum_type.size()) {
                     auto pos = enum_type.find(et_short);
                     if (pos != std::string::npos) {
-                        resugared = enum_type.substr(0, pos) + itype;
+                        resugared = enum_type.substr(0, pos) + underlying_type;
                         if (pos+et_short.size() < enum_type.size())
                             resugared += enum_type.substr(pos+et_short.size(), std::string::npos);
                     }
                 }
-                if (resugared.empty()) resugared = itype;
+                if (resugared.empty()) resugared = underlying_type;
                 resolved_enum_types[enum_type] = resugared;
                 return resugared;
             }
