@@ -134,7 +134,7 @@ class my_cmake_build(_build):
             os.putenv('EXTRA_CLING_ARGS', extra_args)
 
         CMAKE_COMMAND = ['cmake', srcdir,
-                stdcxx, '-DLLVM_ENABLE_TERMINFO=0',
+                stdcxx, '-DLLVM_ENABLE_TERMINFO=0', '-DLLVM_ENABLE_ASSERTIONS=0',
                 '-Dminimal=ON', '-Dasimage=OFF', '-Droot7=OFF', '-Dhttp=OFF',
                 '-Dbuiltin_pcre=ON', '-Dbuiltin_freetype=ON', '-Dbuiltin_zlib=ON', '-Dbuiltin_xxhash=ON']
         if 'darwin' in sys.platform:
