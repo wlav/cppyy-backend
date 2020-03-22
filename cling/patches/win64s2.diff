@@ -128,7 +128,7 @@ diff --git a/src/core/meta/inc/TInterpreter.h b/src/core/meta/inc/TInterpreter.h
 index b14fb6ebe0..68fc50b91c 100644
 --- a/src/core/meta/inc/TInterpreter.h
 +++ b/src/core/meta/inc/TInterpreter.h
-@@ -388,13 +388,13 @@ public:
+@@ -391,13 +391,13 @@ public:
        CallFunc_SetArgImpl(func,args...);
     }
  
@@ -148,7 +148,7 @@ index b14fb6ebe0..68fc50b91c 100644
  
     virtual std::string CallFunc_GetWrapperCode(CallFunc_t *func) const = 0;
  
-@@ -409,7 +409,7 @@ public:
+@@ -412,7 +412,7 @@ public:
     virtual ClassInfo_t  *ClassInfo_Factory(ClassInfo_t * /* cl */) const = 0;
     virtual ClassInfo_t  *ClassInfo_Factory(const char * /* name */) const = 0;
     virtual ClassInfo_t  *ClassInfo_Factory(DeclId_t declid) const = 0;
@@ -157,7 +157,7 @@ index b14fb6ebe0..68fc50b91c 100644
                                              ClassInfo_t* /* toBase */, void* /* address */ = 0, bool /*isderived*/ = true) const {return 0;}
     virtual int    ClassInfo_GetMethodNArg(ClassInfo_t * /* info */, const char * /* method */,const char * /* proto */, Bool_t /* objectIsConst */ = false, ROOT::EFunctionMatchMode /* mode */ = ROOT::kConversionMatch) const {return 0;}
     virtual Bool_t ClassInfo_HasDefaultConstructor(ClassInfo_t * /* info */) const {return 0;}
-@@ -422,8 +422,8 @@ public:
+@@ -425,8 +425,8 @@ public:
     virtual EDataType ClassInfo_GetUnderlyingType(ClassInfo_t * /* info */) const {return kNumDataTypes;}
     virtual Bool_t ClassInfo_IsLoaded(ClassInfo_t * /* info */) const {return 0;}
     virtual Bool_t ClassInfo_IsValid(ClassInfo_t * /* info */) const {return 0;}
@@ -168,7 +168,7 @@ index b14fb6ebe0..68fc50b91c 100644
     virtual int    ClassInfo_Next(ClassInfo_t * /* info */) const {return 0;}
     virtual void  *ClassInfo_New(ClassInfo_t * /* info */) const {return 0;}
     virtual void  *ClassInfo_New(ClassInfo_t * /* info */, int /* n */) const {return 0;}
-@@ -446,7 +446,7 @@ public:
+@@ -449,7 +449,7 @@ public:
                                                     ClassInfo_t* /* base */) const {return 0;}
     virtual int    BaseClassInfo_Next(BaseClassInfo_t * /* bcinfo */) const {return 0;}
     virtual int    BaseClassInfo_Next(BaseClassInfo_t * /* bcinfo */, int  /* onlyDirect */) const {return 0;}
@@ -233,7 +233,7 @@ diff --git a/src/core/meta/src/TClass.cxx b/src/core/meta/src/TClass.cxx
 index 4ee0e3f3e2..970bdd274d 100644
 --- a/src/core/meta/src/TClass.cxx
 +++ b/src/core/meta/src/TClass.cxx
-@@ -1901,7 +1901,7 @@ Int_t TClass::Browse(void *obj, TBrowser *b) const
+@@ -1916,7 +1916,7 @@ Int_t TClass::Browse(void *obj, TBrowser *b) const
        if (!fIsOffsetStreamerSet) {
           CalculateStreamerOffset();
        }
@@ -242,7 +242,7 @@ index 4ee0e3f3e2..970bdd274d 100644
        realTObject->Browse(b);
        return 1;
     } else if (actual != this) {
-@@ -2024,7 +2020,7 @@ void TClass::BuildRealData(void* pointer, Bool_t isTransient)
+@@ -2039,7 +2039,7 @@ void TClass::BuildRealData(void* pointer, Bool_t isTransient)
  ////////////////////////////////////////////////////////////////////////////////
  /// Build the list of real data for an emulated class
  
@@ -251,7 +251,7 @@ index 4ee0e3f3e2..970bdd274d 100644
  {
     R__LOCKGUARD(gInterpreterMutex);
  
-@@ -2045,7 +2045,7 @@ void TClass::BuildEmulatedRealData(const char *name, Long_t offset, TClass *cl)
+@@ -2060,7 +2060,7 @@ void TClass::BuildEmulatedRealData(const char *name, Long_t offset, TClass *cl)
     TStreamerElement *element;
     while ((element = (TStreamerElement*)next())) {
        Int_t etype    = element->GetType();
@@ -260,7 +260,7 @@ index 4ee0e3f3e2..970bdd274d 100644
        TClass *cle    = element->GetClassPointer();
        if (element->IsBase() || etype == TVirtualStreamerInfo::kBase) {
           //base class are skipped in this loop, they will be added at the end.
-@@ -2081,7 +2081,7 @@ void TClass::BuildEmulatedRealData(const char *name, Long_t offset, TClass *cl)
+@@ -2096,7 +2096,7 @@ void TClass::BuildEmulatedRealData(const char *name, Long_t offset, TClass *cl)
        Int_t etype    = element->GetType();
        if (element->IsBase() || etype == TVirtualStreamerInfo::kBase) {
           //base class
@@ -269,7 +269,7 @@ index 4ee0e3f3e2..970bdd274d 100644
           TClass *cle    = element->GetClassPointer();
           if (cle) cle->BuildEmulatedRealData(name,offset+eoffset,cl);
        }
-@@ -2541,7 +2541,7 @@ TClass *TClass::GetActualClass(const void *object) const
+@@ -2556,7 +2556,7 @@ TClass *TClass::GetActualClass(const void *object) const
           if (!fIsOffsetStreamerSet) {
              CalculateStreamerOffset();
           }
@@ -278,7 +278,7 @@ index 4ee0e3f3e2..970bdd274d 100644
  
           return realTObject->IsA();
        }
-@@ -2625,7 +2625,7 @@ TClass *TClass::GetBaseClass(const TClass *cl)
+@@ -2640,7 +2640,7 @@ TClass *TClass::GetBaseClass(const TClass *cl)
  ///    because it's virtual.
  /// Takes care of multiple inheritance.
  
@@ -287,7 +287,7 @@ index 4ee0e3f3e2..970bdd274d 100644
  {
     // check if class name itself is equal to classname
     if (cl == this) return 0;
-@@ -2639,7 +2639,7 @@ Int_t TClass::GetBaseClassOffsetRecurse(const TClass *cl)
+@@ -2654,7 +2654,7 @@ Int_t TClass::GetBaseClassOffsetRecurse(const TClass *cl)
           TVirtualStreamerInfo *sinfo = GetCurrentStreamerInfo();
           if (!sinfo) return -1;
           TStreamerElement *element;
@@ -296,7 +296,7 @@ index 4ee0e3f3e2..970bdd274d 100644
  
           TObjArray &elems = *(sinfo->GetElements());
           Int_t size = elems.GetLast()+1;
-@@ -2650,7 +2650,7 @@ Int_t TClass::GetBaseClassOffsetRecurse(const TClass *cl)
+@@ -2665,7 +2665,7 @@ Int_t TClass::GetBaseClassOffsetRecurse(const TClass *cl)
                    TStreamerBase *base = (TStreamerBase*)element;
                    TClass *baseclass = base->GetClassPointer();
                    if (!baseclass) return -1;
@@ -305,7 +305,7 @@ index 4ee0e3f3e2..970bdd274d 100644
                    if (subOffset == -2) return -2;
                    if (subOffset != -1) return offset+subOffset;
                    offset += baseclass->Size();
-@@ -2658,7 +2658,7 @@ Int_t TClass::GetBaseClassOffsetRecurse(const TClass *cl)
+@@ -2673,7 +2673,7 @@ Int_t TClass::GetBaseClassOffsetRecurse(const TClass *cl)
                    TStreamerSTL *base = (TStreamerSTL*)element;
                    TClass *baseclass = base->GetClassPointer();
                    if (!baseclass) return -1;
@@ -314,7 +314,7 @@ index 4ee0e3f3e2..970bdd274d 100644
                    if (subOffset == -2) return -2;
                    if (subOffset != -1) return offset+subOffset;
                    offset += baseclass->Size();
-@@ -2711,7 +2711,7 @@ Int_t TClass::GetBaseClassOffsetRecurse(const TClass *cl)
+@@ -2726,7 +2726,7 @@ Int_t TClass::GetBaseClassOffsetRecurse(const TClass *cl)
  ///  - Returns -1 in case "cl" is not a base class.
  /// Takes care of multiple inheritance.
  
@@ -323,7 +323,7 @@ index 4ee0e3f3e2..970bdd274d 100644
  {
     // Warning("GetBaseClassOffset","Requires the use of fClassInfo for %s to %s",GetName(),toBase->GetName());
  
-@@ -2722,7 +2722,7 @@ Int_t TClass::GetBaseClassOffset(const TClass *toBase, void *address, bool isDer
+@@ -2737,7 +2727,7 @@ Int_t TClass::GetBaseClassOffset(const TClass *toBase, void *address, bool isDer
        // At least of the ClassInfo have not been loaded in memory yet and
        // since there is no virtual base class (or we don't have enough so it
        // would not make a difference) we can use the 'static' information
@@ -332,7 +332,7 @@ index 4ee0e3f3e2..970bdd274d 100644
        if (offset != -2) {
           return offset;
        }
-@@ -2736,7 +2736,7 @@ Int_t TClass::GetBaseClassOffset(const TClass *toBase, void *address, bool isDer
+@@ -2751,7 +2751,7 @@ Int_t TClass::GetBaseClassOffset(const TClass *toBase, void *address, bool isDer
        return gCling->ClassInfo_GetBaseOffset(derived, base, address, isDerivedObject);
     }
     else {
@@ -341,7 +341,7 @@ index 4ee0e3f3e2..970bdd274d 100644
        if (offset != -2) {
           return offset;
        }
-@@ -3321,7 +3321,7 @@ TDataMember *TClass::GetDataMember(const char *datamember) const
+@@ -3336,7 +3336,7 @@ TDataMember *TClass::GetDataMember(const char *datamember) const
  ///
  /// In case of an emulated class, the list of emulated TRealData is built
  
@@ -350,7 +350,7 @@ index 4ee0e3f3e2..970bdd274d 100644
  {
     TRealData *rd = GetRealData(name);
     if (rd) return rd->GetThisOffset();
-@@ -5846,7 +5846,7 @@ Long_t TClass::Property() const
+@@ -5861,7 +5861,7 @@ Long_t TClass::Property() const
        kl->SetBit(kIsTObject);
  
        // Is it DIRECT inheritance from TObject?
@@ -363,7 +363,7 @@ diff --git a/src/core/meta/src/TDataMember.cxx b/src/core/meta/src/TDataMember.c
 index 73323fc27d..82ebdb54fb 100644
 --- a/src/core/meta/src/TDataMember.cxx
 +++ b/src/core/meta/src/TDataMember.cxx
-@@ -628,9 +628,9 @@ const char *TDataMember::GetTrueTypeName() const
+@@ -625,9 +625,9 @@ const char *TDataMember::GetTrueTypeName() const
  ////////////////////////////////////////////////////////////////////////////////
  /// Get offset from "this".
  
@@ -375,7 +375,7 @@ index 73323fc27d..82ebdb54fb 100644
  
     R__LOCKGUARD(gInterpreterMutex);
     //case of an interpreted or emulated class
-@@ -647,7 +647,7 @@ Long_t TDataMember::GetOffset() const
+@@ -644,7 +644,7 @@ Long_t TDataMember::GetOffset() const
     fClass->BuildRealData();
     TIter next(fClass->GetListOfRealData());
     TRealData *rdm;
@@ -384,7 +384,7 @@ index 73323fc27d..82ebdb54fb 100644
     while ((rdm = (TRealData*)next())) {
        char *rdmc = (char*)rdm->GetName();
        //next statement required in case a class and one of its parent class
-@@ -677,9 +677,9 @@ Long_t TDataMember::GetOffset() const
+@@ -674,9 +674,9 @@ Long_t TDataMember::GetOffset() const
  ////////////////////////////////////////////////////////////////////////////////
  /// Get offset from "this" using the information in CINT only.
  
@@ -396,7 +396,7 @@ index 73323fc27d..82ebdb54fb 100644
  
     R__LOCKGUARD(gInterpreterMutex);
     TDataMember *dm = const_cast<TDataMember*>(this);
-@@ -751,7 +751,7 @@ int TDataMember::IsSTLContainer()
+@@ -748,7 +748,7 @@ int TDataMember::IsSTLContainer()
  
  Bool_t TDataMember::IsValid()
  {
@@ -444,9 +444,9 @@ diff --git a/src/core/metacling/src/TCling.cxx b/src/core/metacling/src/TCling.c
 index cf890d63e1..9a59030df4 100644
 --- a/src/core/metacling/src/TCling.cxx
 +++ b/src/core/metacling/src/TCling.cxx
-@@ -4556,13 +4556,13 @@ TString TCling::GetMangledName(TClass* cl, const char* method,
+@@ -4720,13 +4720,13 @@ TString TCling::GetMangledName(TClass* cl, const char* method,
     R__LOCKGUARD(gInterpreterMutex);
-    TClingCallFunc func(fInterpreter,*fNormalizedCtxt);
+    TClingCallFunc func(GetInterpreterImpl(), *fNormalizedCtxt);
     if (cl) {
 -      Long_t offset;
 +      intptr_t offset;
@@ -454,15 +454,15 @@ index cf890d63e1..9a59030df4 100644
           &offset);
     }
     else {
-       TClingClassInfo gcl(fInterpreter);
+       TClingClassInfo gcl(GetInterpreterImpl());
 -      Long_t offset;
 +      intptr_t offset;
        func.SetFunc(&gcl, method, params, &offset);
     }
     TClingMethodInfo* mi = (TClingMethodInfo*) func.FactoryMethod();
-@@ -4601,13 +4601,13 @@ void* TCling::GetInterfaceMethod(TClass* cl, const char* method,
+@@ -4765,13 +4765,13 @@ void* TCling::GetInterfaceMethod(TClass* cl, const char* method,
     R__LOCKGUARD(gInterpreterMutex);
-    TClingCallFunc func(fInterpreter,*fNormalizedCtxt);
+    TClingCallFunc func(GetInterpreterImpl(), *fNormalizedCtxt);
     if (cl) {
 -      Long_t offset;
 +      intptr_t offset;
@@ -470,31 +470,31 @@ index cf890d63e1..9a59030df4 100644
                     &offset);
     }
     else {
-       TClingClassInfo gcl(fInterpreter);
+       TClingClassInfo gcl(GetInterpreterImpl());
 -      Long_t offset;
 +      intptr_t offset;
        func.SetFunc(&gcl, method, params, &offset);
     }
     return (void*) func.InterfaceMethod();
-@@ -4821,7 +4821,7 @@ void TCling::Execute(const char* function, const char* params, int* error)
+@@ -4985,7 +4985,7 @@ void TCling::Execute(const char* function, const char* params, int* error)
        *error = TInterpreter::kNoError;
     }
-    TClingClassInfo cl(fInterpreter);
+    TClingClassInfo cl(GetInterpreterImpl());
 -   Long_t offset = 0L;
 +   intptr_t offset = 0;
-    TClingCallFunc func(fInterpreter,*fNormalizedCtxt);
+    TClingCallFunc func(GetInterpreterImpl(), *fNormalizedCtxt);
     func.SetFunc(&cl, function, params, &offset);
     func.Exec(0);
-@@ -4849,7 +4849,7 @@ void TCling::Execute(TObject* obj, TClass* cl, const char* method,
+@@ -5013,7 +5013,7 @@ void TCling::Execute(TObject* obj, TClass* cl, const char* method,
     // 'obj' is unlikely to be the start of the object (as described by IsA()),
     // hence gInterpreter->Execute will improperly correct the offset.
     void* addr = cl->DynamicCast(TObject::Class(), obj, kFALSE);
 -   Long_t offset = 0L;
 +   intptr_t offset = 0;
-    TClingCallFunc func(fInterpreter,*fNormalizedCtxt);
+    TClingCallFunc func(GetInterpreterImpl(), *fNormalizedCtxt);
     func.SetFunc((TClingClassInfo*)cl->GetClassInfo(), method, params, objectIsConst, &offset);
     void* address = (void*)((intptr_t)addr + offset);
-@@ -7525,7 +7525,7 @@ void TCling::CallFunc_SetArgs(CallFunc_t* func, const char* param) const
+@@ -7903,7 +7903,7 @@ void TCling::CallFunc_SetArgs(CallFunc_t* func, const char* param) const
  
  ////////////////////////////////////////////////////////////////////////////////
  
@@ -503,7 +503,7 @@ index cf890d63e1..9a59030df4 100644
  {
     TClingCallFunc* f = (TClingCallFunc*) func;
     TClingClassInfo* ci = (TClingClassInfo*) info;
-@@ -7534,7 +7534,7 @@ void TCling::CallFunc_SetFunc(CallFunc_t* func, ClassInfo_t* info, const char* m
+@@ -7912,7 +7912,7 @@ void TCling::CallFunc_SetFunc(CallFunc_t* func, ClassInfo_t* info, const char* m
  
  ////////////////////////////////////////////////////////////////////////////////
  
@@ -512,7 +512,7 @@ index cf890d63e1..9a59030df4 100644
  {
     TClingCallFunc* f = (TClingCallFunc*) func;
     TClingClassInfo* ci = (TClingClassInfo*) info;
-@@ -7552,7 +7522,7 @@ void TCling::CallFunc_SetFunc(CallFunc_t* func, MethodInfo_t* info) const
+@@ -7930,7 +7930,7 @@ void TCling::CallFunc_SetFunc(CallFunc_t* func, MethodInfo_t* info) const
  ////////////////////////////////////////////////////////////////////////////////
  /// Interface to cling function
  
@@ -521,7 +521,7 @@ index cf890d63e1..9a59030df4 100644
  {
     TClingCallFunc* f = (TClingCallFunc*) func;
     TClingClassInfo* ci = (TClingClassInfo*) info;
-@@ -7562,7 +7562,7 @@ void TCling::CallFunc_SetFuncProto(CallFunc_t* func, ClassInfo_t* info, const ch
+@@ -7940,7 +7940,7 @@ void TCling::CallFunc_SetFuncProto(CallFunc_t* func, ClassInfo_t* info, const ch
  ////////////////////////////////////////////////////////////////////////////////
  /// Interface to cling function
  
@@ -530,7 +530,7 @@ index cf890d63e1..9a59030df4 100644
  {
     TClingCallFunc* f = (TClingCallFunc*) func;
     TClingClassInfo* ci = (TClingClassInfo*) info;
-@@ -7572,7 +7572,7 @@ void TCling::CallFunc_SetFuncProto(CallFunc_t* func, ClassInfo_t* info, const ch
+@@ -7950,7 +7950,7 @@ void TCling::CallFunc_SetFuncProto(CallFunc_t* func, ClassInfo_t* info, const ch
  ////////////////////////////////////////////////////////////////////////////////
  /// Interface to cling function
  
@@ -539,7 +539,7 @@ index cf890d63e1..9a59030df4 100644
  {
     TClingCallFunc* f = (TClingCallFunc*) func;
     TClingClassInfo* ci = (TClingClassInfo*) info;
-@@ -7587,7 +7587,7 @@ void TCling::CallFunc_SetFuncProto(CallFunc_t* func, ClassInfo_t* info, const ch
+@@ -7965,7 +7965,7 @@ void TCling::CallFunc_SetFuncProto(CallFunc_t* func, ClassInfo_t* info, const ch
  ////////////////////////////////////////////////////////////////////////////////
  /// Interface to cling function
  
@@ -548,7 +548,7 @@ index cf890d63e1..9a59030df4 100644
  {
     TClingCallFunc* f = (TClingCallFunc*) func;
     TClingClassInfo* ci = (TClingClassInfo*) info;
-@@ -7810,7 +7810,7 @@ bool TCling::ClassInfo_IsValid(ClassInfo_t* cinfo) const
+@@ -8189,7 +8189,7 @@ bool TCling::ClassInfo_IsValid(ClassInfo_t* cinfo) const
  
  ////////////////////////////////////////////////////////////////////////////////
  
@@ -557,7 +557,7 @@ index cf890d63e1..9a59030df4 100644
  {
     TClingClassInfo* TClinginfo = (TClingClassInfo*) cinfo;
     return TClinginfo->IsValidMethod(method, proto, false, offset, mode);
-@@ -7818,7 +7818,7 @@ bool TCling::ClassInfo_IsValidMethod(ClassInfo_t* cinfo, const char* method, con
+@@ -8197,7 +8197,7 @@ bool TCling::ClassInfo_IsValidMethod(ClassInfo_t* cinfo, const char* method, con
  
  ////////////////////////////////////////////////////////////////////////////////
  
@@ -566,7 +566,7 @@ index cf890d63e1..9a59030df4 100644
  {
     TClingClassInfo* TClinginfo = (TClingClassInfo*) cinfo;
     return TClinginfo->IsValidMethod(method, proto, objectIsConst, offset, mode);
-@@ -7982,7 +7982,7 @@ int TCling::BaseClassInfo_Next(BaseClassInfo_t* bcinfo, int onlyDirect) const
+@@ -8361,7 +8361,7 @@ int TCling::BaseClassInfo_Next(BaseClassInfo_t* bcinfo, int onlyDirect) const
  
  ////////////////////////////////////////////////////////////////////////////////
  
@@ -575,7 +575,7 @@ index cf890d63e1..9a59030df4 100644
  {
     TClingBaseClassInfo* TClinginfo = (TClingBaseClassInfo*) toBaseClassInfo;
     return TClinginfo->Offset(address, isDerivedObject);
-@@ -7990,7 +7990,7 @@ Long_t TCling::BaseClassInfo_Offset(BaseClassInfo_t* toBaseClassInfo, void * add
+@@ -8369,7 +8369,7 @@ Long_t TCling::BaseClassInfo_Offset(BaseClassInfo_t* toBaseClassInfo, void * add
  
  ////////////////////////////////////////////////////////////////////////////////
  
@@ -588,7 +588,7 @@ diff --git a/src/core/metacling/src/TCling.h b/src/core/metacling/src/TCling.h
 index 60481cc25b..48ad81004c 100644
 --- a/src/core/metacling/src/TCling.h
 +++ b/src/core/metacling/src/TCling.h
-@@ -382,13 +382,13 @@ public: // Public Interface
+@@ -397,13 +397,13 @@ public: // Public Interface
     virtual void   CallFunc_SetArg(CallFunc_t* func, ULong64_t param) const;
     virtual void   CallFunc_SetArgArray(CallFunc_t* func, Long_t* paramArr, Int_t nparam) const;
     virtual void   CallFunc_SetArgs(CallFunc_t* func, const char* param) const;
@@ -608,7 +608,7 @@ index 60481cc25b..48ad81004c 100644
  
     virtual std::string CallFunc_GetWrapperCode(CallFunc_t *func) const;
  
-@@ -404,7 +404,7 @@ public: // Public Interface
+@@ -419,7 +419,7 @@ public: // Public Interface
     virtual ClassInfo_t*  ClassInfo_Factory(ClassInfo_t* cl) const;
     virtual ClassInfo_t*  ClassInfo_Factory(const char* name) const;
     virtual ClassInfo_t*  ClassInfo_Factory(DeclId_t declid) const;
@@ -617,7 +617,7 @@ index 60481cc25b..48ad81004c 100644
     virtual int    ClassInfo_GetMethodNArg(ClassInfo_t* info, const char* method, const char* proto, Bool_t objectIsConst = false, ROOT::EFunctionMatchMode mode = ROOT::kConversionMatch) const;
     virtual bool   ClassInfo_HasDefaultConstructor(ClassInfo_t* info) const;
     virtual bool   ClassInfo_HasMethod(ClassInfo_t* info, const char* name) const;
-@@ -416,8 +416,8 @@ public: // Public Interface
+@@ -431,8 +431,8 @@ public: // Public Interface
     virtual EDataType ClassInfo_GetUnderlyingType(ClassInfo_t* info) const;
     virtual bool   ClassInfo_IsLoaded(ClassInfo_t* info) const;
     virtual bool   ClassInfo_IsValid(ClassInfo_t* info) const;
@@ -628,7 +628,7 @@ index 60481cc25b..48ad81004c 100644
     virtual int    ClassInfo_Next(ClassInfo_t* info) const;
     virtual void*  ClassInfo_New(ClassInfo_t* info) const;
     virtual void*  ClassInfo_New(ClassInfo_t* info, int n) const;
-@@ -439,7 +439,7 @@ public: // Public Interface
+@@ -454,7 +454,7 @@ public: // Public Interface
                                                     ClassInfo_t* base) const;
     virtual int    BaseClassInfo_Next(BaseClassInfo_t* bcinfo) const;
     virtual int    BaseClassInfo_Next(BaseClassInfo_t* bcinfo, int onlyDirect) const;
@@ -877,7 +877,7 @@ diff --git a/src/core/metacling/src/TClingClassInfo.h b/src/core/metacling/src/T
 index ff8ef597e3..2d42a7548b 100644
 --- a/src/core/metacling/src/TClingClassInfo.h
 +++ b/src/core/metacling/src/TClingClassInfo.h
-@@ -99,25 +99,25 @@ public:
+@@ -103,25 +103,25 @@ public:
     const clang::FunctionTemplateDecl *GetFunctionTemplate(const char *fname) const;
     TClingMethodInfo     GetMethod(const char *fname) const;
     TClingMethodInfo     GetMethod(const char *fname, const char *proto,
@@ -910,7 +910,7 @@ index ff8ef597e3..2d42a7548b 100644
     ptrdiff_t            GetBaseOffset(TClingClassInfo* toBase, void* address, bool isDerivedObject);
     const clang::Type   *GetType() const { return fType; } // Underlying representation with Double32_t
     std::vector<std::string> GetUsingNamespaces();
-@@ -132,7 +132,7 @@ public:
+@@ -136,7 +136,7 @@ public:
     bool                 IsScopedEnum() const;
     EDataType            GetUnderlyingType() const;
     bool                 IsLoaded() const;
@@ -923,7 +923,7 @@ diff --git a/src/core/metacling/src/TClingDataMemberInfo.cxx b/src/core/metaclin
 index cebf2425bd..fa0b7a38a6 100644
 --- a/src/core/metacling/src/TClingDataMemberInfo.cxx
 +++ b/src/core/metacling/src/TClingDataMemberInfo.cxx
-@@ -317,7 +317,7 @@ intptr_t TClingDataMemberInfo::Offset()
+@@ -324,7 +324,7 @@ intptr_t TClingDataMemberInfo::Offset()
     using namespace clang;
  
     if (!IsValid()) {
@@ -932,7 +932,7 @@ index cebf2425bd..fa0b7a38a6 100644
     }
  
     const Decl *D = GetDecl();
-@@ -402,9 +401,9 @@ intptr_t TClingDataMemberInfo::Offset()
+@@ -409,9 +408,9 @@ intptr_t TClingDataMemberInfo::Offset()
        return (intptr_t)ECD->getInitVal().getRawData();
  #else
        // In this case in the second part.
@@ -948,7 +948,7 @@ diff --git a/src/core/base/src/TROOT.cxx b/src/core/base/src/TROOT.cxx
 index e16976afaf..604a74ce8b 100644
 --- a/src/core/base/src/TROOT.cxx
 +++ b/src/core/base/src/TROOT.cxx
-@@ -1179,7 +1179,7 @@ void TROOT::CloseFiles()
+@@ -1177,7 +1177,7 @@ void TROOT::CloseFiles()
           fSockets->SetBit(kMustCleanup);
        }
        CallFunc_t *socketCloser = gInterpreter->CallFunc_Factory();
@@ -957,7 +957,7 @@ index e16976afaf..604a74ce8b 100644
        TClass *socketClass = TClass::GetClass("TSocket");
        gInterpreter->CallFunc_SetFuncProto(socketCloser, socketClass->GetClassInfo(), "Close", "", &offset);
        if (gInterpreter->CallFunc_IsValid(socketCloser)) {
-@@ -1205,7 +1205,7 @@ void TROOT::CloseFiles()
+@@ -1203,7 +1203,7 @@ void TROOT::CloseFiles()
                 fClosedObjects->AddLast(socket);
              } else {
                 // Crap ... this is not a socket, likely Proof or something, let's try to find a Close
@@ -966,6 +966,20 @@ index e16976afaf..604a74ce8b 100644
                 CallFunc_t *otherCloser = gInterpreter->CallFunc_Factory();
                 gInterpreter->CallFunc_SetFuncProto(otherCloser, socket->IsA()->GetClassInfo(), "Close", "", &other_offset);
                 if (gInterpreter->CallFunc_IsValid(otherCloser)) {
+@@ -2416,7 +2416,12 @@ TROOT::ProcessLineFast(const char *line, Int_t *error)
+    if (!fApplication.load())
+       TApplication::CreateApplication();
+
+-   Long_t result = 0;
++#ifdef _WIN64
++Long64_t
++#else
++Long_t
++#endif
++   result = 0;
+
+    if (fInterpreter) {
+       TInterpreter::EErrorCode *code = (TInterpreter::EErrorCode*)error;
 diff --git a/src/core/meta/src/TMethodCall.cxx b/src/core/meta/src/TMethodCall.cxx
 index 1d5ebe9039..a9c9a991ba 100644
 --- a/src/core/meta/src/TMethodCall.cxx
@@ -994,24 +1008,6 @@ index 1d5ebe9039..a9c9a991ba 100644
     gCling->SetTempLevel(-1);
  }
  
-diff --git a/src/core/base/src/TROOT.cxx b/src/core/base/src/TROOT.cxx
-index 604a74ce8b..4e68101d34 100644
---- a/src/core/base/src/TROOT.cxx
-+++ b/src/core/base/src/TROOT.cxx
-@@ -2420,7 +2420,12 @@ TROOT::ProcessLineFast(const char *line, Int_t *error)
-    if (!fApplication.load())
-       TApplication::CreateApplication();
-
--   Long_t result = 0;
-+#ifdef _WIN64
-+Long64_t
-+#else
-+Long_t
-+#endif
-+   result = 0;
-
-    if (fInterpreter) {
-       TInterpreter::EErrorCode *code = (TInterpreter::EErrorCode*)error;
 diff --git a/src/core/meta/src/TIsAProxy.cxx b/src/core/meta/src/TIsAProxy.cxx
 index 890510168e..16cb8ee392 100644
 --- a/src/core/meta/src/TIsAProxy.cxx
@@ -1493,7 +1489,7 @@ diff --git a/src/core/metacling/src/CMakeLists.txt b/src/core/metacling/src/CMak
 index 483ba33620..a9eed4633d 100644
 --- a/src/core/metacling/src/CMakeLists.txt
 +++ b/src/core/metacling/src/CMakeLists.txt
-@@ -101,6 +101,23 @@ if(MSVC)
+@@ -110,6 +110,23 @@ if(MSVC)
        ?setValueNoAlloc@internal@runtime@cling@@YAXPEAX00DPEBX@Z
        ?setValueNoAlloc@internal@runtime@cling@@YAXPEAX00D_K@Z
        ?setValueWithAlloc@internal@runtime@cling@@YAPEAXPEAX00D@Z
@@ -1517,7 +1513,7 @@ index 483ba33620..a9eed4633d 100644
      )
    elseif(CMAKE_SIZEOF_VOID_P EQUAL 4)
      set(cling_exports
-@@ -111,6 +128,12 @@ if(MSVC)
+@@ -124,6 +141,12 @@ if(MSVC)
        ??_U@YAPAXI@Z
        ??_V@YAXPAX@Z
        ??_V@YAXPAXI@Z

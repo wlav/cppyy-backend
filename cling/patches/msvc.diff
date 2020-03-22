@@ -40,7 +40,7 @@ diff --git a/src/core/clingutils/CMakeLists.txt b/src/core/clingutils/CMakeLists
 index 4be71a05fb..11535a0105 100644
 --- a/src/core/clingutils/CMakeLists.txt
 +++ b/src/core/clingutils/CMakeLists.txt
-@@ -138,6 +138,9 @@ set(stamp_file ${CMAKE_BINARY_DIR}${CMAKE_FILES_DIRECTORY}/LLVMRES.stamp)
+@@ -144,6 +144,9 @@ set(stamp_file ${CMAKE_BINARY_DIR}${CMAKE_FILES_DIRECTORY}/LLVMRES.stamp)
  if(MSVC)
    add_custom_command(OUTPUT ${stamp_file}
          COMMAND ${CMAKE_COMMAND} -E make_directory ${CMAKE_BINARY_DIR}/etc/cling/lib/clang/${CLANG_RESOURCE_DIR_VERSION}/include
@@ -54,7 +54,7 @@ diff --git a/src/core/winnt/src/TWinNTSystem.cxx b/src/core/winnt/src/TWinNTSyst
 index 6aebb11354..75e331465d 100644
 --- a/src/core/winnt/src/TWinNTSystem.cxx
 +++ b/src/core/winnt/src/TWinNTSystem.cxx
-@@ -1139,7 +1139,7 @@ Bool_t TWinNTSystem::Init()
+@@ -1131,7 +1131,7 @@ Bool_t TWinNTSystem::Init()
        if (buf[0]) AddDynamicPath(buf);
     }
     delete [] buf;

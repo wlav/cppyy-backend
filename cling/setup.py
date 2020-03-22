@@ -345,7 +345,7 @@ setup(
     author='ROOT Developers',
     author_email='rootdev@cern.ch',
 
-    version='6.18.2.7',
+    version='6.20.2.0',
 
     license='LLVM: UoI-NCSA; ROOT: LGPL 2.1',
 

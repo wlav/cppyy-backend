@@ -2,7 +2,7 @@ diff --git a/src/core/meta/src/TClass.cxx b/src/core/meta/src/TClass.cxx
 index 29eb7f622f..f7e7473c80 100644
 --- a/src/core/meta/src/TClass.cxx
 +++ b/src/core/meta/src/TClass.cxx
-@@ -4298,9 +4298,9 @@ TMethod *TClass::GetMethod(const char *method, const char *params,
+@@ -4313,9 +4313,9 @@ TMethod *TClass::GetMethod(const char *method, const char *params,
     TMethod* f = FindClassOrBaseMethodWithId(decl);
     if (f) return f;
  
@@ -15,7 +15,7 @@ index 29eb7f622f..f7e7473c80 100644
     return 0;
  }
  
-@@ -4341,9 +4341,9 @@ TMethod *TClass::GetMethodWithPrototype(const char *method, const char *proto,
+@@ -4356,9 +4356,9 @@ TMethod *TClass::GetMethodWithPrototype(const char *method, const char *proto,
     if (!decl) return 0;
     TMethod* f = FindClassOrBaseMethodWithId(decl);
     if (f) return f;

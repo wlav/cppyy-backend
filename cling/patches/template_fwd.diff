@@ -2,7 +2,7 @@ diff --git a/src/core/dictgen/src/rootcling_impl.cxx b/src/core/dictgen/src/root
 index 90b0dbed10..cc8a527c1c 100644
 --- a/src/core/dictgen/src/rootcling_impl.cxx
 +++ b/src/core/dictgen/src/rootcling_impl.cxx
-@@ -3473,8 +3473,45 @@ std::string GenerateFwdDeclString(const RScanner &scan,
+@@ -3314,8 +3314,45 @@ std::string GenerateFwdDeclString(const RScanner &scan,
                     selectedDecls.begin(),
                     [](const ROOT::TMetaUtils::AnnotatedRecordDecl& rcd){return rcd.GetRecordDecl();});
  

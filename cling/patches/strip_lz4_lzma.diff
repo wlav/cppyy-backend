@@ -2,46 +2,51 @@ diff --git a/src/core/zip/src/RZip.cxx b/src/core/zip/src/RZip.cxx
 index d7007966df..fe55d3271c 100644
 --- a/src/core/zip/src/RZip.cxx
 +++ b/src/core/zip/src/RZip.cxx
-@@ -10,8 +10,8 @@
+@@ -10,9 +10,9 @@
  #include "RConfigure.h"
  #include "RZip.h"
  #include "Bits.h"
 -#include "ZipLZMA.h"
 -#include "ZipLZ4.h"
+-#include "ZipZSTD.h"
 +//#include "ZipLZMA.h"
 +//#include "ZipLZ4.h"
++//#include "ZipZSTD.h"
  
  #include "zlib.h"
  
-@@ -91,13 +91,8 @@ void R__zipMultipleAlgorithm(int cxlevel, int *srcsize, char *src, int *tgtsize,
+@@ -96,13 +96,8 @@ void R__zipMultipleAlgorithm(int cxlevel, int *srcsize, char *src, int *tgtsize,
    }
 
    // The LZMA compression algorithm from the XZ package
 -  if (compressionAlgorithm == ROOT::RCompressionSetting::EAlgorithm::kLZMA) {
 -     R__zipLZMA(cxlevel, srcsize, src, tgtsize, tgt, irep);
--     return;
 -  } else if (compressionAlgorithm == ROOT::RCompressionSetting::EAlgorithm::kLZ4) {
 -     R__zipLZ4(cxlevel, srcsize, src, tgtsize, tgt, irep);
--     return;
+-  } else if (compressionAlgorithm == ROOT::RCompressionSetting::EAlgorithm::kZSTD) {
+-     R__zipZSTD(cxlevel, srcsize, src, tgtsize, tgt, irep);
 -  } else if (compressionAlgorithm == ROOT::RCompressionSetting::EAlgorithm::kOldCompressionAlgo || compressionAlgorithm == ROOT::RCompressionSetting::EAlgorithm::kUseGlobal) {
 +  if (compressionAlgorithm == ROOT::RCompressionSetting::EAlgorithm::kOldCompressionAlgo ||
 +      compressionAlgorithm == ROOT::RCompressionSetting::EAlgorithm::kUseGlobal) {
       R__zipOld(cxlevel, srcsize, src, tgtsize, tgt, irep);
-      return;
    } else {
-@@ -355,12 +350,6 @@ void R__unzip(int *srcsize, uch *src, int *tgtsize, uch *tgt, int *irep)
-   if (is_valid_header_zlib(src)) {
-      R__unzipZLIB(srcsize, src, tgtsize, tgt, irep);
-      return;
--  } else if (is_valid_header_lzma(src)) {
--     R__unzipLZMA(srcsize, src, tgtsize, tgt, irep);
--     return;
--  } else if (is_valid_header_lz4(src)) {
--     R__unzipLZ4(srcsize, src, tgtsize, tgt, irep);
--     return;
-   }
- 
-   /* Old zlib format */
+      // 1 is for ZLIB (which is the default), ZLIB is also used for any illegal
+@@ -361,15 +356,6 @@ void R__unzip(int *srcsize, uch *src, int *tgtsize, uch *tgt, int *irep)
+    if (is_valid_header_zlib(src)) {
+       R__unzipZLIB(srcsize, src, tgtsize, tgt, irep);
+       return;
+-   } else if (is_valid_header_lzma(src)) {
+-      R__unzipLZMA(srcsize, src, tgtsize, tgt, irep);
+-      return;
+-   } else if (is_valid_header_lz4(src)) {
+-      R__unzipLZ4(srcsize, src, tgtsize, tgt, irep);
+-      return;
+-   } else if (is_valid_header_zstd(src)) {
+-      R__unzipZSTD(srcsize, src, tgtsize, tgt, irep);
+-      return;
+    }
+
+    /* Old zlib format */
 diff --git a/src/core/zip/src/ZInflate.c b/src/core/zip/src/ZInflate.c
 index 844240a6dc..d68555e4d7 100644
 --- a/src/core/zip/src/ZInflate.c

@@ -2,7 +2,7 @@ diff --git a/src/core/unix/src/TUnixSystem.cxx b/src/core/unix/src/TUnixSystem.c
 index 5b9574ef22..29d79f37ad 100644
 --- a/src/core/unix/src/TUnixSystem.cxx
 +++ b/src/core/unix/src/TUnixSystem.cxx
-@@ -4613,7 +4613,7 @@ static const char *DynamicPath(const char *newpath = 0, Bool_t reset = kFALSE)
+@@ -4610,7 +4610,7 @@ static const char *DynamicPath(const char *newpath = 0, Bool_t reset = kFALSE)
        dynpath += "/lib/x86_64-linux-gnu:/usr/local/lib64:/usr/lib64:/lib64:";
  #else
        // trick to get the system search path

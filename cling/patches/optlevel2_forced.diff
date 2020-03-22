@@ -2,9 +2,9 @@ diff --git a/src/core/metacling/src/TCling.cxx b/src/core/metacling/src/TCling.c
 index 38f951c12b..2823533580 100644
 --- a/src/core/metacling/src/TCling.cxx
 +++ b/src/core/metacling/src/TCling.cxx
-@@ -1241,6 +1241,10 @@ TCling::TCling(const char *name, const char *title, const char* const argv[])
-                                          &(interpArgs[0]),
-                                          llvmResourceDir);
+@@ -1384,6 +1384,10 @@ TCling::TCling(const char *name, const char *title, const char* const argv[])
+                                                         &(interpArgs[0]),
+                                                         llvmResourceDir, extensions);
  
 +   // force optlevel 2
 +   fInterpreter->getCI()->getCodeGenOpts().OptimizationLevel = 2;
@@ -17,7 +17,7 @@ diff --git a/src/interpreter/cling/lib/Interpreter/CIFactory.cpp b/src/interpret
 index f97c86032f..69321c5579 100644
 --- a/src/interpreter/cling/lib/Interpreter/CIFactory.cpp
 +++ b/src/interpreter/cling/lib/Interpreter/CIFactory.cpp
-@@ -1189,7 +1189,7 @@ static void stringifyPreprocSetting(PreprocessorOptions& PPOpts,
+@@ -1562,7 +1562,7 @@ static void stringifyPreprocSetting(PreprocessorOptions& PPOpts,
      // FIXME: We have a bug when we switch to -O2, for some cases it takes
      // several minutes to optimize, while the same code compiled by clang -O2
      // takes only a few seconds.
@@ -30,22 +30,15 @@ diff --git a/src/interpreter/cling/lib/Interpreter/IncrementalParser.cpp b/src/i
 index 56692341b5..c21854e757 100644
 --- a/src/interpreter/cling/lib/Interpreter/IncrementalParser.cpp
 +++ b/src/interpreter/cling/lib/Interpreter/IncrementalParser.cpp
-@@ -916,12 +916,12 @@ namespace cling {
+@@ -912,7 +912,7 @@ namespace cling {
      std::vector<ASTTPtr_t> ASTTransformers;
      ASTTransformers.emplace_back(new AutoSynthesizer(TheSema));
      ASTTransformers.emplace_back(new EvaluateTSynthesizer(TheSema));
 -    if (hasCodeGenerator() && !m_Interpreter->getOptions().NoRuntime) {
-+    //if (hasCodeGenerator() && !m_Interpreter->getOptions().NoRuntime) {
-        // Don't protect against crashes if we cannot run anything.
-        // cling might also be in a PCH-generation mode; don't inject our Sema pointer
-        // into the PCH.
--       ASTTransformers.emplace_back(new NullDerefProtectionTransformer(m_Interpreter));
--    }
-+    //   ASTTransformers.emplace_back(new NullDerefProtectionTransformer(m_Interpreter));
-+    //}
-
-     typedef std::unique_ptr<WrapperTransformer> WTPtr_t;
-     std::vector<WTPtr_t> WrapperTransformers;
++    if (0 && hasCodeGenerator() && !m_Interpreter->getOptions().NoRuntime) {
+       // Don't protect against crashes if we cannot run anything.
+       // cling might also be in a PCH-generation mode; don't inject our Sema
+       // pointer into the PCH.
 diff --git a/src/interpreter/cling/lib/Interpreter/BackendPasses.cpp b/src/interpreter/cling/lib/Interpreter/BackendPasses.cpp
 index cb3308c360..873bc682ea 100644
 --- a/src/interpreter/cling/lib/Interpreter/BackendPasses.cpp

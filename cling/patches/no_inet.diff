@@ -38,7 +38,7 @@ diff --git a/src/core/base/src/TUUID.cxx b/src/core/base/src/TUUID.cxx
 index ae4f2e0582..f55da5f6ed 100644
 --- a/src/core/base/src/TUUID.cxx
 +++ b/src/core/base/src/TUUID.cxx
-@@ -137,7 +137,7 @@ ClassImp(TUUID);
+@@ -139,7 +139,7 @@ ClassImp(TUUID);
  ////////////////////////////////////////////////////////////////////////////////
  /// Create a UUID.
  
@@ -47,7 +47,7 @@ index ae4f2e0582..f55da5f6ed 100644
  {
     TTHREAD_TLS(uuid_time_t) time_last;
     TTHREAD_TLS(UShort_t) clockseq(0);
-@@ -173,7 +173,7 @@ TUUID::TUUID()
+@@ -175,7 +175,7 @@ TUUID::TUUID()
        if (clockseq == 0) clockseq++;
     }
  
@@ -56,7 +56,7 @@ index ae4f2e0582..f55da5f6ed 100644
  
     time_last = timestamp;
     fUUIDIndex = 1<<30;
-@@ -308,7 +308,7 @@ void TUUID::StreamerV1(TBuffer &b)
+@@ -310,7 +310,7 @@ void TUUID::StreamerV1(TBuffer &b)
  ////////////////////////////////////////////////////////////////////////////////
  /// Make a UUID from timestamp, clockseq and node id.
  
@@ -65,7 +65,7 @@ index ae4f2e0582..f55da5f6ed 100644
  {
     fTimeLow = ts.low;
     fTimeMid = (UShort_t)(ts.high & 0xFFFF);
-@@ -317,7 +317,7 @@ void TUUID::Format(UShort_t clockseq, uuid_time_t ts)
+@@ -319,7 +319,7 @@ void TUUID::Format(UShort_t clockseq, uuid_time_t ts)
     fClockSeqLow = clockseq & 0xFF;
     fClockSeqHiAndReserved = (clockseq & 0x3F00) >> 8;
     fClockSeqHiAndReserved |= 0x80;
@@ -74,7 +74,7 @@ index ae4f2e0582..f55da5f6ed 100644
  }
  
  ////////////////////////////////////////////////////////////////////////////////
-@@ -410,19 +410,22 @@ void TUUID::GetSystemTime(uuid_time_t *timestamp)
+@@ -412,13 +412,13 @@ void TUUID::GetSystemTime(uuid_time_t *timestamp)
  /// Get node identifier. Try first to get network address, if no
  /// network interface try random info based on some machine parameters.
  
@@ -86,22 +86,16 @@ index ae4f2e0582..f55da5f6ed 100644
     if (gSystem) {
  #ifndef R__WIN32
 -      if (!adr) {
--         TInetAddress addr = gSystem->GetHostByName(gSystem->HostName());
--         if (addr.IsValid())
--            adr = addr.GetAddress();
--         else
--            adr = 1;  // illegal address
++      if (inetOK && !adr) {
+          UInt_t addr = 0;
+ 
+          struct ifaddrs *ifAddrStruct = nullptr;
+@@ -449,7 +449,7 @@ void TUUID::GetNodeIdentifier()
+             adr = addr;
+          else
+             adr = 1;  // illegal address
 -      }
-+      if (inetOK) {
-+         if (!adr) {
-+            TInetAddress addr = gSystem->GetHostByName(gSystem->HostName());
-+            if (addr.IsValid())
-+               adr = addr.GetAddress();
-+            else
-+               adr = 1;  // illegal address
-+         }
-+      } else
-+            adr = 1;
++      } else adr = 1;
  #else
        // this way to get the machine's IP address is needed because
        // GetHostByName() on Win32 contacts the DNS which we don't want

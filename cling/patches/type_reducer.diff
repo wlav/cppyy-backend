@@ -15,7 +15,7 @@ diff --git a/src/core/metacling/src/TCling.cxx b/src/core/metacling/src/TCling.c
 index 74587e6b9f..e43d13384b 100644
 --- a/src/core/metacling/src/TCling.cxx
 +++ b/src/core/metacling/src/TCling.cxx
-@@ -120,6 +120,7 @@ clang/LLVM technology.
+@@ -126,6 +126,7 @@ clang/LLVM technology.
  #include <algorithm>
  #include <iostream>
  #include <cassert>
@@ -23,7 +23,7 @@ index 74587e6b9f..e43d13384b 100644
  #include <map>
  #include <set>
  #include <stdexcept>
-@@ -2361,6 +2362,28 @@ void TCling::AddIncludePath(const char *path)
+@@ -2495,6 +2496,28 @@ void TCling::AddIncludePath(const char *path)
     fInterpreter->AddIncludePath(path);
  }
  
@@ -56,8 +56,8 @@ diff --git a/src/core/metacling/src/TCling.h b/src/core/metacling/src/TCling.h
 index 599e179637..457d98570a 100644
 --- a/src/core/metacling/src/TCling.h
 +++ b/src/core/metacling/src/TCling.h
-@@ -172,6 +172,8 @@ public: // Public Interface
-    cling::Interpreter *GetInterpreterImpl() { return fInterpreter; }
+@@ -184,6 +184,8 @@ public: // Public Interface
+    TCling(const char* name, const char* title): TCling(name, title, kNullArgv) {}
  
     void    AddIncludePath(const char* path);
 +   void    AddTypeReducer(const std::string& reducable, const std::string& reduced);

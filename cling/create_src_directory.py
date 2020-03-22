@@ -156,12 +156,23 @@ if not os.path.exists(pkgdir):
 else:
     print('reusing existing directory', pkgdir)
 
-# remove everything except for the listed set of libraries
+
+# remove old directoy, if any and enter release directory
 try:
     shutil.rmtree('src')
 except OSError:
     pass
 os.chdir(pkgdir)
+
+# copy over some hard-wired GUI stuff (TODO: excise this mess)
+srcdir, tgtdir = 'core/gui/inc', 'core/base/inc'
+for fn in ['GuiTypes.h', 'TApplicationImp.h', 'TBrowser.h', 'TBrowserImp.h', 'TClassMenuItem.h', 'TGuiFactory.h']:
+    shutil.copy2(os.path.join(srcdir, fn), os.path.join(tgtdir, fn))
+srcdir, tgtdir = 'core/gui/src', 'core/base/src'
+for fn in ['TApplicationImp.cxx', 'TBrowser.cxx', 'TBrowserImp.cxx', 'TClassMenuItem.cxx', 'TGuiFactory.cxx']:
+    shutil.copy2(os.path.join(srcdir, fn), os.path.join(tgtdir, fn))
+
+# remove everything except for the listed set of libraries
 clean_directory(os.path.curdir,                  ROOT_KEEP)
 clean_directory('core',                          ROOT_CORE_KEEP)
 clean_directory('builtins',                      ROOT_BUILTINS_KEEP)
@@ -202,7 +213,7 @@ inp = os.path.join('core', 'CMakeLists.txt')
 outp = inp+'.new'
 new_cml = open(outp, 'w')
 for line in open(inp).readlines():
-    if ('Lzma' in line or 'Lz4' in line):
+    if ('Lzma' in line or 'Lz4' in line or 'Zstd' in line or 'GuiCore' in line):
         line = '#'+line
     else:
         line = line.replace(' ${LZMA_LIBRARIES}', '')
@@ -265,10 +276,11 @@ now_stripping = False
 new_cml = open(outp, 'w')
 for line in open(inp).readlines():
     if '#---Check for ftgl if needed' == line[0:28] or\
-       '#---Check for AfterImage' == line[0:24] or\
-       '#---Check for Freetype' == line[0:22] or\
-       '#---Check for LZMA' == line[0:18] or\
-       '#---Check for LZ4' == line[0:17] or\
+       '#---Check for AfterImage'     == line[0:24] or\
+       '#---Check for Freetype'       == line[0:22] or\
+       '#---Check for LZMA'           == line[0:18] or\
+       '#---Check for LZ4'            == line[0:17] or\
+       '#---Check for ZSTD'           == line[0:18] or\
        '#-------' == line[0:8]:   # openui5 (doesn't follow convention)
         now_stripping = True
     elif '#---Check' == line[0:9] or\
@@ -438,10 +450,11 @@ except ImportError:
 for fdiff in ('cleanup_tstring', 'scanner', 'scanner_2', 'faux_typedef', 'classrules', 'template_fwd',
               'dep_template', 'no_long64_t', 'using_decls', 'sfinae', 'typedef_of_private',
               'optlevel2_forced', 'silence', 'explicit_template', 'alias_template', 'lambda', 'templ_ops',
-              'private_type_args', 'incomplete_types', 'clang_printing', 'resolution',
+              'private_type_args', 'incomplete_types', 'clang_printing',
               'stdfunc_printhack', 'anon_union', 'no_inet', 'signaltrycatch', 'nofastmath', 'pch',
-              'stackoverflow', 'stdvalue_type', 'strip_lz4_lzma', 'type_reducer', 'resolve_path',
-              'msvc', 'win64rtti', 'win64', 'win64s2'):
+              'stackoverflow', 'strip_lz4_lzma', 'type_reducer', 'resolve_path',
+              'msvc', 'win64rtti', 'win64', 'win64s2',
+              'gui_cleanup'):
     fpatch = os.path.join('patches', fdiff+'.diff')
     print(' ==> applying patch:', fpatch)
     pset = patch.fromfile(fpatch)

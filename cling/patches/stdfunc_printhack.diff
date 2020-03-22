@@ -2,7 +2,7 @@ diff --git a/src/core/clingutils/src/TClingUtils.cxx b/src/core/clingutils/src/T
 index a4baa766e8..c042fa3645 100644
 --- a/src/core/clingutils/src/TClingUtils.cxx
 +++ b/src/core/clingutils/src/TClingUtils.cxx
-@@ -573,7 +575,8 @@ bool TClingLookupHelper::GetPartiallyDesugaredNameWithScopeHandling(const std::s
+@@ -589,7 +591,8 @@ bool TClingLookupHelper::GetPartiallyDesugaredNameWithScopeHandling(const std::s
           // white space.
           clang::PrintingPolicy policy(fInterpreter->getCI()->getASTContext().getPrintingPolicy());
           policy.SuppressTagKeyword = true; // Never get the class or struct keyword
@@ -12,7 +12,7 @@ index a4baa766e8..c042fa3645 100644
           // The scope suppression is required for getting rid of the anonymous part of the name of a class defined in an anonymous namespace.
           // This gives us more control vs not using the clang::ElaboratedType and relying on the Policy.SuppressUnwrittenScope which would
           // strip both the anonymous and the inline namespace names (and we probably do not want the later to be suppressed).
-@@ -3937,7 +3940,8 @@ void ROOT::TMetaUtils::GetNormalizedName(std::string &norm_name, const clang::Qu
+@@ -3960,7 +3963,8 @@ void ROOT::TMetaUtils::GetNormalizedName(std::string &norm_name, const clang::Qu
     clang::ASTContext &ctxt = interpreter.getCI()->getASTContext();
     clang::PrintingPolicy policy(ctxt.getPrintingPolicy());
     policy.SuppressTagKeyword = true; // Never get the class or struct keyword

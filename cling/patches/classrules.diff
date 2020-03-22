@@ -29,7 +29,7 @@ diff --git a/src/core/meta/src/TClass.cxx b/src/core/meta/src/TClass.cxx
 index 29eb7f622f..e33a7df6ad 100644
 --- a/src/core/meta/src/TClass.cxx
 +++ b/src/core/meta/src/TClass.cxx
-@@ -1745,7 +1745,7 @@ Int_t TClass::ReadRules()
+@@ -1760,7 +1760,7 @@ Int_t TClass::ReadRules()
        res = ReadRulesContent(f);
        fclose(f);
     } else {

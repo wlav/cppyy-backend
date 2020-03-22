@@ -2,7 +2,7 @@ diff --git a/src/core/metacling/src/TCling.cxx b/core/metacling/src/TCling.cxx
 index 5413aef378..cc94115b85 100644
 --- a/src/core/metacling/src/TCling.cxx
 +++ b/src/core/metacling/src/TCling.cxx
-@@ -1112,6 +1112,12 @@ static std::string GetModuleNameAsString(clang::Module *M, const clang::Preproce
+@@ -1088,6 +1088,12 @@ static std::string GetModuleNameAsString(clang::Module *M, const clang::Preproce
     return std::string(llvm::sys::path::stem(ModuleName));
  }
  
@@ -12,10 +12,10 @@ index 5413aef378..cc94115b85 100644
 +   return (stat(file, &buf) == 0);
 +}
 +
- ////////////////////////////////////////////////////////////////////////////////
- /// Initialize the cling interpreter interface.
- /// \param argv - array of arguments passed to the cling::Interpreter constructor
-@@ -1160,12 +1166,14 @@ TCling::TCling(const char *name, const char *title, const char* const argv[])
+ static void RegisterCxxModules(cling::Interpreter &clingInterp)
+ {
+    if (!clingInterp.getCI()->getLangOpts().Modules)
+@@ -1243,12 +1249,14 @@ TCling::TCling(const char *name, const char *title, const char* const argv[])
        // same functionality).
        if (!fCxxModulesEnabled) {
           std::string pchFilename = interpInclude + "/allDict.cxx.pch";
@@ -38,7 +38,7 @@ diff --git a/src/core/dictgen/src/rootcling_impl.cxx b/src/core/dictgen/src/root
 index b53b7352f9..0672f3082c 100644
 --- a/src/core/dictgen/src/rootcling_impl.cxx
 +++ b/src/core/dictgen/src/rootcling_impl.cxx
-@@ -89,6 +89,7 @@ const char *rootClingHelp =
+@@ -90,6 +90,7 @@ const char *rootClingHelp =
  #include "llvm/Support/Path.h"
  #include "llvm/Support/PrettyStackTrace.h"
  #include "llvm/Support/Signals.h"
@@ -46,36 +46,19 @@ index b53b7352f9..0672f3082c 100644
  
  #include "RtypesCore.h"
  #include "TModuleGenerator.h"
-@@ -1908,6 +1908,8 @@ void GenerateLinkdef(int *argc, char **argv, int firstInputFile,
-    code_for_parser += "#pragma link off all functions;\n\n";
-
-    for (int i = firstInputFile; i < *argc; i++) {
-+      if (argv[i][0] == '-') // reached more options
-+         break;
-       char *s, trail[3];
-       int   nostr = 0, noinp = 0, bcnt = 0, l = strlen(argv[i]) - 1;
-       for (int j = 0; j < 3; j++) {
-@@ -4185,6 +4188,18 @@ int RootClingMain(int argc,
-             continue;
-          }
- 
-+         if (strcmp("-cxxflags", argv[ic]) == 0 && (ic + 1) < argc) {
-+            // Add additional flags straight to Cling
-+            StringRef Env(argv[ic + 1]);
-+            while (!Env.empty()) {
-+                StringRef Arg;
-+                std::tie(Arg, Env) = Env.split(' ');
-+                clingArgs.push_back(Arg.str());
-+            }
-+            ic += 2;
-+            continue;
-+         }
-+
-          if ((ic + 1) < argc && strcmp("-isysroot", argv[ic]) == 0) {
-             clingArgs.push_back(argv[ic++]);
-             clingArgs.push_back(argv[ic++]);
-@@ -4431,6 +4446,17 @@ int RootClingMain(int argc,
-    ROOT::TMetaUtils::TClingLookupHelper helper(interp, normCtxt, 0, 0);
+@@ -3840,6 +3840,10 @@ static llvm::cl::opt<bool>
+ gOptNoIncludePaths("noIncludePaths",
+                   llvm::cl::desc("Do not store include paths but rely on the env variable ROOT_INCLUDE_PATH."),
+                   llvm::cl::cat(gRootclingOptions));
++static llvm::cl::list<std::string>
++gCxxFlags("cxxflags", llvm::cl::ZeroOrMore,
++          llvm::cl::desc("Extra C++ flags for the compiler."),
++          llvm::cl::cat(gRootclingOptions));
+ static llvm::cl::opt<std::string>
+ gOptISysRoot("isysroot", llvm::cl::Prefix, llvm::cl::Hidden,
+             llvm::cl::desc("Specify an isysroot."),
+@@ -4456,6 +4471,17 @@ int RootClingMain(int argc,
+    ROOT::TMetaUtils::TClingLookupHelper helper(interp, normCtxt, 0, 0, nullptr);
     TClassEdit::Init(&helper);
  
 +   // Process externally passed arguments if present.
@@ -92,15 +75,15 @@ index b53b7352f9..0672f3082c 100644
     // flags used only for the pragma parser:
     clingArgs.push_back("-D__CINT__");
     clingArgs.push_back("-D__MAKECINT__");
-@@ -5252,6 +5278,7 @@ namespace genreflex {
+@@ -5248,6 +5274,7 @@ namespace genreflex {
                         const std::vector<std::string> &warnings,
                         const std::string &rootmapFileName,
                         const std::string &rootmapLibName,
 +                       const std::string &extraFlags,
                         bool interpreteronly,
                         bool doSplit,
-                        bool isDeep,
-@@ -5314,6 +5341,12 @@ namespace genreflex {
+                        bool isCxxmodule,
+@@ -5309,6 +5336,12 @@ namespace genreflex {
           argvVector.push_back(string2charptr(newRootmapLibName));
        }
  
@@ -113,7 +96,7 @@ index b53b7352f9..0672f3082c 100644
        // Interpreter only dictionaries
        if (interpreteronly)
           argvVector.push_back(string2charptr("-interpreteronly"));
-@@ -5336,7 +5369,7 @@ namespace genreflex {
+@@ -5331,7 +5364,7 @@ namespace genreflex {
        AddToArgVectorSplit(argvVector, pcmsNames, "-m");
  
        // Inline the input header
@@ -122,23 +105,23 @@ index b53b7352f9..0672f3082c 100644
  
        // Write empty root pcms
        if (writeEmptyRootPCM)
-@@ -5403,6 +5436,7 @@ namespace genreflex {
+@@ -5397,6 +5430,7 @@ namespace genreflex {
                             const std::vector<std::string> &warnings,
                             const std::string &rootmapFileName,
                             const std::string &rootmapLibName,
 +                           const std::string &extraFlags,
                             bool interpreteronly,
                             bool doSplit,
-                            bool isDeep,
-@@ -5440,6 +5474,7 @@ namespace genreflex {
+                            bool isCxxmodule,
+@@ -5433,6 +5467,7 @@ namespace genreflex {
                                            warnings,
                                            rootmapFileName,
                                            rootmapLibName,
 +                                          extraFlags,
                                            interpreteronly,
                                            doSplit,
-                                           isDeep,
-@@ -5557,6 +5592,7 @@ int GenReflexMain(int argc, char **argv)
+                                           isCxxmodule,
+@@ -5548,6 +5583,7 @@ int GenReflexMain(int argc, char **argv)
                         SELECTIONFILENAME,
                         ROOTMAP,
                         ROOTMAPLIB,
@@ -146,7 +129,7 @@ index b53b7352f9..0672f3082c 100644
                         PCMFILENAME,
                         DEEP,
                         DEBUG,
-@@ -5678,6 +5714,9 @@ int GenReflexMain(int argc, char **argv)
+@@ -5669,6 +5703,9 @@ int GenReflexMain(int argc, char **argv)
     const char *rootmapLibUsage =
        "--rootmap-lib\tLibrary name for the rootmap file.\n";
  
@@ -156,7 +139,7 @@ index b53b7352f9..0672f3082c 100644
     // The Descriptor
     const ROOT::option::Descriptor genreflexUsageDescriptor[] = {
        {
-@@ -5738,6 +5777,14 @@ int GenReflexMain(int argc, char **argv)
+@@ -5729,6 +5768,14 @@ int GenReflexMain(int argc, char **argv)
           rootmapLibUsage
        },
  
@@ -171,7 +154,7 @@ index b53b7352f9..0672f3082c 100644
        {
           INTERPRETERONLY,
           NOTYPE,
-@@ -5996,6 +6043,11 @@ int GenReflexMain(int argc, char **argv)
+@@ -5989,6 +6036,11 @@ int GenReflexMain(int argc, char **argv)
 
     bool isCxxmodule = options[CXXMODULE];
 
@@ -183,22 +166,22 @@ index b53b7352f9..0672f3082c 100644
     bool multidict = false;
     if (options[MULTIDICT]) multidict = true;
  
-@@ -6085,6 +6137,7 @@ int GenReflexMain(int argc, char **argv)
+@@ -6075,6 +6127,7 @@ int GenReflexMain(int argc, char **argv)
                                      warnings,
                                      rootmapFileName,
                                      rootmapLibName,
 +                                    extraFlags,
                                      interpreteronly,
                                      doSplit,
-                                     isDeep,
-@@ -6108,6 +6161,7 @@ int GenReflexMain(int argc, char **argv)
+                                     isCxxmodule,
+@@ -6097,6 +6150,7 @@ int GenReflexMain(int argc, char **argv)
                                          warnings,
                                          rootmapFileName,
                                          rootmapLibName,
 +                                        extraFlags,
                                          interpreteronly,
                                          doSplit,
-                                         isDeep,
+                                         isCxxmodule,
 diff --git a/src/etc/dictpch/makepch.py b/src/etc/dictpch/makepch.py
 index dd8faabc13..f633342f5c 100755
 --- a/src/etc/dictpch/makepch.py
@@ -230,7 +213,7 @@ index dd8faabc13..f633342f5c 100755
     cppflagsList=["-D__CLING__",
                   "-D__STDC_LIMIT_MACROS",
                   "-D__STDC_CONSTANT_MACROS",
-@@ -90,7 +94,7 @@
+@@ -89,7 +93,7 @@
                   "-I%s" %os.path.join(rootdir,"etc"),
                   "-I%s" %os.path.join(rootdir,cfgdir),
                   "-I%s" %os.path.join(rootdir,"etc","cling"),
@@ -239,21 +222,12 @@ index dd8faabc13..f633342f5c 100755
 
     cppflagsList.append(extraCppflags)
 
-@@ -116,7 +116,7 @@ def makepch():
-    if not existing_ldlib: existing_ldlib = ""
-    my_env["LD_LIBRARY_PATH"] = os.path.join(rootdir, "lib") + ":" + existing_ldlib
- 
--   ret = subprocess.call(command, env=my_env, shell=True)
-+   ret = subprocess.call(command.split(), env=my_env)
-    if ret == 0:
-       shutil.move("allDict_rdict.pch",pchFileName)
-       os.unlink("allDict.cxx")
 diff --git a/src/config/RConfigure.in b/src/config/RConfigure.in
 index e8210e2f65..63b2a8dc99 100644
 --- a/src/config/RConfigure.in
 +++ b/src/config/RConfigure.in
-@@ -59,4 +59,64 @@
- #@hastmvagpu@ R__HAS_TMVAGPU /**/
+@@ -65,4 +65,64 @@
+ #@hastmvacudnn@ R__HAS_CUDNN /**/
 
  
 +#if __cplusplus > 201402L
@@ -321,7 +295,7 @@ diff --git a/src/build/unix/makepchinput.py b/src/build/unix/makepchinput.py
 index 1468a87277..c823c5eef7 100755
 --- a/src/build/unix/makepchinput.py
 +++ b/src/build/unix/makepchinput.py
-@@ -63,9 +63,10 @@ def getGuardedStlInclude(headerName):
+@@ -53,9 +53,10 @@ def getGuardedStlInclude(headerName):
  #-------------------------------------------------------------------------------
  def getSTLIncludes():
     """
@@ -333,7 +307,7 @@ index 1468a87277..c823c5eef7 100755
     """
     stlHeadersList = ("cstdlib",
                       "csignal",
-@@ -133,7 +134,7 @@ def getSTLIncludes():
+@@ -123,7 +124,7 @@ def getSTLIncludes():
                       "cstdio",
                       "locale",
                       "clocale",
@@ -342,7 +316,7 @@ index 1468a87277..c823c5eef7 100755
                       "atomic",
                       "thread",
                       "mutex",
-@@ -141,9 +142,21 @@ def getSTLIncludes():
+@@ -131,9 +132,21 @@ def getSTLIncludes():
                       "condition_variable",
                       "ciso646",
                       "ccomplex",
@@ -370,19 +344,19 @@ diff --git a/src/core/CMakeLists.txt b/src/core/CMakeLists.txt
 index f348274986..a21ae827a4 100644
 --- a/src/core/CMakeLists.txt
 +++ b/src/core/CMakeLists.txt
-@@ -91,7 +91,6 @@ ROOT_GENERATE_DICTIONARY(G__Core
+@@ -161,7 +161,6 @@ ROOT_GENERATE_DICTIONARY(G__Core
    MODULE
      Core
    OPTIONS
 -    -writeEmptyRootPCM
-     ${dict_opts}
    LINKDEF
      base/inc/LinkDef.h
+ )
 diff --git a/src/interpreter/cling/lib/Interpreter/CIFactory.cpp b/src/interpreter/cling/lib/Interpreter/CIFactory.cpp
 index 80d1b1c52a..58edb8c26d 100644
 --- a/src/interpreter/cling/lib/Interpreter/CIFactory.cpp
 +++ b/src/interpreter/cling/lib/Interpreter/CIFactory.cpp
-@@ -53,6 +53,8 @@
+@@ -52,6 +52,8 @@
  #include <ctime>
  #include <memory>
  
@@ -391,7 +365,7 @@ index 80d1b1c52a..58edb8c26d 100644
  using namespace clang;
  using namespace cling;
  
-@@ -340,7 +342,27 @@ namespace {
+@@ -337,7 +339,27 @@ namespace {
        }
  
    #ifdef CLING_OSX_SYSROOT
@@ -424,7 +398,7 @@ diff --git a/src/core/clingutils/CMakeLists.txt b/src/core/clingutils/CMakeLists
 index 4be71a05fb..b126c3d9b4 100644
 --- a/src/core/clingutils/CMakeLists.txt
 +++ b/src/core/clingutils/CMakeLists.txt
-@@ -35,31 +35,31 @@ ROOT_INSTALL_HEADERS()
+@@ -41,31 +41,31 @@ ROOT_INSTALL_HEADERS()
  
  #### STL dictionary (replacement for cintdlls)##############################
  
@@ -447,7 +421,7 @@ index 4be71a05fb..b126c3d9b4 100644
 -  string(REPLACE "complex" "root_std_complex.h" header ${header})
 -  string(REPLACE "multi" "" header ${header})
 -  ROOT_STANDARD_LIBRARY_PACKAGE(${dict}Dict
--                                NO_SOURCES NO_INSTALL_HEADERS NO_MODULE
+-                                NO_SOURCES NO_INSTALL_HEADERS NO_CXXMODULE
 -                                STAGE1
 -                                NODEPHEADERS ${header}
 -                                LINKDEF src/${dict}Linkdef.h
@@ -472,7 +446,7 @@ index 4be71a05fb..b126c3d9b4 100644
 +#  string(REPLACE "complex" "root_std_complex.h" header ${header})
 +#  string(REPLACE "multi" "" header ${header})
 +#  ROOT_STANDARD_LIBRARY_PACKAGE(${dict}Dict
-+#                                NO_SOURCES NO_INSTALL_HEADERS NO_MODULE
++#                                NO_SOURCES NO_INSTALL_HEADERS NO_CXXMODULE
 +#                                STAGE1
 +#                                NODEPHEADERS ${header}
 +#                                LINKDEF src/${dict}Linkdef.h
@@ -485,7 +459,7 @@ diff --git a/src/main/CMakeLists.txt b/src/main/CMakeLists.txt
 index 32094d55bd..30d55635b1 100644
 --- a/src/main/CMakeLists.txt
 +++ b/src/main/CMakeLists.txt
-@@ -81,7 +81,7 @@ ROOT_EXECUTABLE(rootcling src/rootcling.cxx
+@@ -85,7 +85,7 @@ ROOT_EXECUTABLE(rootcling src/rootcling.cxx
  # rootcling includes the ROOT complex header which would build the complex
  # dictionary with modules. To make sure that rootcling_stage1 builds this
  # dict before we use it, we add a dependency here.
@@ -498,7 +472,7 @@ diff --git a/src/interpreter/cling/lib/Interpreter/IncrementalParser.cpp b/src/i
 index 2593c21fb2..dbe8caa04b 100644
 --- a/src/interpreter/cling/lib/Interpreter/IncrementalParser.cpp
 +++ b/src/interpreter/cling/lib/Interpreter/IncrementalParser.cpp
-@@ -90,20 +90,7 @@ namespace {
+@@ -91,20 +91,7 @@ namespace {
        "  Failed to extract C++ standard library version.\n";
      }
  
@@ -524,7 +498,7 @@ diff --git a/src/core/metacling/src/TCling.cxx b/src/core/metacling/src/TCling.c
 index 5413aef378..e611986dbf 100644
 --- a/src/core/metacling/src/TCling.cxx
 +++ b/src/core/metacling/src/TCling.cxx
-@@ -1714,26 +1754,7 @@ namespace {
+@@ -1844,26 +1884,7 @@ namespace {
  static const std::unordered_set<std::string> gIgnoredPCMNames = {"libCore",
                                                                   "libRint",
                                                                   "libThread",
@@ -550,8 +524,8 @@ index 5413aef378..e611986dbf 100644
 -                                                                 "G__Smatrix32"};
 +                                                                 "libRIO"};
 
- ////////////////////////////////////////////////////////////////////////////////
- /// Inject the module named "modulename" into cling; load all headers.
+ static void PrintDlError(const char *dyLibName, const char *modulename)
+ {
 diff --git a/src/core/cont/inc/LinkDef.h b/src/core/cont/inc/LinkDef.h
 index 2fdcd76639..39b362cca4 100644
 --- a/src/core/cont/inc/LinkDef.h

@@ -1,0 +1,162 @@
+diff --git a/src/core/base/CMakeLists.txt b/src/core/base/CMakeLists.txt
+index a832ee392a..7a6e6a7f7c 100644
+--- a/src/core/base/CMakeLists.txt
++++ b/src/core/base/CMakeLists.txt
+@@ -14,6 +14,10 @@ set(BASE_HEADERS
+   ROOT/StringConv.hxx
+   ROOT/TExecutor.hxx
+   ROOT/TSequentialExecutor.hxx
++  GuiTypes.h
++  TBrowser.h
++  TClassMenuItem.h
++  TGuiFactory.h
+   Buttons.h
+   Bytes.h
+   Byteswap.h
+@@ -110,6 +114,11 @@ set(BASE_HEADERS
+ )
+
+ set(BASE_SOURCES
++  src/TApplicationImp.cxx
++  src/TBrowser.cxx
++  src/TBrowserImp.cxx
++  src/TClassMenuItem.cxx
++  src/TGuiFactory.cxx
+   src/Match.cxx
+   src/String.cxx
+   src/Stringio.cxx
+diff --git a/src/core/base/src/TBrowser.cxx b/src/core/base/src/TBrowser.cxx
+index 7305a64205..c4afde3dbd 100644
+--- a/src/core/base/src/TBrowser.cxx
++++ b/src/core/base/src/TBrowser.cxx
+@@ -28,7 +28,7 @@ contents of the selected class in the icon-box. And so on....
+ #include "TSystem.h"
+ #include "TStyle.h"
+ #include "TTimer.h"
+-#include "TContextMenu.h"
++//#include "TContextMenu.h"
+ #include "TInterpreter.h"
+ #include "TVirtualMutex.h"
+ #include "TClass.h"
+@@ -248,7 +248,7 @@ void TBrowser::Destructor()
+    if (fImp) fImp->CloseTabs();
+    R__LOCKGUARD(gROOTMutex);
+    gROOT->GetListOfBrowsers()->Remove(this);
+-   delete fContextMenu;
++   //delete fContextMenu;
+    delete fTimer;
+    if (fImp) delete fImp;
+ }
+@@ -335,7 +335,7 @@ void TBrowser::Create(TObject *obj)
+    gROOT->GetListOfGlobals(kTRUE);
+    gROOT->GetListOfGlobalFunctions(kTRUE);
+ 
+-   fContextMenu = new TContextMenu("BrowserContextMenu") ;
++   fContextMenu = nullptr; // new TContextMenu("BrowserContextMenu") ;
+ 
+    // Fill the first list from the present TObject obj
+    if (obj) {
+diff --git a/src/core/base/src/TGuiFactory.cxx b/src/core/base/src/TGuiFactory.cxx
+index 6202c184c5..39511bbf9e 100644
+--- a/src/core/base/src/TGuiFactory.cxx
++++ b/src/core/base/src/TGuiFactory.cxx
+@@ -22,11 +22,11 @@ batch mode directly using an instance of this base class.
+ 
+ #include "TGuiFactory.h"
+ #include "TApplicationImp.h"
+-#include "TCanvasImp.h"
+-#include "TBrowserImp.h"
+-#include "TContextMenuImp.h"
+-#include "TControlBarImp.h"
+-#include "TInspectorImp.h"
++//#include "TCanvasImp.h"
++//#include "TBrowserImp.h"
++//#include "TContextMenuImp.h"
++//#include "TControlBarImp.h"
++//#include "TInspectorImp.h"
+ #include "TROOT.h"
+ 
+ TGuiFactory *gGuiFactory = 0;
+@@ -53,66 +53,66 @@ TApplicationImp *TGuiFactory::CreateApplicationImp(const char *classname, int *a
+ ////////////////////////////////////////////////////////////////////////////////
+ /// Create a batch version of TCanvasImp.
+ 
+-TCanvasImp *TGuiFactory::CreateCanvasImp(TCanvas *c, const char *title, UInt_t width, UInt_t height)
++TCanvasImp *TGuiFactory::CreateCanvasImp(TCanvas *, const char *, UInt_t, UInt_t)
+ {
+-   return new TCanvasImp(c, title, width, height);
++   return nullptr; //new TCanvasImp(c, title, width, height);
+ }
+ 
+ ////////////////////////////////////////////////////////////////////////////////
+ /// Create a batch version of TCanvasImp.
+ 
+-TCanvasImp *TGuiFactory::CreateCanvasImp(TCanvas *c, const char *title, Int_t x, Int_t y, UInt_t width, UInt_t height)
++TCanvasImp *TGuiFactory::CreateCanvasImp(TCanvas *, const char *, Int_t, Int_t, UInt_t, UInt_t)
+ {
+-   return new TCanvasImp(c, title, x, y, width, height);
++   return nullptr; //new TCanvasImp(c, title, x, y, width, height);
+ }
+ 
+ ////////////////////////////////////////////////////////////////////////////////
+ /// Create a batch version of TBrowserImp.
+ 
+-TBrowserImp *TGuiFactory::CreateBrowserImp(TBrowser *b, const char *title, UInt_t width, UInt_t height, Option_t *)
++TBrowserImp *TGuiFactory::CreateBrowserImp(TBrowser *, const char *, UInt_t, UInt_t, Option_t *)
+ {
+-   return new TBrowserImp(b, title, width, height);
++   return nullptr; //new TBrowserImp(b, title, width, height);
+ }
+
+ ////////////////////////////////////////////////////////////////////////////////
+ /// Create a batch version of TBrowserImp.
+ 
+-TBrowserImp *TGuiFactory::CreateBrowserImp(TBrowser *b, const char *title, Int_t x, Int_t y, UInt_t width, UInt_t height, Option_t *)
++TBrowserImp *TGuiFactory::CreateBrowserImp(TBrowser *, const char *, Int_t, Int_t, UInt_t, UInt_t, Option_t *)
+ {
+-   return new TBrowserImp(b, title, x, y, width, height);
++   return nullptr;//new TBrowserImp(b, title, x, y, width, height);
+ }
+ 
+ ////////////////////////////////////////////////////////////////////////////////
+ /// Create a batch version of TContextMenuImp.
+ 
+-TContextMenuImp *TGuiFactory::CreateContextMenuImp(TContextMenu *c, const char *, const char *)
++TContextMenuImp *TGuiFactory::CreateContextMenuImp(TContextMenu *, const char *, const char *)
+ {
+-   return new TContextMenuImp(c);
++   return nullptr;//new TContextMenuImp(c);
+ }
+ 
+ ////////////////////////////////////////////////////////////////////////////////
+ /// Create a batch version of TControlBarImp.
+ 
+-TControlBarImp *TGuiFactory::CreateControlBarImp(TControlBar *c, const char *title)
++TControlBarImp *TGuiFactory::CreateControlBarImp(TControlBar *, const char *)
+ {
+-   return new TControlBarImp(c, title);
++   return nullptr;//new TControlBarImp(c, title);
+ }
+ 
+ ////////////////////////////////////////////////////////////////////////////////
+ /// Create a batch version of TControlBarImp.
+ 
+-TControlBarImp *TGuiFactory::CreateControlBarImp(TControlBar *c, const char *title, Int_t x, Int_t y)
++TControlBarImp *TGuiFactory::CreateControlBarImp(TControlBar *, const char *, Int_t, Int_t)
+ {
+-   return new TControlBarImp(c, title, x, y);
++   return nullptr;//new TControlBarImp(c, title, x, y);
+ }
+ 
+ ////////////////////////////////////////////////////////////////////////////////
+ /// Create a batch version of TInspectorImp.
+ 
+-TInspectorImp *TGuiFactory::CreateInspectorImp(const TObject *obj, UInt_t width, UInt_t height)
++TInspectorImp *TGuiFactory::CreateInspectorImp(const TObject *obj, UInt_t, UInt_t)
+ {
+    if (gROOT->IsBatch()) {
+-      return new TInspectorImp(obj, width, height);
++      return nullptr; //new TInspectorImp(obj, width, height);
+    }
+ 
+    gROOT->ProcessLine(Form("TInspectCanvas::Inspector((TObject*)0x%lx);", (ULong_t)obj));

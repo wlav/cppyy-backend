@@ -66,7 +66,7 @@ diff --git a/src/core/unix/src/TUnixSystem.cxx b/src/core/unix/src/TUnixSystem.c
 index 59fbd1e4d5..dcbe4d97b5 100644
 --- a/src/core/unix/src/TUnixSystem.cxx
 +++ b/src/core/unix/src/TUnixSystem.cxx
-@@ -584,6 +584,7 @@ Bool_t TUnixSystem::Init()
+@@ -585,6 +585,7 @@ Bool_t TUnixSystem::Init()
     UnixSignal(kSigBus,                   SigHandler);
     UnixSignal(kSigSegmentationViolation, SigHandler);
     UnixSignal(kSigIllegalInstruction,    SigHandler);
@@ -74,7 +74,7 @@ index 59fbd1e4d5..dcbe4d97b5 100644
     UnixSignal(kSigSystem,                SigHandler);
     UnixSignal(kSigAlarm,                 SigHandler);
     UnixSignal(kSigUrgent,                SigHandler);
-@@ -3585,6 +3586,7 @@ static struct Signalmap_t {
+@@ -3582,6 +3583,7 @@ static struct Signalmap_t {
     { SIGSYS,   0, 0, "bad argument to system call" },
     { SIGPIPE,  0, 0, "write on a pipe with no one to read it" },
     { SIGILL,   0, 0, "illegal instruction" },
@@ -82,7 +82,7 @@ index 59fbd1e4d5..dcbe4d97b5 100644
     { SIGQUIT,  0, 0, "quit" },
     { SIGINT,   0, 0, "interrupt" },
     { SIGWINCH, 0, 0, "window size change" },
-@@ -3626,16 +3628,18 @@ void TUnixSystem::DispatchSignals(ESignals sig)
+@@ -3623,16 +3625,18 @@ void TUnixSystem::DispatchSignals(ESignals sig)
     case kSigBus:
     case kSigSegmentationViolation:
     case kSigIllegalInstruction:
@@ -110,7 +110,7 @@ diff --git a/src/core/winnt/src/TWinNTSystem.cxx b/src/core/winnt/src/TWinNTSyst
 index c1577c0e37..81b960b112 100644
 --- a/src/core/winnt/src/TWinNTSystem.cxx
 +++ b/src/core/winnt/src/TWinNTSystem.cxx
-@@ -168,6 +168,7 @@ namespace {
+@@ -169,6 +169,7 @@ namespace {
        -1 /*SIGSYS*/,   0, "bad argument to system call",
        -1 /*SIGPIPE*/,  0, "write on a pipe with no one to read it",
        SIGILL,   0, "illegal instruction",
@@ -118,7 +118,7 @@ index c1577c0e37..81b960b112 100644
        -1 /*SIGQUIT*/,  0, "quit",
        SIGINT,   0, "interrupt",
        -1 /*SIGWINCH*/, 0, "window size change",
-@@ -1087,16 +1088,15 @@ Bool_t TWinNTSystem::Init()
+@@ -1088,16 +1089,15 @@ Bool_t TWinNTSystem::Init()
     // signal. Signals don't have one. If we don't handle them, Windows will
     // raise an exception, which has a context, and which is handled by
     // ExceptionFilter.
@@ -141,7 +141,7 @@ index c1577c0e37..81b960b112 100644
     ::SetUnhandledExceptionFilter(ExceptionFilter);
  
     fSigcnt = 0;
-@@ -1770,9 +1770,17 @@ void TWinNTSystem::DispatchSignals(ESignals sig)
+@@ -1762,9 +1762,17 @@ void TWinNTSystem::DispatchSignals(ESignals sig)
        fSigcnt++;
     }
     else {

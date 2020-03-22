@@ -2,7 +2,7 @@ diff --git a/src/core/metacling/src/TCling.cxx b/src/core/metacling/src/TCling.c
 index 5413aef378..bcbe1d4cfb 100644
 --- a/src/core/metacling/src/TCling.cxx
 +++ b/src/core/metacling/src/TCling.cxx
-@@ -3864,18 +3864,18 @@ TCling::CheckClassInfo(const char *name, Bool_t autoload, Bool_t isClassOrNamesp
+@@ -4027,18 +4027,18 @@ TCling::CheckClassInfo(const char *name, Bool_t autoload, Bool_t isClassOrNamesp
  Bool_t TCling::CheckClassTemplate(const char *name)
  {
     const cling::LookupHelper& lh = fInterpreter->getLookupHelper();
@@ -32,7 +32,7 @@ diff --git a/src/interpreter/cling/include/cling/Interpreter/LookupHelper.h b/sr
 index 5c344223c6..d0b9b060d2 100644
 --- a/src/interpreter/cling/include/cling/Interpreter/LookupHelper.h
 +++ b/src/interpreter/cling/include/cling/Interpreter/LookupHelper.h
-@@ -114,6 +114,15 @@ namespace cling {
+@@ -116,6 +116,15 @@ namespace cling {
      const clang::ClassTemplateDecl*
      findClassTemplate(llvm::StringRef Name, DiagSetting diagOnOff) const;
  
@@ -52,7 +52,7 @@ diff --git a/src/interpreter/cling/lib/Interpreter/LookupHelper.cpp b/src/interp
 index a863eb7db1..5dacfdc59f 100644
 --- a/src/interpreter/cling/lib/Interpreter/LookupHelper.cpp
 +++ b/src/interpreter/cling/lib/Interpreter/LookupHelper.cpp
-@@ -881,6 +881,148 @@ namespace cling {
+@@ -894,6 +894,148 @@ namespace cling {
      return 0;
    }
  

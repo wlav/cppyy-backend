@@ -83,7 +83,7 @@ diff --git a/src/core/metacling/src/CMakeLists.txt b/src/core/metacling/src/CMak
 index 5ef8d28c86..483ba33620 100644
 --- a/src/core/metacling/src/CMakeLists.txt
 +++ b/src/core/metacling/src/CMakeLists.txt
-@@ -90,7 +90,20 @@ ROOT_LINKER_LIBRARY(Cling
+@@ -99,7 +99,20 @@ ROOT_LINKER_LIBRARY(Cling
  
  if(MSVC)
    set_target_properties(Cling PROPERTIES WINDOWS_EXPORT_ALL_SYMBOLS TRUE)
@@ -102,10 +102,10 @@ index 5ef8d28c86..483ba33620 100644
 +    )
 +  elseif(CMAKE_SIZEOF_VOID_P EQUAL 4)
 +    set(cling_exports
-       __std_terminate
-       ??2@YAPAXI@Z
-       ??3@YAXPAX@Z
-@@ -128,7 +141,8 @@ if(MSVC)
+       __std_reverse_trivially_swappable_1
+       __std_reverse_trivially_swappable_2
+       __std_reverse_trivially_swappable_4
+@@ -142,7 +155,8 @@ if(MSVC)
        ?printValue@cling@@YA?AV?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@std@@PBV23@@Z
        ??$toUTF8@D@cling@@YA?AV?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@std@@QBDID@Z
        ?EvaluateDynamicExpression@internal@runtime@cling@@YA?AVValue@3@PAVInterpreter@3@PAVDynamicExprInfo@123@PAVDeclContext@clang@@@Z
@@ -334,7 +334,7 @@ diff --git a/src/core/meta/src/TStreamerElement.cxx b/src/core/meta/src/TStreame
 index 55b2cfbb8c..514d21b006 100644
 --- a/src/core/meta/src/TStreamerElement.cxx
 +++ b/src/core/meta/src/TStreamerElement.cxx
-@@ -918,7 +918,7 @@ TStreamerBasicPointer::~TStreamerBasicPointer()
+@@ -933,7 +933,7 @@ TStreamerBasicPointer::~TStreamerBasicPointer()
  ////////////////////////////////////////////////////////////////////////////////
  /// return offset of counter
  
@@ -343,7 +343,7 @@ index 55b2cfbb8c..514d21b006 100644
  {
     if (!fCounter) ((TStreamerBasicPointer*)this)->Init();
     if (!fCounter) return 0;
-@@ -927,7 +927,7 @@ ULong_t TStreamerBasicPointer::GetMethod() const
+@@ -942,7 +942,7 @@ ULong_t TStreamerBasicPointer::GetMethod() const
     // the left most (non virtual) base classes.  For the other we would
     // really need to use the object coming from the list of real data.
     // (and even that need analysis for virtual base class).
@@ -352,7 +352,7 @@ index 55b2cfbb8c..514d21b006 100644
  }
  
  ////////////////////////////////////////////////////////////////////////////////
-@@ -1027,14 +1027,14 @@ TStreamerLoop::~TStreamerLoop()
+@@ -1042,14 +1042,14 @@ TStreamerLoop::~TStreamerLoop()
  ////////////////////////////////////////////////////////////////////////////////
  /// return address of counter
  
@@ -369,7 +369,7 @@ index 55b2cfbb8c..514d21b006 100644
  }
  
  ////////////////////////////////////////////////////////////////////////////////
-@@ -1127,10 +1127,10 @@ TStreamerBasicType::~TStreamerBasicType()
+@@ -1142,10 +1142,10 @@ TStreamerBasicType::~TStreamerBasicType()
  ////////////////////////////////////////////////////////////////////////////////
  /// return address of counter
  
@@ -386,7 +386,7 @@ diff --git a/src/core/meta/inc/TInterpreter.h b/src/core/meta/inc/TInterpreter.h
 index 6e2638abcf..f57c313930 100644
 --- a/src/core/meta/inc/TInterpreter.h
 +++ b/src/core/meta/inc/TInterpreter.h
-@@ -175,8 +175,13 @@ public:
+@@ -176,8 +176,13 @@ public:
     virtual Int_t    ReloadAllSharedLibraryMaps() = 0;
     virtual Int_t    UnloadAllSharedLibraryMaps() = 0;
     virtual Int_t    UnloadLibraryMap(const char *library) = 0;
@@ -398,9 +398,9 @@ index 6e2638abcf..f57c313930 100644
     virtual Long_t   ProcessLineSynch(const char *line, EErrorCode *error = 0) = 0;
 +#endif
     virtual void     PrintIntro() = 0;
-    virtual void     RegisterModule(const char* /*modulename*/,
-                                    const char** /*headers*/,
-@@ -215,7 +220,11 @@ public:
+    virtual bool     RegisterPrebuiltModulePath(const std::string& FullPath,
+                                                const std::string& ModuleMapName = "module.modulemap") const = 0;
+@@ -218,7 +223,11 @@ public:
     virtual ECheckClassInfo CheckClassInfo(const char *name, Bool_t autoload, Bool_t isClassOrNamespaceOnly = kFALSE) = 0;
  
     virtual Bool_t   CheckClassTemplate(const char *name) = 0;
@@ -412,7 +412,7 @@ index 6e2638abcf..f57c313930 100644
     virtual void     CreateListOfBaseClasses(TClass *cl) const = 0;
     virtual void     CreateListOfDataMembers(TClass *cl) const = 0;
     virtual void     CreateListOfMethods(TClass *cl) const = 0;
-@@ -344,13 +354,13 @@ public:
+@@ -347,13 +357,13 @@ public:
  
     void CallFunc_SetArg(CallFunc_t *func, void *arg)
     {
@@ -428,7 +428,7 @@ index 6e2638abcf..f57c313930 100644
     }
  
     void CallFunc_SetArgImpl(CallFunc_t * /* func */)
-@@ -454,7 +464,7 @@ public:
+@@ -457,7 +467,7 @@ public:
     virtual Bool_t DataMemberInfo_IsValid(DataMemberInfo_t * /* dminfo */) const {return 0;}
     virtual int    DataMemberInfo_MaxIndex(DataMemberInfo_t * /* dminfo */, Int_t  /* dim */) const {return 0;}
     virtual int    DataMemberInfo_Next(DataMemberInfo_t * /* dminfo */) const {return 0;}
@@ -441,7 +441,7 @@ diff --git a/src/core/metacling/src/TCling.h b/src/core/metacling/src/TCling.h
 index 66a0dfe392..5f8a553de8 100644
 --- a/src/core/metacling/src/TCling.h
 +++ b/src/core/metacling/src/TCling.h
-@@ -215,9 +215,15 @@ public: // Public Interface
+@@ -227,9 +227,15 @@ public: // Public Interface
     Int_t   ReloadAllSharedLibraryMaps();
     Int_t   UnloadAllSharedLibraryMaps();
     Int_t   UnloadLibraryMap(const char* library);
@@ -455,9 +455,9 @@ index 66a0dfe392..5f8a553de8 100644
     Long_t  ProcessLineSynch(const char* line, EErrorCode* error = 0);
 +#endif
     void    PrintIntro();
-    void    RegisterModule(const char* modulename,
-                           const char** headers,
-@@ -252,7 +259,11 @@ public: // Public Interface
+    bool    RegisterPrebuiltModulePath(const std::string& FullPath,
+                                       const std::string& ModuleMapName = "module.modulemap") const;
+@@ -266,7 +273,11 @@ public: // Public Interface
     ECheckClassInfo CheckClassInfo(const char *name, Bool_t autoload, Bool_t isClassOrNamespaceOnly = kFALSE);
  
     Bool_t  CheckClassTemplate(const char *name);
@@ -469,7 +469,7 @@ index 66a0dfe392..5f8a553de8 100644
     void    CreateListOfBaseClasses(TClass* cl) const;
     void    CreateListOfDataMembers(TClass* cl) const;
     void    CreateListOfMethods(TClass* cl) const;
-@@ -447,7 +457,7 @@ public: // Public Interface
+@@ -462,7 +472,7 @@ public: // Public Interface
     virtual bool   DataMemberInfo_IsValid(DataMemberInfo_t* dminfo) const;
     virtual int    DataMemberInfo_MaxIndex(DataMemberInfo_t* dminfo, Int_t dim) const;
     virtual int    DataMemberInfo_Next(DataMemberInfo_t* dminfo) const;
@@ -482,7 +482,7 @@ diff --git a/src/core/metacling/src/TCling.cxx b/src/core/metacling/src/TCling.c
 index 5413aef378..c8fba08529 100644
 --- a/src/core/metacling/src/TCling.cxx
 +++ b/src/core/metacling/src/TCling.cxx
-@@ -2178,7 +2195,12 @@ bool TCling::DiagnoseIfInterpreterException(const std::exception &e) const
+@@ -2312,7 +2329,12 @@ bool TCling::DiagnoseIfInterpreterException(const std::exception &e) const
  
  ////////////////////////////////////////////////////////////////////////////////
  
@@ -496,7 +496,7 @@ index 5413aef378..c8fba08529 100644
  {
     // Copy the passed line, it comes from a static buffer in TApplication
     // which can be reentered through the Cling evaluation routines,
-@@ -3188,7 +3210,12 @@ void TCling::LoadMacro(const char* filename, EErrorCode* error)
+@@ -3327,7 +3349,12 @@ void TCling::LoadMacro(const char* filename, EErrorCode* error)
  ////////////////////////////////////////////////////////////////////////////////
  /// Let cling process a command line asynch.
  
@@ -510,7 +510,7 @@ index 5413aef378..c8fba08529 100644
  {
     return ProcessLine(line, error);
  }
-@@ -3197,7 +3224,12 @@ Long_t TCling::ProcessLineAsynch(const char* line, EErrorCode* error)
+@@ -3336,7 +3363,12 @@ Long_t TCling::ProcessLineAsynch(const char* line, EErrorCode* error)
  /// Let cling process a command line synchronously, i.e we are waiting
  /// it will be finished.
  
@@ -524,7 +524,7 @@ index 5413aef378..c8fba08529 100644
  {
     R__LOCKGUARD_CLING(fLockProcessLine ? gInterpreterMutex : 0);
     if (gApplication) {
-@@ -3213,7 +3245,12 @@ Long_t TCling::ProcessLineSynch(const char* line, EErrorCode* error)
+@@ -3352,7 +3384,12 @@ Long_t TCling::ProcessLineSynch(const char* line, EErrorCode* error)
  /// Directly execute an executable statement (e.g. "func()", "3+5", etc.
  /// however not declarations, like "Int_t x;").
  
@@ -538,7 +538,7 @@ index 5413aef378..c8fba08529 100644
  {
  #ifdef R__WIN32
     // Test on ApplicationImp not being 0 is needed because only at end of
-@@ -3260,7 +3277,11 @@ Long_t TCling::Calc(const char* line, EErrorCode* error)
+@@ -3399,7 +3416,11 @@ Long_t TCling::Calc(const char* line, EErrorCode* error)
        gROOT->SetLineHasBeenProcessed();
     }
  #endif // R__WIN32
@@ -550,16 +550,16 @@ index 5413aef378..c8fba08529 100644
  }
  
  ////////////////////////////////////////////////////////////////////////////////
-@@ -4828,7 +4852,7 @@ void TCling::Execute(TObject* obj, TClass* cl, const char* method,
+@@ -4992,7 +4996,7 @@ void TCling::Execute(TObject* obj, TClass* cl, const char* method,
     Long_t offset = 0L;
-    TClingCallFunc func(fInterpreter,*fNormalizedCtxt);
+    TClingCallFunc func(GetInterpreterImpl(), *fNormalizedCtxt);
     func.SetFunc((TClingClassInfo*)cl->GetClassInfo(), method, params, objectIsConst, &offset);
 -   void* address = (void*)((Long_t)addr + offset);
 +   void* address = (void*)((intptr_t)addr + offset);
     func.Exec(address);
  }
 
-@@ -4935,8 +4959,8 @@ void TCling::Execute(TObject* obj, TClass* cl, TMethod* method,
+@@ -5099,8 +5123,8 @@ void TCling::Execute(TObject* obj, TClass* cl, TMethod* method,
     // Now calculate the 'this' pointer offset for the method
     // when starting from the class described by cl.
     const CXXMethodDecl * mdecl = dyn_cast<CXXMethodDecl>(minfo->GetMethodDecl());
@@ -570,7 +570,7 @@ index 5413aef378..c8fba08529 100644
     func.Exec(address);
  }
 
-@@ -8100,7 +8124,7 @@ int TCling::DataMemberInfo_Next(DataMemberInfo_t* dminfo) const
+@@ -8479,7 +8503,7 @@ int TCling::DataMemberInfo_Next(DataMemberInfo_t* dminfo) const
  
  ////////////////////////////////////////////////////////////////////////////////
  
@@ -583,7 +583,7 @@ diff --git a/src/core/base/inc/TApplication.h b/src/core/base/inc/TApplication.h
 index 456cfe6668..923cce4efe 100644
 --- a/src/core/base/inc/TApplication.h
 +++ b/src/core/base/inc/TApplication.h
-@@ -110,7 +110,11 @@ public:
+@@ -111,7 +111,11 @@ public:
     virtual void    HandleIdleTimer();   //*SIGNAL*
     virtual Bool_t  HandleTermInput() { return kFALSE; }
     virtual void    Init() { fAppImp->Init(); }
@@ -599,7 +599,7 @@ diff --git a/src/core/base/src/TApplication.cxx b/src/core/base/src/TApplication
 index fe125c55ca..f204349615 100644
 --- a/src/core/base/src/TApplication.cxx
 +++ b/src/core/base/src/TApplication.cxx
-@@ -881,7 +881,12 @@ namespace {
+@@ -1326,7 +1326,12 @@ namespace {
  /// command starting with a ".".
  /// Return the return value of the command cast to a long.
  
@@ -666,7 +666,7 @@ index c224ed7bd7..e6f9afb330 100644
  
     if (TClassEdit::IsStdArray(dm->GetTypeName())){ // We tackle the std array case
        TString rdName;
-@@ -2459,12 +2459,12 @@ void TClass::Draw(Option_t *option)
+@@ -2474,12 +2474,12 @@ void TClass::Draw(Option_t *option)
  void TClass::Dump(const void *obj, Bool_t noAddr /*=kFALSE*/) const
  {
  
@@ -681,7 +681,7 @@ index c224ed7bd7..e6f9afb330 100644
  
  
        if (sizeof(this) == 4)
-@@ -2788,12 +2788,12 @@ namespace {
+@@ -2803,12 +2803,12 @@ namespace {
              if (*thread_ptr==0) *thread_ptr = new TExMap();
              TExMap *lmap = (TExMap*)(*thread_ptr);
              ULong_t hash = TString::Hash(&cl, sizeof(void*));
@@ -698,7 +698,7 @@ index c224ed7bd7..e6f9afb330 100644
              }
              return (TClassLocalStorage*)local;
           }
-@@ -4360,7 +4360,7 @@ TMethod *TClass::GetClassMethod(Long_t faddr)
+@@ -4375,7 +4375,7 @@ TMethod *TClass::GetClassMethod(Long_t faddr)
     TMethod *m;
     TIter    next(GetListOfMethods());
     while ((m = (TMethod *) next())) {
@@ -707,7 +707,7 @@ index c224ed7bd7..e6f9afb330 100644
           return m;
     }
     return 0;
-@@ -4784,12 +4784,12 @@ void *TClass::DynamicCast(const TClass *cl, void *obj, Bool_t up)
+@@ -4799,12 +4799,12 @@ void *TClass::DynamicCast(const TClass *cl, void *obj, Bool_t up)
  
     if (!HasDataMemberInfo()) return 0;
  
@@ -723,7 +723,7 @@ index c224ed7bd7..e6f9afb330 100644
     }
     return 0;
  }
-@@ -6526,7 +6526,7 @@ void TClass::StreamerTObject(const TClass* pThis, void *object, TBuffer &b, cons
+@@ -6547,7 +6547,7 @@ void TClass::StreamerTObject(const TClass* pThis, void *object, TBuffer &b, cons
     if (!pThis->fIsOffsetStreamerSet) {
        pThis->CalculateStreamerOffset();
     }
@@ -732,7 +732,7 @@ index c224ed7bd7..e6f9afb330 100644
     tobj->Streamer(b);
  }
  
-@@ -6535,7 +6535,7 @@ void TClass::StreamerTObject(const TClass* pThis, void *object, TBuffer &b, cons
+@@ -6556,7 +6556,7 @@ void TClass::StreamerTObject(const TClass* pThis, void *object, TBuffer &b, cons
  
  void TClass::StreamerTObjectInitialized(const TClass* pThis, void *object, TBuffer &b, const TClass * /* onfile_class */)
  {
@@ -1086,7 +1086,7 @@ diff --git a/src/core/base/src/TROOT.cxx b/src/core/base/src/TROOT.cxx
 index 171127d44d..4f3e6d07b3 100644
 --- a/src/core/base/src/TROOT.cxx
 +++ b/src/core/base/src/TROOT.cxx
-@@ -1616,7 +1616,7 @@ TGlobal *TROOT::GetGlobal(const char *name, Bool_t load) const
+@@ -1620,7 +1620,7 @@ TGlobal *TROOT::GetGlobal(const char *name, Bool_t load) const
  
  TGlobal *TROOT::GetGlobal(const TObject *addr, Bool_t /* load */) const
  {
@@ -1095,7 +1095,7 @@ index 171127d44d..4f3e6d07b3 100644
  
     TInterpreter::DeclId_t decl = gInterpreter->GetDataMemberAtAddr(addr);
     if (decl) {
-@@ -2360,7 +2360,12 @@ void  TROOT::Message(Int_t id, const TObject *obj)
+@@ -2356,7 +2356,12 @@ void  TROOT::Message(Int_t id, const TObject *obj)
  /// CINT interpreted thread has finished executing the line.
  /// Returns the result of the command, cast to a Long_t.
  
@@ -1109,7 +1109,7 @@ index 171127d44d..4f3e6d07b3 100644
  {
     TString sline = line;
     sline = sline.Strip(TString::kBoth);
-@@ -2380,7 +2385,12 @@ Long_t TROOT::ProcessLine(const char *line, Int_t *error)
+@@ -2376,7 +2381,12 @@ Long_t TROOT::ProcessLine(const char *line, Int_t *error)
  /// The possible error codes are defined by TInterpreter::EErrorCode.
  /// Returns the result of the command, cast to a Long_t.
  
@@ -1123,7 +1123,7 @@ index 171127d44d..4f3e6d07b3 100644
  {
     TString sline = line;
     sline = sline.Strip(TString::kBoth);
-@@ -2397,7 +2407,12 @@ Long_t TROOT::ProcessLineSync(const char *line, Int_t *error)
+@@ -2393,7 +2403,12 @@ Long_t TROOT::ProcessLineSync(const char *line, Int_t *error)
  /// In all other cases use TROOT::ProcessLine().
  /// The possible error codes are defined by TInterpreter::EErrorCode.
  
@@ -1276,7 +1276,7 @@ diff --git a/src/core/winnt/src/TWinNTSystem.cxx b/src/core/winnt/src/TWinNTSyst
 index 7a477878a0..bfb16a5a09 100644
 --- a/src/core/winnt/src/TWinNTSystem.cxx
 +++ b/src/core/winnt/src/TWinNTSystem.cxx
-@@ -57,7 +57,7 @@
+@@ -58,7 +58,7 @@
  #include <list>
  #include <shlobj.h>
  #include <conio.h>
@@ -1285,7 +1285,7 @@ index 7a477878a0..bfb16a5a09 100644
  #if defined (_MSC_VER) && (_MSC_VER >= 1400)
     #include <intrin.h>
  #elif defined (_M_IX86)
-@@ -924,7 +924,7 @@ namespace {
+@@ -925,7 +925,7 @@ namespace {
        // ensure window title has been updated
        ::Sleep(40);
        // look for NewWindowTitle
@@ -1294,7 +1294,7 @@ index 7a477878a0..bfb16a5a09 100644
        if (gConsoleWindow) {
           // restore original window title
           ::ShowWindow((HWND)gConsoleWindow, SW_RESTORE);
-@@ -945,7 +945,7 @@ namespace {
+@@ -946,7 +946,7 @@ namespace {
  ///////////////////////////////////////////////////////////////////////////////
  ClassImp(TWinNTSystem);
  
@@ -1303,7 +1303,7 @@ index 7a477878a0..bfb16a5a09 100644
  
  ////////////////////////////////////////////////////////////////////////////////
  ///
-@@ -3890,7 +3890,7 @@ void TWinNTSystem::Exit(int code, Bool_t mode)
+@@ -3883,7 +3883,7 @@ void TWinNTSystem::Exit(int code, Bool_t mode)
                    if (((TBrowser*)0x%lx)->GetBrowserImp() &&\
                        ((TBrowser*)0x%lx)->GetBrowserImp()->GetMainFrame()) \
                       ((TBrowser*)0x%lx)->GetBrowserImp()->GetMainFrame()->CloseWindow();\
@@ -1371,7 +1371,7 @@ diff --git a/src/core/metacling/src/TClingDataMemberInfo.cxx b/src/core/metaclin
 index 9c8fa9980f..76ff219c8b 100644
 --- a/src/core/metacling/src/TClingDataMemberInfo.cxx
 +++ b/src/core/metacling/src/TClingDataMemberInfo.cxx
-@@ -312,7 +312,7 @@ int TClingDataMemberInfo::InternalNext()
+@@ -319,7 +319,7 @@ int TClingDataMemberInfo::InternalNext()
     return 0;
  }
  
@@ -1380,7 +1380,7 @@ index 9c8fa9980f..76ff219c8b 100644
  {
     using namespace clang;
  
-@@ -352,13 +352,13 @@ long TClingDataMemberInfo::Offset()
+@@ -359,13 +359,13 @@ long TClingDataMemberInfo::Offset()
        //   static constexpr Long64_t something = std::numeric_limits<Long64_t>::max();
        cling::Interpreter::PushTransactionRAII RAII(fInterp);
  
@@ -1396,7 +1396,7 @@ index 9c8fa9980f..76ff219c8b 100644
              } else {
                 // The VD stores the init value; its lifetime should the lifetime of
                 // this offset.
-@@ -368,17 +368,17 @@ long TClingDataMemberInfo::Offset()
+@@ -375,17 +375,17 @@ long TClingDataMemberInfo::Offset()
                       fConstInitVal.fLong = (long)val->getInt().getSExtValue();
                    else
                       fConstInitVal.fLong = (long)val->getInt().getZExtValue();
@@ -1417,7 +1417,7 @@ index 9c8fa9980f..76ff219c8b 100644
                    }
                    // else fall-through
                 default:
-@@ -399,7 +399,7 @@ long TClingDataMemberInfo::Offset()
+@@ -406,7 +406,7 @@ long TClingDataMemberInfo::Offset()
        // part.
  #ifdef R__BYTESWAP
        // In this case at the beginning.
@@ -1439,51 +1439,6 @@ index 8243454040..ccf7186c51 100644
        }
     }
     fBufSize = newsize;
-diff --git a/src/core/base/src/TContextMenu.cxx b/src/core/base/src/TContextMenu.cxx
-index f64cfbee55..d2819e6954 100644
---- a/src/core/base/src/TContextMenu.cxx
-+++ b/src/core/base/src/TContextMenu.cxx
-@@ -154,7 +154,7 @@ void TContextMenu::Action(TClassMenuItem *menuitem)
-                // It is a workaround of the "Dead lock under Windows
-                char *cmd = Form("((TContextMenu *)0x%lx)->Execute((TObject *)0x%lx,"
-                                 "(TMethod *)0x%lx,\"\");",
--                                (Long_t)this,(Long_t)object,(Long_t)method);
-+                                (intptr_t)this,(intptr_t)object,(intptr_t)method);
-                //Printf("%s", cmd);
-                gROOT->ProcessLine(cmd);
-                //Execute( object, method, (TObjArray *)NULL );
-@@ -166,8 +166,8 @@ void TContextMenu::Action(TClassMenuItem *menuitem)
-                // It is a workaround of the "Dead lock under Windows
-                char *cmd = Form("((TContextMenu *)0x%lx)->Execute((TObject *)0x%lx,"
-                                 "(TMethod *)0x%lx,(TObject*)0x%lx);",
--                                (Long_t)this,(Long_t)object,(Long_t)method,
--                                (Long_t)fSelectedObject);
-+                                (intptr_t)this,(intptr_t)object,(intptr_t)method,
-+                                (intptr_t)fSelectedObject);
-                //Printf("%s", cmd);
-                gROOT->ProcessLine(cmd);
-                //Execute( object, method, (TObjArray *)NULL );
-@@ -193,7 +193,7 @@ void TContextMenu::Action(TClassMenuItem *menuitem)
-                cmd = Form("%s();", menuitem->GetFunctionName());
-             } else {
-               cmd = Form("%s((TObject*)0x%lx);",
--                     menuitem->GetFunctionName(), (Long_t)fSelectedObject);
-+                     menuitem->GetFunctionName(), (intptr_t)fSelectedObject);
-             }
-             gROOT->ProcessLine(cmd);
-          }
-diff --git a/src/core/base/src/TGuiFactory.cxx b/src/core/base/src/TGuiFactory.cxx
-index 6202c184c5..029b66e7cd 100644
---- a/src/core/base/src/TGuiFactory.cxx
-+++ b/src/core/base/src/TGuiFactory.cxx
-@@ -115,6 +115,6 @@ TInspectorImp *TGuiFactory::CreateInspectorImp(const TObject *obj, UInt_t width,
-       return new TInspectorImp(obj, width, height);
-    }
- 
--   gROOT->ProcessLine(Form("TInspectCanvas::Inspector((TObject*)0x%lx);", (ULong_t)obj));
-+   gROOT->ProcessLine(Form("TInspectCanvas::Inspector((TObject*)0x%td);", (uintptr_t)obj));
-    return 0;
- }
 diff --git a/src/core/base/src/TMacro.cxx b/src/core/base/src/TMacro.cxx
 index 36bb598850..8d142e38f2 100644
 --- a/src/core/base/src/TMacro.cxx
@@ -1727,7 +1682,7 @@ diff --git a/src/core/base/src/TStyle.cxx b/src/core/base/src/TStyle.cxx
 index 2d2ba966e9..a734ba9ebb 100644
 --- a/src/core/base/src/TStyle.cxx
 +++ b/src/core/base/src/TStyle.cxx
-@@ -1057,7 +1057,7 @@ Float_t TStyle::GetTitleSize( Option_t *axis) const
+@@ -1063,7 +1063,7 @@ Float_t TStyle::GetTitleSize( Option_t *axis) const
  void TStyle::Paint(Option_t *option)
  {
     gROOT->ProcessLine(Form("TStyleManager::PaintStyle((TStyle*)0x%lx,\"%s\")",
@@ -1740,7 +1695,7 @@ diff --git a/src/core/base/src/TDirectory.cxx b/src/core/base/src/TDirectory.cxx
 index 8fce0f1a59..dfba710076 100644
 --- a/src/core/base/src/TDirectory.cxx
 +++ b/src/core/base/src/TDirectory.cxx
-@@ -1188,7 +1188,7 @@ Int_t TDirectory::SaveObjectAs(const TObject *obj, const char *filename, Option_
+@@ -1200,7 +1200,7 @@ Int_t TDirectory::SaveObjectAs(const TObject *obj, const char *filename, Option_
     }
     TString cmd;
     if (fname.Index(".json") > 0) {
@@ -1882,7 +1837,7 @@ diff --git a/src/io/io/src/TStreamerInfo.cxx b/src/io/io/src/TStreamerInfo.cxx
 index 64eec95d3e..6c19a08258 100644
 --- a/src/io/io/src/TStreamerInfo.cxx
 +++ b/src/io/io/src/TStreamerInfo.cxx
-@@ -5038,7 +5038,7 @@ void TStreamerInfo::PrintValue(const char *name, char *pointer, Int_t i, Int_t l
+@@ -5051,7 +5051,7 @@ void TStreamerInfo::PrintValue(const char *name, char *pointer, Int_t i, Int_t l
                 TString *st = (TString*)(pointer);
                 printf("%s\n",st->Data());
              } else {
@@ -1891,7 +1846,7 @@ index 64eec95d3e..6c19a08258 100644
              }
           }
           return;
-@@ -5342,7 +5342,7 @@ void TStreamerInfo::PrintValueAux(char *ladd, Int_t atype, TStreamerElement *aEl
+@@ -5355,7 +53,7 @@ void TStreamerInfo::PrintValueAux(char *ladd, Int_t atype, TStreamerElement *aEl
        case kObjectp: {
           TObject **obj = (TObject**)(ladd);
           TStreamerObjectPointer *el = (TStreamerObjectPointer*)aElement;
@@ -1900,7 +1855,7 @@ index 64eec95d3e..6c19a08258 100644
           break;
        }
  
-@@ -5350,7 +5350,7 @@ void TStreamerInfo::PrintValueAux(char *ladd, Int_t atype, TStreamerElement *aEl
+@@ -5363,7 +5363,7 @@ void TStreamerInfo::PrintValueAux(char *ladd, Int_t atype, TStreamerElement *aEl
        case kObjectP: {
           TObject **obj = (TObject**)(ladd);
           TStreamerObjectPointer *el = (TStreamerObjectPointer*)aElement;
@@ -1909,7 +1864,7 @@ index 64eec95d3e..6c19a08258 100644
           break;
        }
  
-@@ -5382,7 +5382,7 @@ void TStreamerInfo::PrintValueAux(char *ladd, Int_t atype, TStreamerElement *aEl
+@@ -5395,7 +5395,7 @@ void TStreamerInfo::PrintValueAux(char *ladd, Int_t atype, TStreamerElement *aEl
        case kAnyp:    {
           TObject **obj = (TObject**)(ladd);
           TStreamerObjectAnyPointer *el = (TStreamerObjectAnyPointer*)aElement;
@@ -1918,7 +1873,7 @@ index 64eec95d3e..6c19a08258 100644
           break;
        }
  
-@@ -5390,7 +5390,7 @@ void TStreamerInfo::PrintValueAux(char *ladd, Int_t atype, TStreamerElement *aEl
+@@ -5403,7 +5403,7 @@ void TStreamerInfo::PrintValueAux(char *ladd, Int_t atype, TStreamerElement *aEl
        case kAnyP:    {
           TObject **obj = (TObject**)(ladd);
           TStreamerObjectAnyPointer *el = (TStreamerObjectAnyPointer*)aElement;
@@ -1927,7 +1882,7 @@ index 64eec95d3e..6c19a08258 100644
           break;
        }
        // Any Class not derived from TObject
-@@ -5457,10 +5457,10 @@ void TStreamerInfo::PrintValueAux(char *ladd, Int_t atype, TStreamerElement *aEl
+@@ -5470,10 +5470,10 @@ void TStreamerInfo::PrintValueAux(char *ladd, Int_t atype, TStreamerElement *aEl
                 std::string *st = (std::string*)(ladd);
                 printf("%s",st->c_str());
              } else {
@@ -2240,7 +2195,7 @@ diff --git a/src/io/io/src/TBufferJSON.cxx b/src/io/io/src/TBufferJSON.cxx
 index 016e988316..9d01730060 100644
 --- a/src/io/io/src/TBufferJSON.cxx
 +++ b/src/io/io/src/TBufferJSON.cxx
-@@ -531,7 +531,7 @@ TString TBufferJSON::ConvertToJSON(const TObject *obj, Int_t compact, const char
+@@ -530,7 +530,7 @@ TString TBufferJSON::ConvertToJSON(const TObject *obj, Int_t compact, const char
        if (!clActual)
           clActual = TObject::Class();
        else if (clActual != TObject::Class())
@@ -2411,7 +2366,7 @@ diff --git a/src/io/io/src/TMemFile.cxx b/src/io/io/src/TMemFile.cxx
 index 0ccf0ce60a..f5b348907c 100644
 --- a/src/io/io/src/TMemFile.cxx
 +++ b/src/io/io/src/TMemFile.cxx
-@@ -409,7 +409,7 @@ void TMemFile::ResetObjects(TDirectoryFile *directory, TFileMergeInfo *info) con
+@@ -398,7 +398,7 @@ void TMemFile::ResetObjects(TDirectoryFile *directory, TFileMergeInfo *info) con
     }
  
     TString listHargs;
@@ -2424,7 +2379,7 @@ diff --git a/src/io/io/src/TFile.cxx b/src/io/io/src/TFile.cxx
 index adfb461fd6..ba1b3e7204 100644
 --- a/src/io/io/src/TFile.cxx
 +++ b/src/io/io/src/TFile.cxx
-@@ -578,7 +578,7 @@ TFile::~TFile()
+@@ -520,7 +520,7 @@ TFile::~TFile()
     }
  
     if (gDebug)
@@ -2433,7 +2388,7 @@ index adfb461fd6..ba1b3e7204 100644
  }
  
  ////////////////////////////////////////////////////////////////////////////////
-@@ -1860,7 +1860,7 @@ TProcessID  *TFile::ReadProcessID(UShort_t pidf)
+@@ -1809,7 +1809,7 @@ TProcessID  *TFile::ReadProcessID(UShort_t pidf)
     snprintf(pidname,32,"ProcessID%d",pidf);
     pid = (TProcessID *)Get(pidname);
     if (gDebug > 0) {
@@ -2446,7 +2401,7 @@ diff --git a/src/io/io/src/TFileMerger.cxx b/src/io/io/src/TFileMerger.cxx
 index 45a65fb746..81bf26054a 100644
 --- a/src/io/io/src/TFileMerger.cxx
 +++ b/src/io/io/src/TFileMerger.cxx
-@@ -608,7 +608,7 @@ Bool_t TFileMerger::MergeRecursive(TDirectory *target, TList *sourcelist, Int_t
+@@ -617,7 +617,7 @@ Bool_t TFileMerger::MergeRecursive(TDirectory *target, TList *sourcelist, Int_t
  
                 TList listH;
                 TString listHargs;
@@ -2455,7 +2410,7 @@ index 45a65fb746..81bf26054a 100644
  
                 // Loop over all source files and merge same-name object
                 TFile *nextsource = current_file ? (TFile*)sourcelist->After( current_file ) : (TFile*)sourcelist->First();
-@@ -671,7 +671,7 @@ Bool_t TFileMerger::MergeRecursive(TDirectory *target, TList *sourcelist, Int_t
+@@ -683,7 +683,7 @@ Bool_t TFileMerger::MergeRecursive(TDirectory *target, TList *sourcelist, Int_t
  
                 TList listH;
                 TString listHargs;

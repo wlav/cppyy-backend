@@ -42,9 +42,9 @@ diff --git a/src/core/base/src/TApplication.cxx b/src/core/base/src/TApplication
 index 5cea9aadc7..1c42b03075 100644
 --- a/src/core/base/src/TApplication.cxx
 +++ b/src/core/base/src/TApplication.cxx
-@@ -47,7 +47,7 @@ TApplication (see TRint).
+@@ -49,7 +49,7 @@ TApplication (see TRint).
  #include "TApplicationCommandLineOptionsHelp.h"
- 
+ #include "TPRegexp.h"
  #include <stdlib.h>
 -
 +#define Printf TStringPrintf
@@ -211,10 +211,10 @@ diff --git a/src/core/base/src/TSystem.cxx b/src/core/base/src/TSystem.cxx
 index bea171a7d7..1a47ee498e 100644
 --- a/src/core/base/src/TSystem.cxx
 +++ b/src/core/base/src/TSystem.cxx
-@@ -53,7 +53,7 @@ allows a simple partial implementation for new OS'es.
- #include "compiledata.h"
- #include "RConfigure.h"
- #include "THashList.h"
+@@ -54,7 +54,7 @@ allows a simple partial implementation for new OS'es.
+ #ifdef WIN32
+ #include <io.h>
+ #endif
 -
 +#define Printf TStringPrintf
  const char *gRootDir;
@@ -243,8 +243,8 @@ index 5095c39725..698975dc9b 100644
  #include "TROOT.h"
 -
 +#define Printf TStringPrintf
- TObjArray *TUrl::fgSpecialProtocols = 0;
- THashList *TUrl::fgHostFQDNs = 0;
+ TObjArray *TUrl::fgSpecialProtocols = nullptr;
+ THashList *TUrl::fgHostFQDNs = nullptr;
  
 diff --git a/src/core/cont/src/TClassTable.cxx b/src/core/cont/src/TClassTable.cxx
 index 72a55b2e1f..6418f46d8b 100644
@@ -302,7 +302,7 @@ diff --git a/src/core/unix/src/TUnixSystem.cxx b/src/core/unix/src/TUnixSystem.c
 index 59fbd1e4d5..8162b0d86c 100644
 --- a/src/core/unix/src/TUnixSystem.cxx
 +++ b/src/core/unix/src/TUnixSystem.cxx
-@@ -246,7 +246,7 @@ enum {
+@@ -247,7 +247,7 @@ enum {
  #include <fenv.h>
  #endif
  // End FPE handling includes
@@ -328,7 +328,7 @@ diff --git a/src/io/io/src/TFileMerger.cxx b/src/io/io/src/TFileMerger.cxx
 index 2b9374a06c..86fd8aafbe 100644
 --- a/src/io/io/src/TFileMerger.cxx
 +++ b/src/io/io/src/TFileMerger.cxx
-@@ -50,7 +50,7 @@ to be merged, like the standalone hadd program.
+@@ -49,7 +49,7 @@ to be merged, like the standalone hadd program.
  #endif
  
  #include <cstring>

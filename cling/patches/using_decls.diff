@@ -111,7 +111,7 @@ index ca606db037..dcd03d38bd 100644
  }
  
  TDictionary::DeclId_t TClingMethodInfo::GetDeclId() const
-@@ -179,6 +179,8 @@ void TClingMethodInfo::Init(const clang::FunctionDecl *decl)
+@@ -183,6 +183,8 @@ void TClingMethodInfo::Init(const clang::FunctionDecl *decl)
     fContextIdx = 0U;
     fIter = clang::DeclContext::decl_iterator();
     fTemplateSpec = 0;
@@ -120,7 +120,7 @@ index ca606db037..dcd03d38bd 100644
     fDecl = decl;
  }
  
-@@ -197,6 +199,10 @@ const clang::Decl* TClingMethodInfo::GetDeclSlow() const
+@@ -201,6 +203,10 @@ const clang::Decl* TClingMethodInfo::GetDeclSlow() const
  {
     if (fTemplateSpec) {
        return fTemplateSpec;
@@ -131,7 +131,7 @@ index ca606db037..dcd03d38bd 100644
     }
     return *fIter;
  }
-@@ -242,6 +242,9 @@ static const clang::FunctionDecl *
+@@ -246,6 +246,9 @@ static const clang::FunctionDecl *
  GetOrInstantiateFuncTemplateWithDefaults(clang::FunctionTemplateDecl* FTDecl,
                                           clang::Sema& S,
                                           const cling::LookupHelper& LH) {
@@ -141,7 +141,7 @@ index ca606db037..dcd03d38bd 100644
     // Force instantiation if it doesn't exist yet, by looking it up.
     using namespace clang;
  
-@@ -367,7 +367,15 @@ int TClingMethodInfo::InternalNext()
+@@ -377,7 +377,15 @@ int TClingMethodInfo::InternalNext()
           fFirstTime = false;
        }
        else {
@@ -158,7 +158,7 @@ index ca606db037..dcd03d38bd 100644
        }
        // Fix it if we have gone past the end of the current decl context.
        while (!*fIter) {
-@@ -400,6 +475,18 @@ int TClingMethodInfo::InternalNext()
+@@ -410,6 +485,18 @@ int TClingMethodInfo::InternalNext()
              return 1;
        }
  
@@ -207,7 +207,7 @@ diff --git a/src/core/meta/inc/TListOfFunctions.h b/src/core/meta/inc/TListOfFun
 index 58fae3025d..5e8b74c936 100644
 --- a/src/core/meta/inc/TListOfFunctions.h
 +++ b/src/core/meta/inc/TListOfFunctions.h
-@@ -79,7 +79,7 @@ public:
+@@ -80,7 +80,7 @@ public:
  
  
     TFunction *Find(DeclId_t id) const;
@@ -259,7 +259,7 @@ diff --git a/src/core/meta/inc/TListOfFunctionTemplates.h b/src/core/meta/inc/TL
 index 1534cdc680..cc90b1eb3a 100644
 --- a/src/core/meta/inc/TListOfFunctionTemplates.h
 +++ b/src/core/meta/inc/TListOfFunctionTemplates.h
-@@ -62,7 +62,7 @@ public:
+@@ -64,7 +64,7 @@ public:
     virtual TList     *GetListForObject(const char* name) const;
     virtual TList     *GetListForObject(const TObject* obj) const;
  
@@ -300,7 +300,7 @@ diff --git a/src/core/metacling/src/TCling.cxx b/src/core/metacling/src/TCling.c
 index 9a59030df4..a89ea97a87 100644
 --- a/src/core/metacling/src/TCling.cxx
 +++ b/src/core/metacling/src/TCling.cxx
-@@ -3972,11 +3972,17 @@ void TCling::LoadFunctionTemplates(TClass* cl) const
+@@ -4135,11 +4135,17 @@ void TCling::LoadFunctionTemplates(TClass* cl) const
             declEnd = allDeclContexts.end(); declIter != declEnd; ++declIter) {
           // Iterate on all decls for each context.
           for (clang::DeclContext::decl_iterator DI = (*declIter)->decls_begin(),

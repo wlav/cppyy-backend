@@ -2,7 +2,7 @@ diff --git a/src/core/dictgen/src/rootcling_impl.cxx b/src/core/dictgen/src/root
 index 3fdef60b85..0e53df8127 100644
 --- a/src/core/dictgen/src/rootcling_impl.cxx
 +++ b/src/core/dictgen/src/rootcling_impl.cxx
-@@ -4340,10 +4340,10 @@ int RootClingMain(int argc,
+@@ -4358,10 +4358,10 @@ int RootClingMain(int argc,
           interpPtr->setCallbacks(std::move(callBacks));
        }
     } else {
@@ -16,13 +16,13 @@ index 3fdef60b85..0e53df8127 100644
 +//#endif
  
        owningInterpPtr.reset(new cling::Interpreter(clingArgsC.size(), &clingArgsC[0],
-                                                    resourceDir.c_str()));
+                                                    llvmResourceDir.c_str()));
 diff --git a/src/core/metacling/src/TCling.cxx b/src/core/metacling/src/TCling.cxx
 index 390cbe219e..07fd09bf3d 100644
 --- a/src/core/metacling/src/TCling.cxx
 +++ b/src/core/metacling/src/TCling.cxx
-@@ -1212,10 +1212,10 @@ TCling::TCling(const char *name, const char *title, const char* const argv[])
-       interpArgs.push_back("-Rmodule-build");
+@@ -1353,10 +1353,10 @@ TCling::TCling(const char *name, const char *title, const char* const argv[])
+       interpArgs.push_back("-fno-autolink");
     }
  
 -#ifdef R__FAST_MATH
@@ -34,5 +34,5 @@ index 390cbe219e..07fd09bf3d 100644
 +//   interpArgs.push_back("-ffast-math");
 +//#endif
  
- #ifdef R__EXTERN_LLVMDIR
-    TString llvmResourceDir = R__EXTERN_LLVMDIR;
+    TString llvmResourceDir = TROOT::GetEtcDir() + "/cling";
+    // Add statically injected extra arguments, usually coming from rootcling.

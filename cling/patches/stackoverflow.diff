@@ -2,7 +2,7 @@ diff --git a/src/core/metacling/src/TCling.cxx b/src/core/metacling/src/TCling.c
 index e3c5de34b6..bd007cd74c 100644
 --- a/src/core/metacling/src/TCling.cxx
 +++ b/src/core/metacling/src/TCling.cxx
-@@ -2466,6 +2466,12 @@ void TCling::InspectMembers(TMemberInspector& insp, const void* obj,
+@@ -2600,6 +2600,12 @@ void TCling::InspectMembers(TMemberInspector& insp, const void* obj,
        return;
     }
  
@@ -23,7 +23,7 @@ index 8cb8f8d915..6f29f64c39 100644
     // Add "add" to string
     if (!add || !add[0]) return;
     Ssiz_t addlen = strlen(add);
--   fBuf.reserve(fLen + addlen);
+-   fBuf.resize(fLen + addlen + 1);
 +   fBuf.resize(fLen + addlen + (fLen ? 0 : 1));
     const char* i = add;
     while (*i) {

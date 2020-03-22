@@ -2,10 +2,10 @@ diff --git a/src/core/metacling/src/TCling.cxx b/src/core/metacling/src/TCling.c
 index 7df9bc8393..a54d6f81fa 100644
 --- a/src/core/metacling/src/TCling.cxx
 +++ b/src/core/metacling/src/TCling.cxx
-@@ -1383,6 +1383,17 @@ TCling::TCling(const char *name, const char *title, const char* const argv[])
+@@ -1438,5 +1438,17 @@ TCling::TCling(const char *name, const char *title, const char* const argv[])
     fClingCallbacks->SetAutoParsingSuspended(fIsAutoParsingSuspended);
     fInterpreter->setCallbacks(std::move(clingCallbacks));
- 
++ 
 +   // helper for lambdas
 +   if (!fromRootCling) { fInterpreter->declare(
 +      "#ifndef CLING_INTERNAL_DECLARE_FT\n"
@@ -17,9 +17,9 @@ index 7df9bc8393..a54d6f81fa 100644
 +      "struct FT<R(C::*)(Args...) const> { typedef std::function<R(Args...)> F; };}\n"
 +      "#endif\n"
 +   ); }
- }
 
-
+    if (!fromRootCling) {
+       // Make sure cling looks into ROOT's libdir, even if not part of LD_LIBRARY_PATH
 diff --git a/src/core/metacling/src/TClingCallFunc.cxx b/src/core/metacling/src/TClingCallFunc.cxx
 index 8d3d31f7ae..1bae809e7c 100644
 --- a/src/core/metacling/src/TClingCallFunc.cxx

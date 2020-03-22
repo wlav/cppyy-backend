@@ -2,7 +2,7 @@ diff --git a/src/core/meta/src/TClass.cxx b/src/core/meta/src/TClass.cxx
 index 29eb7f622f..72455671ad 100644
 --- a/src/core/meta/src/TClass.cxx
 +++ b/src/core/meta/src/TClass.cxx
-@@ -2552,7 +2552,7 @@ TClass *TClass::GetActualClass(const void *object) const
+@@ -2567,7 +2567,7 @@ TClass *TClass::GetActualClass(const void *object) const
           if (GetClassInfo() && gCling->ClassInfo_HasMethod(fClassInfo,"IsA")) {
              isa = (TVirtualIsAProxy*)gROOT->ProcessLineFast(TString::Format("new ::TInstrumentedIsAProxy<%s>(0);",GetName()));
           }
@@ -11,7 +11,7 @@ index 29eb7f622f..72455671ad 100644
              isa = (TVirtualIsAProxy*)gROOT->ProcessLineFast(TString::Format("new ::TIsAProxy(typeid(%s));",GetName()));
           }
           if (isa) {
-@@ -2892,7 +2892,7 @@ TClass *TClass::GetClass(const char *name, Bool_t load, Bool_t silent)
+@@ -2907,7 +2907,7 @@ TClass *TClass::GetClass(const char *name, Bool_t load, Bool_t silent)
  {
     if (!name || !name[0]) return 0;
  
@@ -20,7 +20,7 @@ index 29eb7f622f..72455671ad 100644
     if (strncmp(name,"class ",6)==0) name += 6;
     if (strncmp(name,"struct ",7)==0) name += 7;
  
-@@ -2955,7 +2955,7 @@ TClass *TClass::GetClass(const char *name, Bool_t load, Bool_t silent)
+@@ -2970,7 +2970,7 @@ TClass *TClass::GetClass(const char *name, Bool_t load, Bool_t silent)
     }
  
     std::string normalizedName;
@@ -29,7 +29,7 @@ index 29eb7f622f..72455671ad 100644
  
     if (!cl) {
        {
-@@ -3074,24 +3074,26 @@ TClass *TClass::GetClass(const char *name, Bool_t load, Bool_t silent)
+@@ -3089,24 +3089,26 @@ TClass *TClass::GetClass(const char *name, Bool_t load, Bool_t silent)
        } else if (cci) {
           // Get the normalized name based on the decl (currently the only way
           // to get the part to add or drop the default arguments as requested by the user)
@@ -76,7 +76,7 @@ diff --git a/src/core/metacling/src/TCling.cxx b/src/core/metacling/src/TCling.c
 index 5894a0863b..354b1c4069 100644
 --- a/src/core/metacling/src/TCling.cxx
 +++ b/src/core/metacling/src/TCling.cxx
-@@ -3660,7 +3736,7 @@ void TCling::SetClassInfo(TClass* cl, Bool_t reload)
+@@ -3821,7 +3897,7 @@ void TCling::SetClassInfo(TClass* cl, Bool_t reload)
     Bool_t zombieCandidate = kFALSE;
     if (
        info->IsValid() &&
@@ -85,7 +85,7 @@ index 5894a0863b..354b1c4069 100644
     ) {
        zombieCandidate = kTRUE;
     }
-@@ -3766,6 +3843,31 @@ TCling::CheckClassInfo(const char *name, Bool_t autoload, Bool_t isClassOrNamesp
+@@ -3930,6 +4009,31 @@ TCling::CheckClassInfo(const char *name, Bool_t autoload, Bool_t isClassOrNamesp
                       gDebug > 5 ? cling::LookupHelper::WithDiagnostics
                       : cling::LookupHelper::NoDiagnostics,
                       &type, /* intantiateTemplate= */ false );
@@ -117,7 +117,7 @@ index 5894a0863b..354b1c4069 100644
     if (!decl) {
        std::string buf = TClassEdit::InsertStd(classname);
        decl = lh.findScope(buf,
-@@ -3806,8 +3882,8 @@ TCling::CheckClassInfo(const char *name, Bool_t autoload, Bool_t isClassOrNamesp
+@@ -3970,8 +4021,8 @@ TCling::CheckClassInfo(const char *name, Bool_t autoload, Bool_t isClassOrNamesp
           SetClassAutoloading(storeAutoload);
           return kUnknown;
        }
@@ -128,7 +128,7 @@ index 5894a0863b..354b1c4069 100644
 
        if (tci.Property() & propertiesMask) {
           bool hasClassDefInline = false;
-@@ -4090,7 +4198,7 @@ TClass *TCling::GenerateTClass(const char *classname, Bool_t emulation, Bool_t s
+@@ -4254,7 +4347,7 @@ TClass *TCling::GenerateTClass(const char *classname, Bool_t emulation, Bool_t s
        version = TClass::GetClass("TVirtualStreamerInfo")->GetClassVersion();
     }
     TClass *cl = new TClass(classname, version, silent);
@@ -137,9 +137,9 @@ index 5894a0863b..354b1c4069 100644
        cl->SetBit(TClass::kIsEmulation);
     } else {
        // Set the class version if the class is versioned.
-@@ -7567,6 +7599,17 @@ Bool_t TCling::ClassInfo_Contains(ClassInfo_t *info, DeclId_t declid) const
-    else if (decl->getDeclContext()->isTransparentContext() &&
-             decl->getDeclContext()->getParent()->Equals(ctxt))
+@@ -7946,6 +7953,17 @@ Bool_t TCling::ClassInfo_Contains(ClassInfo_t *info, DeclId_t declid) const
+              || decl->getDeclContext()->isInlineNamespace())
+             && decl->getDeclContext()->getParent()->Equals(ctxt))
        return kTRUE;
 +   else {
 +       const clang::RecordDecl* rec = llvm::dyn_cast<clang::RecordDecl>(decl->getDeclContext());
@@ -159,7 +159,7 @@ diff --git a/src/core/metacling/src/TClingDataMemberInfo.cxx b/src/core/metaclin
 index 488f698305..3f6e4c8c5f 100644
 --- a/src/core/metacling/src/TClingDataMemberInfo.cxx
 +++ b/src/core/metacling/src/TClingDataMemberInfo.cxx
-@@ -282,13 +283,26 @@ int TClingDataMemberInfo::InternalNext()
+@@ -284,13 +285,26 @@ int TClingDataMemberInfo::InternalNext()
        clang::Decl::Kind DK = fIter->getKind();
        if (DK == clang::Decl::Enum) {
           // We have an enum, recurse into these.
@@ -187,7 +187,7 @@ index 488f698305..3f6e4c8c5f 100644
        if ((DK == clang::Decl::Field) || (DK == clang::Decl::EnumConstant) ||
            (DK == clang::Decl::Var)) {
           // Stop on class data members, enumerator values,
-@@ -314,8 +327,24 @@ long TClingDataMemberInfo::Offset()
+@@ -321,8 +334,24 @@ long TClingDataMemberInfo::Offset()
        const clang::RecordDecl *RD = FldD->getParent();
        const clang::ASTRecordLayout &Layout = C.getASTRecordLayout(RD);
        uint64_t bits = Layout.getFieldOffset(FldD->getFieldIndex());
