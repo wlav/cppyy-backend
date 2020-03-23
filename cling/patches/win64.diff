@@ -2419,3 +2419,15 @@ index 45a65fb746..81bf26054a 100644
  
                 // Loop over all source files and merge same-name object
                 TFile *nextsource = current_file ? (TFile*)sourcelist->After( current_file ) : (TFile*)sourcelist->First();
+diff --git a/src/core/foundation/res/TSchemaRuleProcessor.h b/src/core/foundation/res/TSchemaRuleProcessor.h
+index 466446bf71..31403922e9 100644
+--- a/src/core/foundation/res/TSchemaRuleProcessor.h
++++ b/src/core/foundation/res/TSchemaRuleProcessor.h
+@@ -8,6 +8,7 @@
+ 
+ #include <stdlib.h>
+ #include <cstring>
++#include <cctype>
+ #include <string>
+ #include <list>
+ #include <utility>
