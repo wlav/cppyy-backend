@@ -1,0 +1,26 @@
+diff --git a/src/core/foundation/src/TClassEdit.cxx b/src/core/foundation/src/TClassEdit.cxx
+index a8e4485a08..492aeaede0 100644
+--- a/src/core/foundation/src/TClassEdit.cxx
++++ b/src/core/foundation/src/TClassEdit.cxx
+@@ -1137,8 +1137,8 @@ int TClassEdit::GetSplit(const char *type, vector<string>& output, int &nestedLo
+             output.push_back(std::string(c+1,cursor));
+          }
+          // See what's next!
+-         if (*(cursor+1)==':') {
++         if (*(cursor+1)!='\0') {
+             // we have a name specified inside the class/namespace
+             // For now we keep it in one piece
+             nestedLoc = output.size();
+             output.push_back((cursor+1));
+@@ -1571,10 +1571,10 @@ static void ResolveTypedefImpl(const char *tname,
+             // Since we already checked the type, skip the next section
+             // (respective the scope section and final type processing section)
+             // as they would re-do the same job.
++            prevScope = cursor+1;
+             if (cursor+2<len && tname[cursor+1]==':' && tname[cursor+2]==':') {
+                if (modified) result += "::";
+                cursor += 2;
+-               prevScope = cursor+1;
+             }
+             if ( (cursor+1)<len && tname[cursor+1] == ',') {
+                ++cursor;
