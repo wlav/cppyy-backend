@@ -2,7 +2,7 @@ diff --git a/src/core/foundation/src/TClassEdit.cxx b/src/core/foundation/src/TC
 index a8e4485a08..492aeaede0 100644
 --- a/src/core/foundation/src/TClassEdit.cxx
 +++ b/src/core/foundation/src/TClassEdit.cxx
-@@ -1137,8 +1137,8 @@ int TClassEdit::GetSplit(const char *type, vector<string>& output, int &nestedLo
+@@ -1135,8 +1135,8 @@ int TClassEdit::GetSplit(const char *type, vector<string>& output, int &nestedLo
              output.push_back(std::string(c+1,cursor));
           }
           // See what's next!
@@ -12,7 +12,7 @@ index a8e4485a08..492aeaede0 100644
              // For now we keep it in one piece
              nestedLoc = output.size();
              output.push_back((cursor+1));
-@@ -1571,10 +1571,10 @@ static void ResolveTypedefImpl(const char *tname,
+@@ -1568,10 +1568,10 @@ static void ResolveTypedefImpl(const char *tname,
              // Since we already checked the type, skip the next section
              // (respective the scope section and final type processing section)
              // as they would re-do the same job.

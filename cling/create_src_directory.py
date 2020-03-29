@@ -452,7 +452,7 @@ for fdiff in ('cleanup_tstring', 'scanner', 'scanner_2', 'faux_typedef', 'classr
               'optlevel2_forced', 'silence', 'explicit_template', 'alias_template', 'lambda', 'templ_ops',
               'private_type_args', 'incomplete_types', 'clang_printing',
               'stdfunc_printhack', 'anon_union', 'no_inet', 'signaltrycatch', 'nofastmath', 'pch',
-              'stackoverflow', 'strip_lz4_lzma', 'type_reducer', 'resolve_path',
+              'stackoverflow', 'strip_lz4_lzma', 'type_reducer', 'resolve_path', 'classedit_scopes',
               'msvc', 'win64rtti', 'win64', 'win64s2',
               'gui_cleanup'):
     fpatch = os.path.join('patches', fdiff+'.diff')
