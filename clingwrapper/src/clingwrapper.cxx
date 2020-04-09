@@ -603,6 +603,9 @@ Cppyy::TCppType_t Cppyy::GetActualClass(TCppType_t klass, TCppObject_t obj)
     TClassRef& cr = type_from_handle(klass);
     if (!cr.GetClass() || !obj) return klass;
 
+    if (!(cr->ClassProperty() & kClassHasVirtual))
+        return klass;   // not polymorphic: no RTTI info available
+
 #ifdef _WIN64
 // Cling does not provide a consistent ImageBase address for calculating relative addresses
 // as used in Windows 64b RTTI. So, check for our own RTTI extension instead. If that fails,
