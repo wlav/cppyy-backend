@@ -1538,3 +1538,15 @@ index 6202c184c5..900d9d885a 100644
 +   gROOT->ProcessLine(Form("TInspectCanvas::Inspector((TObject*)0x%lx);", (uintptr_t)obj));
     return 0;
  }
+diff --git a/src/core/metacling/src/TCling.cxx b/src/core/metacling/src/TCling.cxx
+index 9d99683f79..8a9f947f2b 100644
+--- a/src/core/metacling/src/TCling.cxx
++++ b/src/core/metacling/src/TCling.cxx
+@@ -1261,6 +1261,7 @@ TCling::TCling(const char *name, const char *title, const char* const argv[])
+       }
+ 
+       clingArgsStorage.push_back("-Wno-undefined-inline");
++      clingArgsStorega.push_back("-Wno-unused-result");
+       clingArgsStorage.push_back("-fsigned-char");
+    }
+ 
