@@ -1546,7 +1546,7 @@ index 9d99683f79..8a9f947f2b 100644
        }
  
        clingArgsStorage.push_back("-Wno-undefined-inline");
-+      clingArgsStorega.push_back("-Wno-unused-result");
++      clingArgsStorage.push_back("-Wno-unused-result");
        clingArgsStorage.push_back("-fsigned-char");
     }
  
