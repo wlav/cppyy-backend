@@ -64,7 +64,8 @@ static Name2ClassRefIndex_t g_name2classrefidx;
 
 namespace {
 
-static inline Cppyy::TCppType_t find_memoized(const std::string& name)
+static inline
+ Cppyy::TCppType_t find_memoized(const std::string& name)
 {
     auto icr = g_name2classrefidx.find(name);
     if (icr != g_name2classrefidx.end())
@@ -94,14 +95,16 @@ public:
 }
 
 static std::vector<CallWrapper*> gWrapperHolder;
-static inline CallWrapper* new_CallWrapper(TFunction* f)
+static inline
+ CallWrapper* new_CallWrapper(TFunction* f)
 {
     CallWrapper* wrap = new CallWrapper(f);
     gWrapperHolder.push_back(wrap);
     return wrap;
 }
 
-static inline CallWrapper* new_CallWrapper(CallWrapper::DeclId_t fid, const std::string& n)
+static inline
+ CallWrapper* new_CallWrapper(CallWrapper::DeclId_t fid, const std::string& n)
 {
     CallWrapper* wrap = new CallWrapper(fid, n);
     gWrapperHolder.push_back(wrap);
@@ -111,25 +114,19 @@ static inline CallWrapper* new_CallWrapper(CallWrapper::DeclId_t fid, const std:
 typedef std::vector<TGlobal*> GlobalVars_t;
 static GlobalVars_t g_globalvars;
 
-static std::set<std::string> gSTLNames;
-
 
 // data ----------------------------------------------------------------------
 Cppyy::TCppScope_t Cppyy::gGlobalScope = GLOBAL_HANDLE;
 
-// builtin types (including a few common STL templates as long as they live in
-// the global namespace b/c of choices upstream)
+// builtin types
 static std::set<std::string> g_builtins =
     {"bool", "char", "signed char", "unsigned char", "wchar_t", "short", "unsigned short",
      "int", "unsigned int", "long", "unsigned long", "long long", "unsigned long long",
-     "float", "double", "long double", "void",
-     "allocator", "array", "basic_string", "complex", "initializer_list", "less", "list",
-     "map", "pair", "set", "vector"};
+     "float", "double", "long double", "void"};
 
 // smart pointer types
 static std::set<std::string> gSmartPtrTypes =
-    {"auto_ptr", "std::auto_ptr", "shared_ptr", "std::shared_ptr",
-     "unique_ptr", "std::unique_ptr", "weak_ptr", "std::weak_ptr"};
+    {"std::auto_ptr", "std::shared_ptr", "std::unique_ptr", "std::weak_ptr"};
 
 // to filter out ROOT names
 static std::set<std::string> gInitialNames;
@@ -226,34 +223,6 @@ public:
 
     // disable fast path if requested
         if (getenv("CPPYY_DISABLE_FASTPATH")) gEnableFastPath = false;
-
-    // fill the set of STL names
-        const char* stl_names[] = {"allocator", "auto_ptr", "bad_alloc", "bad_cast",
-            "bad_exception", "bad_typeid", "basic_filebuf", "basic_fstream", "basic_ifstream",
-            "basic_ios", "basic_iostream", "basic_istream", "basic_istringstream",
-            "basic_ofstream", "basic_ostream", "basic_ostringstream", "basic_streambuf",
-            "basic_string", "basic_stringbuf", "basic_stringstream", "binary_function",
-            "binary_negate", "bitset", "byte", "char_traits", "codecvt_byname", "codecvt", "collate",
-            "collate_byname", "compare", "complex", "ctype_byname", "ctype", "default_delete",
-            "deque", "divides", "domain_error", "equal_to", "exception", "forward_list", "fpos",
-            "function", "greater_equal", "greater", "gslice_array", "gslice", "hash", "indirect_array",
-            "integer_sequence", "invalid_argument", "ios_base", "istream_iterator", "istreambuf_iterator",
-            "istrstream", "iterator_traits", "iterator", "length_error", "less_equal", "less",
-            "list", "locale", "localedef utility", "locale utility", "logic_error", "logical_and",
-            "logical_not", "logical_or", "map", "mask_array", "mem_fun", "mem_fun_ref", "messages",
-            "messages_byname", "minus", "modulus", "money_get", "money_put", "moneypunct",
-            "moneypunct_byname", "multimap", "multiplies", "multiset", "negate", "not_equal_to",
-            "num_get", "num_put", "numeric_limits", "numpunct", "numpunct_byname",
-            "ostream_iterator", "ostreambuf_iterator", "ostrstream", "out_of_range",
-            "overflow_error", "pair", "plus", "pointer_to_binary_function",
-            "pointer_to_unary_function", "priority_queue", "queue", "range_error",
-            "raw_storage_iterator", "reverse_iterator", "runtime_error", "set", "shared_ptr",
-            "slice_array", "slice", "stack", "string", "strstream", "strstreambuf",
-            "time_get_byname", "time_get", "time_put_byname", "time_put", "unary_function",
-            "unary_negate", "unique_ptr", "underflow_error", "unordered_map", "unordered_multimap",
-            "unordered_multiset", "unordered_set", "valarray", "vector", "weak_ptr", "wstring"};
-        for (auto& name : stl_names)
-            gSTLNames.insert(name);
 
     // set opt level (default to 2 if not given; Cling itself defaults to 0)
         int optLevel = 2;
@@ -361,15 +330,6 @@ bool match_name(const std::string& tname, const std::string fname)
     return false;
 }
 
-static inline
-bool is_missclassified_stl(const std::string& name)
-{
-    std::string::size_type pos = name.find('<');
-    if (pos != std::string::npos)
-        return gSTLNames.find(name.substr(0, pos)) != gSTLNames.end();
-    return gSTLNames.find(name) != gSTLNames.end();
-}
-
 
 // direct interpreter access -------------------------------------------------
 bool Cppyy::Compile(const std::string& code)
@@ -399,7 +359,7 @@ std::string Cppyy::ResolveName(const std::string& cppitem_name)
     if (tclean[tclean.size()-1] == ']')
         tclean = tclean.substr(0, tclean.rfind('[')) + "[]";
 
-    if (tclean.rfind("byte", 0) == 0 || tclean.rfind("std::byte", 0) == 0)
+    if (tclean.compare(0, 9, "std::byte") == 0)
         return tclean;
 
 // check data types list (accept only builtins as typedefs will
@@ -550,18 +510,6 @@ Cppyy::TCppScope_t Cppyy::GetScope(const std::string& sname)
         if (result) return result;
     }
 
-// both failed, but may be STL name that's missing 'std::' now, but didn't before
-    bool b_scope_name_missclassified = is_missclassified_stl(scope_name);
-    if (b_scope_name_missclassified) {
-        result = find_memoized("std::"+scope_name);
-        if (result) g_name2classrefidx["std::"+scope_name] = (ClassRefs_t::size_type)result;
-    }
-    bool b_sname_missclassified = bHasAlias ? is_missclassified_stl(sname) : false;
-    if (b_sname_missclassified) {
-        if (!result) result = find_memoized("std::"+sname);
-        if (result) g_name2classrefidx["std::"+sname] = (ClassRefs_t::size_type)result;
-    }
-
     if (result) return result;
 
 // use TClass directly, to enable auto-loading; class may be stubbed (eg. for
@@ -577,18 +525,18 @@ Cppyy::TCppScope_t Cppyy::GetScope(const std::string& sname)
     if (bHasAlias) g_name2classrefidx[sname] = sz;
     g_classrefs.push_back(TClassRef(scope_name.c_str()));
 
-// TODO: make ROOT/meta NOT remove std :/
-    if (b_scope_name_missclassified)
-        g_name2classrefidx["std::"+scope_name] = sz;
-    if (b_sname_missclassified)
-        g_name2classrefidx["std::"+sname] = sz;
-
     return (TCppScope_t)sz;
 }
 
 bool Cppyy::IsTemplate(const std::string& template_name)
 {
-    return (bool)gInterpreter->CheckClassTemplate(template_name.c_str());
+    if ((bool)gInterpreter->CheckClassTemplate(template_name.c_str())) {
+    // there is still some STL misplacement going on??
+        if (template_name.compare(0, 5, "std::") != 0)
+            return !((bool)gInterpreter->CheckClassTemplate(("std::"+template_name).c_str()));
+        return true;
+    }
+    return false;
 }
 
 namespace {
@@ -800,7 +748,8 @@ void release_args(Parameter* args, size_t nargs) {
     }
 }
 
-static inline bool WrapperCall(Cppyy::TCppMethod_t method, size_t nargs, void* args_, void* self, void* result)
+static inline
+ bool WrapperCall(Cppyy::TCppMethod_t method, size_t nargs, void* args_, void* self, void* result)
 {
     Parameter* args = (Parameter*)args_;
 
@@ -1050,7 +999,7 @@ void cond_add(Cppyy::TCppScope_t scope, const std::string& ns_scope,
 
     if (scope == GLOBAL_HANDLE) {
         std::string to_add = outer_no_template(name);
-        if ((nofilter || gInitialNames.find(to_add) == gInitialNames.end()) && !is_missclassified_stl(name))
+        if (nofilter || gInitialNames.find(to_add) == gInitialNames.end())
             cppnames.insert(outer_no_template(name));
     } else if (scope == STD_HANDLE) {
         if (strncmp(name, "std::", 5) == 0) {
@@ -1058,8 +1007,7 @@ void cond_add(Cppyy::TCppScope_t scope, const std::string& ns_scope,
 #ifdef __APPLE__
             if (strncmp(name, "__1::", 5) == 0) name += 5;
 #endif
-        } else if (!is_missclassified_stl(name))
-            return;
+        }
         cppnames.insert(outer_no_template(name));
     } else {
         if (strncmp(name, ns_scope.c_str(), ns_scope.size()) == 0)
@@ -1204,12 +1152,8 @@ std::string Cppyy::GetScopedFinalName(TCppType_t klass)
     if (klass == GLOBAL_HANDLE)
         return "";
     TClassRef& cr = type_from_handle(klass);
-    if (cr.GetClass()) {
-        std::string name = cr->GetName();
-        if (is_missclassified_stl(name))
-            return std::string("std::")+cr->GetName();
+    if (cr.GetClass())
         return cr->GetName();
-    }
     return "";
 }
 
@@ -1375,11 +1319,6 @@ Cppyy::TCppIndex_t Cppyy::GetNumMethods(TCppScope_t scope)
             if (clName.find('<') != std::string::npos) {
             // chicken-and-egg problem: TClass does not know about methods until
             // instantiation, so force it
-                if (clName.find("std::", 0, 5) == std::string::npos && \
-                        is_missclassified_stl(clName)) {
-                // TODO: this is too simplistic for template arguments missing std::
-                    clName = "std::" + clName;
-                }
                 std::ostringstream stmt;
                 stmt << "template class " << clName << ";";
                 gInterpreter->Declare(stmt.str().c_str());
@@ -1479,9 +1418,12 @@ std::string Cppyy::GetMethodResultType(TCppMethod_t method)
         if (f->ExtraProperty() & kIsConstructor)
             return "constructor";
         std::string restype = f->GetReturnTypeName();
-        // TODO: this is ugly, but we can't use GetReturnTypeName() for ostreams
-        // and maybe others, whereas GetReturnTypeNormalizedName() has proven to
-        // be safe in all cases (Note: 'int8_t' covers 'int8_t' and 'uint8_t')
+        // TODO: this is ugly; GetReturnTypeName() keeps typedefs, but may miss scopes
+        // for some reason; GetReturnTypeNormalizedName() has been modified to return
+        // the canonical type to guarantee correct namespaces. Sometimes typedefs look
+        // better, sometimes not, sometimes it's debatable (e.g. vector<int>::size_type).
+        // So, for correctness sake, GetReturnTypeNormalizedName() is used, except for a
+        // special case of uint8_t/int8_t that must propagate as their typedefs.
         if (restype.find("int8_t") != std::string::npos)
             return gInterpreter->ReduceType(restype);
         restype = f->GetReturnTypeNormalizedName();
@@ -1863,6 +1805,18 @@ std::string Cppyy::GetDatamemberName(TCppScope_t scope, TCppIndex_t idata)
     return gbl->GetName();
 }
 
+static inline
+ int count_scopes(const std::string& tpname)
+{
+    int count = 0;
+    std::string::size_type pos = tpname.find("::", 0);
+    while (pos != std::string::npos) {
+        count++;
+        pos = tpname.find("::", pos+1);
+    }
+    return count;
+}
+
 std::string Cppyy::GetDatamemberType(TCppScope_t scope, TCppIndex_t idata)
 {
     if (scope == GLOBAL_HANDLE) {
@@ -1890,9 +1844,9 @@ std::string Cppyy::GetDatamemberType(TCppScope_t scope, TCppIndex_t idata)
     // case m->GetTrueTypeName() should be used (this also cleans up the cases where
     // the "full type" retains spurious "struct" or "union" in the name).
         std::string fullType = m->GetFullTypeName();
-        if (fullType != m->GetTrueTypeName()) {
-            const std::string& trueName = m->GetTrueTypeName();
-            if (fullType.find("::") == std::string::npos && trueName.find("::") != std::string::npos)
+        const std::string& trueName = m->GetTrueTypeName();
+        if (fullType != trueName) {
+            if (count_scopes(trueName) > count_scopes(fullType))
                 fullType = trueName;
         }
 
