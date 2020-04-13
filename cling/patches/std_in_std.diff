@@ -1,0 +1,1680 @@
+diff --git a/src/core/base/inc/LinkDef1.h b/src/core/base/inc/LinkDef1.h
+index 83c5b56..fcdd8e6 100644
+--- a/src/core/base/inc/LinkDef1.h
++++ b/src/core/base/inc/LinkDef1.h
+@@ -187,15 +187,10 @@
+ #pragma link C++ class TBrowserImp+;
+ #pragma link C++ class TBuffer;
+ #pragma link C++ class TRootIOCtor+;
+-#pragma link C++ class TCanvasImp;
+ #pragma link C++ class TColor+;
+ #pragma link C++ class TColorGradient+;
+ #pragma link C++ class TLinearGradient+;
+ #pragma link C++ class TRadialGradient+;
+-#pragma link C++ class TContextMenu+;
+-#pragma link C++ class TContextMenuImp+;
+-#pragma link C++ class TControlBarImp+;
+-#pragma link C++ class TInspectorImp+;
+ #pragma link C++ class TDatime-;
+ #pragma link C++ class TDirectory-;
+ #pragma link C++ class TEnv+;
+@@ -208,11 +203,7 @@
+ // Those are NOT going to be saved ... so no need for a +
+ #pragma link C++ class TVirtualViewer3D;
+ #pragma link C++ class TBuffer3D;
+-#pragma link C++ class TGLManager;
+-#pragma link C++ class TVirtualGLPainter;
+-#pragma link C++ class TVirtualGLManip;
+ #pragma link C++ class TVirtualPS;
+-#pragma link C++ class TGLPaintDevice;
+ #pragma link C++ class TVirtualPadPainter;
+ 
+ #pragma link C++ class TVirtualPadEditor;
+diff --git a/src/core/base/inc/LinkDef2.h b/src/core/base/inc/LinkDef2.h
+index bf5b3b8..01f6289 100644
+--- a/src/core/base/inc/LinkDef2.h
++++ b/src/core/base/inc/LinkDef2.h
+@@ -14,7 +14,7 @@
+ #pragma link C++ global gTQSlotParams;
+ 
+ #pragma extra_include "string";
+-#pragma create TClass string;
++#pragma create TClass std::string;
+ 
+ #pragma link C++ enum EAccessMode;
+ #pragma link C++ enum ESignals;
+diff --git a/src/core/base/inc/LinkDef3.h b/src/core/base/inc/LinkDef3.h
+index df4d9c8..0e106a7 100644
+--- a/src/core/base/inc/LinkDef3.h
++++ b/src/core/base/inc/LinkDef3.h
+@@ -174,8 +174,6 @@
+ #pragma link C++ enum TVirtualPerfStats::EEventType;
+ #pragma link C++ class TVirtualMonitoringWriter;
+ #pragma link C++ class TVirtualMonitoringReader;
+-#pragma link C++ class TObjectSpy;
+-#pragma link C++ class TObjectRefSpy;
+ #pragma link C++ class TUri;
+ #pragma link C++ function operator==(const TUri&, const TUri&);
+ #pragma link C++ class TUrl;
+@@ -197,10 +195,10 @@
+ #pragma link C++ class std::pair<char*,void*>+;
+ #pragma link C++ class std::pair<char*,char*>+;
+ #pragma link C++ class std::pair<std::string,int>+;
+-#pragma link C++ class std::pair<string,long>+;
+-#pragma link C++ class std::pair<string,float>+;
+-#pragma link C++ class std::pair<string,double>+;
+-#pragma link C++ class std::pair<string,void*>+;
++#pragma link C++ class std::pair<std::string,long>+;
++#pragma link C++ class std::pair<std::string,float>+;
++#pragma link C++ class std::pair<std::string,double>+;
++#pragma link C++ class std::pair<std::string,void*>+;
+ #pragma link C++ class std::pair<int,int>+;
+ #pragma link C++ class std::pair<int,long>+;
+ #pragma link C++ class std::pair<int,float>+;
+diff --git a/src/core/base/src/String.cxx b/src/core/base/src/String.cxx
+index 3661ea3..2fa3c46 100644
+--- a/src/core/base/src/String.cxx
++++ b/src/core/base/src/String.cxx
+@@ -19,8 +19,6 @@
+ #include <string>
+ #include "TBuffer.h"
+ 
+-namespace std {} using namespace std;
+-
+ void std_string_streamer(TBuffer &b, void *objadd)
+ {
+    // Streamer function for std::string object.
+@@ -32,9 +30,7 @@ void std_string_streamer(TBuffer &b, void *objadd)
+ }
+ 
+ // Declare the streamer to the string TClass object
+-RootStreamer(string,std_string_streamer);
++RootStreamer(std::string,std_string_streamer);
+ 
+ // Set a version number of the string TClass object
+-RootClassVersion(string,2);
+-
+-
++RootClassVersion(std::string,2);
+diff --git a/src/core/clingutils/res/TClingUtils.h b/src/core/clingutils/res/TClingUtils.h
+index 9758473..6505ceb 100644
+--- a/src/core/clingutils/res/TClingUtils.h
++++ b/src/core/clingutils/res/TClingUtils.h
+@@ -180,7 +180,7 @@ public:
+    virtual void GetPartiallyDesugaredName(std::string &nameLong);
+    virtual bool IsAlreadyPartiallyDesugaredName(const std::string &nondef, const std::string &nameLong);
+    virtual bool IsDeclaredScope(const std::string &base, bool &isInlined);
+-   virtual bool GetPartiallyDesugaredNameWithScopeHandling(const std::string &tname, std::string &result, bool dropstd = true);
++   virtual bool GetPartiallyDesugaredNameWithScopeHandling(const std::string &tname, std::string &result);
+    virtual void ShuttingDownSignal();
+ };
+ 
+diff --git a/src/core/clingutils/src/RStl.cxx b/src/core/clingutils/src/RStl.cxx
+index d7e40c6..91dd24d 100644
+--- a/src/core/clingutils/src/RStl.cxx
++++ b/src/core/clingutils/src/RStl.cxx
+@@ -150,7 +150,7 @@ void ROOT::Internal::RStl::GenerateTClassFor(const char *requestedName, const cl
+ 
+    fList.insert( ROOT::TMetaUtils::AnnotatedRecordDecl(++fgCount,stlclass,requestedName,true,false,false,false,-1, interp,normCtxt) );
+ 
+-   TClassEdit::TSplitType splitType( requestedName, (TClassEdit::EModType)(TClassEdit::kLong64 | TClassEdit::kDropStd) );
++   TClassEdit::TSplitType splitType( requestedName, (TClassEdit::EModType)(TClassEdit::kLong64) );
+    for(unsigned int i=0; i <  templateCl->getTemplateArgs().size(); ++i) {
+       const clang::TemplateArgument &arg( templateCl->getTemplateArgs().get(i) );
+       if (arg.getKind() == clang::TemplateArgument::Type) {
+diff --git a/src/core/clingutils/src/TClingUtils.cxx b/src/core/clingutils/src/TClingUtils.cxx
+index 5d50d95..6762f7c 100644
+--- a/src/core/clingutils/src/TClingUtils.cxx
++++ b/src/core/clingutils/src/TClingUtils.cxx
+@@ -404,7 +404,7 @@ AnnotatedRecordDecl::AnnotatedRecordDecl(long index,
+    fRequestNoInputOperator(rRequestNoInputOperator), fRequestOnlyTClass(rRequestOnlyTClass), fRequestedVersionNumber(rRequestVersionNumber)
+ {
+    // For comparison purposes.
+-   TClassEdit::TSplitType splitname1(requestName,(TClassEdit::EModType)(TClassEdit::kLong64 | TClassEdit::kDropStd));
++   TClassEdit::TSplitType splitname1(requestName,(TClassEdit::EModType)(TClassEdit::kLong64));
+    splitname1.ShortType(fRequestedName, 0);
+ 
+    TMetaUtils::GetNormalizedName( fNormalizedName, clang::QualType(requestedType,0), interpreter, normCtxt);
+@@ -432,7 +432,7 @@ AnnotatedRecordDecl::AnnotatedRecordDecl(long index,
+    fRequestNoInputOperator(rRequestNoInputOperator), fRequestOnlyTClass(rRequestOnlyTClass), fRequestedVersionNumber(rRequestVersionNumber)
+ {
+    // For comparison purposes.
+-   TClassEdit::TSplitType splitname1(requestName,(TClassEdit::EModType)(TClassEdit::kLong64 | TClassEdit::kDropStd));
++   TClassEdit::TSplitType splitname1(requestName,(TClassEdit::EModType)(TClassEdit::kLong64));
+    splitname1.ShortType(fRequestedName, 0);
+ 
+    TMetaUtils::GetNormalizedName( fNormalizedName, clang::QualType(requestedType,0), interpreter, normCtxt);
+@@ -461,8 +461,8 @@ AnnotatedRecordDecl::AnnotatedRecordDecl(long index,
+    // const char *current = requestName;
+    // Strips spaces and std::
+    if (requestName && requestName[0]) {
+-      TClassEdit::TSplitType splitname(requestName,(TClassEdit::EModType)( TClassEdit::kLong64 | TClassEdit::kDropStd));
+-      splitname.ShortType( fRequestedName, TClassEdit::kLong64 | TClassEdit::kDropStd );
++      TClassEdit::TSplitType splitname(requestName,(TClassEdit::EModType)(TClassEdit::kLong64));
++      splitname.ShortType(fRequestedName, TClassEdit::kLong64);
+ 
+       fNormalizedName = fRequestedName;
+    } else {
+@@ -555,8 +555,7 @@ bool TClingLookupHelper::IsDeclaredScope(const std::string &base, bool &isInline
+ /// [const] typename[*&][const]
+ 
+ bool TClingLookupHelper::GetPartiallyDesugaredNameWithScopeHandling(const std::string &tname,
+-                                                                    std::string &result,
+-                                                                    bool dropstd /* = true */)
++                                                                    std::string &result)
+ {
+    if (tname.empty()) return false;
+ 
+@@ -597,22 +596,7 @@ bool TClingLookupHelper::GetPartiallyDesugaredNameWithScopeHandling(const std::s
+          // getAsStringInternal() appends.
+          result.clear();
+          dest.getAsStringInternal(result, policy);
+-         // Strip the std::
+-         unsigned long offset = 0;
+-         if (strncmp(result.c_str(), "const ", 6) == 0) {
+-            offset = 6;
+-         }
+-         if (dropstd && strncmp(result.c_str()+offset, "std::", 5) == 0) {
+-            result.erase(offset,5);
+-         }
+          for(unsigned int i = 1; i<result.length(); ++i) {
+-            if (result[i]=='s') {
+-               if (result[i-1]=='<' || result[i-1]==',' || result[i-1]==' ') {
+-                  if (dropstd && result.compare(i,5,"std::",5) == 0) {
+-                     result.erase(i,5);
+-                  }
+-               }
+-            }
+             if (result[i]==' ') {
+                if (result[i-1] == ',') {
+                   result.erase(i,1);
+@@ -683,7 +667,7 @@ ROOT::TMetaUtils::TNormalizedCtxtImpl::TNormalizedCtxtImpl(const cling::LookupHe
+    keepTypedef(lh, "Long64_t", true);
+    keepTypedef(lh, "ULong64_t", true);
+ 
+-   clang::QualType toSkip = lh.findType("string", cling::LookupHelper::WithDiagnostics);
++   clang::QualType toSkip = lh.findType("std::string", cling::LookupHelper::WithDiagnostics);
+    if (const clang::TypedefType* TT
+        = llvm::dyn_cast_or_null<clang::TypedefType>(toSkip.getTypePtr()))
+       fConfig.m_toSkip.insert(TT->getDecl());
+@@ -736,14 +720,6 @@ ROOT::TMetaUtils::ScopeSearch(const char *name, const cling::Interpreter &interp
+    const clang::CXXRecordDecl *result
+       = llvm::dyn_cast_or_null<clang::CXXRecordDecl>
+       (lh.findScope(name, cling::LookupHelper::NoDiagnostics, resultType));
+-   if (!result) {
+-      std::string std_name("std::");
+-      std_name += name;
+-      // We have many bogus diagnostics if we allow diagnostics here. Suppress.
+-      // FIXME: silence them in the callers.
+-      result = llvm::dyn_cast_or_null<clang::CXXRecordDecl>
+-         (lh.findScope(std_name, cling::LookupHelper::NoDiagnostics, resultType));
+-   }
+    return result;
+ }
+ 
+@@ -854,14 +830,14 @@ int ROOT::TMetaUtils::ElementStreamer(std::ostream& finalString,
+ 
+    if (isTObj)              kase |= kBIT_ISTOBJECT;
+    if (isStre)              kase |= kBIT_HASSTREAMER;
+-   if (tiName == "string")  kase |= kBIT_ISSTRING;
+-   if (tiName == "string*") kase |= kBIT_ISSTRING;
++   if (tiName == "std::string")  kase |= kBIT_ISSTRING;
++   if (tiName == "std::string*") kase |= kBIT_ISSTRING;
+ 
+ 
+    if (tcl == 0) {
+       tcl = " internal error in rootcling ";
+    }
+-   //    if (strcmp(objType,"string")==0) RStl::Instance().GenerateTClassFor( "string", interp, normCtxt  );
++   //    if (strcmp(objType,"std::string")==0) RStl::Instance().GenerateTClassFor( "std::string", interp, normCtxt  );
+ 
+    if (rwmode == 0) {  //Read mode
+ 
+@@ -2453,7 +2429,7 @@ void ROOT::TMetaUtils::WritePointersSTL(const AnnotatedRecordDecl &cl,
+       //member is a string
+       {
+          const char*shortTypeName = ROOT::TMetaUtils::ShortTypeName(mTypename.c_str());
+-         if (!strcmp(shortTypeName, "string")) {
++         if (!strcmp(shortTypeName, "std::string")) {
+             continue;
+          }
+       }
+@@ -3399,8 +3375,8 @@ void ROOT::TMetaUtils::GetFullyQualifiedTypeName(std::string &typenamestr,
+ {
+    std::string fqname = cling::utils::TypeName::GetFullyQualifiedName(qtype, astContext);
+    TClassEdit::TSplitType splitname(fqname.c_str(),
+-                                    (TClassEdit::EModType)(TClassEdit::kLong64 | TClassEdit::kDropStd | TClassEdit::kDropStlDefault | TClassEdit::kKeepOuterConst));
+-   splitname.ShortType(typenamestr,TClassEdit::kDropStd | TClassEdit::kDropStlDefault | TClassEdit::kKeepOuterConst);
++                                    (TClassEdit::EModType)(TClassEdit::kLong64 | TClassEdit::kDropStlDefault | TClassEdit::kKeepOuterConst));
++   splitname.ShortType(typenamestr, TClassEdit::kDropStlDefault | TClassEdit::kKeepOuterConst);
+ }
+ 
+ ////////////////////////////////////////////////////////////////////////////////
+@@ -3940,6 +3916,16 @@ clang::QualType ROOT::TMetaUtils::GetNormalizedType(const clang::QualType &type,
+ /// This routine might actually belong in the interpreter because
+ /// cache the clang::Type might be intepreter specific.
+ 
++static inline clang::QualType CanonicalIfPublic(clang::QualType usetype)
++{
++   if (const clang::Type* tptr = usetype.getCanonicalType().getTypePtr()) {
++      clang::Decl* decl = tptr->getAsCXXRecordDecl();
++      if (decl && !(decl->getAccess() == clang::AS_private || decl->getAccess() == clang::AS_protected))
++         usetype = usetype.getCanonicalType();
++   }
++   return usetype;
++}
++
+ void ROOT::TMetaUtils::GetNormalizedName(std::string &norm_name, const clang::QualType &type, const cling::Interpreter &interpreter, const TNormalizedCtxt &normCtxt)
+ {
+    if (type.isNull()) {
+@@ -3948,15 +3934,13 @@ void ROOT::TMetaUtils::GetNormalizedName(std::string &norm_name, const clang::Qu
+    }
+ 
+ // for consistency, use the canonical type instead of type, unless the canonical type
+-// is not accessible
+-   clang::QualType usetype = type;
+-   if (const clang::Type* tptr = usetype.getCanonicalType().getTypePtr()) {
+-      clang::Decl* decl = tptr->getAsCXXRecordDecl();
+-      if (decl && !(decl->getAccess() == clang::AS_private || decl->getAccess() == clang::AS_protected))
+-         usetype = usetype.getCanonicalType();
+-   }
++// is not accessible (e.g. if a typedef is public but the underlying private)
++   clang::QualType usetype = CanonicalIfPublic(type);
+ 
++// normalize the type for consistent internal use, and once more, make sure that the type
++// is canonical, to pre-empt issues with namespaces when printing the type
+    clang::QualType normalizedType = GetNormalizedType(usetype,interpreter,normCtxt);
++   normalizedType = CanonicalIfPublic(normalizedType);
+ 
+    clang::ASTContext &ctxt = interpreter.getCI()->getASTContext();
+    clang::PrintingPolicy policy(ctxt.getPrintingPolicy());
+@@ -3974,10 +3958,10 @@ void ROOT::TMetaUtils::GetNormalizedName(std::string &norm_name, const clang::Qu
+    cling::Interpreter::PushTransactionRAII clingRAII(const_cast<cling::Interpreter*>(&interpreter));
+    normalizedType.getAsStringInternal(normalizedNameStep1,policy);
+ 
+-   // Still remove the std:: and default template argument for STL container and
++   // Still remove the default template argument for STL container and
+    // normalize the location and amount of white spaces.
+-   TClassEdit::TSplitType splitname(normalizedNameStep1.c_str(),(TClassEdit::EModType)(TClassEdit::kLong64 | TClassEdit::kDropStd | TClassEdit::kDropStlDefault | TClassEdit::kKeepOuterConst));
+-   splitname.ShortType(norm_name,TClassEdit::kDropStd | TClassEdit::kDropStlDefault );
++   TClassEdit::TSplitType splitname(normalizedNameStep1.c_str(),(TClassEdit::EModType)(TClassEdit::kLong64 | TClassEdit::kDropStlDefault | TClassEdit::kKeepOuterConst));
++   splitname.ShortType(norm_name, TClassEdit::kDropStlDefault);
+ 
+    // The result of this routine is by definition a fully qualified name.  There is an implicit starting '::' at the beginning of the name.
+    // Depending on how the user typed their code, in particular typedef declarations, we may end up with an explicit '::' being
+diff --git a/src/core/clingutils/src/complexLinkdef.h b/src/core/clingutils/src/complexLinkdef.h
+index 855a582..9320f2f 100644
+--- a/src/core/clingutils/src/complexLinkdef.h
++++ b/src/core/clingutils/src/complexLinkdef.h
+@@ -3,10 +3,10 @@
+ 
+ #pragma extra_include "root_std_complex.h";
+ 
+-#pragma create TClass complex<int>+;
+-#pragma create TClass complex<long>+;
+-#pragma create TClass complex<float>+;
+-#pragma create TClass complex<double>+;
++#pragma create TClass std::complex<int>+;
++#pragma create TClass std::complex<long>+;
++#pragma create TClass std::complex<float>+;
++#pragma create TClass std::complex<double>+;
+ 
+ #pragma create TClass _root_std_complex<int>+;
+ #pragma create TClass _root_std_complex<long>+;
+diff --git a/src/core/clingutils/src/dequeLinkdef.h b/src/core/clingutils/src/dequeLinkdef.h
+index 0052858..5f40340 100644
+--- a/src/core/clingutils/src/dequeLinkdef.h
++++ b/src/core/clingutils/src/dequeLinkdef.h
+@@ -3,10 +3,10 @@
+ 
+ #pragma extra_include "deque";
+ 
+-#pragma create TClass deque<int>;
+-#pragma create TClass deque<long>;
+-#pragma create TClass deque<float>;
+-#pragma create TClass deque<double>;
+-#pragma create TClass deque<void*>;
+-#pragma create TClass deque<char*>;
++#pragma create TClass std::deque<int>;
++#pragma create TClass std::deque<long>;
++#pragma create TClass std::deque<float>;
++#pragma create TClass std::deque<double>;
++#pragma create TClass std::deque<void*>;
++#pragma create TClass std::deque<char*>;
+ 
+diff --git a/src/core/clingutils/src/forward_listLinkdef.h b/src/core/clingutils/src/forward_listLinkdef.h
+index e817456..99ac71a 100644
+--- a/src/core/clingutils/src/forward_listLinkdef.h
++++ b/src/core/clingutils/src/forward_listLinkdef.h
+@@ -1,11 +1,11 @@
+ #include <forward_list>
+ #include <string>
+ 
+-#pragma create TClass forward_list<int>;
+-#pragma create TClass forward_list<long>;
+-#pragma create TClass forward_list<float>;
+-#pragma create TClass forward_list<double>;
+-#pragma create TClass forward_list<void*>;
+-#pragma create TClass forward_list<char*>;
+-#pragma create TClass forward_list<string>;
++#pragma create TClass std::forward_list<int>;
++#pragma create TClass std::forward_list<long>;
++#pragma create TClass std::forward_list<float>;
++#pragma create TClass std::forward_list<double>;
++#pragma create TClass std::forward_list<void*>;
++#pragma create TClass std::forward_list<char*>;
++#pragma create TClass std::forward_list<std::string>;
+ 
+diff --git a/src/core/clingutils/src/listLinkdef.h b/src/core/clingutils/src/listLinkdef.h
+index 5474c44..4ad2f9e 100644
+--- a/src/core/clingutils/src/listLinkdef.h
++++ b/src/core/clingutils/src/listLinkdef.h
+@@ -1,11 +1,11 @@
+ #include <list>
+ #include <string>
+ 
+-#pragma create TClass list<int>;
+-#pragma create TClass list<long>;
+-#pragma create TClass list<float>;
+-#pragma create TClass list<double>;
+-#pragma create TClass list<void*>;
+-#pragma create TClass list<char*>;
+-#pragma create TClass list<string>;
++#pragma create TClass std::list<int>;
++#pragma create TClass std::list<long>;
++#pragma create TClass std::list<float>;
++#pragma create TClass std::list<double>;
++#pragma create TClass std::list<void*>;
++#pragma create TClass std::list<char*>;
++#pragma create TClass std::list<std::string>;
+ 
+diff --git a/src/core/clingutils/src/map2Linkdef.h b/src/core/clingutils/src/map2Linkdef.h
+index ab11f6b..0d8d1e4 100644
+--- a/src/core/clingutils/src/map2Linkdef.h
++++ b/src/core/clingutils/src/map2Linkdef.h
+@@ -1,17 +1,17 @@
+ #include <map>
+ #include <string>
+ 
+-#pragma create TClass map<int,int>;
+-#pragma create TClass map<long,int>;
+-#pragma create TClass map<long,long>;
+-#pragma create TClass map<long,float>;
+-#pragma create TClass map<long,double>;
+-#pragma create TClass map<long,void*>;
+-#pragma create TClass map<long,char*>;
++#pragma create TClass std::map<int,int>;
++#pragma create TClass std::map<long,int>;
++#pragma create TClass std::map<long,long>;
++#pragma create TClass std::map<long,float>;
++#pragma create TClass std::map<long,double>;
++#pragma create TClass std::map<long,void*>;
++#pragma create TClass std::map<long,char*>;
+ 
+-#pragma create TClass map<double,int>;
+-#pragma create TClass map<double,long>;
+-#pragma create TClass map<double,float>;
+-#pragma create TClass map<double,double>;
+-#pragma create TClass map<double,void*>;
+-#pragma create TClass map<double,char*>;
++#pragma create TClass std::map<double,int>;
++#pragma create TClass std::map<double,long>;
++#pragma create TClass std::map<double,float>;
++#pragma create TClass std::map<double,double>;
++#pragma create TClass std::map<double,void*>;
++#pragma create TClass std::map<double,char*>;
+diff --git a/src/core/clingutils/src/mapLinkdef.h b/src/core/clingutils/src/mapLinkdef.h
+index dd96e77..9eb1fd6 100644
+--- a/src/core/clingutils/src/mapLinkdef.h
++++ b/src/core/clingutils/src/mapLinkdef.h
+@@ -1,16 +1,16 @@
+ #include <map>
+ #include <string>
+ 
+-#pragma create TClass map<char*,int>;
+-#pragma create TClass map<char*,long>;
+-#pragma create TClass map<char*,float>;
+-#pragma create TClass map<char*,double>;
+-#pragma create TClass map<char*,void*>;
+-#pragma create TClass map<char*,char*>;
++#pragma create TClass std::map<char*,int>;
++#pragma create TClass std::map<char*,long>;
++#pragma create TClass std::map<char*,float>;
++#pragma create TClass std::map<char*,double>;
++#pragma create TClass std::map<char*,void*>;
++#pragma create TClass std::map<char*,char*>;
+ 
+-#pragma create TClass map<string,int>;
+-#pragma create TClass map<string,long>;
+-#pragma create TClass map<string,float>;
+-#pragma create TClass map<string,double>;
+-#pragma create TClass map<string,void*>;
+-#pragma create TClass map<string,string>;
++#pragma create TClass std::map<std::string,int>;
++#pragma create TClass std::map<std::string,long>;
++#pragma create TClass std::map<std::string,float>;
++#pragma create TClass std::map<std::string,double>;
++#pragma create TClass std::map<std::string,void*>;
++#pragma create TClass std::map<std::string,std::string>;
+diff --git a/src/core/clingutils/src/multimap2Linkdef.h b/src/core/clingutils/src/multimap2Linkdef.h
+index d430084..46ef6c0 100644
+--- a/src/core/clingutils/src/multimap2Linkdef.h
++++ b/src/core/clingutils/src/multimap2Linkdef.h
+@@ -6,14 +6,14 @@
+ #endif
+ #include <string>
+ 
+-#pragma create TClass multimap<long,int>;
+-#pragma create TClass multimap<long,long>;
+-#pragma create TClass multimap<long,double>;
+-#pragma create TClass multimap<long,void*>;
+-#pragma create TClass multimap<long,char*>;
++#pragma create TClass std::multimap<long,int>;
++#pragma create TClass std::multimap<long,long>;
++#pragma create TClass std::multimap<long,double>;
++#pragma create TClass std::multimap<long,void*>;
++#pragma create TClass std::multimap<long,char*>;
+ 
+-#pragma create TClass multimap<double,int>;
+-#pragma create TClass multimap<double,long>;
+-#pragma create TClass multimap<double,double>;
+-#pragma create TClass multimap<double,void*>;
+-#pragma create TClass multimap<double,char*>;
++#pragma create TClass std::multimap<double,int>;
++#pragma create TClass std::multimap<double,long>;
++#pragma create TClass std::multimap<double,double>;
++#pragma create TClass std::multimap<double,void*>;
++#pragma create TClass std::multimap<double,char*>;
+diff --git a/src/core/clingutils/src/multimapLinkdef.h b/src/core/clingutils/src/multimapLinkdef.h
+index 4b95e7f..8c50635 100644
+--- a/src/core/clingutils/src/multimapLinkdef.h
++++ b/src/core/clingutils/src/multimapLinkdef.h
+@@ -6,14 +6,14 @@
+ #endif
+ #include <string>
+ 
+-#pragma create TClass multimap<char*,int>;
+-#pragma create TClass multimap<char*,long>;
+-#pragma create TClass multimap<char*,double>;
+-#pragma create TClass multimap<char*,void*>;
+-#pragma create TClass multimap<char*,char*>;
++#pragma create TClass std::multimap<char*,int>;
++#pragma create TClass std::multimap<char*,long>;
++#pragma create TClass std::multimap<char*,double>;
++#pragma create TClass std::multimap<char*,void*>;
++#pragma create TClass std::multimap<char*,char*>;
+ 
+-#pragma create TClass multimap<string,int>;
+-#pragma create TClass multimap<string,long>;
+-#pragma create TClass multimap<string,double>;
+-#pragma create TClass multimap<string,void*>;
++#pragma create TClass std::multimap<std::string,int>;
++#pragma create TClass std::multimap<std::string,long>;
++#pragma create TClass std::multimap<std::string,double>;
++#pragma create TClass std::multimap<std::string,void*>;
+ 
+diff --git a/src/core/clingutils/src/multisetLinkdef.h b/src/core/clingutils/src/multisetLinkdef.h
+index f051ebb..28307f0 100644
+--- a/src/core/clingutils/src/multisetLinkdef.h
++++ b/src/core/clingutils/src/multisetLinkdef.h
+@@ -6,10 +6,10 @@
+ #endif
+ #include <string>
+ 
+-#pragma create TClass multiset<int>;
+-#pragma create TClass multiset<long>;
+-#pragma create TClass multiset<float>;
+-#pragma create TClass multiset<double>;
+-#pragma create TClass multiset<void*>;
+-#pragma create TClass multiset<char*>;
+-#pragma create TClass multiset<string>;
++#pragma create TClass std::multiset<int>;
++#pragma create TClass std::multiset<long>;
++#pragma create TClass std::multiset<float>;
++#pragma create TClass std::multiset<double>;
++#pragma create TClass std::multiset<void*>;
++#pragma create TClass std::multiset<char*>;
++#pragma create TClass std::multiset<std::string>;
+diff --git a/src/core/clingutils/src/setLinkdef.h b/src/core/clingutils/src/setLinkdef.h
+index d52a7d5..339d543 100644
+--- a/src/core/clingutils/src/setLinkdef.h
++++ b/src/core/clingutils/src/setLinkdef.h
+@@ -1,10 +1,10 @@
+ #include <set>
+ #include <string>
+ 
+-#pragma create TClass set<int>;
+-#pragma create TClass set<long>;
+-#pragma create TClass set<float>;
+-#pragma create TClass set<double>;
+-#pragma create TClass set<void*>;
+-#pragma create TClass set<char*>;
+-#pragma create TClass set<string>;
++#pragma create TClass std::set<int>;
++#pragma create TClass std::set<long>;
++#pragma create TClass std::set<float>;
++#pragma create TClass std::set<double>;
++#pragma create TClass std::set<void*>;
++#pragma create TClass std::set<char*>;
++#pragma create TClass std::set<std::string>;
+diff --git a/src/core/clingutils/src/unordered_mapLinkdef.h b/src/core/clingutils/src/unordered_mapLinkdef.h
+index 80339b7..adc3f7b 100644
+--- a/src/core/clingutils/src/unordered_mapLinkdef.h
++++ b/src/core/clingutils/src/unordered_mapLinkdef.h
+@@ -1,30 +1,30 @@
+ #include <unordered_map>
+ #include <string>
+ 
+-#pragma create TClass unordered_map<int,int>;
+-#pragma create TClass unordered_map<long,int>;
+-#pragma create TClass unordered_map<long,long>;
+-#pragma create TClass unordered_map<long,float>;
+-#pragma create TClass unordered_map<long,double>;
+-#pragma create TClass unordered_map<long,void*>;
+-#pragma create TClass unordered_map<long,char*>;
++#pragma create TClass std::unordered_map<int,int>;
++#pragma create TClass std::unordered_map<long,int>;
++#pragma create TClass std::unordered_map<long,long>;
++#pragma create TClass std::unordered_map<long,float>;
++#pragma create TClass std::unordered_map<long,double>;
++#pragma create TClass std::unordered_map<long,void*>;
++#pragma create TClass std::unordered_map<long,char*>;
+ 
+-#pragma create TClass unordered_map<double,int>;
+-#pragma create TClass unordered_map<double,long>;
+-#pragma create TClass unordered_map<double,float>;
+-#pragma create TClass unordered_map<double,double>;
+-#pragma create TClass unordered_map<double,void*>;
+-#pragma create TClass unordered_map<double,char*>;
++#pragma create TClass std::unordered_map<double,int>;
++#pragma create TClass std::unordered_map<double,long>;
++#pragma create TClass std::unordered_map<double,float>;
++#pragma create TClass std::unordered_map<double,double>;
++#pragma create TClass std::unordered_map<double,void*>;
++#pragma create TClass std::unordered_map<double,char*>;
+ 
+-#pragma create TClass unordered_map<char*,int>;
+-#pragma create TClass unordered_map<char*,long>;
+-#pragma create TClass unordered_map<char*,float>;
+-#pragma create TClass unordered_map<char*,double>;
+-#pragma create TClass unordered_map<char*,void*>;
+-#pragma create TClass unordered_map<char*,char*>;
++#pragma create TClass std::unordered_map<char*,int>;
++#pragma create TClass std::unordered_map<char*,long>;
++#pragma create TClass std::unordered_map<char*,float>;
++#pragma create TClass std::unordered_map<char*,double>;
++#pragma create TClass std::unordered_map<char*,void*>;
++#pragma create TClass std::unordered_map<char*,char*>;
+ 
+-#pragma create TClass unordered_map<string,int>;
+-#pragma create TClass unordered_map<string,long>;
+-#pragma create TClass unordered_map<string,float>;
+-#pragma create TClass unordered_map<string,double>;
+-#pragma create TClass unordered_map<string,void*>;
++#pragma create TClass std::unordered_map<std::string,int>;
++#pragma create TClass std::unordered_map<std::string,long>;
++#pragma create TClass std::unordered_map<std::string,float>;
++#pragma create TClass std::unordered_map<std::string,double>;
++#pragma create TClass std::unordered_map<std::string,void*>;
+diff --git a/src/core/clingutils/src/unordered_multimapLinkdef.h b/src/core/clingutils/src/unordered_multimapLinkdef.h
+index c1eced0..e230f23 100644
+--- a/src/core/clingutils/src/unordered_multimapLinkdef.h
++++ b/src/core/clingutils/src/unordered_multimapLinkdef.h
+@@ -1,26 +1,26 @@
+ #include <unordered_map>
+ #include <string>
+ 
+-#pragma create TClass unordered_multimap<long,int>;
+-#pragma create TClass unordered_multimap<long,long>;
+-#pragma create TClass unordered_multimap<long,double>;
+-#pragma create TClass unordered_multimap<long,void*>;
+-#pragma create TClass unordered_multimap<long,char*>;
++#pragma create TClass std::unordered_multimap<long,int>;
++#pragma create TClass std::unordered_multimap<long,long>;
++#pragma create TClass std::unordered_multimap<long,double>;
++#pragma create TClass std::unordered_multimap<long,void*>;
++#pragma create TClass std::unordered_multimap<long,char*>;
+ 
+-#pragma create TClass unordered_multimap<double,int>;
+-#pragma create TClass unordered_multimap<double,long>;
+-#pragma create TClass unordered_multimap<double,double>;
+-#pragma create TClass unordered_multimap<double,void*>;
+-#pragma create TClass unordered_multimap<double,char*>;
++#pragma create TClass std::unordered_multimap<double,int>;
++#pragma create TClass std::unordered_multimap<double,long>;
++#pragma create TClass std::unordered_multimap<double,double>;
++#pragma create TClass std::unordered_multimap<double,void*>;
++#pragma create TClass std::unordered_multimap<double,char*>;
+ 
+-#pragma create TClass unordered_multimap<char*,int>;
+-#pragma create TClass unordered_multimap<char*,long>;
+-#pragma create TClass unordered_multimap<char*,double>;
+-#pragma create TClass unordered_multimap<char*,void*>;
+-#pragma create TClass unordered_multimap<char*,char*>;
++#pragma create TClass std::unordered_multimap<char*,int>;
++#pragma create TClass std::unordered_multimap<char*,long>;
++#pragma create TClass std::unordered_multimap<char*,double>;
++#pragma create TClass std::unordered_multimap<char*,void*>;
++#pragma create TClass std::unordered_multimap<char*,char*>;
+ 
+-#pragma create TClass unordered_multimap<string,int>;
+-#pragma create TClass unordered_multimap<string,long>;
+-#pragma create TClass unordered_multimap<string,double>;
+-#pragma create TClass unordered_multimap<string,void*>;
++#pragma create TClass std::unordered_multimap<std::string,int>;
++#pragma create TClass std::unordered_multimap<std::string,long>;
++#pragma create TClass std::unordered_multimap<std::string,double>;
++#pragma create TClass std::unordered_multimap<std::string,void*>;
+ 
+diff --git a/src/core/clingutils/src/unordered_multisetLinkdef.h b/src/core/clingutils/src/unordered_multisetLinkdef.h
+index c385ed7..c3b00f5 100644
+--- a/src/core/clingutils/src/unordered_multisetLinkdef.h
++++ b/src/core/clingutils/src/unordered_multisetLinkdef.h
+@@ -1,10 +1,10 @@
+ #include <unordered_set>
+ #include <string>
+ 
+-#pragma create TClass unordered_multiset<int>;
+-#pragma create TClass unordered_multiset<long>;
+-#pragma create TClass unordered_multiset<float>;
+-#pragma create TClass unordered_multiset<double>;
+-#pragma create TClass unordered_multiset<void*>;
+-#pragma create TClass unordered_multiset<char*>;
+-#pragma create TClass unordered_multiset<string>;
++#pragma create TClass std::unordered_multiset<int>;
++#pragma create TClass std::unordered_multiset<long>;
++#pragma create TClass std::unordered_multiset<float>;
++#pragma create TClass std::unordered_multiset<double>;
++#pragma create TClass std::unordered_multiset<void*>;
++#pragma create TClass std::unordered_multiset<char*>;
++#pragma create TClass std::unordered_multiset<std::string>;
+diff --git a/src/core/clingutils/src/unordered_setLinkdef.h b/src/core/clingutils/src/unordered_setLinkdef.h
+index a9dc6eb..ec5dd7b 100644
+--- a/src/core/clingutils/src/unordered_setLinkdef.h
++++ b/src/core/clingutils/src/unordered_setLinkdef.h
+@@ -1,10 +1,10 @@
+ #include <unordered_set>
+ #include <string>
+ 
+-#pragma create TClass unordered_set<int>;
+-#pragma create TClass unordered_set<long>;
+-#pragma create TClass unordered_set<float>;
+-#pragma create TClass unordered_set<double>;
+-#pragma create TClass unordered_set<void*>;
+-#pragma create TClass unordered_set<char*>;
+-#pragma create TClass unordered_set<string>;
++#pragma create TClass std::unordered_set<int>;
++#pragma create TClass std::unordered_set<long>;
++#pragma create TClass std::unordered_set<float>;
++#pragma create TClass std::unordered_set<double>;
++#pragma create TClass std::unordered_set<void*>;
++#pragma create TClass std::unordered_set<char*>;
++#pragma create TClass std::unordered_set<std::string>;
+diff --git a/src/core/clingutils/src/valarrayLinkdef.h b/src/core/clingutils/src/valarrayLinkdef.h
+index 8d0cd4b..33ce72b 100644
+--- a/src/core/clingutils/src/valarrayLinkdef.h
++++ b/src/core/clingutils/src/valarrayLinkdef.h
+@@ -1,6 +1,6 @@
+ #include <valarray>
+ 
+-#pragma create TClass valarray<int>;
+-#pragma create TClass valarray<long>;
+-#pragma create TClass valarray<float>;
+-#pragma create TClass valarray<double>;
++#pragma create TClass std::valarray<int>;
++#pragma create TClass std::valarray<long>;
++#pragma create TClass std::valarray<float>;
++#pragma create TClass std::valarray<double>;
+diff --git a/src/core/clingutils/src/vectorLinkdef.h b/src/core/clingutils/src/vectorLinkdef.h
+index 946ada6..6483ae1 100644
+--- a/src/core/clingutils/src/vectorLinkdef.h
++++ b/src/core/clingutils/src/vectorLinkdef.h
+@@ -1,17 +1,15 @@
+ #include <string>
+ #include <vector>
+ 
+-#pragma create TClass vector<bool>;
+-#pragma create TClass vector<char>;
+-#pragma create TClass vector<short>;
+-#pragma create TClass vector<long>;
+-#pragma create TClass vector<unsigned char>;
+-#pragma create TClass vector<unsigned short>;
+-#pragma create TClass vector<unsigned int>;
+-#pragma create TClass vector<unsigned long>;
+-#pragma create TClass vector<float>;
+-#pragma create TClass vector<double>;
+-#pragma create TClass vector<char*>;
+-#pragma create TClass vector<const char*>;
+-#pragma create TClass vector<Long64_t>;
+-#pragma create TClass vector<ULong64_t>;
++#pragma create TClass std::vector<bool>;
++#pragma create TClass std::vector<char>;
++#pragma create TClass std::vector<short>;
++#pragma create TClass std::vector<long>;
++#pragma create TClass std::vector<unsigned char>;
++#pragma create TClass std::vector<unsigned short>;
++#pragma create TClass std::vector<unsigned int>;
++#pragma create TClass std::vector<unsigned long>;
++#pragma create TClass std::vector<float>;
++#pragma create TClass std::vector<double>;
++#pragma create TClass std::vector<char*>;
++#pragma create TClass std::vector<const char*>;
+diff --git a/src/core/dictgen/src/Scanner.cxx b/src/core/dictgen/src/Scanner.cxx
+index 15b58c8..88cfeeb 100644
+--- a/src/core/dictgen/src/Scanner.cxx
++++ b/src/core/dictgen/src/Scanner.cxx
+@@ -718,7 +718,7 @@ bool RScanner::TreatRecordDeclOrTypedefNameDecl(clang::TypeDecl* typeDecl)
+ 
+    // Reject the selection of std::pair on the ground that it is trivial
+    // and can easily be recreated from the AST information.
+-   if (recordDecl->getName() == "pair") {
++   if (recordDecl->getName() == "std::pair") {
+       const clang::NamespaceDecl *nsDecl = llvm::dyn_cast<clang::NamespaceDecl>(recordDecl->getDeclContext());
+       if (!nsDecl){
+          ROOT::TMetaUtils::Error("RScanner::TreatRecordDeclOrTypedefNameDecl",
+diff --git a/src/core/dictgen/src/rootcling_impl.cxx b/src/core/dictgen/src/rootcling_impl.cxx
+index 5027c16..d8ac350 100644
+--- a/src/core/dictgen/src/rootcling_impl.cxx
++++ b/src/core/dictgen/src/rootcling_impl.cxx
+@@ -1072,7 +1072,7 @@ int STLStringStreamer(const clang::FieldDecl &m, int rwmode, std::ostream &dictS
+    ROOT::TMetaUtils::GetQualifiedName(mTypenameStr, m.getType(), m);
+    // Note: here we could to a direct type comparison!
+    const char *mTypeName = ROOT::TMetaUtils::ShortTypeName(mTypenameStr.c_str());
+-   if (!strcmp(mTypeName, "string")) {
++   if (!strcmp(mTypeName, "std::string")) {
+ 
+       std::string fieldname =  m.getName().str();
+       if (rwmode == 0) {
+@@ -2549,7 +2549,7 @@ int  ExtractClassesListAndDeclLines(RScanner &scan,
+ #endif
+                         // See the operations in TCling::AutoLoad(type_info)
+                         TClassEdit::TSplitType splitname( demangledName.c_str() );
+-                        splitname.ShortType(demangledName, TClassEdit::kDropStlDefault | TClassEdit::kDropStd);
++                        splitname.ShortType(demangledName, TClassEdit::kDropStlDefault);
+ 
+                         if (demangledName != normalizedName && (!reqName || demangledName != reqName)) {
+                            if (demangledName.find("Long64_t") == std::string::npos)
+@@ -2861,10 +2861,6 @@ void CreateDictHeader(std::ostream &dictStream, const std::string &main_dictname
+                << "#include \"TCollectionProxyInfo.h\"\n"
+                << "/*******************************************************************/\n\n"
+                << "#include \"TDataMember.h\"\n\n"; // To set their transiency
+-#ifndef R__SOLARIS
+-   dictStream  << "// The generated code does not explicitly qualifies STL entities\n"
+-               << "namespace std {} using namespace std;\n\n";
+-#endif
+ }
+ 
+ ////////////////////////////////////////////////////////////////////////////////
+@@ -4427,25 +4423,17 @@ int RootClingMain(int argc,
+ 
+    interp.getOptions().ErrorOut = true;
+    interp.enableRawInput(true);
+-   if (isGenreflex) {
+-      if (interp.declare("namespace std {} using namespace std;") != cling::Interpreter::kSuccess) {
+-         // There was an error.
+-         ROOT::TMetaUtils::Error(0, "Error loading the default header files.\n");
+-         return 1;
+-      }
+-   } else {
++   if (!isGenreflex) {
+       // rootcling
+-      if (interp.declare("namespace std {} using namespace std;") != cling::Interpreter::kSuccess
+-            // CINT uses to define a few header implicitly, we need to do it explicitly.
+-            || interp.declare("#include <assert.h>\n"
+-                              "#include <stdlib.h>\n"
+-                              "#include <stddef.h>\n"
+-                              "#include <string.h>\n"
+-                             ) != cling::Interpreter::kSuccess
+-            || interp.declare("#include \"Rtypes.h\"\n"
+-                              "#include \"TClingRuntime.h\"\n"
+-                              "#include \"TObject.h\""
+-                             ) != cling::Interpreter::kSuccess
++      if (interp.declare("#include <assert.h>\n"
++                         "#include <stdlib.h>\n"
++                         "#include <stddef.h>\n"
++                         "#include <string.h>\n"
++                        ) != cling::Interpreter::kSuccess
++         || interp.declare("#include \"Rtypes.h\"\n"
++                           "#include \"TClingRuntime.h\"\n"
++                           "#include \"TObject.h\""
++                          ) != cling::Interpreter::kSuccess
+          ) {
+          // There was an error.
+          ROOT::TMetaUtils::Error(0, "Error loading the default header files.\n");
+diff --git a/src/core/foundation/inc/TClassEdit.h b/src/core/foundation/inc/TClassEdit.h
+index ef75221..9afbc1e 100644
+--- a/src/core/foundation/inc/TClassEdit.h
++++ b/src/core/foundation/inc/TClassEdit.h
+@@ -129,8 +129,7 @@ namespace TClassEdit {
+                                                    const std::string & /*nameLong*/) = 0;
+       virtual bool IsDeclaredScope(const std::string & /*base*/, bool & /*isInlined*/) = 0;
+       virtual bool GetPartiallyDesugaredNameWithScopeHandling(const std::string & /*tname*/,
+-                                                              std::string & /*result*/,
+-                                                              bool /* dropstd */ = true) = 0;
++                                                              std::string & /*result*/) = 0;
+       virtual void ShuttingDownSignal() = 0;
+    };
+ 
+@@ -181,9 +180,9 @@ namespace TClassEdit {
+    std::string ShortType (const char *typeDesc, int mode);
+    std::string InsertStd(const char *tname);
+    const char* GetUnqualifiedName(const char*name);
+-   inline bool IsUniquePtr(std::string_view name) {return 0 == name.compare(0, 11, "unique_ptr<");}
++   inline bool IsUniquePtr(std::string_view name) {return 0 == name.compare(0, 16, "std::unique_ptr<");}
+    inline bool IsUniquePtr(ROOT::Internal::TStringView name) {return IsUniquePtr(std::string_view(name)); }
+-   inline bool IsStdArray(std::string_view name) {return 0 == name.compare(0, 6, "array<");}
++   inline bool IsStdArray(std::string_view name) {return 0 == name.compare(0, 11, "std::array<");}
+    inline bool IsStdArray(ROOT::Internal::TStringView name) {return IsStdArray(std::string_view(name)); }
+    inline std::string GetUniquePtrType(std::string_view name)
+    {
+diff --git a/src/core/foundation/src/TClassEdit.cxx b/src/core/foundation/src/TClassEdit.cxx
+index 492aeae..defc651 100644
+--- a/src/core/foundation/src/TClassEdit.cxx
++++ b/src/core/foundation/src/TClassEdit.cxx
+@@ -92,30 +92,6 @@ static size_t StdLen(const std::string_view name)
+    return len;
+ }
+ 
+-////////////////////////////////////////////////////////////////////////////////
+-/// Remove std:: and any potential inline namespace (well compiler detail
+-/// namespace.
+-
+-static void RemoveStd(std::string &name, size_t pos = 0)
+-{
+-   size_t len = StdLen({name.data()+pos,name.length()-pos});
+-   if (len) {
+-      name.erase(pos,len);
+-   }
+-}
+-
+-////////////////////////////////////////////////////////////////////////////////
+-/// Remove std:: and any potential inline namespace (well compiler detail
+-/// namespace.
+-
+-static void RemoveStd(std::string_view &name)
+-{
+-   size_t len = StdLen(name);
+-   if (len) {
+-      name.remove_prefix(len);
+-   }
+-}
+-
+ ////////////////////////////////////////////////////////////////////////////////
+ 
+ TClassEdit::EComplexType TClassEdit::GetComplexType(const char* clName)
+@@ -226,7 +202,7 @@ int TClassEdit::TSplitType::IsSTLCont(int testAlloc) const
+    if(kind>2) kind = - kind;
+    return kind;
+ }
+-#include <iostream>
++
+ ////////////////////////////////////////////////////////////////////////////////
+ //////////////////////////////////////////////////////////////////////////////
+ /// Return the absolute type of typeDesc into the string answ.
+@@ -400,8 +376,7 @@ void TClassEdit::TSplitType::ShortType(std::string &answ, int mode)
+    else {
+       if ( (mode & kDropStlDefault) && (narg >= 3)) {
+          unsigned int offset = (0==strncmp("const ",fElements[0].c_str(),6)) ? 6 : 0;
+-         offset += (0==strncmp("std::",fElements[0].c_str()+offset,5)) ? 5 : 0;
+-         if (0 == strcmp(fElements[0].c_str()+offset,"__shared_ptr"))
++         if (0 == strcmp(fElements[0].c_str()+offset,"std::__shared_ptr"))
+          {
+ #ifdef _CONCURRENCE_H
+             static const std::string sharedPtrDef = std::to_string(__gnu_cxx::__default_lock_policy); // to_string is C++11
+@@ -418,10 +393,6 @@ void TClassEdit::TSplitType::ShortType(std::string &answ, int mode)
+    //   do the same for all inside
+    for (int i=1;i<narg; i++) {
+       if (strchr(fElements[i].c_str(),'<')==0) {
+-         if (mode&kDropStd) {
+-            unsigned int offset = (0==strncmp("const ",fElements[i].c_str(),6)) ? 6 : 0;
+-            RemoveStd( fElements[i], offset );
+-         }
+          if (mode&kResolveTypedef) {
+             fElements[i] = ResolveTypedef(fElements[i].c_str(),true);
+          }
+@@ -601,23 +572,20 @@ static size_t findNameEnd(const std::string &full, size_t pos)
+ bool TClassEdit::IsDefAlloc(const char *allocname, const char *classname)
+ {
+    string_view a( allocname );
+-   RemoveStd(a);
+ 
+-   if (a=="alloc")                              return true;
+-   if (a=="__default_alloc_template<true,0>")   return true;
+-   if (a=="__malloc_alloc_template<0>")         return true;
++   if (a=="alloc" || a=="std::alloc")                return true;
++   if (a=="__default_alloc_template<true,0>" || \
++       a=="std::__default_alloc_template<true,0>")   return true;
++   if (a=="__malloc_alloc_template<0>" || \
++       a=="std::__malloc_alloc_template<0>")         return true;
+ 
+-   const static int alloclen = strlen("allocator<");
+-   if (a.compare(0,alloclen,"allocator<") != 0) {
++   const static int alloclen = strlen("std::allocator<");
++   if (a.compare(0,alloclen,"std::allocator<") != 0) {
+       return false;
+    }
+    a.remove_prefix(alloclen);
+ 
+-   RemoveStd(a);
+-
+    string_view k = classname;
+-   RemoveStd(k);
+-
+    if (a.compare(0,k.length(),k) != 0) {
+       // Now we need to compare the normalized name.
+       size_t end = findNameEnd(a);
+@@ -654,18 +622,15 @@ bool TClassEdit::IsDefAlloc(const char *allocname,
+    if (IsDefAlloc(allocname,keyclassname)) return true;
+ 
+    string_view a( allocname );
+-   RemoveStd(a);
+ 
+-   const static int alloclen = strlen("allocator<");
+-   if (a.compare(0,alloclen,"allocator<") != 0) {
++   const static int alloclen = strlen("std::allocator<");
++   if (a.compare(0,alloclen,"std::allocator<") != 0) {
+       return false;
+    }
+    a.remove_prefix(alloclen);
+ 
+-   RemoveStd(a);
+-
+-   const static int pairlen = strlen("pair<");
+-   if (a.compare(0,pairlen,"pair<") != 0) {
++   const static int pairlen = strlen("std::pair<");
++   if (a.compare(0,pairlen,"std::pair<") != 0) {
+       return false;
+    }
+    a.remove_prefix(pairlen);
+@@ -675,10 +640,7 @@ bool TClassEdit::IsDefAlloc(const char *allocname,
+       a.remove_prefix(constlen+1);
+    }
+ 
+-   RemoveStd(a);
+-
+    string_view k = keyclassname;
+-   RemoveStd(k);
+    if (k.compare(0,constlen+1,"const ") == 0) {
+       k.remove_prefix(constlen+1);
+    }
+@@ -720,11 +682,8 @@ bool TClassEdit::IsDefAlloc(const char *allocname,
+       return false;
+    }
+    a.remove_prefix(1);
+-   RemoveStd(a);
+ 
+    string_view v = valueclassname;
+-   RemoveStd(v);
+-
+    if (a.compare(0,v.length(),v) != 0) {
+       // Now we need to compare the normalized name.
+       size_t end = findNameEnd(a);
+@@ -834,8 +793,8 @@ void TClassEdit::GetNormalizedName(std::string &norm_name, std::string_view name
+    norm_name = std::string(name); // NOTE: Is that the shortest version?
+ 
+    // Remove the std:: and default template argument and insert the Long64_t and change basic_string to string.
+-   TClassEdit::TSplitType splitname(norm_name.c_str(),(TClassEdit::EModType)(TClassEdit::kLong64 | TClassEdit::kDropStd | TClassEdit::kDropStlDefault | TClassEdit::kKeepOuterConst));
+-   splitname.ShortType(norm_name,TClassEdit::kDropStd | TClassEdit::kDropStlDefault | TClassEdit::kResolveTypedef | TClassEdit::kKeepOuterConst);
++   TClassEdit::TSplitType splitname(norm_name.c_str(),(TClassEdit::EModType)(TClassEdit::kLong64 | TClassEdit::kDropStlDefault | TClassEdit::kKeepOuterConst));
++   splitname.ShortType(norm_name, TClassEdit::kDropStlDefault | TClassEdit::kResolveTypedef | TClassEdit::kKeepOuterConst);
+ 
+    // Depending on how the user typed their code, in particular typedef
+    // declarations, we may end up with an explicit '::' being
+@@ -996,7 +955,6 @@ int TClassEdit::GetSplit(const char *type, vector<string>& output, int &nestedLo
+    {
+       unsigned int const_offset = (0==strncmp("const ",full.c_str(),6)) ? 6 : 0;
+       bool isString = false;
+-      bool isStdString = false;
+       size_t std_offset = const_offset;
+       static const char* basic_string_std = "std::basic_string<char";
+       static const unsigned int basic_string_std_len = strlen(basic_string_std);
+@@ -1004,7 +962,6 @@ int TClassEdit::GetSplit(const char *type, vector<string>& output, int &nestedLo
+       if (full.compare(const_offset,basic_string_std_len,basic_string_std) == 0
+           && full.size() > basic_string_std_len) {
+          isString = true;
+-         isStdString = true;
+          std_offset += 5;
+       } else if (full.compare(const_offset,basic_string_std_len-5,basic_string_std+5) == 0
+                  && full.size() > (basic_string_std_len-5)) {
+@@ -1014,7 +971,6 @@ int TClassEdit::GetSplit(const char *type, vector<string>& output, int &nestedLo
+          size_t len = StdLen(full.c_str() + const_offset);
+          if (len && len != 5 && full.compare(const_offset + len, basic_string_std_len-5, basic_string_std+5) == 0) {
+             isString = true;
+-            isStdString = true;
+             std_offset += len;
+          }
+       }
+@@ -1025,10 +981,7 @@ int TClassEdit::GetSplit(const char *type, vector<string>& output, int &nestedLo
+             // done.
+          } else if (full[offset] == ',') {
+             ++offset;
+-            if (full.compare(offset, 5, "std::") == 0) {
+-               offset += 5;
+-            }
+-            static const char* char_traits_s = "char_traits<char>";
++            static const char* char_traits_s = "std::char_traits<char>";
+             static const unsigned int char_traits_len = strlen(char_traits_s);
+             if (full.compare(offset, char_traits_len, char_traits_s) == 0) {
+                offset += char_traits_len;
+@@ -1039,10 +992,7 @@ int TClassEdit::GetSplit(const char *type, vector<string>& output, int &nestedLo
+                   // done.
+                } else if (full[offset] == ',') {
+                   ++offset;
+-                  if (full.compare(offset, 5, "std::") == 0) {
+-                     offset += 5;
+-                  }
+-                  static const char* allocator_s = "allocator<char>";
++                  static const char* allocator_s = "std::allocator<char>";
+                   static const unsigned int allocator_len = strlen(allocator_s);
+                   if (full.compare(offset, allocator_len, allocator_s) == 0) {
+                      offset += allocator_len;
+@@ -1071,17 +1021,9 @@ int TClassEdit::GetSplit(const char *type, vector<string>& output, int &nestedLo
+          if (isString) {
+             output.push_back(string());
+             if (const_offset && (mode & kKeepOuterConst)) {
+-               if (isStdString && !(mode & kDropStd)) {
+-                  output.push_back("const std::string");
+-               } else {
+-                  output.push_back("const string");
+-               }
++               output.push_back("const std::string");
+             } else {
+-               if (isStdString && !(mode & kDropStd)) {
+-                  output.push_back("std::string");
+-               } else {
+-                  output.push_back("string");
+-               }
++               output.push_back("std::string");
+             }
+             if (offset < full.length()) {
+                // Copy the trailing text.
+@@ -1099,11 +1041,6 @@ int TClassEdit::GetSplit(const char *type, vector<string>& output, int &nestedLo
+       }
+    }
+ 
+-   if ( mode & kDropStd) {
+-      unsigned int offset = (0==strncmp("const ",full.c_str(),6)) ? 6 : 0;
+-      RemoveStd( full, offset );
+-   }
+-
+    string stars;
+    if ( !full.empty() ) {
+       R__FindTrailing(full, stars);
+@@ -1416,7 +1353,7 @@ static void ResolveTypedefProcessType(const char *tname,
+                     : string(tname, start_of_type, end_of_type == 0 ? cursor - start_of_type : end_of_type - start_of_type));  // we need to try to avoid this copy
+    string typeresult;
+    if (gInterpreterHelper->ExistingTypeCheck(type, typeresult)
+-       || gInterpreterHelper->GetPartiallyDesugaredNameWithScopeHandling(type, typeresult, false)) {
++       || gInterpreterHelper->GetPartiallyDesugaredNameWithScopeHandling(type, typeresult)) {
+       // it is a known type
+       if (!typeresult.empty()) {
+          // and it is a typedef, we need to replace it in the output.
+@@ -1726,181 +1663,7 @@ string TClassEdit::ResolveTypedef(const char *tname, bool /* resolveAll */)
+ 
+ string TClassEdit::InsertStd(const char *tname)
+ {
+-   // Return the name of type 'tname' with all STL classes prepended by "std::".
+-   // For example for "vector<set<auto_ptr<int*> > >" it returns
+-   //    "std::vector<std::set<std::auto_ptr<int*> > >"
+-   //
+-
+-   static const char* sSTLtypes[] = {
+-      "allocator",
+-      "auto_ptr",
+-      "bad_alloc",
+-      "bad_cast",
+-      "bad_exception",
+-      "bad_typeid",
+-      "basic_filebuf",
+-      "basic_fstream",
+-      "basic_ifstream",
+-      "basic_ios",
+-      "basic_iostream",
+-      "basic_istream",
+-      "basic_istringstream",
+-      "basic_ofstream",
+-      "basic_ostream",
+-      "basic_ostringstream",
+-      "basic_streambuf",
+-      "basic_string",
+-      "basic_stringbuf",
+-      "basic_stringstream",
+-      "binary_function",
+-      "binary_negate",
+-      "bitset",
+-      "char_traits",
+-      "codecvt_byname",
+-      "codecvt",
+-      "collate",
+-      "collate_byname",
+-      "compare",
+-      "complex",
+-      "ctype_byname",
+-      "ctype",
+-      "deque",
+-      "divides",
+-      "domain_error",
+-      "equal_to",
+-      "exception",
+-      "forward_list",
+-      "fpos",
+-      "greater_equal",
+-      "greater",
+-      "gslice_array",
+-      "gslice",
+-      "hash",
+-      "indirect_array",
+-      "invalid_argument",
+-      "ios_base",
+-      "istream_iterator",
+-      "istreambuf_iterator",
+-      "istrstream",
+-      "iterator_traits",
+-      "iterator",
+-      "length_error",
+-      "less_equal",
+-      "less",
+-      "list",
+-      "locale",
+-      "localedef utility",
+-      "locale utility",
+-      "logic_error",
+-      "logical_and",
+-      "logical_not",
+-      "logical_or",
+-      "map",
+-      "mask_array",
+-      "mem_fun",
+-      "mem_fun_ref",
+-      "messages",
+-      "messages_byname",
+-      "minus",
+-      "modulus",
+-      "money_get",
+-      "money_put",
+-      "moneypunct",
+-      "moneypunct_byname",
+-      "multimap",
+-      "multiplies",
+-      "multiset",
+-      "negate",
+-      "not_equal_to",
+-      "num_get",
+-      "num_put",
+-      "numeric_limits",
+-      "numpunct",
+-      "numpunct_byname",
+-      "ostream_iterator",
+-      "ostreambuf_iterator",
+-      "ostrstream",
+-      "out_of_range",
+-      "overflow_error",
+-      "pair",
+-      "plus",
+-      "pointer_to_binary_function",
+-      "pointer_to_unary_function",
+-      "priority_queue",
+-      "queue",
+-      "range_error",
+-      "raw_storage_iterator",
+-      "reverse_iterator",
+-      "runtime_error",
+-      "set",
+-      "slice_array",
+-      "slice",
+-      "stack",
+-      "string",
+-      "strstream",
+-      "strstreambuf",
+-      "time_get_byname",
+-      "time_get",
+-      "time_put_byname",
+-      "time_put",
+-      "unary_function",
+-      "unary_negate",
+-      "unique_pointer",
+-      "underflow_error",
+-      "unordered_map",
+-      "unordered_multimap",
+-      "unordered_multiset",
+-      "unordered_set",
+-      "valarray",
+-      "vector",
+-      "wstring"
+-   };
+-   static ShuttingDownSignaler<set<string>> sSetSTLtypes;
+-
+-   if (tname==0 || tname[0]==0) return "";
+-
+-   if (sSetSTLtypes.empty()) {
+-      // set up static set
+-      const size_t nSTLtypes = sizeof(sSTLtypes) / sizeof(const char*);
+-      for (size_t i = 0; i < nSTLtypes; ++i)
+-         sSetSTLtypes.insert(sSTLtypes[i]);
+-   }
+-
+-   size_t b = 0;
+-   size_t len = strlen(tname);
+-   string ret;
+-   ret.reserve(len + 20); // expect up to 4 extra "std::" to insert
+-   string id;
+-   while (b < len) {
+-      // find beginning of next identifier
+-      bool precScope = false; // whether the identifier was preceded by "::"
+-      while (!(isalnum(tname[b]) || tname[b] == '_') && b < len) {
+-         precScope = (b < len - 2) && (tname[b] == ':') && (tname[b + 1] == ':');
+-         if (precScope) {
+-            ret += "::";
+-            b += 2;
+-         } else
+-            ret += tname[b++];
+-      }
+-
+-      // now b is at the beginning of an identifier or len
+-      size_t e = b;
+-      // find end of identifier
+-      id.clear();
+-      while (e < len && (isalnum(tname[e]) || tname[e] == '_'))
+-         id += tname[e++];
+-      if (!id.empty()) {
+-         if (!precScope) {
+-            set<string>::const_iterator iSTLtype = sSetSTLtypes.find(id);
+-            if (iSTLtype != sSetSTLtypes.end())
+-               ret += "std::";
+-         }
+-
+-         ret += id;
+-         b = e;
+-      }
+-   }
+-   return ret;
++   return tname;
+ }
+ 
+ ////////////////////////////////////////////////////////////////////////////////
+diff --git a/src/core/meta/inc/LinkDef.h b/src/core/meta/inc/LinkDef.h
+index 1710180..6400871 100644
+--- a/src/core/meta/inc/LinkDef.h
++++ b/src/core/meta/inc/LinkDef.h
+@@ -60,8 +60,6 @@
+ #pragma link C++ class TStreamerSTL-;
+ #pragma link C++ class TStreamerSTLstring-;
+ #pragma link C++ class TStreamerElement-;
+-#pragma link C++ class TToggle;
+-#pragma link C++ class TToggleGroup;
+ #pragma link C++ class TFileMergeInfo;
+ #pragma link C++ class TListOfFunctions+;
+ #pragma link C++ class TListOfFunctionsIter;
+diff --git a/src/core/meta/src/TClass.cxx b/src/core/meta/src/TClass.cxx
+index da37dbc..c1c3b0b 100644
+--- a/src/core/meta/src/TClass.cxx
++++ b/src/core/meta/src/TClass.cxx
+@@ -1995,7 +1995,7 @@ void TClass::BuildRealData(void* pointer, Bool_t isTransient)
+    // and those for which the user explicitly requested a dictionary.
+    if (!isTransient && GetState() != kHasTClassInit
+        && TClassEdit::IsStdClass(GetName())
+-       && strncmp(GetName(), "pair<", 5) != 0) {
++       && strncmp(GetName(), "std::pair<", 10) != 0) {
+       Error("BuildRealData", "Inspection for %s not supported!", GetName());
+    }
+ 
+@@ -2144,7 +2144,7 @@ Bool_t TClass::CallShowMembers(const void* obj, TMemberInspector &insp, Bool_t i
+       if (fCanLoadClassInfo) LoadClassInfo();
+       if (fClassInfo) {
+ 
+-         if (strcmp(GetName(), "string") == 0) {
++         if (strcmp(GetName(), "std::string") == 0) {
+             // For std::string we know that we do not have a ShowMembers
+             // function and that it's okay.
+             return kTRUE;
+@@ -3093,11 +3093,6 @@ TClass *TClass::GetClass(const char *name, Bool_t load, Bool_t silent)
+             std::string alternative;
+             gInterpreter->GetInterpreterTypeName(normalizedName.c_str(), alternative, kTRUE);
+             const char *altname = alternative.c_str();
+-            if (strncmp(altname, "std::", 5) == 0) {
+-               // For namespace (for example std::__1), GetInterpreterTypeName does
+-               // not strip std::, so we must do it explicitly here.
+-               altname += 5;
+-            }
+             if (altname != normalizedName && strcmp(altname, name) != 0) {
+                // altname now contains the full name of the class including a possible
+                // namespace if there has been a using namespace statement.
+@@ -3876,7 +3871,7 @@ void TClass::GetMissingDictionariesWithRecursionCheck(TCollection& result, TColl
+ {
+    if (result.FindObject(this) || visited.FindObject(this)) return;
+ 
+-   static TClassRef sCIString("string");
++   static TClassRef sCIString("std::string");
+    if (this == sCIString) return;
+ 
+    TClassEdit::TSplitType splitType(fName);
+@@ -3905,7 +3900,7 @@ void TClass::GetMissingDictionariesWithRecursionCheck(TCollection& result, TColl
+       const auto &templName = elements[0];
+ 
+       // Special treatment for pair.
+-      if (templName == "pair") {
++      if (templName == "std::pair") {
+          GetMissingDictionariesForPairElements(result, visited, recurse);
+          return;
+       }
+@@ -3913,7 +3908,7 @@ void TClass::GetMissingDictionariesWithRecursionCheck(TCollection& result, TColl
+       // Special treatment of unique_ptr or array
+       // They are treated together since they have 1 single template argument
+       // which is interesting when checking for missing dictionaries.
+-      if (templName == "unique_ptr" || templName == "array") {
++      if (templName == "std::unique_ptr" || templName == "std::array") {
+          checkDicts(elements[1]);
+          return;
+       }
+@@ -3921,7 +3916,7 @@ void TClass::GetMissingDictionariesWithRecursionCheck(TCollection& result, TColl
+       // Special treatment of tuple
+       // This type must be treated separately since it can have N template
+       // arguments which are interesting, unlike unique_ptr or array.
+-      if (templName == "tuple") {
++      if (templName == "std::tuple") {
+          // -1 because the elements end with a list of the "stars", i.e. number of
+          // * after the type name
+          const auto nTemplArgs = elements.size() - 1;
+@@ -3975,12 +3970,12 @@ void TClass::GetMissingDictionaries(THashTable& result, bool recurse)
+ 
+    if (result.FindObject(this)) return;
+ 
+-   static TClassRef sCIString("string");
++   static TClassRef sCIString("std::string");
+    if (this == sCIString) return;
+ 
+    THashTable visited;
+ 
+-   if (strncmp(fName, "pair<", 5) == 0) {
++   if (strncmp(fName, "std::pair<", 5) == 0) {
+       GetMissingDictionariesForPairElements(result, visited, recurse);
+       return;
+    }
+@@ -6322,7 +6317,7 @@ UInt_t TClass::GetCheckSum(ECheckSum code, Bool_t &isvalid) const
+    // otherwise, on some STL implementations, it can happen that pair has
+    // base classes which are an internal implementation detail.
+    TList *tlb = ((TClass*)this)->GetListOfBases();
+-   if (tlb && !GetCollectionProxy() && strncmp(GetName(), "pair<", 5)) {
++   if (tlb && !GetCollectionProxy() && strncmp(GetName(), "std::pair<", 10)) {
+       // Loop over bases if not a proxied collection or a pair
+ 
+       TIter nextBase(tlb);
+diff --git a/src/core/meta/src/TStreamerElement.cxx b/src/core/meta/src/TStreamerElement.cxx
+index e2a644b..2230e5e 100644
+--- a/src/core/meta/src/TStreamerElement.cxx
++++ b/src/core/meta/src/TStreamerElement.cxx
+@@ -1798,7 +1798,7 @@ TStreamerSTL::TStreamerSTL(const char *name, const char *title, Int_t offset,
+          if (gCling->ClassInfo_IsEnum(sopen)) {
+             if (isPointer) fCtype += TVirtualStreamerInfo::kOffsetP;
+          } else {
+-            if(strcmp(sopen,"string")) {
++            if(strcmp(sopen,"std::string")) {
+                // This case can happens when 'this' is a TStreamerElement for
+                // a STL container containing something for which we do not have
+                // a TVirtualStreamerInfo (This happens in particular is the collection
+diff --git a/src/core/metacling/src/TCling.cxx b/src/core/metacling/src/TCling.cxx
+index 835393c..918022c 100644
+--- a/src/core/metacling/src/TCling.cxx
++++ b/src/core/metacling/src/TCling.cxx
+@@ -786,9 +786,6 @@ int TCling_GenerateDictionary(const std::vector<std::string> &classes,
+          std::set<std::string>::const_iterator iSTLType = sSTLTypes.end();
+          if (posTemplate != std::string::npos) {
+             n.erase(posTemplate, std::string::npos);
+-            if (n.compare(0, 5, "std::") == 0) {
+-               n.erase(0, 5);
+-            }
+             iSTLType = sSTLTypes.find(n);
+          }
+          fileContent += "#pragma link C++ class ";
+@@ -1197,7 +1194,6 @@ static void RegisterPreIncludedHeaders(cling::Interpreter &clingInterp)
+    // We must include it even when we have modules because it is marked as
+    // textual in the modulemap due to the nature of the assert header.
+    PreIncludes += "#include <cassert>\n";
+-   PreIncludes += "using namespace std;\n";
+    clingInterp.declare(PreIncludes);
+ }
+ 
+@@ -4110,15 +4106,6 @@ Bool_t TCling::CheckClassTemplate(const char *name)
+    return lh.existsClassTemplate(name,
+        gDebug > 5 ? cling::LookupHelper::WithDiagnostics
+            : cling::LookupHelper::NoDiagnostics);
+-
+-   /*if (!decl) {
+-      std::string strname = "std::";
+-      strname += name;
+-      decl = lh.findClassTemplate(strname,
+-                                  gDebug > 5 ? cling::LookupHelper::WithDiagnostics
+-                                  : cling::LookupHelper::NoDiagnostics);
+-   }
+-   return 0 != decl; */
+ }
+ 
+ ////////////////////////////////////////////////////////////////////////////////
+@@ -4962,8 +4949,8 @@ void TCling::GetInterpreterTypeName(const char* name, std::string &output, Bool_
+    }
+    // Well well well, for backward compatibility we need to act a bit too
+    // much like CINT.
+-   TClassEdit::TSplitType splitname( cl.Name(), TClassEdit::kDropStd );
+-   splitname.ShortType(output, TClassEdit::kDropStd );
++   //TClassEdit::TSplitType splitname( cl.Name(), 0);//(TClassEdit::EModType)(TClassEdit::kLong64));
++   //splitname.ShortType(output, 0); //TClassEdit::kDropStlDefault);
+ 
+    return;
+ }
+@@ -5872,8 +5859,8 @@ Int_t TCling::AutoLoad(const std::type_info& typeinfo, Bool_t knowDictNotLoaded
+ 
+    // AutoLoad expects (because TClass::GetClass already prepares it that way) a
+    // shortened name.
+-   TClassEdit::TSplitType splitname( demangled_name.c_str(), (TClassEdit::EModType)(TClassEdit::kLong64 | TClassEdit::kDropStd) );
+-   splitname.ShortType(demangled_name, TClassEdit::kDropStlDefault | TClassEdit::kDropStd);
++   TClassEdit::TSplitType splitname( demangled_name.c_str(), (TClassEdit::EModType)(TClassEdit::kLong64) );
++   splitname.ShortType(demangled_name, TClassEdit::kDropStlDefault);
+ 
+    // No need to worry about typedef, they aren't any ... but there are
+    // inlined namespaces ...
+diff --git a/src/io/io/src/TEmulatedCollectionProxy.cxx b/src/io/io/src/TEmulatedCollectionProxy.cxx
+index 5852f7d..18b667d 100644
+--- a/src/io/io/src/TEmulatedCollectionProxy.cxx
++++ b/src/io/io/src/TEmulatedCollectionProxy.cxx
+@@ -143,7 +143,7 @@ TGenCollectionProxy *TEmulatedCollectionProxy::InitializeEx(Bool_t silent)
+          switch ( fSTL_type )  {
+             case ROOT::kSTLmap:
+             case ROOT::kSTLmultimap:
+-               nam = "pair<"+inside[1]+","+inside[2];
++               nam = "std::pair<"+inside[1]+","+inside[2];
+                nam += (nam[nam.length()-1]=='>') ? " >" : ">";
+                if (0==TClass::GetClass(nam.c_str())) {
+                   // We need to emulate the pair
+@@ -676,8 +676,8 @@ static TStreamerInfo *R__GenerateTClassForPair(const std::string &fname, const s
+    // This TStreamerInfo is then used as if it was read from a file to generate
+    // and emulated TClass.
+ 
+-   TStreamerInfo *i = (TStreamerInfo*)TClass::GetClass("pair<const int,int>")->GetStreamerInfo()->Clone();
+-   std::string pname = "pair<"+fname+","+sname;
++   TStreamerInfo *i = (TStreamerInfo*)TClass::GetClass("std::pair<const int,int>")->GetStreamerInfo()->Clone();
++   std::string pname = "std::pair<"+fname+","+sname;
+    pname += (pname[pname.length()-1]=='>') ? " >" : ">";
+    i->SetName(pname.c_str());
+    i->SetClass(0);
+diff --git a/src/io/io/src/TGenCollectionProxy.cxx b/src/io/io/src/TGenCollectionProxy.cxx
+index 623abc6..4ea9dbb 100644
+--- a/src/io/io/src/TGenCollectionProxy.cxx
++++ b/src/io/io/src/TGenCollectionProxy.cxx
+@@ -349,7 +349,7 @@ TGenCollectionProxy::Value::Value(const std::string& inside_type, Bool_t silent)
+ 
+    if ( intype.substr(0,6) == "string" || intype.substr(0,11) == "std::string" ) {
+       fCase = kBIT_ISSTRING;
+-      fType = TClass::GetClass("string");
++      fType = TClass::GetClass("std::string");
+       fCtor = fType->GetNew();
+       fDtor = fType->GetDestructor();
+       fDelete = fType->GetDelete();
+@@ -877,7 +877,7 @@ TGenCollectionProxy *TGenCollectionProxy::InitializeEx(Bool_t silent)
+             case ROOT::kSTLunorderedmap:
+             case ROOT::kSTLmultimap:
+             case ROOT::kSTLunorderedmultimap:
+-               nam = "pair<"+inside[1]+","+inside[2];
++               nam = "std::pair<"+inside[1]+","+inside[2];
+                nam += (nam[nam.length()-1]=='>') ? " >" : ">";
+                newfValue = R__CreateValue(nam, silent);
+ 
+diff --git a/src/io/io/src/TStreamerInfo.cxx b/src/io/io/src/TStreamerInfo.cxx
+index 45ff60d..f16120d 100644
+--- a/src/io/io/src/TStreamerInfo.cxx
++++ b/src/io/io/src/TStreamerInfo.cxx
+@@ -309,9 +309,9 @@ void TStreamerInfo::Build()
+    // this is a pair, otherwise, on some STL implementations, it can happen that
+    // pair has mother classes which are an internal implementation detail and
+    // would result in bogus messages printed on screen.
+-   if (strncmp(fClass->GetName(), "pair<", 5)) {
++   if (strncmp(fClass->GetName(), "std::pair<", 10)) {
+       const bool isCollection = fClass->GetCollectionProxy();
+-      const bool isString = !strcmp(fClass->GetName(), "string");
++      const bool isString = !strcmp(fClass->GetName(), "std::string");
+       TBaseClass* base = 0;
+       TIter nextb(fClass->GetListOfBases());
+       while ((base = (TBaseClass*)nextb())) {
+@@ -328,7 +328,7 @@ void TStreamerInfo::Build()
+          const char* bname  = base->GetName();
+          const char* btitle = base->GetTitle();
+          // this case appears with STL collections as base class.
+-         if (!strcmp(bname, "string")) {
++         if (!strcmp(bname, "std::string")) {
+             element = new TStreamerSTLstring(bname, btitle, offset, bname, kFALSE);
+          } else if (base->IsSTLContainer()) {
+             TVirtualCollectionProxy *proxy = base->GetClassPointer()->GetCollectionProxy();
+@@ -505,7 +505,7 @@ void TStreamerInfo::Build()
+          }
+       } else {
+          // try STL container or string
+-         static const char* full_string_name = "basic_string<char,char_traits<char>,allocator<char> >";
++         static const char* full_string_name = "std::basic_string<char,std::char_traits<char>,std::allocator<char> >";
+          if (!strcmp(dmType, "string") || !strcmp(dmType, "std::string") || !strcmp(dmType, full_string_name)) {
+             element = new TStreamerSTLstring(dmName, dmTitle, offset, dmFull, dmIsPtr);
+          } else if (dm->IsSTLContainer()) {
+@@ -725,7 +725,7 @@ void TStreamerInfo::BuildCheck(TFile *file /* = 0 */)
+                      break;
+                   }
+                }
+-               content.Prepend("vector");
++               content.Prepend("std::vector");
+                TClass *clequiv = TClass::GetClass(content);
+                TVirtualCollectionProxy *proxy = clequiv->GetCollectionProxy();
+                if (gDebug > 1)
+@@ -754,7 +754,7 @@ void TStreamerInfo::BuildCheck(TFile *file /* = 0 */)
+          }
+       }
+ 
+-      if (0 == strcmp("string",fClass->GetName())) {
++      if (0 == strcmp("std::string",fClass->GetName())) {
+          // We know we do not need any offset check for a string
+          SetBit(kCanDelete);
+          return;
+@@ -790,7 +790,7 @@ void TStreamerInfo::BuildCheck(TFile *file /* = 0 */)
+                      break;
+                   }
+                }
+-               content.Prepend("vector");
++               content.Prepend("std::vector");
+                TClass *clequiv = TClass::GetClass(content);
+                TVirtualCollectionProxy *proxy = clequiv->GetCollectionProxy();
+                if (gDebug > 1)
+@@ -1915,7 +1915,7 @@ void TStreamerInfo::BuildOld()
+                TBaseClass* bc = 0;
+                TIter nextBC(fClass->GetListOfBases());
+                while ((bc = (TBaseClass*) nextBC())) {
+-                  if (strchr(bc->GetName(), '<') || !strcmp(bc->GetName(),"string")) {
++                  if (strchr(bc->GetName(), '<') || !strcmp(bc->GetName(),"std::string")) {
+                      TString bcName(TClassEdit::ShortType(bc->GetName(), TClassEdit::kDropStlDefault).c_str());
+                      TString elName(TClassEdit::ShortType(element->GetTypeName(), TClassEdit::kDropStlDefault).c_str());
+                      if (bcName == elName) {
+@@ -1954,7 +1954,7 @@ void TStreamerInfo::BuildOld()
+                   TStreamerElement *newElement;
+                   while( (newElement = (TStreamerElement*)newElems()) ) {
+                      const char *newElName = newElement->GetName();
+-                     if (newElement->IsBase() && (strchr(newElName,'<') || !strcmp(newElName,"string")) ) {
++                     if (newElement->IsBase() && (strchr(newElName,'<') || !strcmp(newElName,"std::string")) ) {
+                         TString bcName(TClassEdit::ShortType(newElName, TClassEdit::kDropStlDefault).c_str());
+                         TString elName(TClassEdit::ShortType(element->GetTypeName(), TClassEdit::kDropStlDefault).c_str());
+                         if (bcName == elName) {
+@@ -2597,7 +2597,7 @@ namespace {
+          fName = name;
+       }
+       void SetClassName(const char *name) {
+-         fClassName = TClassEdit::ResolveTypedef(TClassEdit::ShortType( name, TClassEdit::kDropStlDefault | TClassEdit::kDropStd ).c_str(),kTRUE);
++         fClassName = TClassEdit::ResolveTypedef(TClassEdit::ShortType( name, TClassEdit::kDropStlDefault ).c_str(),kTRUE);
+       }
+       void SetComment(const char *title) {
+          const char *left = strstr(title,"[");
+@@ -3111,7 +3111,7 @@ void TStreamerInfo::ForceWriteInfo(TFile* file, Bool_t force)
+    }
+    // We do not want to write streamer info to the file
+    // for std::string.
+-   static TClassRef string_classref("string");
++   static TClassRef string_classref("std::string");
+    if (fClass == string_classref) { // We are std::string.
+       return;
+    }
+@@ -3228,7 +3228,7 @@ UInt_t TStreamerInfo::GetCheckSum(TClass::ECheckSum code) const
+    // Here we skip he base classes in case this is a pair or STL collection,
+    // otherwise, on some STL implementations, it can happen that pair has
+    // base classes which are an internal implementation detail.
+-   if (!fClass->GetCollectionProxy() && strncmp(fClass->GetName(), "pair<", 5)) {
++   if (!fClass->GetCollectionProxy() && strncmp(fClass->GetName(), "std::pair<", 10)) {
+       while ( (el=(TStreamerElement*)next())) { // loop over bases
+          if (el->IsBase()) {
+             name = el->GetName();
+@@ -3852,9 +3852,9 @@ UInt_t TStreamerInfo::GenerateIncludes(FILE *fp, char *inclist, const TList *ext
+       if (strncmp(include,"include\\",9)==0) {
+          include += 9;
+       }
+-      if (strncmp(element->GetTypeName(),"pair<",strlen("pair<"))==0) {
++      if (strncmp(element->GetTypeName(),"std::pair<",strlen("std::pair<"))==0) {
+          TMakeProject::AddInclude( fp, "utility", kTRUE, inclist);
+-      } else if (strncmp(element->GetTypeName(),"auto_ptr<",strlen("auto_ptr<"))==0) {
++      } else if (strncmp(element->GetTypeName(),"std::auto_ptr<",strlen("std::auto_ptr<"))==0) {
+          TMakeProject::AddInclude( fp, "memory", kTRUE, inclist);
+       } else {
+          TString incName( include, strlen(include)-1 );
+@@ -3878,8 +3878,8 @@ Int_t TStreamerInfo::GenerateHeaderFile(const char *dirname, const TList *subCla
+ {
+    // if (fClassVersion == -4) return 0;
+    if ((fClass && fClass->GetCollectionType()) || TClassEdit::IsSTLCont(GetName())) return 0;
+-   if (strncmp(GetName(),"pair<",strlen("pair<"))==0) return 0;
+-   if (strncmp(GetName(),"auto_ptr<",strlen("auto_ptr<"))==0) return 0;
++   if (strncmp(GetName(),"std::pair<",strlen("std::pair<"))==0) return 0;
++   if (strncmp(GetName(),"std::auto_ptr<",strlen("std::auto_ptr<"))==0) return 0;
+ 
+    TClass *cl = TClass::GetClass(GetName());
+    if (cl) {
+@@ -5043,7 +5043,7 @@ void TStreamerInfo::PrintValue(const char *name, char *pointer, Int_t i, Int_t l
+          if (pointer==0) {
+             printf("NULL\n");
+          } else {
+-            const static TClassRef stringClass("string");
++            const static TClassRef stringClass("std::string");
+             if (fClass == stringClass) {
+                std::string *st = (std::string*)(pointer);
+                printf("%s\n",st->c_str());
+@@ -5465,7 +5465,7 @@ void TStreamerInfo::PrintValueAux(char *ladd, Int_t atype, TStreamerElement *aEl
+       }
+       case kSTL: {
+          if (aElement) {
+-            static TClassRef stringClass("string");
++            static TClassRef stringClass("std::string");
+             if (ladd && aElement->GetClass() == stringClass) {
+                std::string *st = (std::string*)(ladd);
+                printf("%s",st->c_str());
+diff --git a/src/io/rootpcm/src/rootclingIO.cxx b/src/io/rootpcm/src/rootclingIO.cxx
+index fc4dda8..24fad41 100644
+--- a/src/io/rootpcm/src/rootclingIO.cxx
++++ b/src/io/rootpcm/src/rootclingIO.cxx
+@@ -105,7 +105,7 @@ static bool IsUnsupportedUniquePointer(const char *normName, TDataMember *dm)
+       int i;
+       TClassEdit::GetSplit(dmTypeName, out, i);
+       // out[2] contains the deleter type.
+-      if (0 != out[2].find("default_delete<")) {
++      if (0 != out[2].find("std::default_delete<")) {
+          Error("CloseStreamerInfoROOTFile", "I/O is supported only for unique_ptrs with a default deleter. %s::%s  appears to have a custom one, %s.", normName, dm->GetName(), out[2].c_str());
+          return true;
+       }

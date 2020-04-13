@@ -22,33 +22,3 @@ index a4baa766e8..c042fa3645 100644
     policy.AnonymousTagLocations = false; // Do not extract file name + line number for anonymous types.
     // The scope suppression is required for getting rid of the anonymous part of the name of a class defined in an anonymous namespace.
     // This gives us more control vs not using the clang::ElaboratedType and relying on the Policy.SuppressUnwrittenScope which would
-diff --git a/src/interpreter/cling/lib/Utils/AST.cpp b/src/interpreter/cling/lib/Utils/AST.cpp
-index 783d9e0ef3..5d5c5e439b 100644
---- a/src/interpreter/cling/lib/Utils/AST.cpp
-+++ b/src/interpreter/cling/lib/Utils/AST.cpp
-@@ -1407,8 +1415,10 @@ namespace utils {
-     if (prefix) {
-       // We intentionally always use ETK_None, we never want
-       // the keyword (humm ... what about anonymous types?)
--      QT = Ctx.getElaboratedType(ETK_None,prefix,QT);
--      QT = Ctx.getQualifiedType(QT, prefix_qualifiers);
-+      if (QT.getAsString().find("function<") == std::string::npos) {
-+        QT = Ctx.getElaboratedType(ETK_None,prefix,QT);
-+        QT = Ctx.getQualifiedType(QT, prefix_qualifiers);
-+      }
-     } else if (original_prefix) {
-       QT = Ctx.getQualifiedType(QT, prefix_qualifiers);
-     }
-@@ -1728,8 +1730,10 @@ namespace utils {
-     if (prefix) {
-       // We intentionally always use ETK_None, we never want
-       // the keyword (humm ... what about anonymous types?)
--      QT = Ctx.getElaboratedType(ETK_None,prefix,QT);
--      QT = Ctx.getQualifiedType(QT, prefix_qualifiers);
-+      if (QT.getAsString().find("function<") == std::string::npos) {
-+        QT = Ctx.getElaboratedType(ETK_None,prefix,QT);
-+        QT = Ctx.getQualifiedType(QT, prefix_qualifiers);
-+      }
-     }
-     return QT;
-   }
