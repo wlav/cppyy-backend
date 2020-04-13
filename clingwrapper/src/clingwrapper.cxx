@@ -372,13 +372,15 @@ std::string Cppyy::ResolveName(const std::string& cppitem_name)
         return ResolveEnum(cppitem_name);
 
 // special case for clang's builtin __type_pack_element (which does not resolve)
-    if (cppitem_name.rfind("__type_pack_element", 0) != std::string::npos) {
-    // shape is "__type_pack_element<index,type1,type2,...,typeN>cpd": extract
+    auto pos = cppitem_name.size() > 20 ? \
+                   cppitem_name.rfind("__type_pack_element", 5) : std::string::npos;
+    if (pos != std::string::npos) {
+    // shape is "[std::]__type_pack_element<index,type1,type2,...,typeN>cpd": extract
     // first the index, and from there the indexed type; finally, restore the
     // qualifiers
         const char* str = cppitem_name.c_str();
         char* endptr = nullptr;
-        unsigned long index = strtoul(str+20, &endptr, 0);
+        unsigned long index = strtoul(str+20+pos, &endptr, 0);
 
         std::string tmplvars{endptr};
         auto start = tmplvars.find(',') + 1;
