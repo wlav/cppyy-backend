@@ -21,7 +21,7 @@ index 1804bf9..c46cbd6 100644
 --- a/src/core/foundation/src/TClassEdit.cxx
 +++ b/src/core/foundation/src/TClassEdit.cxx
 @@ -462,7 +462,7 @@ void TClassEdit::TSplitType::ShortType(std::string &answ, int mode)
- 
+    }
     if (fNestedLocation) {
        // Treat X pf A<B>::X
 -      fElements[fNestedLocation] = TClassEdit::ShortType(fElements[fNestedLocation].c_str(),mode);
