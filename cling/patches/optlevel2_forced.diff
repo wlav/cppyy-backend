@@ -17,7 +17,7 @@ diff --git a/src/interpreter/cling/lib/Interpreter/CIFactory.cpp b/src/interpret
 index f97c86032f..69321c5579 100644
 --- a/src/interpreter/cling/lib/Interpreter/CIFactory.cpp
 +++ b/src/interpreter/cling/lib/Interpreter/CIFactory.cpp
-@@ -1562,7 +1562,7 @@ static void stringifyPreprocSetting(PreprocessorOptions& PPOpts,
+@@ -1564,7 +1564,7 @@ static void stringifyPreprocSetting(PreprocessorOptions& PPOpts,
      // FIXME: We have a bug when we switch to -O2, for some cases it takes
      // several minutes to optimize, while the same code compiled by clang -O2
      // takes only a few seconds.
