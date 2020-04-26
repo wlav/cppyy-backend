@@ -135,7 +135,7 @@ class my_cmake_build(_build):
 
         CMAKE_COMMAND = ['cmake', srcdir,
                 stdcxx, '-DLLVM_ENABLE_TERMINFO=0', '-DLLVM_ENABLE_ASSERTIONS=0',
-                '-Dminimal=ON', '-Dasimage=OFF', '-Droot7=OFF', '-Dhttp=OFF',
+                '-Dminimal=ON', '-Druntime_cxxmodules=OFF', '-Dasimage=OFF', '-Droot7=OFF', '-Dhttp=OFF',
                 '-Dbuiltin_pcre=ON', '-Dbuiltin_freetype=ON', '-Dbuiltin_zlib=ON', '-Dbuiltin_xxhash=ON']
         if 'darwin' in sys.platform:
             CMAKE_COMMAND.append('-Dlibcxx=ON')
@@ -345,7 +345,7 @@ setup(
     author='ROOT Developers',
     author_email='rootdev@cern.ch',
 
-    version='6.20.2.0',
+    version='6.20.4.0',
 
     license='LLVM: UoI-NCSA; ROOT: LGPL 2.1',
 

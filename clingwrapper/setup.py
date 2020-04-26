@@ -19,7 +19,7 @@ if '--force-bdist' in sys.argv:
     force_bdist = True
     sys.argv.remove('--force-bdist')
 
-requirements = ['cppyy-cling<6.20.3', 'cppyy-cling>=6.20.2.0']
+requirements = ['cppyy-cling<6.20.6', 'cppyy-cling>=6.20.4.0']
 setup_requirements = ['wheel']
 if 'build' in sys.argv or 'install' in sys.argv:
     setup_requirements += requirements
