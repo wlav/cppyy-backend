@@ -59,6 +59,14 @@ diff --git a/src/core/dictgen/src/rootcling_impl.cxx b/src/core/dictgen/src/root
 index d8ac350..5e1aa9b 100644
 --- a/src/core/dictgen/src/rootcling_impl.cxx
 +++ b/src/core/dictgen/src/rootcling_impl.cxx
+@@ -33,6 +33,7 @@ const char *shortHelp =
+ #include <list>
+ #include <vector>
+ #include <sstream>
++#include <iterator>
+ #include <map>
+ #include <fstream>
+ #include <sys/stat.h>
 @@ -4102,8 +4102,8 @@ int RootClingMain(int argc,
        }
     }
@@ -70,13 +78,20 @@ index d8ac350..5e1aa9b 100644
  #else
  # error "Remove this deprecated code"
  #endif
-@@ -4173,6 +4173,10 @@ int RootClingMain(int argc,
+@@ -4173,6 +4173,17 @@ int RootClingMain(int argc,
        clingArgs.push_back(gOptISysRoot.ValueStr);
     }
  
 +   // the "unknown options" are actually user additions to cling :P
 +   for (const std::string& Opt : gOptSink)
 +      clingArgs.push_back(Opt);
++
++   // extra cxx flags provided
++   for (const std::string& Opt : gCxxFlags) {
++      std::istringstream splitter(Opt);
++      std::copy(std::istream_iterator<std::string>(splitter),
++         std::istream_iterator<std::string>(), std::back_inserter(clingArgs));
++   }
 +
     // Check if we have a multi dict request but no target library
     if (gOptMultiDict && gOptSharedLibFileName.empty()) {
