@@ -1,0 +1,57 @@
+diff --git a/src/CMakeLists.txt b/src/CMakeLists.txt
+index 0e4106e..492df89 100644
+--- a/src/CMakeLists.txt
++++ b/src/CMakeLists.txt
+@@ -400,7 +400,7 @@ else()
+       etc/dictpch/allLinkDefs.h
+     COMMAND
+       ${PYTHON_EXECUTABLE} ${CMAKE_SOURCE_DIR}/build/unix/makepchinput.py
+-      ${CMAKE_SOURCE_DIR} . ${pyroot_experimental} ${__cling_pch}
++      ${CMAKE_SOURCE_DIR} . ${pyroot_experimental} ${__cling_pch} -- ${CMAKE_CXX_FLAGS_SEPARATE}
+     COMMAND
+       ${CMAKE_COMMAND} -E env ROOTIGNOREPREFIX=1 ${PYTHON_EXECUTABLE}
+       ${CMAKE_SOURCE_DIR}/etc/dictpch/makepch.py etc/allDict.cxx.pch
+diff --git a/src/build/unix/makepchinput.py b/src/build/unix/makepchinput.py
+index 599c8d5..a202aa0 100755
+--- a/src/build/unix/makepchinput.py
++++ b/src/build/unix/makepchinput.py
+@@ -40,9 +40,18 @@ def getParams():
+    """
+    argv = sys.argv
+    rootSrcDir, modules, expPyROOT = argv[1:4]
+-   clingetpchList = argv[4:]
+-
+-   return rootSrcDir, modules, expPyROOT == 'ON', clingetpchList
++   posDelim = argv.index('--')
++   clingetpchList = argv[4:posDelim]
++   cxxflags = argv[posDelim + 1:]
++   cxxflagsNoW = [flag for flag in cxxflags if (flag[0:2] != '-W' and flag[0:3] != '-wd' and \
++                                                flag[0:2] != '-x' and flag[0:3] != '-ax' and \
++                                                flag[0:2] != '-O' and flag[0:5] != '-arch') \
++                                                or flag[0:4] == '-Wno']
++   if '-Wno-noexcept-type' in cxxflagsNoW:
++      cxxflagsNoW.remove('-Wno-noexcept-type')
++   #print (', '.join(cxxflagsNoW))
++
++   return rootSrcDir, modules, expPyROOT == 'ON', clingetpchList, cxxflagsNoW
+ 
+ #-------------------------------------------------------------------------------
+ def getGuardedStlInclude(headerName):
+@@ -454,7 +464,7 @@ def makePCHInput():
+       * etc/dictpch/allHeaders.h
+       * etc/dictpch/allCppflags.txt
+    """
+-   rootSrcDir, modules, expPyROOT, clingetpchList = getParams()
++   rootSrcDir, modules, expPyROOT, clingetpchList, cxxflags = getParams()
+ 
+    outdir = os.path.join("etc","dictpch")
+    allHeadersFilename = os.path.join(outdir,"allHeaders.h")
+@@ -498,7 +508,7 @@ def makePCHInput():
+ 
+    copyLinkDefs(rootSrcDir, outdir)
+ 
+-   cppFlagsContent = getCppFlags(rootSrcDir, allIncPathsList) + '\n'
++   cppFlagsContent = getCppFlags(rootSrcDir,allIncPathsList) + '\n'.join(cxxflags) + '\n'
+ 
+    writeFiles(((allHeadersContent, allHeadersFilename),
+                (allLinkdefsContent, allLinkdefsFilename),
