@@ -55,3 +55,29 @@ index 599c8d5..a202aa0 100755
  
     writeFiles(((allHeadersContent, allHeadersFilename),
                 (allLinkdefsContent, allLinkdefsFilename),
+diff --git a/src/core/dictgen/src/rootcling_impl.cxx b/src/core/dictgen/src/rootcling_impl.cxx
+index d8ac350..5e1aa9b 100644
+--- a/src/core/dictgen/src/rootcling_impl.cxx
++++ b/src/core/dictgen/src/rootcling_impl.cxx
+@@ -4102,8 +4102,8 @@ int RootClingMain(int argc,
+       }
+    }
+ 
+-   for (const std::string& Opt : gOptSink)
+-      fprintf(stderr, "warning: Please remove the deprecated flag %s\n", Opt.c_str());
++   //for (const std::string& Opt : gOptSink)
++      //fprintf(stderr, "warning: Please remove the deprecated flag %s\n", Opt.c_str());
+ #else
+ # error "Remove this deprecated code"
+ #endif
+@@ -4173,6 +4173,10 @@ int RootClingMain(int argc,
+       clingArgs.push_back(gOptISysRoot.ValueStr);
+    }
+ 
++   // the "unknown options" are actually user additions to cling :P
++   for (const std::string& Opt : gOptSink)
++      clingArgs.push_back(Opt);
++
+    // Check if we have a multi dict request but no target library
+    if (gOptMultiDict && gOptSharedLibFileName.empty()) {
+       ROOT::TMetaUtils::Error("", "Multidict requested but no target library. Please specify one with the -s argument.\n");
