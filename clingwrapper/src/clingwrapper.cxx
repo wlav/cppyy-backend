@@ -1755,6 +1755,15 @@ bool Cppyy::IsPublicMethod(TCppMethod_t method)
     return false;
 }
 
+bool Cppyy::IsProtectedMethod(TCppMethod_t method)
+{
+    if (method) {
+        TFunction* f = m2f(method);
+        return f->Property() & kIsProtected;
+    }
+    return false;
+}
+
 bool Cppyy::IsConstructor(TCppMethod_t method)
 {
     if (method) {
@@ -1959,6 +1968,17 @@ bool Cppyy::IsPublicData(TCppScope_t scope, TCppIndex_t idata)
         return true;
     TDataMember* m = (TDataMember*)cr->GetListOfDataMembers()->At((int)idata);
     return m->Property() & kIsPublic;
+}
+
+bool Cppyy::IsProtectedData(TCppScope_t scope, TCppIndex_t idata)
+{
+    if (scope == GLOBAL_HANDLE)
+        return true;
+    TClassRef& cr = type_from_handle(scope);
+    if (cr->Property() & kIsNamespace)
+        return true;
+    TDataMember* m = (TDataMember*)cr->GetListOfDataMembers()->At((int)idata);
+    return m->Property() & kIsProtected;
 }
 
 bool Cppyy::IsStaticData(TCppScope_t scope, TCppIndex_t idata)
@@ -2480,6 +2500,10 @@ int cppyy_is_publicmethod(cppyy_method_t method) {
     return (int)Cppyy::IsPublicMethod((Cppyy::TCppMethod_t)method);
 }
 
+int cppyy_is_protectedmethod(cppyy_method_t method) {
+    return (int)Cppyy::IsProtectedMethod((Cppyy::TCppMethod_t)method);
+}
+
 int cppyy_is_constructor(cppyy_method_t method) {
     return (int)Cppyy::IsConstructor((Cppyy::TCppMethod_t)method);
 }
@@ -2519,6 +2543,10 @@ int cppyy_datamember_index(cppyy_scope_t scope, const char* name) {
 /* data member properties ------------------------------------------------- */
 int cppyy_is_publicdata(cppyy_type_t type, cppyy_index_t datamember_index) {
     return (int)Cppyy::IsPublicData(type, datamember_index);
+}
+
+int cppyy_is_protecteddata(cppyy_type_t type, cppyy_index_t datamember_index) {
+    return (int)Cppyy::IsProtectedData(type, datamember_index);
 }
 
 int cppyy_is_staticdata(cppyy_type_t type, cppyy_index_t datamember_index) {

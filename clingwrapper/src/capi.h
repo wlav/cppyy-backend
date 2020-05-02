@@ -196,6 +196,8 @@ extern "C" {
     RPY_EXPORTED
     int cppyy_is_publicmethod(cppyy_method_t);
     RPY_EXPORTED
+    int cppyy_is_protectedmethod(cppyy_method_t);
+    RPY_EXPORTED
     int cppyy_is_constructor(cppyy_method_t);
     RPY_EXPORTED
     int cppyy_is_destructor(cppyy_method_t);
@@ -217,6 +219,8 @@ extern "C" {
     /* data member properties ------------------------------------------------- */
     RPY_EXPORTED
     int cppyy_is_publicdata(cppyy_type_t type, cppyy_index_t datamember_index);
+    RPY_EXPORTED
+    int cppyy_is_protecteddata(cppyy_type_t type, cppyy_index_t datamember_index);
     RPY_EXPORTED
     int cppyy_is_staticdata(cppyy_type_t type, cppyy_index_t datamember_index);
     RPY_EXPORTED

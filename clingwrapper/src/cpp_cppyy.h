@@ -208,6 +208,8 @@ namespace Cppyy {
     RPY_EXPORTED
     bool IsPublicMethod(TCppMethod_t method);
     RPY_EXPORTED
+    bool IsProtectedMethod(TCppMethod_t method);
+    RPY_EXPORTED
     bool IsConstructor(TCppMethod_t method);
     RPY_EXPORTED
     bool IsDestructor(TCppMethod_t method);
@@ -229,6 +231,8 @@ namespace Cppyy {
 // data member properties ----------------------------------------------------
     RPY_EXPORTED
     bool IsPublicData(TCppScope_t scope, TCppIndex_t idata);
+    RPY_EXPORTED
+    bool IsProtectedData(TCppScope_t scope, TCppIndex_t idata);
     RPY_EXPORTED
     bool IsStaticData(TCppScope_t scope, TCppIndex_t idata);
     RPY_EXPORTED
