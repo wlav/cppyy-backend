@@ -454,7 +454,7 @@ for fdiff in ('cleanup_tstring', 'scanner', 'scanner_2', 'faux_typedef', 'classr
               'stdfunc_printhack', 'anon_union', 'no_inet', 'signaltrycatch', 'nofastmath', 'pch',
               'stackoverflow', 'strip_lz4_lzma', 'type_reducer', 'resolve_path', 'classedit_scopes',
               'msvc', 'win64rtti', 'win64', 'win64s2',
-              'gui_cleanup', 'std_in_std', 'stdfunc_templarg', 'fix_pch_build'):
+              'gui_cleanup', 'std_in_std', 'stdfunc_templarg', 'fix_pch_build', 'access_protected'):
     fpatch = os.path.join('patches', fdiff+'.diff')
     print(' ==> applying patch:', fpatch)
     pset = patch.fromfile(fpatch)

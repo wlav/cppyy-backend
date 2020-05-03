@@ -1894,14 +1894,16 @@ intptr_t Cppyy::GetDatamemberOffset(TCppScope_t scope, TCppIndex_t idata)
     // CLING WORKAROUND: the following causes templates to be instantiated first within the proper
     // scope, making the lookup succeed and preventing spurious duplicate instantiations later. Also,
     // if the variable is not yet loaded, pull it in through gInterpreter.
-        intptr_t offset = (intptr_t)m->GetOffsetCint();    // yes, CINT (GetOffset() is both wrong
-                                                           // and caches that wrong result!
+        intptr_t offset = (intptr_t)-1;
         if (m->Property() & kIsStatic) {
             if (strchr(cr->GetName(), '<'))
                 gInterpreter->ProcessLine(((std::string)cr->GetName()+"::"+m->GetName()+";").c_str());
+            offset = (intptr_t)m->GetOffsetCint();    // yes, CINT (GetOffset() is both wrong
+                                                      // and caches that wrong result!
             if (offset == (intptr_t)-1)
                 return (intptr_t)gInterpreter->ProcessLine((std::string("&")+cr->GetName()+"::"+m->GetName()+";").c_str());
-        }
+        } else
+            offset = (intptr_t)m->GetOffsetCint();    // yes, CINT, see above
         return offset;
     }
 
