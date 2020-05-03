@@ -100,3 +100,152 @@ index 7d04549..b4f11fa 100644
     DeclId_t           GetDeclId() const;
     int                MaxIndex(int dim) const;
     int                InternalNext();
+diff --git a/src/core/meta/inc/TListOfFunctions.h b/src/core/meta/inc/TListOfFunctions.h
+index 5565d41..77b5963 100644
+--- a/src/core/meta/inc/TListOfFunctions.h
++++ b/src/core/meta/inc/TListOfFunctions.h
+@@ -80,7 +80,7 @@ public:
+ 
+ 
+    TFunction *Find(DeclId_t id) const;
+-   TFunction *Get(DeclId_t id, bool verify = true);
++   TFunction *Get(DeclId_t id, MethodInfo_t* minfo = nullptr, bool verify = true);
+ 
+    void       AddFirst(TObject *obj);
+    void       AddFirst(TObject *obj, Option_t *opt);
+diff --git a/src/core/meta/src/TListOfFunctions.cxx b/src/core/meta/src/TListOfFunctions.cxx
+index 36774f7..a23e8f5 100644
+--- a/src/core/meta/src/TListOfFunctions.cxx
++++ b/src/core/meta/src/TListOfFunctions.cxx
+@@ -259,7 +259,7 @@ TFunction *TListOfFunctions::Find(DeclId_t id) const
+ /// Return (after creating it if necessary) the TMethod or TFunction
+ /// describing the function corresponding to the Decl 'id'.
+ 
+-TFunction *TListOfFunctions::Get(DeclId_t id, bool verify)
++TFunction *TListOfFunctions::Get(DeclId_t id, MethodInfo_t* minfo, bool verify)
+ {
+    if (!id) return 0;
+ 
+@@ -276,7 +276,9 @@ TFunction *TListOfFunctions::Get(DeclId_t id, bool verify)
+       }
+    }
+ 
+-   MethodInfo_t *m = gInterpreter->MethodInfo_Factory(id);
++   MethodInfo_t *m = minfo ? \
++       gInterpreter->MethodInfo_FactoryCopy(minfo) : \
++       gInterpreter->MethodInfo_Factory(id);
+ 
+    // Let's see if this is a reload ...
+    const char *name = gInterpreter->MethodInfo_Name(m);
+@@ -395,7 +397,7 @@ void TListOfFunctions::Load()
+          TDictionary::DeclId_t mid = gInterpreter->GetDeclId(t);
+          // Get will check if there is already there or create a new one
+          // (or re-use a previously unloaded version).
+-         Get(mid, false /* verify */);
++         Get(mid, t, false /* verify */);
+       }
+    }
+    gInterpreter->MethodInfo_Delete(t);
+diff --git a/src/core/metacling/src/TClingMethodInfo.cxx b/src/core/metacling/src/TClingMethodInfo.cxx
+index dfd7596..f751a23 100644
+--- a/src/core/metacling/src/TClingMethodInfo.cxx
++++ b/src/core/metacling/src/TClingMethodInfo.cxx
+@@ -110,7 +110,8 @@ TClingMethodInfo::TClingMethodInfo(const TClingMethodInfo &rhs) :
+    fIter(rhs.fIter),
+    fTitle(rhs.fTitle),
+    fTemplateSpec(rhs.fTemplateSpec),
+-   fUsingIter(nullptr)
++   fUsingIter(nullptr),
++   fAccessDecl(rhs.fAccessDecl)
+ {
+ 
+    if (rhs.fUsingIter) {
+@@ -134,6 +135,7 @@ TClingMethodInfo& TClingMethodInfo::operator=(const TClingMethodInfo &rhs) {
+    fTitle = rhs.fTitle;
+    fTemplateSpec = rhs.fTemplateSpec;
+    fUsingIter = nullptr;
++   fAccessDecl = rhs.fAccessDecl;
+ 
+    if (rhs.fUsingIter) {
+       // The UsingIterator query the decl.
+@@ -148,7 +150,7 @@ TClingMethodInfo& TClingMethodInfo::operator=(const TClingMethodInfo &rhs) {
+ TClingMethodInfo::TClingMethodInfo(cling::Interpreter *interp,
+                                    TClingClassInfo *ci)
+    : TClingDeclInfo(nullptr), fInterp(interp), fFirstTime(true), fContextIdx(0U), fTitle(""),
+-     fTemplateSpec(nullptr), fUsingIter(nullptr)
++     fTemplateSpec(nullptr), fUsingIter(nullptr), fAccessDecl(nullptr)
+ {
+    R__LOCKGUARD(gInterpreterMutex);
+ 
+@@ -177,7 +179,7 @@ TClingMethodInfo::TClingMethodInfo(cling::Interpreter *interp,
+ TClingMethodInfo::TClingMethodInfo(cling::Interpreter *interp,
+                                    const clang::FunctionDecl *FD)
+    : TClingDeclInfo(FD), fInterp(interp), fFirstTime(true), fContextIdx(0U), fTitle(""),
+-     fTemplateSpec(nullptr), fUsingIter(nullptr)
++     fTemplateSpec(nullptr), fUsingIter(nullptr), fAccessDecl(nullptr)
+ {
+ 
+ }
+@@ -244,6 +246,7 @@ void TClingMethodInfo::Init(const clang::FunctionDecl *decl)
+    fTemplateSpec = 0;
+    delete fUsingIter;
+    fUsingIter = nullptr;
++   fAccessDecl = nullptr;
+    fDecl = decl;
+ }
+ 
+@@ -447,7 +450,8 @@ int TClingMethodInfo::InternalNext()
+       else {
+          if (fUsingIter && *fUsingIter) {
+             while (++(*fUsingIter)) {
+-               if (*(*fUsingIter))
++               fAccessDecl = *(*fUsingIter);
++               if (fAccessDecl)
+                   return 1;
+             }
+             delete fUsingIter; fUsingIter = nullptr;
+@@ -490,10 +494,10 @@ int TClingMethodInfo::InternalNext()
+       clang::UsingDecl* udecl =
+           llvm::dyn_cast<clang::UsingDecl>(*fIter);
+ 
+-      if ( udecl ) {
++      if (udecl) {
+           // A UsingDecl potentially brings in a bunch of functions, so
+           // start an inner loop to catch them all
+-          delete fUsingIter;
++          delete fUsingIter; fAccessDecl = udecl;
+           fUsingIter = new UsingIterator(fInterp, udecl);
+           return 1;
+       }
+@@ -533,7 +537,9 @@ long TClingMethodInfo::Property() const
+    const clang::FunctionDecl *fd = GetMethodDecl();
+    if (fd->isConstexpr())
+       property |= kIsConstexpr;
+-   switch (fd->getAccess()) {
++
++   const clang::Decl* accessdecl = fAccessDecl ? fAccessDecl : fd;
++   switch (accessdecl->getAccess()) {
+       case clang::AS_public:
+          property |= kIsPublic;
+          break;
+diff --git a/src/core/metacling/src/TClingMethodInfo.h b/src/core/metacling/src/TClingMethodInfo.h
+index 905ef5d..718a53c 100644
+--- a/src/core/metacling/src/TClingMethodInfo.h
++++ b/src/core/metacling/src/TClingMethodInfo.h
+@@ -62,6 +62,7 @@ private:
+    std::string                                  fTitle; // The meta info for the method.
+    const clang::FunctionDecl                   *fTemplateSpec; // an all-default-template-args function.
+    UsingIterator                               *fUsingIter; // for internal loop over using functions. [We own]
++   clang::Decl                                 *fAccessDecl; // for determining access specifiers
+ 
+    const clang::Decl* GetDeclSlow() const;
+ 
+@@ -83,7 +84,7 @@ public:
+    TDictionary::DeclId_t                        GetDeclId() const;
+    cling::Interpreter                          *GetInterpreter() const { return fInterp; }
+    void                                         CreateSignature(TString &signature) const;
+-   void                                         Init(const clang::FunctionDecl *);
++   void                                         Init(const clang::FunctionDecl*);
+    void                                        *InterfaceMethod(const ROOT::TMetaUtils::TNormalizedCtxt &normCtxt) const;
+ 
+    const clang::Decl *GetDecl() const override {

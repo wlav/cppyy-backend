@@ -78,11 +78,10 @@ public:
     typedef const void* DeclId_t;
 
 public:
-    CallWrapper(TFunction* f) : fDecl(f->GetDeclId()), fName(f->GetName()), fTF(nullptr) {}
+    CallWrapper(TFunction* f) : fDecl(f->GetDeclId()), fName(f->GetName()), fTF(new TFunction(*f)) {}
     CallWrapper(DeclId_t fid, const std::string& n) : fDecl(fid), fName(n), fTF(nullptr) {}
     ~CallWrapper() {
-        if (fTF && fDecl == fTF->GetDeclId())
-            delete fTF;
+        delete fTF;
     }
 
 public:
