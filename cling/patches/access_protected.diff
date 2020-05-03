@@ -249,3 +249,16 @@ index 905ef5d..718a53c 100644
     void                                        *InterfaceMethod(const ROOT::TMetaUtils::TNormalizedCtxt &normCtxt) const;
  
     const clang::Decl *GetDecl() const override {
+diff --git a/src/core/metacling/src/TClingCallFunc.cxx b/src/core/metacling/src/TClingCallFunc.cxx
+index 353f2df..e2dda52 100644
+--- a/src/core/metacling/src/TClingCallFunc.cxx
++++ b/src/core/metacling/src/TClingCallFunc.cxx
+@@ -262,7 +262,7 @@ void *TClingCallFunc::compile_wrapper(const string &wrapper_name, const string &
+                                       bool withAccessControl/*=true*/)
+ {
+    return fInterp->compileFunction(wrapper_name, wrapper, false /*ifUnique*/,
+-                                   withAccessControl);
++                                   false /* withAccessControl */);
+ }
+ 
+ void TClingCallFunc::collect_type_info(QualType &QT, ostringstream &typedefbuf, std::ostringstream &callbuf,
