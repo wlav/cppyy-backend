@@ -302,7 +302,7 @@ TClassRef& type_from_handle(Cppyy::TCppScope_t scope)
 static inline
 TFunction* m2f(Cppyy::TCppMethod_t method) {
     CallWrapper* wrap = ((CallWrapper*)method);
-    if (!wrap->fTF || wrap->fTF->GetDeclId() != wrap->fDecl) {
+    if (!wrap->fTF) {
         MethodInfo_t* mi = gInterpreter->MethodInfo_Factory(wrap->fDecl);
         wrap->fTF = new TFunction(mi);
     }
@@ -750,7 +750,7 @@ void release_args(Parameter* args, size_t nargs) {
 }
 
 static inline
- bool WrapperCall(Cppyy::TCppMethod_t method, size_t nargs, void* args_, void* self, void* result)
+bool WrapperCall(Cppyy::TCppMethod_t method, size_t nargs, void* args_, void* self, void* result)
 {
     Parameter* args = (Parameter*)args_;
 

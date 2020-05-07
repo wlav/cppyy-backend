@@ -194,6 +194,16 @@ index dfd7596..f751a23 100644
     fDecl = decl;
  }
  
+@@ -439,6 +439,9 @@ int TClingMethodInfo::InternalNext()
+       // to the next decl.
+       fTemplateSpec = nullptr;
+ 
++      // same for fAccessDecl; otherwise it propgates onto the other methods
++      fAccessDecl = nullptr;
++
+       // Advance to the next decl.
+       if (fFirstTime) {
+          // The cint semantics are weird.
 @@ -447,7 +450,8 @@ int TClingMethodInfo::InternalNext()
        else {
           if (fUsingIter && *fUsingIter) {
