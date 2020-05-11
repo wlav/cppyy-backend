@@ -65,7 +65,7 @@ static Name2ClassRefIndex_t g_name2classrefidx;
 namespace {
 
 static inline
- Cppyy::TCppType_t find_memoized(const std::string& name)
+Cppyy::TCppType_t find_memoized(const std::string& name)
 {
     auto icr = g_name2classrefidx.find(name);
     if (icr != g_name2classrefidx.end())
@@ -94,8 +94,9 @@ public:
 }
 
 static std::vector<CallWrapper*> gWrapperHolder;
+
 static inline
- CallWrapper* new_CallWrapper(TFunction* f)
+CallWrapper* new_CallWrapper(TFunction* f)
 {
     CallWrapper* wrap = new CallWrapper(f);
     gWrapperHolder.push_back(wrap);
@@ -103,7 +104,7 @@ static inline
 }
 
 static inline
- CallWrapper* new_CallWrapper(CallWrapper::DeclId_t fid, const std::string& n)
+CallWrapper* new_CallWrapper(CallWrapper::DeclId_t fid, const std::string& n)
 {
     CallWrapper* wrap = new CallWrapper(fid, n);
     gWrapperHolder.push_back(wrap);
@@ -1816,7 +1817,7 @@ std::string Cppyy::GetDatamemberName(TCppScope_t scope, TCppIndex_t idata)
 }
 
 static inline
- int count_scopes(const std::string& tpname)
+int count_scopes(const std::string& tpname)
 {
     int count = 0;
     std::string::size_type pos = tpname.find("::", 0);
