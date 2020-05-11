@@ -1994,16 +1994,20 @@ bool Cppyy::IsStaticData(TCppScope_t scope, TCppIndex_t idata)
 
 bool Cppyy::IsConstData(TCppScope_t scope, TCppIndex_t idata)
 {
+    Long_t property = 0;
     if (scope == GLOBAL_HANDLE) {
         TGlobal* gbl = g_globalvars[idata];
-        return gbl->Property() & kIsConstant;
+        property = gbl->Property();
     }
     TClassRef& cr = type_from_handle(scope);
     if (cr.GetClass()) {
         TDataMember* m = (TDataMember*)cr->GetListOfDataMembers()->At((int)idata);
-        return m->Property() & kIsConstant;
+        property = m->Property();
     }
-    return false;
+
+// if the data type is const, but the data member is a pointer/array, the data member
+// itself is not const; alternatively it is a pointer that is constant
+    return ((property & kIsConstant) && !(property & (kIsPointer | kIsArray))) || (property & kIsConstPointer);
 }
 
 bool Cppyy::IsEnumData(TCppScope_t scope, TCppIndex_t idata)
