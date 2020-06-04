@@ -359,6 +359,11 @@ std::string Cppyy::ResolveName(const std::string& cppitem_name)
     if (tclean[tclean.size()-1] == ']')
         tclean = tclean.substr(0, tclean.rfind('[')) + "[]";
 
+// remove __restrict and __restrict__
+    auto pos = tclean.rfind("__restrict");
+    if (pos != std::string::npos)
+        tclean = tclean.substr(0, pos);
+
     if (tclean.compare(0, 9, "std::byte") == 0)
         return tclean;
 
@@ -372,8 +377,8 @@ std::string Cppyy::ResolveName(const std::string& cppitem_name)
         return ResolveEnum(cppitem_name);
 
 // special case for clang's builtin __type_pack_element (which does not resolve)
-    auto pos = cppitem_name.size() > 20 ? \
-                   cppitem_name.rfind("__type_pack_element", 5) : std::string::npos;
+    pos = cppitem_name.size() > 20 ? \
+              cppitem_name.rfind("__type_pack_element", 5) : std::string::npos;
     if (pos != std::string::npos) {
     // shape is "[std::]__type_pack_element<index,type1,type2,...,typeN>cpd": extract
     // first the index, and from there the indexed type; finally, restore the
