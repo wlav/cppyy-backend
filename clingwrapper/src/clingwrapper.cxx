@@ -1720,13 +1720,22 @@ Cppyy::TCppMethod_t Cppyy::GetMethodTemplate(
     return (TCppMethod_t)nullptr;
 }
 
+static std::map<std::string, std::string> sTypeRemap = { {"str", "std::string " } };
+static inline
+std::string type_remap(const std::string& t)
+{
+    auto p = sTypeRemap.find(t);
+    if (p != sTypeRemap.end()) return p->second;
+    return t;
+}
+
 Cppyy::TCppIndex_t Cppyy::GetGlobalOperator(
     TCppType_t scope, const std::string& lc, const std::string& rc, const std::string& opname)
 {
 // Find a global operator function with a matching signature; prefer by-ref, but
 // fall back on by-value if that fails.
-    const std::string& lcname = TClassEdit::CleanType(lc.c_str());
-    const std::string& rcname = rc.empty() ? rc : TClassEdit::CleanType(rc.c_str());
+    const std::string& lcname = type_remap(TClassEdit::CleanType(lc.c_str()));
+    const std::string& rcname = type_remap(rc.empty() ? rc : TClassEdit::CleanType(rc.c_str()));
 
     std::string proto = lcname + "&" + (rc.empty() ? rc : (", " + rcname + "&"));
     if (scope == (cppyy_scope_t)GLOBAL_HANDLE) {
