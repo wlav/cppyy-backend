@@ -1727,7 +1727,7 @@ std::string type_remap(const std::string& n1, const std::string& n2)
 // string/str, wstring/str, string/unicode and wstring/unicode; since C++ does not have a
 // operator+(std::string, std::wstring), we'll have to look up the same type and rely on
 // the converters in CPyCppyy/_cppyy.
-    if (n1 == "str") {
+    if (n1 == "str" || n1 == "unicode") {
         if (n2 == "std::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >")
             return n2;                      // match like for like
         return "std::string";               // probably best bet
