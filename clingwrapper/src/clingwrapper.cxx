@@ -255,7 +255,7 @@ public:
             " bool is_not_equal(const C1& c1, const C2& c2) { return (bool)(c1 != c2); } }");
 
     // helper for multiple inheritance
-        gInterpreter->Declare("namespace __cppyy_internal { struct Sentinel; }");
+        gInterpreter->Declare("namespace __cppyy_internal { struct Sep; }");
 
     // retrieve all initial (ROOT) C++ names in the global scope to allow filtering later
         if (!getenv("CPPYY_NO_ROOT_FILTER")) {
