@@ -181,6 +181,8 @@ clean_directory(os.path.join('etc', 'plugins'),  ROOT_PLUGINS_KEEP, trim_cmake=F
 clean_directory('io',                            ROOT_IO_KEEP)
 clean_directory('math',                          ROOT_MATH_KEEP)
 
+# remove script that looks for Python
+os.remove(os.path.join('cmake', 'modules', 'SearchRootCoreDeps.cmake'))
 
 # trim main (only need rootcling)
 print('trimming main')
@@ -303,13 +305,15 @@ for line in open(inp).readlines():
 new_cml.close()
 rename(outp, inp)
 
-# remove testing, examples, and notebook
+# remove python lookup, testing, examples, and notebook
 print('trimming testing')
 inp = 'CMakeLists.txt'
 outp = inp+'.new'
 now_stripping = False
 new_cml = open(outp, 'w')
 for line in open(inp).readlines():
+    if ('SearchRootCoreDeps' in line):
+        continue
     if '#---Configure Testing using CTest' == line[0:33] or\
        '#---hsimple.root' == line[0:16]:
         now_stripping = True
@@ -454,7 +458,8 @@ for fdiff in ('cleanup_tstring', 'scanner', 'scanner_2', 'faux_typedef', 'classr
               'stdfunc_printhack', 'anon_union', 'no_inet', 'signaltrycatch', 'nofastmath', 'pch',
               'stackoverflow', 'strip_lz4_lzma', 'type_reducer', 'resolve_path', 'classedit_scopes',
               'msvc', 'win64rtti', 'win64', 'win64s2',
-              'gui_cleanup', 'std_in_std', 'stdfunc_templarg', 'fix_pch_build', 'access_protected'):
+              'gui_cleanup', 'std_in_std', 'stdfunc_templarg', 'fix_pch_build', 'access_protected',
+              'fixinstall', 'nodeleted'):
     fpatch = os.path.join('patches', fdiff+'.diff')
     print(' ==> applying patch:', fpatch)
     pset = patch.fromfile(fpatch)

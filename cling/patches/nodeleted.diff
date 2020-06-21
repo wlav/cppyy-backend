@@ -1,0 +1,24 @@
+diff --git a/src/core/metacling/src/TClingMethodInfo.cxx b/src/core/metacling/src/TClingMethodInfo.cxx
+index 578ffac..68426a7 100644
+--- a/src/core/metacling/src/TClingMethodInfo.cxx
++++ b/src/core/metacling/src/TClingMethodInfo.cxx
+@@ -538,6 +538,9 @@ long TClingMethodInfo::Property() const
+    long property = 0L;
+    property |= kIsCompiled;
+    const clang::FunctionDecl *fd = GetMethodDecl();
++   if (fd->isDeleted())
++      return 0L;
++
+    if (fd->isConstexpr())
+       property |= kIsConstexpr;
+ 
+@@ -630,6 +633,9 @@ long TClingMethodInfo::ExtraProperty() const
+    }
+    long property = 0;
+    const clang::FunctionDecl *fd = GetMethodDecl();
++   if (fd->isDeleted())
++      return 0L;
++
+    if (fd->isOverloadedOperator())
+       property |= kIsOperator;
+    if (llvm::isa<clang::CXXConversionDecl>(fd))
