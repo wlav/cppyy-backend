@@ -14,9 +14,8 @@ used, but it is also recommended to add the verbose flag to see progress:
 For further details, see cppyy's installation instructions:
   https://cppyy.readthedocs.io/en/latest/installation.html
 
-
 Cling documentation is here:
-  https://root.cern.ch/cling
+  https://github.com/vgvassilev/cling
 
 ----
 
