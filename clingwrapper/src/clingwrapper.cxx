@@ -243,8 +243,7 @@ public:
         gInterpreter->ProcessLine(code);
 
     // make sure we run in batch mode as far as ROOT graphics is concerned
-        if (!getenv("ROOTSYS"))
-            gROOT->SetBatch(kTRUE);
+        gROOT->SetBatch(kTRUE);
 
     // create helpers for comparing thingies
         gInterpreter->Declare(
@@ -258,25 +257,23 @@ public:
         gInterpreter->Declare("namespace __cppyy_internal { struct Sep; }");
 
     // retrieve all initial (ROOT) C++ names in the global scope to allow filtering later
-        if (!getenv("CPPYY_NO_ROOT_FILTER")) {
-            gROOT->GetListOfGlobals(true);             // force initialize
-            gROOT->GetListOfGlobalFunctions(true);     // id.
-            std::set<std::string> initial;
-            Cppyy::GetAllCppNames(GLOBAL_HANDLE, initial);
-            gInitialNames = initial;
+        gROOT->GetListOfGlobals(true);             // force initialize
+        gROOT->GetListOfGlobalFunctions(true);     // id.
+        std::set<std::string> initial;
+        Cppyy::GetAllCppNames(GLOBAL_HANDLE, initial);
+        gInitialNames = initial;
 
 #ifndef WIN32
-            gRootSOs.insert("libCore.so ");
-            gRootSOs.insert("libRIO.so ");
-            gRootSOs.insert("libThread.so ");
-            gRootSOs.insert("libMathCore.so ");
+        gRootSOs.insert("libCore.so ");
+        gRootSOs.insert("libRIO.so ");
+        gRootSOs.insert("libThread.so ");
+        gRootSOs.insert("libMathCore.so ");
 #else
-            gRootSOs.insert("libCore.dll ");
-            gRootSOs.insert("libRIO.dll ");
-            gRootSOs.insert("libThread.dll ");
-            gRootSOs.insert("libMathCore.dll ");
+        gRootSOs.insert("libCore.dll ");
+        gRootSOs.insert("libRIO.dll ");
+        gRootSOs.insert("libThread.dll ");
+        gRootSOs.insert("libMathCore.dll ");
 #endif
-        }
 
     // start off with a reasonable size placeholder for wrappers
         gWrapperHolder.reserve(1024);
