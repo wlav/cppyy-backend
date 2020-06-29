@@ -84,7 +84,7 @@ def main():
                     return 0
 
                 elif options == '--ldflags':
-                    print('/LIBPATH:'+get_library_dir(), 'libCore.lib', 'libRIO.lib')
+                    print('/LIBPATH:'+get_library_dir(), 'libCoreLegacy.lib', 'libRIOLegacy.lib')
                     return 0
 
             except subprocess.CalledProcessError:

@@ -135,22 +135,14 @@ class my_cmake_build(_build):
 
         CMAKE_COMMAND = ['cmake', srcdir,
                 stdcxx, '-DLLVM_ENABLE_TERMINFO=0', '-DLLVM_ENABLE_ASSERTIONS=0',
-                '-Dminimal=ON', '-Druntime_cxxmodules=OFF', '-Dasimage=OFF', '-Droot7=OFF', '-Dhttp=OFF',
-                '-Dbuiltin_pcre=ON', '-Dbuiltin_freetype=ON', '-Dbuiltin_zlib=ON', '-Dbuiltin_xxhash=ON']
+                '-Dminimal=ON', '-Druntime_cxxmodules=OFF', '-Dbuiltin_zlib=ON']
         if 'darwin' in sys.platform:
             CMAKE_COMMAND.append('-Dlibcxx=ON')
         CMAKE_COMMAND.append('-DCMAKE_BUILD_TYPE='+get_build_type())
         if 'win32' in sys.platform:
             import platform
             if '64' in platform.architecture()[0]:
-                CMAKE_COMMAND += ['-Thost=x64', '-DCMAKE_GENERATOR_PLATFORM=x64', '-Dall=OFF',
-                        '-Dmathmore=OFF', '-Dbuiltin_ftgl=OFF', '-Droofit=OFF', '-Dgfal=OFF', '-Dfftw3=OFF']
-                FFTW_INC = os.environ.get("FFTW_INC", None)
-                FFTW_LIB = os.environ.get("FFTW_LIB", None)
-                if FFTW_INC and FFTW_LIB:
-                    CMAKE_COMMAND += ["-DFFTW_INCLUDE_DIR={}".format(FFTW_INC), "-DFFTW_LIBRARY={}".format(FFTW_LIB)]
-        else:
-            CMAKE_COMMAND += ['-Dbuiltin_freetype=OFF']
+                CMAKE_COMMAND += ['-Thost=x64', '-DCMAKE_GENERATOR_PLATFORM=x64']
         CMAKE_COMMAND.append('-DCMAKE_INSTALL_PREFIX='+prefix)
 
         log.info('Running cmake for cppyy-cling: %s', ' '.join(CMAKE_COMMAND))

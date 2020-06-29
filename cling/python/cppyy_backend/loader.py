@@ -32,7 +32,7 @@ def _load_helper(bkname):
             pkgpath = os.path.dirname(__file__)
         elif os.path.basename(pkgpath) in ['lib', 'bin']:
             pkgpath = os.path.dirname(pkgpath)
-        for dep in ['liblzma', 'libCore', 'libThread', 'libRIO', 'libCling']:
+        for dep in ['libCoreLegacy', 'libThreadLegacy', 'libRIOLegacy', 'libCling']:
             for loc in ['lib', 'bin']:
                 fpath = os.path.join(pkgpath, loc, dep+soext)
                 if os.path.exists(fpath):

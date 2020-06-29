@@ -1,0 +1,7 @@
+# This file contains a set of ROOT I/O customization rules.
+# The short form of those rules is
+#    [type=Read] classname membername [attributes=... ] [version=[...] ] [checksum=[...] ] [oldtype=...] [code={...}]
+#
+# See the documentation for TClass::AddRule for more details.
+#
+# Each rule must be on one line (possibly split with a trailing \)

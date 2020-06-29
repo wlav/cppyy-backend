@@ -1,0 +1,119 @@
+# -*- mode: makefile -*-
+#
+# Makefile definitions included by the top Makefile
+
+# The macro below is expanded when 'realpath' is not built-in.
+# Built-in 'realpath' is available on GNU Make 3.81.
+realpath = $(shell cd $(1); pwd)
+
+ROOT_SRCDIR    := $(call realpath, @top_srcdir@)
+ROOT_OBJDIR    := $(call realpath, @top_builddir@)
+
+ifndef ROOT_SRCDIR
+$(error Error determining ROOT_SRCDIR)
+endif
+ifndef ROOT_OBJDIR
+$(error Error determining ROOT_OBJDIR)
+endif
+
+# The macro below strips off the source dir path to make a relative path name
+stripsrc = $(subst $(ROOT_SRCDIR)/,,$(1))
+
+# This macro creates the list of pcm files to be passed to a library
+# dictionary generation step, something like
+#    $(call pcm_rootcling_opt,$(TREELIBDEPM))
+pcm_rootcling_opt = -m lib/libCoreLegacy_rdict.pcm $(addprefix -m ,$(subst $(SOEXT),_rdict.pcm,$1))
+
+# This macro returns the name of the pcm corresponding to a library
+#    $(call pcmname,$(TREELIB))
+pcmname = $(subst .$(SOEXT),_rdict.pcm,$1)
+
+# This macro returns the list of pcm's that are needed for a package
+#    $(call pcmdep,TREE)
+# the argument is the upper case name of the library (see the Module.mk)
+pcmdep = lib/libCoreLegacy_rdict.pcm $(subst .$(SOEXT),_rdict.pcm,$($1LIBDEPM))
+
+# This macro builds the rootmap name starting from the library full path
+#    $(call rmfName, TREELIB)
+# the argument is the upper case name of the library (see the Module.mk)
+rmfName = $(dir $1)$(subst .$(SOEXT),.rootmap,$(notdir $1))
+
+# This macro returns the arguments to be passed to rootcling to properly
+# generate the rootmap file
+#    $(call rootmapModule, TREELIB)
+# the argument is the upper case name of the library (see the Module.mk)
+rootmapModule = -rml $(notdir $1) -rmf $(call rmfName, $1)
+
+# This macro returns the argument to be passed to rootcling to
+# properly setup the pcm
+#    $(call dictModule,TREE)
+# the argument is the upper case name of the library (see the Module.mk)
+dictModule = -s $($1LIB) $(call rootmapModule, $($1LIB)) $(call pcm_rootcling_opt, $($1LIBDEPM))
+
+# This macro is used to setup the rule where the pcm depends on the
+# dictionary and the library's dependent pcm's
+#    $(call pcmrule,TREE)
+# the argument is the upper case name of the library (see the Module.mk)
+pcmrule = $(call pcmname, $($1LIB)): $(call pcmdep, $1) $($1DS)
+
+noop = @true # "Do nothing really, this is just to make the rule stick"
+
+ARCH           := @architecture@
+HOST           := @host@
+@rootbuild@
+USECONFIG      := @useconfig@
+MKLIBOPTIONS   := @mkliboption@
+
+EXTRA_CFLAGS   := -Iinclude @cflags@
+USERCONF_CFLAGS:= @usercflags@
+EXTRA_CXXFLAGS := -Iinclude @cflags@
+USERCONF_CXXFLAGS:= @usercxxflags@
+EXTRA_LDFLAGS  := @ldflags@
+WERROR         := @werror@
+WINRTDEBUG     := @winrtdebug@
+CTORSINITARRAY := @ctorsinitarray@
+CXXMKDEPFLAGS  := @cxxmkdepflags@
+
+BINDIR         := @bindir@
+LIBDIR         := @libdir@
+INCDIR         := @incdir@
+ETCDIR         := @etcdir@
+SRCDIR         := @srcdir@
+
+MACOSXVERS     := @macosxvers@
+OSXSDK         := @osxsdk@
+IOSVERS        := @iosvers@
+IOSSDK         := @iossdk@
+
+CXX11          := @c++11@
+CXX14          := @c++14@
+CXXMODULES     := @cxxmodules@
+LIBCXX         := @libc++@
+
+ENABLETHREAD   := @enable_thread@
+OSTHREADFLAG   := @threadflag@
+OSTHREADLIBDIR := @threadlibdir@
+OSTHREADLIB    := @threadlib@
+
+BUILTINZLIB    := @builtinzlib@
+ZLIBLIBDIR     := @zliblibdir@
+ZLIBCLILIB     := @zliblib@
+ZLIBINCDIR     := $(filter-out /usr/include, @zlibincdir@)
+
+SHADOWFLAGS    := @shadowpw@
+SHADOWLIB      :=
+SHADOWLIBDIR   :=
+
+BUILTINLLVM    := @builtinllvm@
+LLVMCONFIG     := @llvmconfig@
+
+INSTALL        := cp -dpR
+INSTALLDATA    := cp -dpR
+INSTALLDIR     := mkdir -p
+RSYNC          := rsync -au
+
+BUILDR         := @buildr@
+RLIBS          := @rlibs@
+RFLAGS         := @rflags@
+
+ROOTDRPMREL    := 1

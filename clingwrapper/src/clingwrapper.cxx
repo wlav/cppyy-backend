@@ -264,15 +264,13 @@ public:
         gInitialNames = initial;
 
 #ifndef WIN32
-        gRootSOs.insert("libCore.so ");
-        gRootSOs.insert("libRIO.so ");
-        gRootSOs.insert("libThread.so ");
-        gRootSOs.insert("libMathCore.so ");
+        gRootSOs.insert("libCoreLegacy.so ");
+        gRootSOs.insert("libRIOLegacy.so ");
+        gRootSOs.insert("libThreadLegacy.so ");
 #else
-        gRootSOs.insert("libCore.dll ");
-        gRootSOs.insert("libRIO.dll ");
-        gRootSOs.insert("libThread.dll ");
-        gRootSOs.insert("libMathCore.dll ");
+        gRootSOs.insert("libCoreLegacy.dll ");
+        gRootSOs.insert("libRIOLegacy.dll ");
+        gRootSOs.insert("libThreadLegacy.dll ");
 #endif
 
     // start off with a reasonable size placeholder for wrappers

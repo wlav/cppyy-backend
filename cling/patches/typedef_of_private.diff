@@ -1,20 +1,3 @@
-diff --git a/src/core/metacling/src/TClingCallFunc.cxx b/src/core/metacling/src/TClingCallFunc.cxx
-index 92c96215c0..ae0089ff83 100644
---- a/src/core/metacling/src/TClingCallFunc.cxx
-+++ b/src/core/metacling/src/TClingCallFunc.cxx
-@@ -981,7 +981,11 @@ void TClingCallFunc::make_narg_call_with_return(const unsigned N, const string &
-       make_narg_ctor_with_return(N, class_name, buf, indent_level);
-       return;
-    }
--   QualType QT = FD->getReturnType().getCanonicalType();
-+   QualType QT = FD->getReturnType();
-+   CXXRecordDecl* rtdecl = QT->getAsCXXRecordDecl();
-+   if (!rtdecl || (rtdecl->getAccess() != AS_private && rtdecl->getAccess() != AS_protected))
-+       QT = QT.getCanonicalType();
-+
-    if (QT->isVoidType()) {
-       ostringstream typedefbuf;
-       ostringstream callbuf;
 diff --git a/src/interpreter/cling/lib/Utils/AST.cpp b/src/interpreter/cling/lib/Utils/AST.cpp
 index da3b0724e5..f7ba7623aa 100644
 --- a/src/interpreter/cling/lib/Utils/AST.cpp

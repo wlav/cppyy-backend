@@ -1,18 +1,3 @@
-diff --git a/src/core/metacling/src/TCling.cxx b/src/core/metacling/src/TCling.cxx
-index 38f951c12b..2823533580 100644
---- a/src/core/metacling/src/TCling.cxx
-+++ b/src/core/metacling/src/TCling.cxx
-@@ -1384,6 +1384,10 @@ TCling::TCling(const char *name, const char *title, const char* const argv[])
-                                                         &(interpArgs[0]),
-                                                         llvmResourceDir, extensions);
- 
-+   // force optlevel 2
-+   fInterpreter->getCI()->getCodeGenOpts().OptimizationLevel = 2;
-+   fInterpreter->setDefaultOptLevel(2);
-+
-    if (!fromRootCling) {
-       fInterpreter->installLazyFunctionCreator(llvmLazyFunctionCreator);
-    }
 diff --git a/src/interpreter/cling/lib/Interpreter/CIFactory.cpp b/src/interpreter/cling/lib/Interpreter/CIFactory.cpp
 index f97c86032f..69321c5579 100644
 --- a/src/interpreter/cling/lib/Interpreter/CIFactory.cpp
@@ -53,18 +38,3 @@ index cb3308c360..873bc682ea 100644
    llvm::PassManagerBuilder PMBuilder;
    PMBuilder.OptLevel = OptLevel;
    PMBuilder.SizeLevel = m_CGOpts.OptimizeSize;
-diff --git a/src/cmake/modules/SetUpWindows.cmake b/src/cmake/modules/SetUpWindows.cmake
-index c8554089e4..d9f383ccda 100644
---- a/src/cmake/modules/SetUpWindows.cmake
-+++ b/src/cmake/modules/SetUpWindows.cmake
-@@ -38,8 +38,8 @@ elseif(MSVC)
-     set(BLDCXXFLAGS "-Zc:__cplusplus -MDd -GR")
-     set(BLDCFLAGS   "-MDd")
-   else()
--    set(BLDCXXFLAGS "-Zc:__cplusplus -MD -GR")
--    set(BLDCFLAGS   "-MD")
-+    set(BLDCXXFLAGS "-Zc:__cplusplus -MD -GR -DNDEBUG")
-+    set(BLDCFLAGS   "-MD -DNDEBUG")
-   endif()
- 
-   if(CMAKE_PROJECT_NAME STREQUAL ROOT)
