@@ -142,10 +142,8 @@ public:
 namespace {
    const char *kProtocolName   = "tcp";
    typedef void (*SigHandler_t)(ESignals);
-   static TWinNTSystem::ThreadMsgFunc_t gGUIThreadMsgFunc = 0;      // GUI thread message handler func
 
    static HANDLE gGlobalEvent;
-   static HANDLE gTimerThreadHandle;
    typedef NET_API_STATUS (WINAPI *pfn1)(LPVOID);
    typedef NET_API_STATUS (WINAPI *pfn2)(LPCWSTR, LPCWSTR, DWORD, LPBYTE*);
    typedef NET_API_STATUS (WINAPI *pfn3)(LPCWSTR, LPCWSTR, DWORD, LPBYTE*,
@@ -468,42 +466,6 @@ namespace {
       return (DWORD_PTR)_ReturnAddress();
    }
 #pragma auto_inline(on)
-
-   /////////////////////////////////////////////////////////////////////////////
-   /// Message processing loop for the TGWin32 related GUI
-   /// thread for processing windows messages (aka Main/Server thread).
-   /// We need to start the thread outside the TGWin32 / GUI related
-   /// dll, because starting threads at DLL init time does not work.
-   /// Instead, we start an ideling thread at binary startup, and only
-   /// call the "real" message processing function
-
-   static DWORD WINAPI GUIThreadMessageProcessingLoop(void *p)
-   {
-      MSG msg;
-
-      // force to create message queue
-      ::PeekMessage(&msg, NULL, WM_USER, WM_USER, PM_NOREMOVE);
-
-      Int_t erret = 0;
-      Bool_t endLoop = kFALSE;
-      while (!endLoop) {
-         if (gGlobalEvent) ::SetEvent(gGlobalEvent);
-         erret = ::GetMessage(&msg, NULL, NULL, NULL);
-         if (erret <= 0) endLoop = kTRUE;
-         if (gGUIThreadMsgFunc)
-            endLoop = (*gGUIThreadMsgFunc)(&msg);
-      }
-
-      // exit thread
-      if (erret == -1) {
-         erret = ::GetLastError();
-         Error("MsgLoop", "Error in GetMessage");
-         ::ExitThread(-1);
-      } else {
-         ::ExitThread(0);
-      }
-      return 0;
-   }
 
    //=========================================================================
    // Load IMAGEHLP.DLL and get the address of functions in it that we'll use
@@ -941,8 +903,7 @@ Bool_t TWinNTSystem::HandleConsoleEvent()
 ////////////////////////////////////////////////////////////////////////////////
 /// ctor
 
-TWinNTSystem::TWinNTSystem() : TSystem("WinNT", "WinNT System"),
-fGUIThreadHandle(0), fGUIThreadId(0)
+TWinNTSystem::TWinNTSystem() : TSystem("WinNT", "WinNT System")
 {
    fhProcess = ::GetCurrentProcess();
    fDirNameBuffer = 0;
@@ -1030,10 +991,6 @@ TWinNTSystem::~TWinNTSystem()
       ::CloseHandle(gGlobalEvent);
       gGlobalEvent = 0;
    }
-   if (gTimerThreadHandle) {
-      ::TerminateThread(gTimerThreadHandle, 0);
-      ::CloseHandle(gTimerThreadHandle);
-   }
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -1084,11 +1041,8 @@ Bool_t TWinNTSystem::Init()
          pTimeBeginPeriod(1);
       FreeLibrary(hInstWinMM);
    }
-   gTimerThreadHandle = ::CreateThread(NULL, NULL, (LPTHREAD_START_ROUTINE)ThreadStub,
-                        this, NULL, NULL);
 
    gGlobalEvent = ::CreateEvent(NULL, TRUE, FALSE, NULL);
-   fGUIThreadHandle = ::CreateThread( NULL, 0, &GUIThreadMessageProcessingLoop, 0, 0, &fGUIThreadId );
 
    char *buf = new char[MAX_MODULE_NAME32 + 1];
    HMODULE hModCore = ::GetModuleHandle("libCoreLegacy.dll");
@@ -1263,13 +1217,6 @@ void TWinNTSystem::DoBeep(Int_t freq /*=-1*/, Int_t duration /*=-1*/) const
    ::Beep(freq, duration);
 }
 
-////////////////////////////////////////////////////////////////////////////////
-/// Set the (static part of) the event handler func for GUI messages.
-
-void TWinNTSystem::SetGUIThreadMsgHandler(ThreadMsgFunc_t func)
-{
-   gGUIThreadMsgFunc = func;
-}
 
 ////////////////////////////////////////////////////////////////////////////////
 /// Hook to tell TSystem that the TApplication object has been created.
@@ -1277,7 +1224,6 @@ void TWinNTSystem::SetGUIThreadMsgHandler(ThreadMsgFunc_t func)
 void TWinNTSystem::NotifyApplicationCreated()
 {
    // send a dummy message to the GUI thread to kick it into life
-   ::PostThreadMessage(fGUIThreadId, 0, NULL, 0L);
 }
 
 
@@ -3956,8 +3902,7 @@ const char *TWinNTSystem::GetLinkedLibraries()
    if (once)
       return 0;
 
-   char *exe = gSystem->Which(Getenv("PATH"), gApplication->Argv(0),
-                              kExecutePermission);
+   char *exe = gSystem->Which(Getenv("PATH"), "python", kExecutePermission);
    if (!exe) {
       once = kTRUE;
       return 0;

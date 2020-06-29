@@ -79,8 +79,6 @@ private:
    Bool_t            fFirstFile;        // Flag used by OpenDirectory/GetDirEntry
 
    HANDLE            fhProcess;         // Handle of the current process
-   void             *fGUIThreadHandle;  // handle of GUI server (aka command) thread
-   ULong_t           fGUIThreadId;      // id of GUI server (aka command) thread
    char             *fDirNameBuffer;    // The string buffer to hold path name
    WIN32_FIND_DATA   fFindFileData;     // Structure to look for files (aka OpenDir under UNIX)
 
@@ -118,9 +116,6 @@ public:
    void              SetProgname(const char *name);
    const char       *GetError();
    const char       *HostName();
-   void             *GetGUIThreadHandle() const {return fGUIThreadHandle;}
-   ULong_t           GetGUIThreadId() const {return fGUIThreadId;}
-   void              SetGUIThreadMsgHandler(ThreadMsgFunc_t func);
    void              NotifyApplicationCreated();
 
 
