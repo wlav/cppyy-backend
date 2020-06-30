@@ -43,7 +43,7 @@ def is_manylinux():
 
 def _get_linker_options():
     if 'win32' in sys.platform:
-        link_libraries = ['libCore', 'libThread', 'libRIO', 'libCling']
+        link_libraries = ['libCoreLegacy', 'libThreadLegacy', 'libRIOLegacy', 'libCling']
         import cppyy_backend
         link_dirs = [os.path.join(os.path.dirname(cppyy_backend.__file__), 'lib')]
     else:
