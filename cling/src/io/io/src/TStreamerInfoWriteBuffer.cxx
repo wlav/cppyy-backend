@@ -89,6 +89,8 @@
 
 // Helper function for TStreamerInfo::WriteBuffer
 namespace {
+   using namespace CppyyLegacy;
+
    template <class T> Bool_t R__TestUseCache(TStreamerElement *element)
    {
       return element->TestBit(TStreamerElement::kCache);
@@ -100,6 +102,9 @@ namespace {
       return kFALSE;
    }
 }
+
+
+namespace CppyyLegacy {
 
 ////////////////////////////////////////////////////////////////////////////////
 ///  The object at pointer is serialized to the buffer b
@@ -770,12 +775,6 @@ Int_t TStreamerInfo::WriteBufferAux(TBuffer &b, const T &arr,
             delete ((TBufferFile&)b).PopDataCache();
             continue;
          case TStreamerInfo::kArtificial:
-#if 0
-            ROOT::TSchemaRule::WriteFuncPtr_t writefunc = ((TStreamerArtificial*)aElement)->GetWriteFunc();
-            if (writefunc) {
-               DOLOOP( writefunc(arr[k]+eoffset, b) );
-            }
-#endif
             continue;
          case -1:
             // -- Skip an ignored TObject base class.
@@ -839,4 +838,4 @@ Int_t TStreamerInfo::WriteBufferClones(TBuffer &b, TClonesArray *clones,
    return WriteBufferAux(b,arr,fCompFull,first==-1?0:first,first==-1?fNfulldata:first+1,nc,eoffset,1);
 }
 
-
+} // namespace CppyyLegacy

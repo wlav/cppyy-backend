@@ -23,6 +23,9 @@ a stable file and used in place of TMath.h in the ROOT miniCore.
 #include "TMathBase.h"
 #include <math.h>
 
+
+namespace CppyyLegacy {
+
 ////////////////////////////////////////////////////////////////////////////////
 /// Return next prime number after x, unless x is a prime in which case
 /// x is returned.
@@ -48,3 +51,5 @@ Long_t TMath::NextPrime(Long_t x)
       x += 2;
    }
 }
+
+} // namespace CppyyLegacy

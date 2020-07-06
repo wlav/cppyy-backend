@@ -32,9 +32,12 @@ Direct subclass of TBuffer, implements common methods for TBufferFile
 #include "TInterpreter.h"
 #include "TROOT.h"
 
-Int_t TBufferIO::fgMapSize = kMapSize;
 
-ClassImp(TBufferIO);
+ClassImp(CppyyLegacy::TBufferIO);
+
+namespace CppyyLegacy {
+
+Int_t TBufferIO::fgMapSize = kMapSize;
 
 ////////////////////////////////////////////////////////////////////////////////
 /// constructor
@@ -541,3 +544,5 @@ Int_t TBufferIO::GetGlobalWriteParam()
 {
    return fgMapSize;
 }
+
+} // namespace CppyyLegacy

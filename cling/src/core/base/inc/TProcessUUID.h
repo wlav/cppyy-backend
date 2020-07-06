@@ -24,6 +24,9 @@
 
 #include "TProcessID.h"
 
+
+namespace CppyyLegacy {
+
 class THashList;
 class TBits;
 class TUUID;
@@ -52,5 +55,7 @@ public:
 
    ClassDef(TProcessUUID,1)  //TProcessID managing UUIDs
 };
+
+} // namespace CppyyLegacy
 
 #endif

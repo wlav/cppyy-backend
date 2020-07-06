@@ -18,9 +18,11 @@ Abstract base class for handling system events.
 #include "TSysEvtHandler.h"
 #include "TSystem.h"
 
-ClassImp(TSignalHandler);
-ClassImp(TStdExceptionHandler);
 
+ClassImp(CppyyLegacy::TSignalHandler);
+ClassImp(CppyyLegacy::TStdExceptionHandler);
+
+namespace CppyyLegacy {
 
 ////////////////////////////////////////////////////////////////////////////////
 /// Create signal event handler.
@@ -104,3 +106,5 @@ Bool_t TStdExceptionHandler::Notify()
 {
    return kFALSE;
 }
+
+} // namespace CppyyLegacy

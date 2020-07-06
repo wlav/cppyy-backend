@@ -61,6 +61,8 @@
 #include "TObject.h"
 #include "TString.h"
 
+namespace CppyyLegacy {
+
 class THashList;
 class TEnv;
 class TEnvParser;
@@ -169,5 +171,7 @@ public:
 };
 
 R__EXTERN TEnv *gEnv;
+
+} // namespace CppyyLegacy
 
 #endif

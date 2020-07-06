@@ -12,7 +12,6 @@
 #ifndef ROOT_TBufferFile
 #define ROOT_TBufferFile
 
-
 //////////////////////////////////////////////////////////////////////////
 //                                                                      //
 // TBufferFile                                                          //
@@ -33,6 +32,9 @@ namespace std {
    using ::vector;
 }
 #endif
+
+
+namespace CppyyLegacy {
 
 class TVirtualStreamerInfo;
 class TStreamerInfo;
@@ -525,4 +527,5 @@ inline void TBufferFile::WriteFastArray(const UInt_t *i, Int_t n)
 inline void TBufferFile::WriteFastArray(const ULong64_t *ll, Int_t n)
    {        TBufferFile::WriteFastArray((const Long64_t *)ll, n); }
 
+} // namespace CppyyLegacy
 #endif

@@ -36,11 +36,14 @@
 #include <vector>
 #include <string>
 
-namespace ROOT {
+
+namespace CppyyLegacy {
    namespace TMetaUtils {
       class TNormalizedCtxt;
    }
 }
+
+namespace CppyyLegacy {
 
 class TClingTypedefInfo final : public TClingDeclInfo {
 
@@ -73,10 +76,12 @@ public:
    int                  Next();
    long                 Property() const;
    int                  Size() const;
-   const char          *TrueName(const ROOT::TMetaUtils::TNormalizedCtxt &normCtxt) const;
+   const char          *TrueName(const CppyyLegacy::TMetaUtils::TNormalizedCtxt &normCtxt) const;
    const char          *Name() override;
    const char          *Title();
 
 };
+
+} // namespace CppyyLegacy
 
 #endif // ROOT_TClingTypedefInfo

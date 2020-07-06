@@ -35,6 +35,9 @@ errorhandler function. By default DefaultErrorHandler() is used.
 #include "TVirtualMutex.h"
 #include "ThreadLocalStorage.h"
 
+
+namespace CppyyLegacy {
+
 // Mutex for error and error format protection
 // (exported to be used for similar cases in other classes)
 
@@ -350,3 +353,5 @@ void Fatal(const char *location, const char *va_(fmt), ...)
    ErrorHandler(kFatal, location, va_(fmt), ap);
    va_end(ap);
 }
+
+} // namespace CppyyLegacy

@@ -55,7 +55,10 @@ compiler, not CINT.
 
 #include <string>
 
+
 using namespace clang;
+
+namespace CppyyLegacy {
 
 class TClingMethodInfo::UsingIterator
 {
@@ -250,7 +253,7 @@ void TClingMethodInfo::Init(const clang::FunctionDecl *decl)
    fDecl = decl;
 }
 
-void *TClingMethodInfo::InterfaceMethod(const ROOT::TMetaUtils::TNormalizedCtxt &normCtxt) const
+void *TClingMethodInfo::InterfaceMethod(const CppyyLegacy::TMetaUtils::TNormalizedCtxt &normCtxt) const
 {
    if (!IsValid()) {
       return 0;
@@ -716,7 +719,7 @@ const char *TClingMethodInfo::GetPrototype()
    if (const clang::TypeDecl *td = llvm::dyn_cast<clang::TypeDecl>(GetMethodDecl()->getDeclContext())) {
       std::string name;
       clang::QualType qualType(td->getTypeForDecl(),0);
-      ROOT::TMetaUtils::GetFullyQualifiedTypeName(name,qualType,*fInterp);
+      CppyyLegacy::TMetaUtils::GetFullyQualifiedTypeName(name,qualType,*fInterp);
       buf += name;
       buf += "::";
    } else if (const clang::NamedDecl *nd = llvm::dyn_cast<clang::NamedDecl>(GetMethodDecl()->getDeclContext())) {
@@ -785,7 +788,7 @@ const char *TClingMethodInfo::Title()
    // Could trigger deserialization of decls.
    cling::Interpreter::PushTransactionRAII RAII(fInterp);
    if (const FunctionDecl *AnnotFD
-       = ROOT::TMetaUtils::GetAnnotatedRedeclarable(FD)) {
+       = CppyyLegacy::TMetaUtils::GetAnnotatedRedeclarable(FD)) {
       if (AnnotateAttr *A = AnnotFD->getAttr<AnnotateAttr>()) {
          fTitle = A->getAnnotation().str();
          return fTitle.c_str();
@@ -795,9 +798,10 @@ const char *TClingMethodInfo::Title()
       // Try to get the comment from the header file if present
       // but not for decls from AST file, where rootcling would have
       // created an annotation
-      fTitle = ROOT::TMetaUtils::GetComment(*FD).str();
+      fTitle = CppyyLegacy::TMetaUtils::GetComment(*FD).str();
    }
 
    return fTitle.c_str();
 }
 
+} // namespace CppyyLegacy

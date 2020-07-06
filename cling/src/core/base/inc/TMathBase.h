@@ -32,6 +32,9 @@
 #include <cmath>
 #include <algorithm>
 
+
+namespace CppyyLegacy {
+
 namespace TMath {
 
    // Abs
@@ -376,5 +379,7 @@ template <typename Element, typename Index> void TMath::Sort(Index n, const Elem
    else
       std::sort(index, index + n, CompareAsc<const Element*>(a) );
 }
+
+} // namespace CppyyLegacy
 
 #endif

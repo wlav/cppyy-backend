@@ -9,7 +9,6 @@
  * For the list of contributors see $ROOTSYS/README/CREDITS.             *
  *************************************************************************/
 
-
 #ifndef ROOT_TWin32ThreadFactory
 #define ROOT_TWin32ThreadFactory
 
@@ -23,10 +22,12 @@
 
 #include "TThreadFactory.h"
 
+
+namespace CppyyLegacy {
+
 class TMutexImp;
 class TConditionImp;
 class TThreadImp;
-
 
 class TWin32ThreadFactory : public TThreadFactory {
 
@@ -41,4 +42,5 @@ public:
    ClassDef(TWin32ThreadFactory,0)  // Win32 thread factory
 };
 
+} // namespace CppyyLegacy
 #endif

@@ -12,7 +12,6 @@
 #ifndef ROOT_TObjArray
 #define ROOT_TObjArray
 
-
 //////////////////////////////////////////////////////////////////////////
 //                                                                      //
 // TObjArray                                                            //
@@ -31,6 +30,9 @@
 // TObjArrayIter from std::iterator.
 #pragma GCC system_header
 #endif
+
+
+namespace CppyyLegacy {
 
 class TObjArrayIter;
 
@@ -171,5 +173,7 @@ inline TObject *TObjArray::At(Int_t i) const
    BoundsOk("At", i);
    return 0;
 }
+
+} // namespace CppyyLegacy
 
 #endif

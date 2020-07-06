@@ -11,13 +11,11 @@ cat >| ${1:-rootcoreteam.h} <<-EOF
 // Do not modify this file directly but run "make version" or
 // "build/unix/coreteam.sh".
 
-namespace ROOT {
-namespace ROOTX {
+namespace CppyyLegacy {
 
 const char *gROOTCoreTeam[] = {$(echo "$AUTHORS") };
 
-} // namespace ROOTX
-} // namespace ROOT
+} // namespace CppyyLegacy
 
 #endif
 EOF

@@ -32,6 +32,8 @@ struct jmp_buf;
 #include <ROOT/RConfig.hxx>
 #include "DllImport.h"
 
+namespace CppyyLegacy {
+
 struct ExceptionContext_t {
 #ifdef NEED_SIGJMP
    sigjmp_buf fBuf;
@@ -71,8 +73,6 @@ struct ExceptionContext_t {
       gException = R__old; \
    }
 
-R__EXTERN ExceptionContext_t *gException;
-
 R__EXTERN void Throw(int code);
 
 class TExceptionHandler {
@@ -82,5 +82,9 @@ public:
 };
 
 R__EXTERN TExceptionHandler* gExceptionHandler;
+
+} // namespace CppyyLegacy
+
+R__EXTERN CppyyLegacy::ExceptionContext_t *gException;
 
 #endif

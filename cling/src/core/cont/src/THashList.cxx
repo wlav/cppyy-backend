@@ -24,7 +24,9 @@ can override Hash() as it sees fit.
 #include "TClass.h"
 
 
-ClassImp(THashList);
+ClassImp(CppyyLegacy::THashList);
+
+namespace CppyyLegacy {
 
 ////////////////////////////////////////////////////////////////////////////////
 /// Create a THashList object. Capacity is the initial hashtable capacity
@@ -68,7 +70,7 @@ THashList::~THashList()
 
 void THashList::AddFirst(TObject *obj)
 {
-   R__COLLECTION_WRITE_LOCKGUARD(ROOT::gCoreMutex);
+   R__COLLECTION_WRITE_LOCKGUARD(gCoreMutex);
 
    TList::AddFirst(obj);
    fTable->Add(obj);
@@ -83,7 +85,7 @@ void THashList::AddFirst(TObject *obj)
 
 void THashList::AddFirst(TObject *obj, Option_t *opt)
 {
-   R__COLLECTION_WRITE_LOCKGUARD(ROOT::gCoreMutex);
+   R__COLLECTION_WRITE_LOCKGUARD(gCoreMutex);
 
    TList::AddFirst(obj, opt);
    fTable->Add(obj);
@@ -94,7 +96,7 @@ void THashList::AddFirst(TObject *obj, Option_t *opt)
 
 void THashList::AddLast(TObject *obj)
 {
-   R__COLLECTION_WRITE_LOCKGUARD(ROOT::gCoreMutex);
+   R__COLLECTION_WRITE_LOCKGUARD(gCoreMutex);
 
    TList::AddLast(obj);
    fTable->Add(obj);
@@ -109,7 +111,7 @@ void THashList::AddLast(TObject *obj)
 
 void THashList::AddLast(TObject *obj, Option_t *opt)
 {
-   R__COLLECTION_WRITE_LOCKGUARD(ROOT::gCoreMutex);
+   R__COLLECTION_WRITE_LOCKGUARD(gCoreMutex);
 
    TList::AddLast(obj, opt);
    fTable->Add(obj);
@@ -120,7 +122,7 @@ void THashList::AddLast(TObject *obj, Option_t *opt)
 
 void THashList::AddBefore(const TObject *before, TObject *obj)
 {
-   R__COLLECTION_WRITE_LOCKGUARD(ROOT::gCoreMutex);
+   R__COLLECTION_WRITE_LOCKGUARD(gCoreMutex);
 
    TList::AddBefore(before, obj);
    fTable->AddBefore(before, obj);
@@ -131,7 +133,7 @@ void THashList::AddBefore(const TObject *before, TObject *obj)
 
 void THashList::AddBefore(TObjLink *before, TObject *obj)
 {
-   R__COLLECTION_WRITE_LOCKGUARD(ROOT::gCoreMutex);
+   R__COLLECTION_WRITE_LOCKGUARD(gCoreMutex);
 
    TList::AddBefore(before, obj);
    fTable->AddBefore(before->GetObject(), obj);
@@ -142,7 +144,7 @@ void THashList::AddBefore(TObjLink *before, TObject *obj)
 
 void THashList::AddAfter(const TObject *after, TObject *obj)
 {
-   R__COLLECTION_WRITE_LOCKGUARD(ROOT::gCoreMutex);
+   R__COLLECTION_WRITE_LOCKGUARD(gCoreMutex);
 
    TList::AddAfter(after, obj);
    fTable->Add(obj);
@@ -153,7 +155,7 @@ void THashList::AddAfter(const TObject *after, TObject *obj)
 
 void THashList::AddAfter(TObjLink *after, TObject *obj)
 {
-   R__COLLECTION_WRITE_LOCKGUARD(ROOT::gCoreMutex);
+   R__COLLECTION_WRITE_LOCKGUARD(gCoreMutex);
 
    TList::AddAfter(after, obj);
    fTable->Add(obj);
@@ -164,7 +166,7 @@ void THashList::AddAfter(TObjLink *after, TObject *obj)
 
 void THashList::AddAt(TObject *obj, Int_t idx)
 {
-   R__COLLECTION_WRITE_LOCKGUARD(ROOT::gCoreMutex);
+   R__COLLECTION_WRITE_LOCKGUARD(gCoreMutex);
 
    TList::AddAt(obj, idx);
    fTable->Add(obj);
@@ -177,7 +179,7 @@ void THashList::AddAt(TObject *obj, Int_t idx)
 
 Float_t THashList::AverageCollisions() const
 {
-   R__COLLECTION_READ_LOCKGUARD(ROOT::gCoreMutex);
+   R__COLLECTION_READ_LOCKGUARD(gCoreMutex);
 
    return fTable->AverageCollisions();
 }
@@ -188,7 +190,7 @@ Float_t THashList::AverageCollisions() const
 
 void THashList::Clear(Option_t *option)
 {
-   R__COLLECTION_WRITE_LOCKGUARD(ROOT::gCoreMutex);
+   R__COLLECTION_WRITE_LOCKGUARD(gCoreMutex);
 
    fTable->Clear("nodelete");  // clear table so not more lookups
    if (IsOwner())
@@ -206,7 +208,7 @@ void THashList::Clear(Option_t *option)
 
 void THashList::Delete(Option_t *option)
 {
-   R__COLLECTION_WRITE_LOCKGUARD(ROOT::gCoreMutex);
+   R__COLLECTION_WRITE_LOCKGUARD(gCoreMutex);
 
    Bool_t slow = option ? (!strcmp(option, "slow") ? kTRUE : kFALSE) : kFALSE;
 
@@ -261,7 +263,7 @@ void THashList::Delete(Option_t *option)
 
 TObject *THashList::FindObject(const char *name) const
 {
-   R__COLLECTION_READ_LOCKGUARD(ROOT::gCoreMutex);
+   R__COLLECTION_READ_LOCKGUARD(gCoreMutex);
 
    return fTable->FindObject(name);
 }
@@ -271,7 +273,7 @@ TObject *THashList::FindObject(const char *name) const
 
 TObject *THashList::FindObject(const TObject *obj) const
 {
-   R__COLLECTION_READ_LOCKGUARD(ROOT::gCoreMutex);
+   R__COLLECTION_READ_LOCKGUARD(gCoreMutex);
 
    return fTable->FindObject(obj);
 }
@@ -282,7 +284,7 @@ TObject *THashList::FindObject(const TObject *obj) const
 
 const TList *THashList::GetListForObject(const char *name) const
 {
-   R__COLLECTION_READ_LOCKGUARD(ROOT::gCoreMutex);
+   R__COLLECTION_READ_LOCKGUARD(gCoreMutex);
 
    return fTable->GetListForObject(name);
 }
@@ -293,7 +295,7 @@ const TList *THashList::GetListForObject(const char *name) const
 
 const TList *THashList::GetListForObject(const TObject *obj) const
 {
-   R__COLLECTION_READ_LOCKGUARD(ROOT::gCoreMutex);
+   R__COLLECTION_READ_LOCKGUARD(gCoreMutex);
 
    return fTable->GetListForObject(obj);
 }
@@ -311,14 +313,14 @@ void THashList::RecursiveRemove(TObject *obj)
 {
    if (!obj) return;
 
-   // It might not be safe to rely on TROOT::RecursiveRemove to take the readlock in case user code
+   // It might not be safe to rely on TRecursiveRemove to take the readlock in case user code
    // is calling directly gROOT->GetListOfCleanups()->RecursiveRemove(...)
    // However this can become a significant bottleneck if there are a very large number of
    // TDirectory object.
-   // R__COLLECTION_READ_LOCKGUARD(ROOT::gCoreMutex);
+   // R__COLLECTION_READ_LOCKGUARD(gCoreMutex);
 
    if (obj->HasInconsistentHash()) {
-      R__COLLECTION_WRITE_LOCKGUARD(ROOT::gCoreMutex);
+      R__COLLECTION_WRITE_LOCKGUARD(gCoreMutex);
 
       // Remove obj in the list itself
       TObject *object = TList::Remove(obj);
@@ -326,7 +328,7 @@ void THashList::RecursiveRemove(TObject *obj)
          fTable->RemoveSlow(object);
 
    } else if (fTable->FindObject(obj)) {
-      R__COLLECTION_WRITE_LOCKGUARD(ROOT::gCoreMutex);
+      R__COLLECTION_WRITE_LOCKGUARD(gCoreMutex);
 
       // Remove obj in the list itself
       TObject *object = TList::Remove(obj);
@@ -367,7 +369,7 @@ void THashList::RecursiveRemove(TObject *obj)
 
 void THashList::Rehash(Int_t newCapacity)
 {
-   R__COLLECTION_WRITE_LOCKGUARD(ROOT::gCoreMutex);
+   R__COLLECTION_WRITE_LOCKGUARD(gCoreMutex);
 
    fTable->Rehash(newCapacity);
 }
@@ -377,10 +379,10 @@ void THashList::Rehash(Int_t newCapacity)
 
 TObject *THashList::Remove(TObject *obj)
 {
-   R__COLLECTION_READ_LOCKGUARD(ROOT::gCoreMutex);
+   R__COLLECTION_READ_LOCKGUARD(gCoreMutex);
    if (!obj || !fTable->FindObject(obj)) return 0;
 
-   R__COLLECTION_WRITE_LOCKGUARD(ROOT::gCoreMutex);
+   R__COLLECTION_WRITE_LOCKGUARD(gCoreMutex);
    TList::Remove(obj);
    return fTable->Remove(obj);
 }
@@ -392,7 +394,7 @@ TObject *THashList::Remove(TObjLink *lnk)
 {
    if (!lnk) return 0;
 
-   R__COLLECTION_WRITE_LOCKGUARD(ROOT::gCoreMutex);
+   R__COLLECTION_WRITE_LOCKGUARD(gCoreMutex);
    TObject *obj = lnk->GetObject();
 
    TList::Remove(lnk);
@@ -411,3 +413,5 @@ bool THashList::UseRWLock()
    fTable->UseRWLock();
    return TCollection::UseRWLock();
 }
+
+} // namespace CppyyLegacy

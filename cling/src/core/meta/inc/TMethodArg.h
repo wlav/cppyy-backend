@@ -12,7 +12,6 @@
 #ifndef ROOT_TMethodArg
 #define ROOT_TMethodArg
 
-
 //////////////////////////////////////////////////////////////////////////
 //                                                                      //
 // TMethodArg                                                           //
@@ -22,8 +21,10 @@
 //////////////////////////////////////////////////////////////////////////
 
 #include "TDictionary.h"
-
 #include "TDataMember.h"
+
+
+namespace CppyyLegacy {
 
 class TFunction;
 class TMethod;
@@ -58,5 +59,5 @@ public:
    ClassDef(TMethodArg,0)  //Dictionary for a method argument
 };
 
+} // namespace CppyyLegacy
 #endif
-

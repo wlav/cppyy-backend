@@ -19,9 +19,12 @@
 
 #include <string>
 
+
 namespace clang {
    class Decl;
 }
+
+namespace CppyyLegacy {
 
 class TClingDeclInfo {
 protected:
@@ -38,5 +41,7 @@ public:
    virtual bool IsValid() const { return GetDecl(); }
    virtual const char* Name();
 };
+
+} // namespace CppyyLegacy
 
 #endif // ROOT_TClingDeclInfo

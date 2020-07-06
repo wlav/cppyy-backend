@@ -27,8 +27,8 @@
 //////////////////////////////////////////////////////////////////////////
 
 #include "TClingDeclInfo.h"
-
 #include "clang/AST/Decl.h"
+
 
 namespace clang {
    class ParmVarDecl;
@@ -37,6 +37,8 @@ namespace clang {
 namespace cling {
    class Interpreter;
 }
+
+namespace CppyyLegacy {
 
 class TClingMethodInfo;
 class TClingTypeInfo;
@@ -67,5 +69,7 @@ public:
    const char            *TypeName() const;
 
 };
+
+} // namespace CppyyLegacy
 
 #endif // ROOT_TClingMethodArgInfo

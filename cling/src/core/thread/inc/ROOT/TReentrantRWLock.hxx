@@ -22,7 +22,7 @@
 #include <thread>
 #include <unordered_map>
 
-namespace ROOT {
+namespace CppyyLegacy {
 namespace Internal {
 struct UniqueLockRecurseCount {
    using Hint_t = TVirtualRWMutex::Hint_t;
@@ -138,15 +138,13 @@ struct RecurseCounts {
    void ResetIsWriter(local_t & /* local */) { fWriterThread = std::thread::id(); }
 
    size_t &GetLocalReadersCount(local_t &local) { return fReadersCount[local]; }
-
-
 };
+
 } // Internal
 
-template <typename MutexT = ROOT::TSpinMutex, typename RecurseCountsT = Internal::RecurseCounts>
+template <typename MutexT = CppyyLegacy::TSpinMutex, typename RecurseCountsT = Internal::RecurseCounts>
 class TReentrantRWLock {
 private:
-
    std::atomic<int> fReaders;           ///<! Number of readers
    std::atomic<int> fReaderReservation; ///<! A reader wants access
    std::atomic<int> fWriterReservation; ///<! A writer wants access
@@ -179,7 +177,8 @@ public:
    std::unique_ptr<State> GetStateBefore();
    std::unique_ptr<StateDelta> Rewind(const State &earlierState);
    void Apply(std::unique_ptr<StateDelta> &&delta);
-   };
-} // end of namespace ROOT
+};
+
+} // namespace CppyyLegacy
 
 #endif

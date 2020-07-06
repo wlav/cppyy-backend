@@ -28,12 +28,14 @@
 #include <atomic>
 #include <type_traits>
 
+
+namespace CppyyLegacy {
+
 class TExMap;
 
-namespace ROOT {
    namespace Internal {
      /**
-      * \class ROOT::Internal::TAtomicPointer
+      * \class CppyyLegacy::Internal::TAtomicPointer
       * \brief Helper class to manage atomic pointers.
       * \tparam T Pointer type to be made atomic
       *
@@ -63,7 +65,6 @@ namespace ROOT {
             }
       };
    } // End of namespace Internal
-} // End of namespace ROOT
 
 
 class TProcessID : public TNamed {
@@ -74,7 +75,7 @@ private:
 
 protected:
    std::atomic_int    fCount;                           //!Reference count to this object (from TFile)
-   ROOT::Internal::TAtomicPointer<TObjArray*> fObjects; //!Array pointing to the referenced objects
+   CppyyLegacy::Internal::TAtomicPointer<TObjArray*> fObjects; //!Array pointing to the referenced objects
    std::atomic_flag   fLock;                            //!Spin lock for initialization of fObjects
 
    static TProcessID *fgPID;      //Pointer to current session ProcessID
@@ -112,5 +113,7 @@ public:
 
    ClassDef(TProcessID,1)  //Process Unique Identifier in time and space
 };
+
+} // namespace CppyyLegacy
 
 #endif

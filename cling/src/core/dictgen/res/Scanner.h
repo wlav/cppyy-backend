@@ -39,6 +39,8 @@ namespace cling {
    class Interpreter;
 }
 
+namespace CppyyLegacy {
+
 class SelectionRules;
 class BaseSelectionRule;
 class ClassSelectionRule;
@@ -65,7 +67,7 @@ public:
    };
 
    typedef std::vector<AnnotatedNamespaceDecl> NamespaceColl_t;
-   typedef std::vector<ROOT::TMetaUtils::AnnotatedRecordDecl>   ClassColl_t;
+   typedef std::vector<CppyyLegacy::TMetaUtils::AnnotatedRecordDecl>   ClassColl_t;
    typedef std::vector<const clang::TypedefNameDecl*> TypedefColl_t;
    typedef std::vector<const clang::FunctionDecl*> FunctionColl_t;
    typedef std::vector<const clang::VarDecl*> VariableColl_t;
@@ -78,7 +80,7 @@ public:
    RScanner (SelectionRules &rules,
              EScanType stype,
              const cling::Interpreter &interpret,
-             ROOT::TMetaUtils::TNormalizedCtxt &normCtxt,
+             CppyyLegacy::TMetaUtils::TNormalizedCtxt &normCtxt,
              unsigned int verbose = 0);
 
    // Configure the vistitor to also visit template instantiation.
@@ -189,7 +191,7 @@ private:
    static int fgAnonymousClassCounter;
    static int fgAnonymousEnumCounter;
    static int fgBadClassCounter;
-   ROOT::TMetaUtils::TNormalizedCtxt &fNormCtxt;
+   CppyyLegacy::TMetaUtils::TNormalizedCtxt &fNormCtxt;
    SelectionRules &fSelectionRules;
    std::set<clang::RecordDecl*> fselectedRecordDecls; // Set for O(logN)
    EScanType fScanType; // Differentiate among different kind of scans
@@ -198,4 +200,5 @@ private:
 
 };
 
+} // namespace CppyyLegacy
 #endif /* ROOT__RSCANNER_H__ */

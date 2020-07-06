@@ -25,9 +25,13 @@ namespace cling {
 # endif
 #endif
 
+namespace CppyyLegacy {
+
 extern "C" {
    R__DLLIMPORT const char ** *TROOT__GetExtraInterpreterArgs();
    R__DLLIMPORT const char *TROOT__GetIncludeDir();
    R__DLLIMPORT const char *TROOT__GetEtcDir();
    R__DLLIMPORT cling::Interpreter *TCling__GetInterpreter();
 }
+
+} // namespace CppyyLegacy

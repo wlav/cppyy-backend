@@ -12,7 +12,6 @@
 #ifndef ROOT_TWin32Condition
 #define ROOT_TWin32Condition
 
-
 //////////////////////////////////////////////////////////////////////////
 //                                                                      //
 // TWin32Condition                                                      //
@@ -23,7 +22,6 @@
 //////////////////////////////////////////////////////////////////////////
 
 #include "TConditionImp.h"
-
 #include "Windows4Root.h"
 
 #ifndef __CINT__
@@ -52,9 +50,11 @@ typedef struct
 struct pthread_cond_t;
 #endif
 
+
+namespace CppyyLegacy {
+
 class TMutexImp;
 class TWin32Mutex;
-
 
 class TWin32Condition : public TConditionImp {
 
@@ -74,4 +74,5 @@ public:
    ClassDef(TWin32Condition,0)   // Posix condition variable
 };
 
+} // namespace CppyyLegacy
 #endif

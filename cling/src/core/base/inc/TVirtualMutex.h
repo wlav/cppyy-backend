@@ -26,6 +26,9 @@
 
 #include <memory>
 
+
+namespace CppyyLegacy {
+
 class TVirtualMutex;
 
 // Global mutex set in TThread::Init
@@ -108,5 +111,7 @@ public:
 #define R__LOCKGUARD2(mutex) (void)(mutex); { }
 #define R__LOCKGUARD_UNLOCK(name) { }
 #endif
+
+} // namespace CppyyLegacy
 
 #endif

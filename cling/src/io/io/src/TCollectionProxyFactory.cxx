@@ -18,22 +18,25 @@
 #include "TEmulatedMapProxy.h"
 #include "TEmulatedCollectionProxy.h"
 
-// Do not clutter global namespace with shit....
+
+// Do not clutter global namespace
 namespace {
-   static ROOT::ESTLType stl_type(const std::string& class_name)  {
+   using namespace CppyyLegacy;
+
+   static ::CppyyLegacy::ESTLType stl_type(const std::string& class_name)  {
       // return the STL type.
       int nested = 0;
       std::vector<std::string> inside;
       int num = TClassEdit::GetSplit(class_name.c_str(),inside,nested);
       if ( num > 1 )  {
-         return (ROOT::ESTLType)TClassEdit::STLKind(inside[0]);
+         return (::CppyyLegacy::ESTLType)TClassEdit::STLKind(inside[0]);
       }
-      return ROOT::kNotSTL;
+      return ::CppyyLegacy::kNotSTL;
    }
 
    static TEmulatedCollectionProxy* GenEmulation(const char* class_name, Bool_t silent)  {
       // Generate an emulated collection proxy.
-
+      using namespace CppyyLegacy;
       if ( class_name )  {
          std::string cl = class_name;
          if ( cl.find("stdext::hash_") != std::string::npos )
@@ -42,10 +45,10 @@ namespace {
             cl.replace(0,16,"std::");
          TEmulatedCollectionProxy * result = 0;
          switch ( stl_type(cl) )  {
-            case ROOT::kNotSTL:
+            case CppyyLegacy::kNotSTL:
                return 0;
-            case ROOT::kSTLmap:
-            case ROOT::kSTLmultimap:
+            case ::CppyyLegacy::kSTLmap:
+            case ::CppyyLegacy::kSTLmultimap:
                result = new TEmulatedMapProxy(class_name,silent);
                break;
             default:
@@ -58,6 +61,8 @@ namespace {
       return 0;
    }
 }
+
+namespace CppyyLegacy {
 
 TVirtualCollectionProxy*
 TCollectionProxyFactory::GenEmulatedProxy(const char* class_name, Bool_t silent)
@@ -87,14 +92,14 @@ TCollectionProxyFactory::GenEmulatedMemberStreamer(const char* class_name, Bool_
 }
 
 TCollectionProxyFactory::Proxy_t*
-TCollectionProxyFactory::GenExplicitProxy( const ::ROOT::TCollectionProxyInfo &info, TClass *cl)
+TCollectionProxyFactory::GenExplicitProxy( const ::CppyyLegacy::TCollectionProxyInfo &info, TClass *cl)
 {
    // Generate proxy from static functions.
    return new TGenCollectionProxy(info,cl);
 }
 
 TGenCollectionStreamer*
-TCollectionProxyFactory::GenExplicitStreamer( const ::ROOT::TCollectionProxyInfo &info, TClass *cl )
+TCollectionProxyFactory::GenExplicitStreamer( const ::CppyyLegacy::TCollectionProxyInfo &info, TClass *cl )
 {
    // Generate streamer from static functions.
    TGenCollectionStreamer* ptr = new TGenCollectionStreamer(info,cl);
@@ -102,7 +107,7 @@ TCollectionProxyFactory::GenExplicitStreamer( const ::ROOT::TCollectionProxyInfo
 }
 
 TClassStreamer*
-TCollectionProxyFactory::GenExplicitClassStreamer( const ::ROOT::TCollectionProxyInfo &info, TClass *cl )
+TCollectionProxyFactory::GenExplicitClassStreamer( const ::CppyyLegacy::TCollectionProxyInfo &info, TClass *cl )
 {
    // Generate class streamer from static functions.
    TCollectionClassStreamer* s = new TCollectionClassStreamer();
@@ -111,7 +116,7 @@ TCollectionProxyFactory::GenExplicitClassStreamer( const ::ROOT::TCollectionProx
 }
 
 TMemberStreamer*
-TCollectionProxyFactory::GenExplicitMemberStreamer( const ::ROOT::TCollectionProxyInfo &info, TClass *cl)
+TCollectionProxyFactory::GenExplicitMemberStreamer( const ::CppyyLegacy::TCollectionProxyInfo &info, TClass *cl)
 {
    // Generate member streamer from static functions.
    TCollectionMemberStreamer* s = new TCollectionMemberStreamer();
@@ -169,3 +174,5 @@ void TCollectionStreamer::Streamer(TBuffer &buff, void *pObj, int /* siz */, TCl
    }
    InvalidProxyError();
 }
+
+} // namespace CppyyLegacy

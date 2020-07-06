@@ -8,11 +8,15 @@
  * For the licensing terms see $ROOTSYS/LICENSE.                         *
  * For the list of contributors see $ROOTSYS/README/CREDITS.             *
  *************************************************************************/
+
 #ifndef ROOT_TGenCollectionStreamer
 #define ROOT_TGenCollectionStreamer
 
 #include "TGenCollectionProxy.h"
 #include "TCollectionProxyFactory.h"
+
+
+namespace CppyyLegacy {
 
 class TGenCollectionStreamer : public TGenCollectionProxy {
 
@@ -54,7 +58,7 @@ public:
 
    // Initializing constructor
    TGenCollectionStreamer(Info_t typ, size_t iter_size);
-   TGenCollectionStreamer(const ROOT::TCollectionProxyInfo &info, TClass *cl);
+   TGenCollectionStreamer(const CppyyLegacy::TCollectionProxyInfo &info, TClass *cl);
 
    // Standard destructor
    virtual ~TGenCollectionStreamer();
@@ -100,4 +104,5 @@ struct AnyCollectionStreamer : public TGenCollectionStreamer  {
 // Forward declaration in the event of later separation
 typedef TGenCollectionStreamer TGenMapStreamer;
 
+} // namespace CppyyLegacy
 #endif

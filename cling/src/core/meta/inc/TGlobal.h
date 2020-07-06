@@ -12,7 +12,6 @@
 #ifndef ROOT_TGlobal
 #define ROOT_TGlobal
 
-
 //////////////////////////////////////////////////////////////////////////
 //                                                                      //
 // TGlobal                                                              //
@@ -22,8 +21,10 @@
 //////////////////////////////////////////////////////////////////////////
 
 #include "TDictionary.h"
-
 #include <functional>
+
+
+namespace CppyyLegacy {
 
 class TGlobal : public TDictionary {
 
@@ -101,4 +102,5 @@ private:
    friend class TROOT;
 };
 
+} // namespace CppyyLegacy
 #endif

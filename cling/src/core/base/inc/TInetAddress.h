@@ -33,6 +33,8 @@ namespace std { using ::vector; }
 #endif
 
 
+namespace CppyyLegacy {
+
 class TInetAddress : public TObject {
 
 friend class TSystem;
@@ -80,5 +82,7 @@ public:
 
    ClassDef(TInetAddress,4)  //Represents an Internet Protocol (IP) address
 };
+
+} // namespace CppyyLegacy
 
 #endif

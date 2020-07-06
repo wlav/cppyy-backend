@@ -30,29 +30,15 @@ an URL. The supported url format is:
 #include "TMap.h"
 #include "TROOT.h"
 #define Printf TStringPrintf
+
+
+ClassImp(CppyyLegacy::TUrl);
+
+namespace CppyyLegacy {
+
 TObjArray *TUrl::fgSpecialProtocols = nullptr;
 THashList *TUrl::fgHostFQDNs = nullptr;
 
-#ifdef R__COMPLETE_MEM_TERMINATION
-namespace {
-   class TUrlCleanup {
-      TObjArray **fSpecialProtocols;
-      THashList **fHostFQDNs;
-   public:
-      TUrlCleanup(TObjArray **protocols, THashList **hosts) : fSpecialProtocols(protocols),fHostFQDNs(hosts) {}
-      ~TUrlCleanup() {
-         if (*fSpecialProtocols) (*fSpecialProtocols)->Delete();
-         delete *fSpecialProtocols;
-         *fSpecialProtocols = 0;
-         if (*fHostFQDNs) (*fHostFQDNs)->Delete();
-         delete *fHostFQDNs;
-         *fHostFQDNs = 0;
-      }
-   };
-}
-#endif
-
-ClassImp(TUrl);
 
 ////////////////////////////////////////////////////////////////////////////////
 /// Parse url character string and split in its different subcomponents.
@@ -74,10 +60,6 @@ ClassImp(TUrl);
 TUrl::TUrl(const char *url, Bool_t defaultIsFile)
 {
    SetUrl(url, defaultIsFile);
-
-#ifdef R__COMPLETE_MEM_TERMINATION
-   static TUrlCleanup cleanup(&fgSpecialProtocols,&fgHostFQDNs);
-#endif
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -697,3 +679,5 @@ void TUrl::CleanRelativePath()
         break;
    }
 }
+
+} // namespace CppyyLegacy

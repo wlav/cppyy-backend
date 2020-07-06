@@ -35,8 +35,11 @@ of local objects so it is exception safe.
 #include "TVirtualMutex.h"
 #include "TVirtualRWMutex.h"
 
-ClassImp(TVirtualMutex);
-ClassImp(TLockGuard);
+
+ClassImp(CppyyLegacy::TVirtualMutex);
+ClassImp(CppyyLegacy::TLockGuard);
+
+namespace CppyyLegacy {
 
 // Global mutex set in TThread::Init protecting creation
 // of other (preferably local) mutexes. Note that in this
@@ -45,5 +48,7 @@ ClassImp(TLockGuard);
 TVirtualMutex *gGlobalMutex = 0;
 
 // From TVirtualRWMutex.h:
-ROOT::TVirtualRWMutex::State::~State() = default;
-ROOT::TVirtualRWMutex::StateDelta::~StateDelta() = default;
+TVirtualRWMutex::State::~State() = default;
+TVirtualRWMutex::StateDelta::~StateDelta() = default;
+
+} // namespace CppyyLegacy

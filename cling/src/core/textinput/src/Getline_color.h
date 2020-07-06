@@ -14,7 +14,7 @@
 
 #include "textinput/Color.h"
 
-namespace ROOT {
+namespace CppyyLegacy {
    using std::size_t;
 
    // Colorization interface.
@@ -55,6 +55,6 @@ namespace ROOT {
       EColorsTypes fPrevBracketColor; // previous bracket: None or [Bad]Bracket
    };
 
-}
+} // namespace CppyyLegacy
 
 #endif // ROOT_Getline_color

@@ -15,7 +15,10 @@
 #include "Bytes.h"
 #include "Riostream.h"
 
-ClassImp(TFree);
+
+ClassImp(CppyyLegacy::TFree);
+
+namespace CppyyLegacy {
 
 /**
 \class TFree
@@ -188,3 +191,4 @@ Int_t TFree::Sizeof() const
    else                              return 10;
 }
 
+} // namespace CppyyLegacy

@@ -19,7 +19,6 @@
 //                                                                      //
 //////////////////////////////////////////////////////////////////////////
 
-
 #include "RtypesCore.h"
 #include "DllImport.h"
 
@@ -40,7 +39,10 @@
 #endif
 #endif
 
+
 //---- forward declared class types --------------------------------------------
+
+namespace CppyyLegacy {
 
 class TClass;
 class TBuffer;
@@ -96,14 +98,16 @@ typedef void (*ShowMembersFunc_t)(const void *obj, TMemberInspector &R__insp, Bo
 class TVirtualIsAProxy;
 typedef TClass *(*IsAGlobalFunc_t)(const TClass*, const void *obj);
 
+} // namespace CppyyLegacy
+
 // TBuffer.h declares and implements the following 2 operators
-template <class Tmpl> TBuffer &operator>>(TBuffer &buf, Tmpl *&obj);
-template <class Tmpl> TBuffer &operator<<(TBuffer &buf, const Tmpl *obj);
+template <class Tmpl> CppyyLegacy::TBuffer &operator>>(CppyyLegacy::TBuffer &buf, Tmpl *&obj);
+template <class Tmpl> CppyyLegacy::TBuffer &operator<<(CppyyLegacy::TBuffer &buf, const Tmpl *obj);
+
+namespace CppyyLegacy {
 
 // This might get used if we implement setting a class version.
 // template <class RootClass> Short_t GetClassVersion(RootClass *);
-
-namespace ROOT {
 
    class TGenericClassInfo;
    typedef void *(*NewFunc_t)(void *);
@@ -130,21 +134,11 @@ namespace ROOT {
 
    extern void Class_ShowMembers(TClass *cl, const void *obj, TMemberInspector&);
 
-#if 0
-   // This function is only implemented in the dictionary file.
-   // The parameter is 'only' for overloading resolution.
-   // Used to be a template <class T> TGenericClassInfo *GenerateInitInstance(const T*);
-   template <class T> TGenericClassInfo *GetClassInfo(const T* t) {
-      TGenericClassInfo *GenerateInitInstance(const T*);
-      return CreateInitInstance(t);
-   };
-#endif
-
    namespace Internal {
    class TInitBehavior {
       // This class defines the interface for the class registration and
       // the TClass creation. To modify the default behavior, one would
-      // inherit from this class and overload ROOT::DefineBehavior().
+      // inherit from this class and overload ::CppyyLegacy::DefineBehavior().
    public:
       virtual ~TInitBehavior() { }
 
@@ -163,18 +157,18 @@ namespace ROOT {
       virtual void Register(const char *cname, Version_t id,
                             const std::type_info &info,
                             DictFuncPtr_t dict, Int_t pragmabits) const {
-         ROOT::AddClass(cname, id, info, dict, pragmabits);
+         ::CppyyLegacy::AddClass(cname, id, info, dict, pragmabits);
       }
 
       virtual void Unregister(const char *classname) const {
-         ROOT::RemoveClass(classname);
+         ::CppyyLegacy::RemoveClass(classname);
       }
 
       virtual TClass *CreateClass(const char *cname, Version_t id,
                                   const std::type_info &info, TVirtualIsAProxy *isa,
                                   const char *dfil, const char *ifil,
                                   Int_t dl, Int_t il) const {
-         return ROOT::CreateClass(cname, id, info, isa, dfil, ifil, dl, il);
+         return ::CppyyLegacy::CreateClass(cname, id, info, isa, dfil, ifil, dl, il);
       }
    };
 
@@ -182,22 +176,27 @@ namespace ROOT {
                                        void * /*actual_type*/);
    } // namespace Internal
 
-} // namespace ROOT
+} // namespace CppyyLegacy
 
 // The macros below use TGenericClassInfo and TInstrumentedIsAProxy, so let's
 // ensure they are included.
 #include "TGenericClassInfo.h"
 
-typedef std::atomic<TClass*> atomic_TClass_ptr;
+namespace CppyyLegacy {
+    typedef std::atomic<TClass*> atomic_TClass_ptr;
+}
 
 #include "TIsAProxy.h"
 
-namespace ROOT { namespace Internal {
+
+namespace CppyyLegacy {
+
+namespace Internal {
 
 class TCDGIILIBase {
 public:
    // All implemented in TGenericClassInfo.cxx.
-   static void SetInstance(::ROOT::TGenericClassInfo& R__instance,
+   static void SetInstance(::CppyyLegacy::TGenericClassInfo& R__instance,
                     NewFunc_t, NewArrFunc_t, DelFunc_t, DelArrFunc_t, DesFunc_t);
    static void SetName(const std::string& name, std::string& nameMember);
    static void SetfgIsA(atomic_TClass_ptr& isA, TClass*(*dictfun)());
@@ -207,7 +206,7 @@ template <typename T>
 class ClassDefGenerateInitInstanceLocalInjector:
    public TCDGIILIBase {
       static atomic_TClass_ptr fgIsA;
-      static ::ROOT::TGenericClassInfo *fgGenericInfo;
+      static ::CppyyLegacy::TGenericClassInfo *fgGenericInfo;
    public:
       static void *New(void *p) { return p ? new(p) T : new T; };
       static void *NewArray(Long_t nElements, void *p) {
@@ -215,12 +214,12 @@ class ClassDefGenerateInitInstanceLocalInjector:
       static void Delete(void *p) { delete ((T*)p); }
       static void DeleteArray(void *p) { delete[] ((T*)p); }
       static void Destruct(void *p) { ((T*)p)->~T();  }
-      static ::ROOT::TGenericClassInfo *GenerateInitInstanceLocal() {
-         static ::TVirtualIsAProxy* isa_proxy = new ::TInstrumentedIsAProxy<T>(0);
-         static ::ROOT::TGenericClassInfo
+      static ::CppyyLegacy::TGenericClassInfo* GenerateInitInstanceLocal() {
+         static TVirtualIsAProxy* isa_proxy = new TInstrumentedIsAProxy<T>(0);
+         static ::CppyyLegacy::TGenericClassInfo
             R__instance(T::Class_Name(), T::Class_Version(),
                         T::DeclFileName(), T::DeclFileLine(),
-                        typeid(T), ::ROOT::Internal::DefineBehavior((T*)0, (T*)0),
+                        typeid(T), ::CppyyLegacy::Internal::DefineBehavior((T*)0, (T*)0),
                         &T::Dictionary, isa_proxy, 0, sizeof(T) );
          SetInstance(R__instance, &New, &NewArray, &Delete, &DeleteArray, &Destruct);
          return &R__instance;
@@ -242,7 +241,7 @@ class ClassDefGenerateInitInstanceLocalInjector:
    template<typename T>
    atomic_TClass_ptr ClassDefGenerateInitInstanceLocalInjector<T>::fgIsA{};
    template<typename T>
-   ::ROOT::TGenericClassInfo *ClassDefGenerateInitInstanceLocalInjector<T>::fgGenericInfo {
+   ::CppyyLegacy::TGenericClassInfo *ClassDefGenerateInitInstanceLocalInjector<T>::fgGenericInfo {
       ClassDefGenerateInitInstanceLocalInjector<T>::GenerateInitInstanceLocal()
    };
 
@@ -257,7 +256,9 @@ class ClassDefGenerateInitInstanceLocalInjector:
    void DefaultStreamer(TBuffer &R__b, const TClass *cl, void *objpointer);
    Bool_t HasConsistentHashMember(TClass &clRef);
    Bool_t HasConsistentHashMember(const char *clName);
-}} // namespace ROOT::Internal
+
+} // namespace Internal
+} // namespace CppyyLegacy
 
 
 // Common part of ClassDef definition.
@@ -270,27 +271,27 @@ private:          \
    {                                                                                                            \
       static std::atomic<UChar_t> recurseBlocker(0);                                                            \
       if (R__likely(recurseBlocker >= 2)) {                                                                     \
-         return ::ROOT::Internal::THashConsistencyHolder<decltype(*this)>::fgHashConsistency;                   \
+         return ::CppyyLegacy::Internal::THashConsistencyHolder<decltype(*this)>::fgHashConsistency;            \
       } else if (recurseBlocker == 1) {                                                                         \
          return false;                                                                                          \
       } else if (recurseBlocker++ == 0) {                                                                       \
-         ::ROOT::Internal::THashConsistencyHolder<decltype(*this)>::fgHashConsistency =                         \
-            ::ROOT::Internal::HasConsistentHashMember(_QUOTE_(name)) ||                                         \
-            ::ROOT::Internal::HasConsistentHashMember(*IsA());                                                  \
+         ::CppyyLegacy::Internal::THashConsistencyHolder<decltype(*this)>::fgHashConsistency =                  \
+            ::CppyyLegacy::Internal::HasConsistentHashMember(_QUOTE_(name)) ||                                  \
+            ::CppyyLegacy::Internal::HasConsistentHashMember(*IsA());                                           \
          ++recurseBlocker;                                                                                      \
-         return ::ROOT::Internal::THashConsistencyHolder<decltype(*this)>::fgHashConsistency;                   \
+         return ::CppyyLegacy::Internal::THashConsistencyHolder<decltype(*this)>::fgHashConsistency;            \
       }                                                                                                         \
       return false; /* unreacheable */                                                                          \
    }                                                                                                            \
                                                                                                                 \
 public:                                                                                                         \
    static Version_t Class_Version() { return id; }                                                              \
-   virtual_keyword TClass *IsA() const overrd { return name::Class(); }                                         \
-   virtual_keyword void ShowMembers(TMemberInspector &insp) const overrd                                        \
+   virtual_keyword ::CppyyLegacy::TClass *IsA() const overrd { return name::Class(); }                          \
+   virtual_keyword void ShowMembers(::CppyyLegacy::TMemberInspector &insp) const overrd                         \
    {                                                                                                            \
-      ::ROOT::Class_ShowMembers(name::Class(), this, insp);                                                     \
+      ::CppyyLegacy::Class_ShowMembers(name::Class(), this, insp);                                              \
    }                                                                                                            \
-   void StreamerNVirtual(TBuffer &ClassDef_StreamerNVirtual_b) { name::Streamer(ClassDef_StreamerNVirtual_b); } \
+   void StreamerNVirtual(::CppyyLegacy::TBuffer &ClassDef_StreamerNVirtual_b) { name::Streamer(ClassDef_StreamerNVirtual_b); } \
    static const char *DeclFileName() { return __FILE__; }
 
 #define _ClassDefOutline_(name,id, virtual_keyword, overrd) \
@@ -301,8 +302,8 @@ public: \
    static int ImplFileLine(); \
    static const char *ImplFileName(); \
    static const char *Class_Name(); \
-   static TClass *Dictionary(); \
-   static TClass *Class(); \
+   static ::CppyyLegacy::TClass *Dictionary(); \
+   static ::CppyyLegacy::TClass *Class(); \
    virtual_keyword void Streamer(TBuffer&) overrd;
 
 #define _ClassDefInline_(name, id, virtual_keyword, overrd)                                                      \
@@ -310,14 +311,14 @@ public: \
    static const char *ImplFileName() { return 0; }                                                               \
    static const char *Class_Name()                                                                               \
    {                                                                                                             \
-      return ::ROOT::Internal::ClassDefGenerateInitInstanceLocalInjector<name>::Name();                          \
+      return ::CppyyLegacy::Internal::ClassDefGenerateInitInstanceLocalInjector<name>::Name();                   \
    }                                                                                                             \
-   static TClass *Dictionary()                                                                                   \
+   static ::CppyyLegacy::TClass *Dictionary()                                                                    \
    {                                                                                                             \
-      return ::ROOT::Internal::ClassDefGenerateInitInstanceLocalInjector<name>::Dictionary();                    \
+      return ::CppyyLegacy::Internal::ClassDefGenerateInitInstanceLocalInjector<name>::Dictionary();             \
    }                                                                                                             \
-   static TClass *Class() { return ::ROOT::Internal::ClassDefGenerateInitInstanceLocalInjector<name>::Class(); } \
-   virtual_keyword void Streamer(TBuffer &R__b) overrd { ::ROOT::Internal::DefaultStreamer(R__b, name::Class(), this); }
+   static ::CppyyLegacy::TClass *Class() { return ::CppyyLegacy::Internal::ClassDefGenerateInitInstanceLocalInjector<name>::Class(); }\
+   virtual_keyword void Streamer(::CppyyLegacy::TBuffer &R__b) overrd { ::CppyyLegacy::Internal::DefaultStreamer(R__b, name::Class(), this); }
 
 #define ClassDef(name,id) \
    _ClassDefOutline_(name,id,virtual,)   \
@@ -350,8 +351,8 @@ public: \
 
 
 #define ClassImpUnique(name,key) \
-   namespace ROOT { \
-      TGenericClassInfo *GenerateInitInstance(const name*); \
+   namespace CppyyLegacy { \
+      ::CppyyLegacy::TGenericClassInfo* GenerateInitInstance(const name*); \
       namespace { \
          static int _R__UNIQUE_(_NAME2_(R__dummyint,key)) __attribute__((unused)) = \
             GenerateInitInstance((name*)0x0)->SetImplFile(__FILE__, __LINE__); \
@@ -360,20 +361,6 @@ public: \
    }
 #define ClassImp(name) ClassImpUnique(name,default)
 
-// Macro for Namespace
-
-#define NamespaceImpUnique(name,key) \
-   namespace name { \
-      namespace ROOT { \
-         ::ROOT::TGenericClassInfo *GenerateInitInstance(); \
-         namespace { \
-            static int _R__UNIQUE_(_NAME2_(R__dummyint,key)) = \
-               GenerateInitInstance()->SetImplFile(__FILE__, __LINE__); \
-            R__UseDummy(_R__UNIQUE_(_NAME2_(R__dummyint,key))); \
-         } \
-      } \
-   }
-#define NamespaceImp(name) NamespaceImpUnique(name,default)
 
 //---- ClassDefT macros for templates with one template argument ---------------
 // ClassDefT  corresponds to ClassDef
@@ -397,9 +384,9 @@ public: \
 #define ClassDefT2(name,Tmpl)
 
 #define templateClassImpUnique(name, key)                                                                           \
-   namespace ROOT {                                                                                                 \
+   namespace CppyyLegacy {                                                                                          \
    static TNamed *                                                                                                  \
-      _R__UNIQUE_(_NAME2_(R__dummyholder, key)) = ::ROOT::RegisterClassTemplate(_QUOTE_(name), __FILE__, __LINE__); \
+      _R__UNIQUE_(_NAME2_(R__dummyholder, key)) = ::CppyyLegacy::RegisterClassTemplate(_QUOTE_(name), __FILE__, __LINE__); \
    R__UseDummy(_R__UNIQUE_(_NAME2_(R__dummyholder, key)));                                                          \
    }
 #define templateClassImp(name) templateClassImpUnique(name,default)
@@ -427,16 +414,16 @@ public: \
 //---- Macro to set the class version of non instrumented classes --------------
 
 #define RootClassVersion(name,VersionNumber) \
-namespace ROOT { \
-   TGenericClassInfo *GenerateInitInstance(const name*); \
+namespace CppyyLegacy { \
+   TGenericClassInfo * GenerateInitInstance(const name*); \
    static Short_t _R__UNIQUE_(R__dummyVersionNumber) = \
            GenerateInitInstance((name*)0x0)->SetVersion(VersionNumber); \
    R__UseDummy(_R__UNIQUE_(R__dummyVersionNumber)); \
 }
 
 #define RootStreamer(name,STREAMER)                                  \
-namespace ROOT {                                                     \
-   TGenericClassInfo *GenerateInitInstance(const name*);             \
+namespace CppyyLegacy {                                              \
+   TGenericClassInfo * GenerateInitInstance(const name*);             \
    static Short_t _R__UNIQUE_(R__dummyStreamer) =                    \
            GenerateInitInstance((name*)0x0)->SetStreamer(STREAMER);  \
    R__UseDummy(_R__UNIQUE_(R__dummyStreamer));                       \

@@ -57,7 +57,7 @@ namespace std {
 namespace cling {
    class Interpreter;
 }
-namespace ROOT {
+namespace CppyyLegacy {
    namespace TMetaUtils {
       class TNormalizedCtxt;
    }
@@ -68,6 +68,8 @@ namespace ROOT {
 //
 // This class does not dependent on any other ROOT facility
 // so that it can be used by rootcint.
+
+namespace CppyyLegacy {
 
 namespace TClassEdit {
 
@@ -90,21 +92,21 @@ namespace TClassEdit {
    };
 
    enum ESTLType {
-      kNotSTL            = ROOT::kNotSTL,
-      kVector            = ROOT::kSTLvector,
-      kList              = ROOT::kSTLlist,
-      kForwardlist       = ROOT::kSTLforwardlist,
-      kDeque             = ROOT::kSTLdeque,
-      kMap               = ROOT::kSTLmap,
-      kMultiMap          = ROOT::kSTLmultimap,
-      kSet               = ROOT::kSTLset,
-      kMultiSet          = ROOT::kSTLmultiset,
-      kUnorderedSet      = ROOT::kSTLunorderedset,
-      kUnorderedMultiSet = ROOT::kSTLunorderedmultiset,
-      kUnorderedMap      = ROOT::kSTLunorderedmap,
-      kUnorderedMultiMap = ROOT::kSTLunorderedmultimap,
-      kBitSet            = ROOT::kSTLbitset,
-      kEnd               = ROOT::kSTLend
+      kNotSTL            = CppyyLegacy::kNotSTL,
+      kVector            = CppyyLegacy::kSTLvector,
+      kList              = CppyyLegacy::kSTLlist,
+      kForwardlist       = CppyyLegacy::kSTLforwardlist,
+      kDeque             = CppyyLegacy::kSTLdeque,
+      kMap               = CppyyLegacy::kSTLmap,
+      kMultiMap          = CppyyLegacy::kSTLmultimap,
+      kSet               = CppyyLegacy::kSTLset,
+      kMultiSet          = CppyyLegacy::kSTLmultiset,
+      kUnorderedSet      = CppyyLegacy::kSTLunorderedset,
+      kUnorderedMultiSet = CppyyLegacy::kSTLunorderedmultiset,
+      kUnorderedMap      = CppyyLegacy::kSTLunorderedmap,
+      kUnorderedMultiMap = CppyyLegacy::kSTLunorderedmultimap,
+      kBitSet            = CppyyLegacy::kSTLbitset,
+      kEnd               = CppyyLegacy::kSTLend
    };
 
    enum class EComplexType : short {
@@ -142,7 +144,7 @@ namespace TClassEdit {
       TSplitType(const char *type2split, EModType mode = TClassEdit::kNone);
 
       int  IsSTLCont(int testAlloc=0) const;
-      ROOT::ESTLType  IsInSTL() const;
+      CppyyLegacy::ESTLType  IsInSTL() const;
       void ShortType(std::string &answer, int mode);
       bool IsTemplate();
 
@@ -161,29 +163,23 @@ namespace TClassEdit {
    bool        IsDefHash(const char *hashname, const char *classname);
    bool        IsInterpreterDetail(const char *type);
    bool        IsSTLBitset(const char *type);
-   ROOT::ESTLType UnderlyingIsSTLCont(std::string_view type);
-   inline ROOT::ESTLType UnderlyingIsSTLCont (ROOT::Internal::TStringView type) { return UnderlyingIsSTLCont(std::string_view(type)); }
-   ROOT::ESTLType IsSTLCont (std::string_view type);
-   inline ROOT::ESTLType IsSTLCont (ROOT::Internal::TStringView type) { return IsSTLCont(std::string_view(type)); }
+   CppyyLegacy::ESTLType UnderlyingIsSTLCont(std::string_view type);
+   CppyyLegacy::ESTLType IsSTLCont (std::string_view type);
    int         IsSTLCont (const char *type,int testAlloc);
    bool        IsStdClass(const char *type);
    bool        IsVectorBool(const char *name);
    void        GetNormalizedName(std::string &norm_name, std::string_view name);
-   inline void GetNormalizedName (std::string &norm_name, ROOT::Internal::TStringView name) { return GetNormalizedName(norm_name, std::string_view(name)); }
    std::string GetLong64_Name(const char *original);
    std::string GetLong64_Name(const std::string& original);
    int         GetSplit  (const char *type, std::vector<std::string> &output, int &nestedLoc, EModType mode = TClassEdit::kNone);
-   ROOT::ESTLType STLKind(std::string_view type);    //Kind of stl container
-   inline ROOT::ESTLType STLKind(ROOT::Internal::TStringView type) { return STLKind(std::string_view(type)); }
+   CppyyLegacy::ESTLType STLKind(std::string_view type);    //Kind of stl container
    int         STLArgs   (int kind);            //Min number of arguments without allocator
    std::string ResolveTypedef(const char *tname, bool resolveAll = false);
    std::string ShortType (const char *typeDesc, int mode);
    std::string InsertStd(const char *tname);
    const char* GetUnqualifiedName(const char*name);
    inline bool IsUniquePtr(std::string_view name) {return 0 == name.compare(0, 16, "std::unique_ptr<");}
-   inline bool IsUniquePtr(ROOT::Internal::TStringView name) {return IsUniquePtr(std::string_view(name)); }
    inline bool IsStdArray(std::string_view name) {return 0 == name.compare(0, 11, "std::array<");}
-   inline bool IsStdArray(ROOT::Internal::TStringView name) {return IsStdArray(std::string_view(name)); }
    inline std::string GetUniquePtrType(std::string_view name)
    {
       // Find the first template parameter
@@ -192,7 +188,6 @@ namespace TClassEdit {
       GetSplit(name.data(), v, i);
       return v[1];
    }
-   inline std::string GetUniquePtrType(ROOT::Internal::TStringView name) {return GetUniquePtrType(std::string_view(name)); }
    std::string GetNameForIO(const std::string& templateInstanceName,
                            TClassEdit::EModType mode = TClassEdit::kNone,
                            bool* hasChanged = nullptr);
@@ -249,4 +244,5 @@ namespace TClassEdit {
    bool SplitFunction(std::string_view decl, FunctionSplitInfo &result);
 }
 
+} // namespace CppyyLegacy
 #endif

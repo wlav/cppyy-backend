@@ -14,11 +14,13 @@
 
 #include <atomic>
 
-namespace ROOT {
+
+namespace CppyyLegacy {
+
 namespace Internal {
 
 /**
-* \class ROOT::Internal::TSpinLockGuard
+* \class CppyyLegacy::Internal::TSpinLockGuard
 * \brief A spin mutex-as-code-guard class.
 * \ingroup Foundation
 * This class allows to acquire spin locks in combination with a std::atomic_flag variable.
@@ -26,7 +28,7 @@ namespace Internal {
 * ~~~{.cpp}
 * mutable std::atomic_flag fSpinLock;
 * [...]
-* ROOT::Internal::TSpinLockGuard slg(fSpinLock);
+* CppyyLegacy::Internal::TSpinLockGuard slg(fSpinLock);
 * // do something important
 * [...]
 * ~~~{.cpp}
@@ -48,6 +50,6 @@ private:
 };
 
 } // namespace Internal
-} // namespace ROOT
+} // namespace CppyyLegacy
 
 #endif // ROOT_TSpinLockGuard

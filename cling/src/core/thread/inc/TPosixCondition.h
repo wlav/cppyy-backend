@@ -30,9 +30,11 @@
 struct pthread_cond_t;
 #endif
 
+
+namespace CppyyLegacy {
+
 class TMutexImp;
 class TPosixMutex;
-
 
 class TPosixCondition : public TConditionImp {
 
@@ -52,4 +54,5 @@ public:
    ClassDef(TPosixCondition,0)   // Posix condition variable
 };
 
+} // namespace CppyyLegacy
 #endif

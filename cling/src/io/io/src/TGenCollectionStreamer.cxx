@@ -31,6 +31,9 @@ size(), clear(), resize(). resize() may be a void operation.
 #include "Riostream.h"
 #include "TVirtualCollectionIterators.h"
 
+
+namespace CppyyLegacy {
+
 TGenCollectionStreamer::TGenCollectionStreamer(const TGenCollectionStreamer& copy)
       : TGenCollectionProxy(copy), fReadBufferFunc(&TGenCollectionStreamer::ReadBufferDefault)
 {
@@ -43,7 +46,7 @@ TGenCollectionStreamer::TGenCollectionStreamer(Info_t info, size_t iter_size)
    // Build a Streamer for a collection whose type is described by 'collectionClass'.
 }
 
-TGenCollectionStreamer::TGenCollectionStreamer(const ::ROOT::TCollectionProxyInfo &info, TClass *cl)
+TGenCollectionStreamer::TGenCollectionStreamer(const ::CppyyLegacy::TCollectionProxyInfo &info, TClass *cl)
       : TGenCollectionProxy(info, cl), fReadBufferFunc(&TGenCollectionStreamer::ReadBufferDefault)
 {
    // Build a Streamer for a collection whose type is described by 'collectionClass'.
@@ -220,7 +223,7 @@ void TGenCollectionStreamer::ReadPrimitives(int nElements, TBuffer &b, const TCl
    StreamHelper* itmconv = 0;
    fEnv->fSize = nElements;
    switch (fSTL_type)  {
-      case ROOT::kSTLvector:
+      case CppyyLegacy::kSTLvector:
          if (fVal->fKind != kBool_t)  {
             fResize(fEnv->fObject,fEnv->fSize);
             fEnv->fIdx = 0;
@@ -375,7 +378,7 @@ void TGenCollectionStreamer::ReadObjects(int nElements, TBuffer &b, const TClass
    fEnv->fSize = nElements;
    switch (fSTL_type)  {
          // Simple case: contiguous memory. get address of first, then jump.
-      case ROOT::kSTLvector:
+      case CppyyLegacy::kSTLvector:
 #define DOLOOP(x) {int idx=0; while(idx<nElements) {StreamHelper* i=(StreamHelper*)(((char*)itm) + fValDiff*idx); { x ;} ++idx;} break;}
          fResize(fEnv->fObject,fEnv->fSize);
          fEnv->fIdx = 0;
@@ -403,9 +406,9 @@ void TGenCollectionStreamer::ReadObjects(int nElements, TBuffer &b, const TClass
 
          // No contiguous memory, but resize is possible
          // Hence accessing objects using At(i) should be not too much an overhead
-      case ROOT::kSTLlist:
-      case ROOT::kSTLforwardlist:
-      case ROOT::kSTLdeque:
+      case CppyyLegacy::kSTLlist:
+      case CppyyLegacy::kSTLforwardlist:
+      case CppyyLegacy::kSTLdeque:
 #define DOLOOP(x) {int idx=0; while(idx<nElements) {StreamHelper* i=(StreamHelper*)TGenCollectionProxy::At(idx); { x ;} ++idx;} break;}
          fResize(fEnv->fObject,fEnv->fSize);
          fEnv->fIdx = 0;
@@ -427,10 +430,10 @@ void TGenCollectionStreamer::ReadObjects(int nElements, TBuffer &b, const TClass
 
          // Rather troublesome case: Objects can only be fed into the container
          // Once they are created. Need to take memory from stack or heap.
-      case ROOT::kSTLmultiset:
-      case ROOT::kSTLset:
-      case ROOT::kSTLunorderedset:
-      case ROOT::kSTLunorderedmultiset:
+      case CppyyLegacy::kSTLmultiset:
+      case CppyyLegacy::kSTLset:
+      case CppyyLegacy::kSTLunorderedset:
+      case CppyyLegacy::kSTLunorderedmultiset:
 #define DOLOOP(x) {int idx=0; while(idx<nElements) {StreamHelper* i=(StreamHelper*)(((char*)itm) + fValDiff*idx); { x ;} ++idx;}}
          fEnv->fStart = itm = (StreamHelper*)(len < sizeof(buffer) ? buffer : memory =::operator new(len));
          fConstruct(itm,nElements);
@@ -492,7 +495,7 @@ void TGenCollectionStreamer::ReadPairFromMap(int nElements, TBuffer &b)
    fEnv->fSize = nElements;
    switch (fSTL_type)  {
          // Simple case: contiguous memory. get address of first, then jump.
-      case ROOT::kSTLvector:
+      case CppyyLegacy::kSTLvector:
 #define DOLOOP(x) {int idx=0; while(idx<nElements) {StreamHelper* i=(StreamHelper*)(((char*)itm) + fValDiff*idx); { x ;} ++idx;} break;}
          fResize(fEnv->fObject,fEnv->fSize);
          fEnv->fIdx = 0;
@@ -515,9 +518,9 @@ void TGenCollectionStreamer::ReadPairFromMap(int nElements, TBuffer &b)
 
          // No contiguous memory, but resize is possible
          // Hence accessing objects using At(i) should be not too much an overhead
-      case ROOT::kSTLlist:
-      case ROOT::kSTLforwardlist:
-      case ROOT::kSTLdeque:
+      case CppyyLegacy::kSTLlist:
+      case CppyyLegacy::kSTLforwardlist:
+      case CppyyLegacy::kSTLdeque:
 #define DOLOOP(x) {int idx=0; while(idx<nElements) {StreamHelper* i=(StreamHelper*)TGenCollectionProxy::At(idx); { x ;} ++idx;} break;}
          fResize(fEnv->fObject,fEnv->fSize);
          fEnv->fIdx = 0;
@@ -538,10 +541,10 @@ void TGenCollectionStreamer::ReadPairFromMap(int nElements, TBuffer &b)
 
          // Rather troublesome case: Objects can only be fed into the container
          // Once they are created. Need to take memory from stack or heap.
-      case ROOT::kSTLmultiset:
-      case ROOT::kSTLset:
-      case ROOT::kSTLunorderedset:
-      case ROOT::kSTLunorderedmultiset:
+      case CppyyLegacy::kSTLmultiset:
+      case CppyyLegacy::kSTLset:
+      case CppyyLegacy::kSTLunorderedset:
+      case CppyyLegacy::kSTLunorderedmultiset:
 #define DOLOOP(x) {int idx=0; while(idx<nElements) {StreamHelper* i=(StreamHelper*)(((char*)itm) + fValDiff*idx); { x ;} ++idx;}}
          fEnv->fStart = itm = (StreamHelper*)(len < sizeof(buffer) ? buffer : memory =::operator new(len));
          fConstruct(itm,nElements);
@@ -898,7 +901,7 @@ void TGenCollectionStreamer::WritePrimitives(int nElements, TBuffer &b)
    void*  memory  = 0;
    StreamHelper* itm = 0;
    switch (fSTL_type)  {
-      case ROOT::kSTLvector:
+      case CppyyLegacy::kSTLvector:
          if (fVal->fKind != kBool_t)  {
             itm = (StreamHelper*)(fEnv->fStart = fFirst.invoke(fEnv));
             break;
@@ -970,7 +973,7 @@ void TGenCollectionStreamer::WriteObjects(int nElements, TBuffer &b)
    StreamHelper* itm = 0;
    switch (fSTL_type)  {
          // Simple case: contiguous memory. get address of first, then jump.
-      case ROOT::kSTLvector:
+      case CppyyLegacy::kSTLvector:
 #define DOLOOP(x) {int idx=0; while(idx<nElements) {StreamHelper* i=(StreamHelper*)(((char*)itm) + fValDiff*idx); { x ;} ++idx;} break;}
          itm = (StreamHelper*)fFirst.invoke(fEnv);
          switch (fVal->fCase) {
@@ -995,13 +998,13 @@ void TGenCollectionStreamer::WriteObjects(int nElements, TBuffer &b)
 
          // No contiguous memory, but resize is possible
          // Hence accessing objects using At(i) should be not too much an overhead
-      case ROOT::kSTLlist:
-      case ROOT::kSTLforwardlist:
-      case ROOT::kSTLdeque:
-      case ROOT::kSTLmultiset:
-      case ROOT::kSTLset:
-      case ROOT::kSTLunorderedset:
-      case ROOT::kSTLunorderedmultiset:
+      case CppyyLegacy::kSTLlist:
+      case CppyyLegacy::kSTLforwardlist:
+      case CppyyLegacy::kSTLdeque:
+      case CppyyLegacy::kSTLmultiset:
+      case CppyyLegacy::kSTLset:
+      case CppyyLegacy::kSTLunorderedset:
+      case CppyyLegacy::kSTLunorderedmultiset:
 #define DOLOOP(x) {int idx=0; while(idx<nElements) {StreamHelper* i=(StreamHelper*)TGenCollectionProxy::At(idx); { x ;} ++idx;} break;}
          switch (fVal->fCase) {
             case kIsClass:
@@ -1243,7 +1246,7 @@ void TGenCollectionStreamer::ReadBufferDefault(TBuffer &b, void *obj, const TCla
    if (!GetFunctionCreateIterators()) {
       Fatal("TGenCollectionStreamer::ReadBufferDefault","No CreateIterators function for %s",fName.c_str());
    }
-   if (fSTL_type == ROOT::kSTLvector && ( fVal->fCase == kIsFundamental || fVal->fCase == kIsEnum ) )
+   if (fSTL_type == CppyyLegacy::kSTLvector && ( fVal->fCase == kIsFundamental || fVal->fCase == kIsEnum ) )
    {
       // Only handle primitives this way
       switch (int(fVal->fKind))   {
@@ -1315,7 +1318,7 @@ void TGenCollectionStreamer::ReadBufferGeneric(TBuffer &b, void *obj, const TCla
       }
    } else if (nElements > 0)  {
       switch (fSTL_type)  {
-         case ROOT::kSTLbitset:
+         case CppyyLegacy::kSTLbitset:
             if (obj) {
                if (fProperties & kNeedDelete)   {
                   TGenCollectionProxy::Clear("force");
@@ -1325,7 +1328,7 @@ void TGenCollectionStreamer::ReadBufferGeneric(TBuffer &b, void *obj, const TCla
             }
             ReadPrimitives(nElements, b, onFileClass);
             return;
-         case ROOT::kSTLvector:
+         case CppyyLegacy::kSTLvector:
             if (obj) {
                if (fProperties & kNeedDelete)   {
                   TGenCollectionProxy::Clear("force");
@@ -1344,13 +1347,13 @@ void TGenCollectionStreamer::ReadBufferGeneric(TBuffer &b, void *obj, const TCla
                   return;
             }
             break;
-         case ROOT::kSTLlist:
-         case ROOT::kSTLforwardlist:
-         case ROOT::kSTLdeque:
-         case ROOT::kSTLmultiset:
-         case ROOT::kSTLset:
-         case ROOT::kSTLunorderedset:
-         case ROOT::kSTLunorderedmultiset:
+         case CppyyLegacy::kSTLlist:
+         case CppyyLegacy::kSTLforwardlist:
+         case CppyyLegacy::kSTLdeque:
+         case CppyyLegacy::kSTLmultiset:
+         case CppyyLegacy::kSTLset:
+         case CppyyLegacy::kSTLunorderedset:
+         case CppyyLegacy::kSTLunorderedmultiset:
             if (obj) {
                if (fProperties & kNeedDelete)   {
                   TGenCollectionProxy::Clear("force");
@@ -1368,10 +1371,10 @@ void TGenCollectionStreamer::ReadBufferGeneric(TBuffer &b, void *obj, const TCla
                   return;
             }
             break;
-         case ROOT::kSTLmap:
-         case ROOT::kSTLmultimap:
-         case ROOT::kSTLunorderedmap:
-         case ROOT::kSTLunorderedmultimap:
+         case CppyyLegacy::kSTLmap:
+         case CppyyLegacy::kSTLmultimap:
+         case CppyyLegacy::kSTLunorderedmap:
+         case CppyyLegacy::kSTLunorderedmultimap:
             if (obj) {
                if (fProperties & kNeedDelete)   {
                   TGenCollectionProxy::Clear("force");
@@ -1396,16 +1399,16 @@ void TGenCollectionStreamer::Streamer(TBuffer &b)
       }
       if (nElements > 0)  {
          switch (fSTL_type)  {
-            case ROOT::kSTLbitset:
+            case CppyyLegacy::kSTLbitset:
                ReadPrimitives(nElements, b, fOnFileClass);
                return;
-            case ROOT::kSTLvector:
-            case ROOT::kSTLlist:
-            case ROOT::kSTLdeque:
-            case ROOT::kSTLmultiset:
-            case ROOT::kSTLset:
-            case ROOT::kSTLunorderedset:
-            case ROOT::kSTLunorderedmultiset:
+            case CppyyLegacy::kSTLvector:
+            case CppyyLegacy::kSTLlist:
+            case CppyyLegacy::kSTLdeque:
+            case CppyyLegacy::kSTLmultiset:
+            case CppyyLegacy::kSTLset:
+            case CppyyLegacy::kSTLunorderedset:
+            case CppyyLegacy::kSTLunorderedmultiset:
                switch (fVal->fCase) {
                   case kIsFundamental:  // Only handle primitives this way
                   case kIsEnum:
@@ -1416,10 +1419,10 @@ void TGenCollectionStreamer::Streamer(TBuffer &b)
                      return;
                }
                break;
-            case ROOT::kSTLmap:
-            case ROOT::kSTLmultimap:
-            case ROOT::kSTLunorderedmap:
-            case ROOT::kSTLunorderedmultimap:
+            case CppyyLegacy::kSTLmap:
+            case CppyyLegacy::kSTLmultimap:
+            case CppyyLegacy::kSTLunorderedmap:
+            case CppyyLegacy::kSTLunorderedmultimap:
                ReadMap(nElements, b, fOnFileClass);
                break;
          }
@@ -1429,17 +1432,17 @@ void TGenCollectionStreamer::Streamer(TBuffer &b)
       b << nElements;
       if (nElements > 0)  {
          switch (fSTL_type)  {
-            case ROOT::kSTLbitset:
+            case CppyyLegacy::kSTLbitset:
                WritePrimitives(nElements, b);
                return;
-            case ROOT::kSTLvector:
-            case ROOT::kSTLlist:
-            case ROOT::kSTLforwardlist:
-            case ROOT::kSTLdeque:
-            case ROOT::kSTLmultiset:
-            case ROOT::kSTLset:
-            case ROOT::kSTLunorderedset:
-            case ROOT::kSTLunorderedmultiset:
+            case CppyyLegacy::kSTLvector:
+            case CppyyLegacy::kSTLlist:
+            case CppyyLegacy::kSTLforwardlist:
+            case CppyyLegacy::kSTLdeque:
+            case CppyyLegacy::kSTLmultiset:
+            case CppyyLegacy::kSTLset:
+            case CppyyLegacy::kSTLunorderedset:
+            case CppyyLegacy::kSTLunorderedmultiset:
                switch (fVal->fCase) {
                   case kIsFundamental:  // Only handle primitives this way
                   case kIsEnum:
@@ -1450,10 +1453,10 @@ void TGenCollectionStreamer::Streamer(TBuffer &b)
                      return;
                }
                break;
-            case ROOT::kSTLmap:
-            case ROOT::kSTLmultimap:
-            case ROOT::kSTLunorderedmap:
-            case ROOT::kSTLunorderedmultimap:
+            case CppyyLegacy::kSTLmap:
+            case CppyyLegacy::kSTLmultimap:
+            case CppyyLegacy::kSTLunorderedmap:
+            case CppyyLegacy::kSTLunorderedmultimap:
                WriteMap(nElements, b);
                break;
          }
@@ -1472,20 +1475,20 @@ void TGenCollectionStreamer::StreamerAsMap(TBuffer &b)
       }
       if (nElements > 0)  {
          switch (fSTL_type)  {
-            case ROOT::kSTLmap:
-            case ROOT::kSTLmultimap:
-            case ROOT::kSTLunorderedmap:
-            case ROOT::kSTLunorderedmultimap:
+            case CppyyLegacy::kSTLmap:
+            case CppyyLegacy::kSTLmultimap:
+            case CppyyLegacy::kSTLunorderedmap:
+            case CppyyLegacy::kSTLunorderedmultimap:
                ReadMap(nElements, b, fOnFileClass);
                break;
-            case ROOT::kSTLvector:
-            case ROOT::kSTLlist:
-            case ROOT::kSTLforwardlist:
-            case ROOT::kSTLdeque:
-            case ROOT::kSTLmultiset:
-            case ROOT::kSTLset:
-            case ROOT::kSTLunorderedset:
-            case ROOT::kSTLunorderedmultiset:{
+            case CppyyLegacy::kSTLvector:
+            case CppyyLegacy::kSTLlist:
+            case CppyyLegacy::kSTLforwardlist:
+            case CppyyLegacy::kSTLdeque:
+            case CppyyLegacy::kSTLmultiset:
+            case CppyyLegacy::kSTLset:
+            case CppyyLegacy::kSTLunorderedset:
+            case CppyyLegacy::kSTLunorderedmultiset:{
                   ReadPairFromMap(nElements, b);
                   break;
                }
@@ -1497,3 +1500,5 @@ void TGenCollectionStreamer::StreamerAsMap(TBuffer &b)
       Streamer(b);
    }
 }
+
+} // namespace CppyyLegacy

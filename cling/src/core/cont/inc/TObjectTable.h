@@ -12,7 +12,6 @@
 #ifndef ROOT_TObjectTable
 #define ROOT_TObjectTable
 
-
 //////////////////////////////////////////////////////////////////////////
 //                                                                      //
 // TObjectTable                                                         //
@@ -26,11 +25,12 @@
 //                                                                      //
 //////////////////////////////////////////////////////////////////////////
 
-
 #include "TObject.h"
 
-class TClass;
 
+namespace CppyyLegacy {
+
+class TClass;
 
 class TObjectTable : public TObject {
 
@@ -80,5 +80,7 @@ inline Bool_t TObjectTable::PtrIsValid(TObject *op)
 
 
 R__EXTERN TObjectTable *gObjectTable;
+
+} // namespace CppyyLegacy
 
 #endif

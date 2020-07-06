@@ -28,6 +28,8 @@
 
 #include <vector>
 
+namespace CppyyLegacy {
+
 class TVirtualStreamerInfo;
 class TStreamerElement;
 class TString;
@@ -336,39 +338,41 @@ public:
    ClassDef(TBuffer,0)  //Buffer base class used for serializing objects
 };
 
+} // namespace CppyyLegacy
+
 //---------------------- TBuffer default external operators --------------------
 
-inline TBuffer &operator>>(TBuffer &buf, Bool_t &b)   { buf.ReadBool(b);   return buf; }
-inline TBuffer &operator>>(TBuffer &buf, Char_t &c)   { buf.ReadChar(c);   return buf; }
-inline TBuffer &operator>>(TBuffer &buf, UChar_t &c)  { buf.ReadUChar(c);  return buf; }
-inline TBuffer &operator>>(TBuffer &buf, Short_t &s)  { buf.ReadShort(s);  return buf; }
-inline TBuffer &operator>>(TBuffer &buf, UShort_t &s) { buf.ReadUShort(s); return buf; }
-inline TBuffer &operator>>(TBuffer &buf, Int_t &i)    { buf.ReadInt(i);    return buf; }
-inline TBuffer &operator>>(TBuffer &buf, UInt_t &i)   { buf.ReadUInt(i);   return buf; }
-inline TBuffer &operator>>(TBuffer &buf, Long_t &l)   { buf.ReadLong(l);   return buf; }
-inline TBuffer &operator>>(TBuffer &buf, ULong_t &l)  { buf.ReadULong(l);  return buf; }
-inline TBuffer &operator>>(TBuffer &buf, Long64_t &l) { buf.ReadLong64(l); return buf; }
-inline TBuffer &operator>>(TBuffer &buf, ULong64_t &l){ buf.ReadULong64(l);return buf; }
-inline TBuffer &operator>>(TBuffer &buf, Float_t &f)  { buf.ReadFloat(f);  return buf; }
-inline TBuffer &operator>>(TBuffer &buf, Double_t &d) { buf.ReadDouble(d); return buf; }
-inline TBuffer &operator>>(TBuffer &buf, Char_t *c)   { buf.ReadCharP(c);  return buf; }
-inline TBuffer &operator>>(TBuffer &buf, TString &s)  { buf.ReadTString(s);return buf; }
+inline CppyyLegacy::TBuffer &operator>>(CppyyLegacy::TBuffer &buf, CppyyLegacy::Bool_t &b)   { buf.ReadBool(b);   return buf; }
+inline CppyyLegacy::TBuffer &operator>>(CppyyLegacy::TBuffer &buf, CppyyLegacy::Char_t &c)   { buf.ReadChar(c);   return buf; }
+inline CppyyLegacy::TBuffer &operator>>(CppyyLegacy::TBuffer &buf, CppyyLegacy::UChar_t &c)  { buf.ReadUChar(c);  return buf; }
+inline CppyyLegacy::TBuffer &operator>>(CppyyLegacy::TBuffer &buf, CppyyLegacy::Short_t &s)  { buf.ReadShort(s);  return buf; }
+inline CppyyLegacy::TBuffer &operator>>(CppyyLegacy::TBuffer &buf, CppyyLegacy::UShort_t &s) { buf.ReadUShort(s); return buf; }
+inline CppyyLegacy::TBuffer &operator>>(CppyyLegacy::TBuffer &buf, CppyyLegacy::Int_t &i)    { buf.ReadInt(i);    return buf; }
+inline CppyyLegacy::TBuffer &operator>>(CppyyLegacy::TBuffer &buf, CppyyLegacy::UInt_t &i)   { buf.ReadUInt(i);   return buf; }
+inline CppyyLegacy::TBuffer &operator>>(CppyyLegacy::TBuffer &buf, CppyyLegacy::Long_t &l)   { buf.ReadLong(l);   return buf; }
+inline CppyyLegacy::TBuffer &operator>>(CppyyLegacy::TBuffer &buf, CppyyLegacy::ULong_t &l)  { buf.ReadULong(l);  return buf; }
+inline CppyyLegacy::TBuffer &operator>>(CppyyLegacy::TBuffer &buf, CppyyLegacy::Long64_t &l) { buf.ReadLong64(l); return buf; }
+inline CppyyLegacy::TBuffer &operator>>(CppyyLegacy::TBuffer &buf, CppyyLegacy::ULong64_t &l){ buf.ReadULong64(l);return buf; }
+inline CppyyLegacy::TBuffer &operator>>(CppyyLegacy::TBuffer &buf, CppyyLegacy::Float_t &f)  { buf.ReadFloat(f);  return buf; }
+inline CppyyLegacy::TBuffer &operator>>(CppyyLegacy::TBuffer &buf, CppyyLegacy::Double_t &d) { buf.ReadDouble(d); return buf; }
+inline CppyyLegacy::TBuffer &operator>>(CppyyLegacy::TBuffer &buf, CppyyLegacy::Char_t *c)   { buf.ReadCharP(c);  return buf; }
+inline CppyyLegacy::TBuffer &operator>>(CppyyLegacy::TBuffer &buf, CppyyLegacy::TString &s)  { buf.ReadTString(s);return buf; }
 
-inline TBuffer &operator<<(TBuffer &buf, Bool_t b)   { buf.WriteBool(b);   return buf; }
-inline TBuffer &operator<<(TBuffer &buf, Char_t c)   { buf.WriteChar(c);   return buf; }
-inline TBuffer &operator<<(TBuffer &buf, UChar_t c)  { buf.WriteUChar(c);  return buf; }
-inline TBuffer &operator<<(TBuffer &buf, Short_t s)  { buf.WriteShort(s);  return buf; }
-inline TBuffer &operator<<(TBuffer &buf, UShort_t s) { buf.WriteUShort(s); return buf; }
-inline TBuffer &operator<<(TBuffer &buf, Int_t i)    { buf.WriteInt(i);    return buf; }
-inline TBuffer &operator<<(TBuffer &buf, UInt_t i)   { buf.WriteUInt(i);   return buf; }
-inline TBuffer &operator<<(TBuffer &buf, Long_t l)   { buf.WriteLong(l);   return buf; }
-inline TBuffer &operator<<(TBuffer &buf, ULong_t l)  { buf.WriteULong(l);  return buf; }
-inline TBuffer &operator<<(TBuffer &buf, Long64_t l) { buf.WriteLong64(l); return buf; }
-inline TBuffer &operator<<(TBuffer &buf, ULong64_t l){ buf.WriteULong64(l);return buf; }
-inline TBuffer &operator<<(TBuffer &buf, Float_t f)  { buf.WriteFloat(f);  return buf; }
-inline TBuffer &operator<<(TBuffer &buf, Double_t d) { buf.WriteDouble(d); return buf; }
-inline TBuffer &operator<<(TBuffer &buf, const Char_t *c)  { buf.WriteCharP(c);  return buf; }
-inline TBuffer &operator<<(TBuffer &buf, const TString &s) { buf.WriteTString(s);return buf; }
+inline CppyyLegacy::TBuffer &operator<<(CppyyLegacy::TBuffer &buf, CppyyLegacy::Bool_t b)   { buf.WriteBool(b);   return buf; }
+inline CppyyLegacy::TBuffer &operator<<(CppyyLegacy::TBuffer &buf, CppyyLegacy::Char_t c)   { buf.WriteChar(c);   return buf; }
+inline CppyyLegacy::TBuffer &operator<<(CppyyLegacy::TBuffer &buf, CppyyLegacy::UChar_t c)  { buf.WriteUChar(c);  return buf; }
+inline CppyyLegacy::TBuffer &operator<<(CppyyLegacy::TBuffer &buf, CppyyLegacy::Short_t s)  { buf.WriteShort(s);  return buf; }
+inline CppyyLegacy::TBuffer &operator<<(CppyyLegacy::TBuffer &buf, CppyyLegacy::UShort_t s) { buf.WriteUShort(s); return buf; }
+inline CppyyLegacy::TBuffer &operator<<(CppyyLegacy::TBuffer &buf, CppyyLegacy::Int_t i)    { buf.WriteInt(i);    return buf; }
+inline CppyyLegacy::TBuffer &operator<<(CppyyLegacy::TBuffer &buf, CppyyLegacy::UInt_t i)   { buf.WriteUInt(i);   return buf; }
+inline CppyyLegacy::TBuffer &operator<<(CppyyLegacy::TBuffer &buf, CppyyLegacy::Long_t l)   { buf.WriteLong(l);   return buf; }
+inline CppyyLegacy::TBuffer &operator<<(CppyyLegacy::TBuffer &buf, CppyyLegacy::ULong_t l)  { buf.WriteULong(l);  return buf; }
+inline CppyyLegacy::TBuffer &operator<<(CppyyLegacy::TBuffer &buf, CppyyLegacy::Long64_t l) { buf.WriteLong64(l); return buf; }
+inline CppyyLegacy::TBuffer &operator<<(CppyyLegacy::TBuffer &buf, CppyyLegacy::ULong64_t l){ buf.WriteULong64(l);return buf; }
+inline CppyyLegacy::TBuffer &operator<<(CppyyLegacy::TBuffer &buf, CppyyLegacy::Float_t f)  { buf.WriteFloat(f);  return buf; }
+inline CppyyLegacy::TBuffer &operator<<(CppyyLegacy::TBuffer &buf, CppyyLegacy::Double_t d) { buf.WriteDouble(d); return buf; }
+inline CppyyLegacy::TBuffer &operator<<(CppyyLegacy::TBuffer &buf, const CppyyLegacy::Char_t *c)  { buf.WriteCharP(c);  return buf; }
+inline CppyyLegacy::TBuffer &operator<<(CppyyLegacy::TBuffer &buf, const CppyyLegacy::TString &s) { buf.WriteTString(s);return buf; }
 
 #ifndef __CINT__
 
@@ -376,7 +380,7 @@ inline TBuffer &operator<<(TBuffer &buf, const TString &s) { buf.WriteTString(s)
 #include <typeinfo>
 #endif
 
-template <class Tmpl> TBuffer &operator>>(TBuffer &buf, Tmpl *&obj)
+template <class Tmpl> CppyyLegacy::TBuffer &operator>>(CppyyLegacy::TBuffer &buf, Tmpl *&obj)
 {
    // Read TObject derived classes from a TBuffer. Need to provide
    // custom version for non-TObject derived classes.
@@ -387,21 +391,23 @@ template <class Tmpl> TBuffer &operator>>(TBuffer &buf, Tmpl *&obj)
    // would not be sufficient to pass the information 'which class do we want'
    // since the pointer could be zero (so typeid(*obj) is not usable).
 
-   auto cl = TClass::GetClass<Tmpl>();
+   auto cl = CppyyLegacy::TClass::GetClass<Tmpl>();
    obj = (Tmpl *) ( (void*) buf.ReadObjectAny(cl) );
    return buf;
 }
 
-template <class Tmpl> TBuffer &operator<<(TBuffer &buf, const Tmpl *obj)
+template <class Tmpl> CppyyLegacy::TBuffer &operator<<(CppyyLegacy::TBuffer &buf, const Tmpl *obj)
 {
-   auto cl = (obj) ? TClass::GetClass<Tmpl>() : nullptr;
+   auto cl = (obj) ? CppyyLegacy::TClass::GetClass<Tmpl>() : nullptr;
    buf.WriteObjectAny(obj, cl);
    return buf;
 }
 #else
-template <class Tmpl> TBuffer &operator>>(TBuffer &buf, Tmpl *&obj);
-template <class Tmpl> TBuffer &operator<<(TBuffer &buf, Tmpl *&obj);
+template <class Tmpl> CppyyLegacy::TBuffer &operator>>(CppyyLegacy::TBuffer &buf, Tmpl *&obj);
+template <class Tmpl> CppyyLegacy::TBuffer &operator<<(CppyyLegacy::TBuffer &buf, Tmpl *&obj);
 #endif
+
+namespace CppyyLegacy {
 
 template <class T>
 inline Int_t TBuffer::WriteObject(const T *objptr, Bool_t cacheReuse)
@@ -409,5 +415,7 @@ inline Int_t TBuffer::WriteObject(const T *objptr, Bool_t cacheReuse)
    auto cl = (objptr) ? TClass::GetClass<T>() : nullptr;
    return WriteObjectAny(objptr, cl, cacheReuse);
 }
+
+} // namespace CppyyLegacy
 
 #endif // ROOT_TBuffer

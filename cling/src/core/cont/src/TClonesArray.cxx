@@ -133,7 +133,10 @@ When investigating misuse of TClonesArray, please make sure of the following:
 
 #include <stdlib.h>
 
-ClassImp(TClonesArray);
+
+ClassImp(CppyyLegacy::TClonesArray);
+
+namespace CppyyLegacy {
 
 // To allow backward compatibility of TClonesArray of v5 TF1 objects
 // that were stored member-wise.
@@ -804,7 +807,7 @@ void TClonesArray::Streamer(TBuffer &b)
          if (clv < 8 && classv == "TF1") {
             // To allow backward compatibility of TClonesArray of v5 TF1 objects
             // that were stored member-wise.
-            TClonesArray temp("ROOT::v5::TF1Data");
+            TClonesArray temp("CppyyLegacy::v5::TF1Data");
             temp.ExpandCreate(nobjects);
             b.ReadClones(&temp, nobjects, clv);
             // And now covert the v5 into the current
@@ -813,7 +816,7 @@ void TClonesArray::Streamer(TBuffer &b)
          } else if (clv <= 8 && clv > 3 && clv != 6 && classv == "TFormula") {
             // To allow backwar compatibility of TClonesArray of v5 TF1 objects
             // that were stored member-wise.
-            TClonesArray temp("ROOT::v5::TFormula");
+            TClonesArray temp("CppyyLegacy::v5::TFormula");
             temp.ExpandCreate(nobjects);
             b.ReadClones(&temp, nobjects, clv);
             // And now covert the v5 into the current
@@ -1085,3 +1088,5 @@ void TClonesArray::MultiSort(Int_t nTCs, TClonesArray** tcs, Int_t upto)
    fLast = -2;
    fSorted = kTRUE;
 }
+
+} // namespace CppyyLegacy

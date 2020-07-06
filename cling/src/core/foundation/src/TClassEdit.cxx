@@ -29,6 +29,8 @@
 #include <algorithm>
 
 namespace {
+   using namespace CppyyLegacy;
+
    static TClassEdit::TInterpreterLookupHelper *gInterpreterHelper = 0;
 
    template <typename T>
@@ -48,6 +50,8 @@ namespace std {} using namespace std;
 ////////////////////////////////////////////////////////////////////////////////
 /// Return the length, if any, taken by std:: and any
 /// potential inline namespace (well compiler detail namespace).
+
+namespace CppyyLegacy {
 
 static size_t StdLen(const std::string_view name)
 {
@@ -146,9 +150,9 @@ TClassEdit::TSplitType::TSplitType(const char *type2split, EModType mode) : fNam
 ///  result:    0          : not stl container and not declared inside an stl container.
 ///             result: code of container that the type or is the scope of the type
 
-ROOT::ESTLType TClassEdit::TSplitType::IsInSTL() const
+CppyyLegacy::ESTLType TClassEdit::TSplitType::IsInSTL() const
 {
-   if (fElements[0].empty()) return ROOT::kNotSTL;
+   if (fElements[0].empty()) return CppyyLegacy::kNotSTL;
    return STLKind(fElements[0]);
 }
 
@@ -178,7 +182,7 @@ int TClassEdit::TSplitType::IsSTLCont(int testAlloc) const
 
    int kind = STLKind(fElements[0]);
 
-   if (kind==ROOT::kSTLvector || kind==ROOT::kSTLlist || kind==ROOT::kSTLforwardlist) {
+   if (kind==CppyyLegacy::kSTLvector || kind==CppyyLegacy::kSTLlist || kind==CppyyLegacy::kSTLforwardlist) {
 
       int nargs = STLArgs(kind);
       if (testAlloc && (numb-1 > nargs) && !IsDefAlloc(fElements[numb-1].c_str(),fElements[1].c_str())) {
@@ -283,20 +287,20 @@ void TClassEdit::TSplitType::ShortType(std::string &answ, int mode)
 
             } else if (mode & kDropDefaultAlloc) {
                switch (kind) {
-                  case ROOT::kSTLvector:
-                  case ROOT::kSTLlist:
-                  case ROOT::kSTLforwardlist:
-                  case ROOT::kSTLdeque:
-                  case ROOT::kSTLset:
-                  case ROOT::kSTLmultiset:
-                  case ROOT::kSTLunorderedset:
-                  case ROOT::kSTLunorderedmultiset:
+                  case CppyyLegacy::kSTLvector:
+                  case CppyyLegacy::kSTLlist:
+                  case CppyyLegacy::kSTLforwardlist:
+                  case CppyyLegacy::kSTLdeque:
+                  case CppyyLegacy::kSTLset:
+                  case CppyyLegacy::kSTLmultiset:
+                  case CppyyLegacy::kSTLunorderedset:
+                  case CppyyLegacy::kSTLunorderedmultiset:
                      dropAlloc = IsDefAlloc(fElements[iall+1].c_str(),fElements[1].c_str());
                      break;
-                  case ROOT::kSTLmap:
-                  case ROOT::kSTLmultimap:
-                  case ROOT::kSTLunorderedmap:
-                  case ROOT::kSTLunorderedmultimap:
+                  case CppyyLegacy::kSTLmap:
+                  case CppyyLegacy::kSTLmultimap:
+                  case CppyyLegacy::kSTLunorderedmap:
+                  case CppyyLegacy::kSTLunorderedmultimap:
                      dropAlloc = IsDefAlloc(fElements[iall+1].c_str(),fElements[1].c_str(),fElements[2].c_str());
                      break;
                   default:
@@ -321,15 +325,15 @@ void TClassEdit::TSplitType::ShortType(std::string &answ, int mode)
       } else if ( mode & kDropComparator ) {
 
          switch (kind) {
-            case ROOT::kSTLvector:
-            case ROOT::kSTLlist:
-            case ROOT::kSTLforwardlist:
-            case ROOT::kSTLdeque:
+            case CppyyLegacy::kSTLvector:
+            case CppyyLegacy::kSTLlist:
+            case CppyyLegacy::kSTLforwardlist:
+            case CppyyLegacy::kSTLdeque:
                break;
-            case ROOT::kSTLset:
-            case ROOT::kSTLmultiset:
-            case ROOT::kSTLmap:
-            case ROOT::kSTLmultimap:
+            case CppyyLegacy::kSTLset:
+            case CppyyLegacy::kSTLmultiset:
+            case CppyyLegacy::kSTLmap:
+            case CppyyLegacy::kSTLmultimap:
                if (!allocRemoved && narg-1 == iall+1) {
                   narg--;
                   allocRemoved = true;
@@ -355,7 +359,7 @@ void TClassEdit::TSplitType::ShortType(std::string &answ, int mode)
       //          > class unordered_{map,multimap}
 
 
-      if (kind == ROOT::kSTLunorderedset || kind == ROOT::kSTLunorderedmultiset || kind == ROOT::kSTLunorderedmap || kind == ROOT::kSTLunorderedmultimap){
+      if (kind == CppyyLegacy::kSTLunorderedset || kind == CppyyLegacy::kSTLunorderedmultiset || kind == CppyyLegacy::kSTLunorderedmap || kind == CppyyLegacy::kSTLunorderedmultimap){
 
          bool predRemoved = false;
 
@@ -480,7 +484,7 @@ bool TClassEdit::TSplitType::IsTemplate()
 /// Converts STL container name to number. vector -> 1, etc..
 /// If len is greater than 0, only look at that many characters in the string.
 
-ROOT::ESTLType TClassEdit::STLKind(std::string_view type)
+CppyyLegacy::ESTLType TClassEdit::STLKind(std::string_view type)
 {
    size_t offset = 0;
    if (type.compare(0,6,"const ")==0) { offset += 6; }
@@ -493,17 +497,17 @@ ROOT::ESTLType TClassEdit::STLKind(std::string_view type)
    static const size_t stllen[] =
       { 3, 6, 4, 5, 3, 8, 3, 8, 6,
          12, 13, 18, 13, 18, 0};
-   static const ROOT::ESTLType values[] =
-      {  ROOT::kNotSTL, ROOT::kSTLvector,
-         ROOT::kSTLlist, ROOT::kSTLdeque,
-         ROOT::kSTLmap, ROOT::kSTLmultimap,
-         ROOT::kSTLset, ROOT::kSTLmultiset,
-         ROOT::kSTLbitset,
+   static const CppyyLegacy::ESTLType values[] =
+      {  CppyyLegacy::kNotSTL, CppyyLegacy::kSTLvector,
+         CppyyLegacy::kSTLlist, CppyyLegacy::kSTLdeque,
+         CppyyLegacy::kSTLmap, CppyyLegacy::kSTLmultimap,
+         CppyyLegacy::kSTLset, CppyyLegacy::kSTLmultiset,
+         CppyyLegacy::kSTLbitset,
          // New C++11
-         ROOT::kSTLforwardlist,
-         ROOT::kSTLunorderedset, ROOT::kSTLunorderedmultiset,
-         ROOT::kSTLunorderedmap, ROOT::kSTLunorderedmultimap,
-         ROOT::kNotSTL
+         CppyyLegacy::kSTLforwardlist,
+         CppyyLegacy::kSTLunorderedset, CppyyLegacy::kSTLunorderedmultiset,
+         CppyyLegacy::kSTLunorderedmap, CppyyLegacy::kSTLunorderedmultimap,
+         CppyyLegacy::kNotSTL
       };
 
    // kind of stl container
@@ -518,7 +522,7 @@ ROOT::ESTLType TClassEdit::STLKind(std::string_view type)
    } else {
       for(int k=1;stls[k];k++) {if (type.compare(offset,len,stls[k])==0) return values[k];}
    }
-   return ROOT::kNotSTL;
+   return CppyyLegacy::kNotSTL;
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -819,10 +823,7 @@ void TClassEdit::GetNormalizedName(std::string &norm_name, std::string_view name
 
 string TClassEdit::GetLong64_Name(const char* original)
 {
-   if (original==0)
-      return "";
-   else
-      return GetLong64_Name(string(original));
+   return original;
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -830,22 +831,7 @@ string TClassEdit::GetLong64_Name(const char* original)
 
 string TClassEdit::GetLong64_Name(const string& original)
 {
-   static const char* longlong_s  = "long long";
-   static const char* ulonglong_s = "unsigned long long";
-   static const unsigned int longlong_len  = strlen(longlong_s);
-   static const unsigned int ulonglong_len = strlen(ulonglong_s);
-
-   string result = original;
-
-   int pos = 0;
-   while( (pos = result.find(ulonglong_s,pos) ) >=0 ) {
-      result.replace(pos, ulonglong_len, "ULong64_t");
-   }
-   pos = 0;
-   while( (pos = result.find(longlong_s,pos) ) >=0 ) {
-      result.replace(pos, longlong_len, "Long64_t");
-   }
-   return result;
+   return original;
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -1234,7 +1220,7 @@ bool TClassEdit::IsSTLBitset(const char *classname)
 ///             code of container 1=vector,2=list,3=deque,4=map
 ///                     5=multimap,6=set,7=multiset
 
-ROOT::ESTLType TClassEdit::UnderlyingIsSTLCont(std::string_view type)
+CppyyLegacy::ESTLType TClassEdit::UnderlyingIsSTLCont(std::string_view type)
 {
    if (type.compare(0,6,"const ",6) == 0)
       type.remove_prefix(6);
@@ -1253,10 +1239,10 @@ ROOT::ESTLType TClassEdit::UnderlyingIsSTLCont(std::string_view type)
 ///             code of container 1=vector,2=list,3=deque,4=map
 ///                     5=multimap,6=set,7=multiset
 
-ROOT::ESTLType TClassEdit::IsSTLCont(std::string_view type)
+CppyyLegacy::ESTLType TClassEdit::IsSTLCont(std::string_view type)
 {
    auto pos = type.find('<');
-   if (pos==std::string_view::npos) return ROOT::kNotSTL;
+   if (pos==std::string_view::npos) return CppyyLegacy::kNotSTL;
 
    auto c = pos+1;
    for (decltype(type.length()) level = 1; c < type.length(); ++c) {
@@ -1265,7 +1251,7 @@ ROOT::ESTLType TClassEdit::IsSTLCont(std::string_view type)
       if (level == 0) break;
    }
    if (c != (type.length()-1) ) {
-      return ROOT::kNotSTL;
+      return CppyyLegacy::kNotSTL;
    }
 
    return STLKind(type.substr(0,pos));
@@ -1330,7 +1316,7 @@ bool TClassEdit::IsStdClass(const char *classname)
 bool TClassEdit::IsVectorBool(const char *name) {
    TSplitType splitname( name );
 
-   return ( TClassEdit::STLKind( splitname.fElements[0] ) == ROOT::kSTLvector)
+   return ( TClassEdit::STLKind( splitname.fElements[0] ) == CppyyLegacy::kSTLvector)
       && ( splitname.fElements[1] == "bool" || splitname.fElements[1]=="Bool_t");
 }
 
@@ -1680,7 +1666,7 @@ class NameCleanerForIO {
       bool isSTLContOrArray = true;
       while (nullptr != mother){
          auto stlType = TClassEdit::IsSTLCont(mother->fName+"<>");
-         isSTLContOrArray &= ROOT::kNotSTL != stlType || TClassEdit::IsStdArray(mother->fName+"<");
+         isSTLContOrArray &= CppyyLegacy::kNotSTL != stlType || TClassEdit::IsStdArray(mother->fName+"<");
          mother = mother->fMother;
       }
 
@@ -1770,7 +1756,7 @@ public:
 
       // Now we treat the case of the collections of unique ptrs
       auto stlContType = AreAncestorsSTLContOrArray();
-      if (stlContType != ROOT::kNotSTL && TClassEdit::IsUniquePtr(fName+"<")) {
+      if (stlContType != CppyyLegacy::kNotSTL && TClassEdit::IsUniquePtr(fName+"<")) {
          name = fArgumentNodes.front()->ToString();
          name += "*";
          fHasChanged = true;
@@ -2039,3 +2025,5 @@ bool TClassEdit::SplitFunction(std::string_view decl, TClassEdit::FunctionSplitI
 
    return true;
 }
+
+} // namespace CppyyLegacy

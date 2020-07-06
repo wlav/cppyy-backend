@@ -8,7 +8,7 @@
 #include <string>
 #include <map>
 
-namespace ROOT {
+namespace CppyyLegacy {
 namespace Internal {
    struct TSchemaType {
       TSchemaType() = default;
@@ -19,5 +19,6 @@ namespace Internal {
    };
    typedef std::map<std::string, std::string> MembersMap_t;
 }
-}
+} // namespace CppyyLegacy
+
 #endif // R__TSCHEMATYPE_H

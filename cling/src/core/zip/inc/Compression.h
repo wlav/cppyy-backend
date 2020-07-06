@@ -14,7 +14,7 @@
 
 #include "Rtypes.h"
 
-namespace ROOT {
+namespace CppyyLegacy {
 
 /// The global settings depend on a global variable named R__ZipMode which can be
 /// modified by a global function named R__SetZipMode. Both are defined in Bits.h.
@@ -118,7 +118,8 @@ enum ECompressionAlgorithm {
 
 int CompressionSettings(RCompressionSetting::EAlgorithm algorithm, int compressionLevel);
 /// Deprecated name, do *not* use:
-int CompressionSettings(ROOT::ECompressionAlgorithm algorithm, int compressionLevel);
-} // namespace ROOT
+int CompressionSettings(CppyyLegacy::ECompressionAlgorithm algorithm, int compressionLevel);
+
+} // namespace CppyyLegacy
 
 #endif

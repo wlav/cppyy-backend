@@ -14,7 +14,8 @@
 
 #include "Rtypes.h"
 
-namespace ROOT {
+
+namespace CppyyLegacy {
 
    enum EThreadSlotReservation {
       // Describe the system wide slot pre-allocation in the TThread
@@ -34,10 +35,11 @@ namespace ROOT {
 
       kMaxThreadSlot       = 25  // Size of the array of thread local slots in TThread
    };
-}
 
 #ifndef __CINT__
 R__EXTERN void **(*gThreadTsd)(void*,Int_t);
 #endif
+
+} // namespace CppyyLegacy
 
 #endif // ROOT_TThreadSlots

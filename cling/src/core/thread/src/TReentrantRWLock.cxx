@@ -37,7 +37,8 @@ thus preventing starvation.
 #include "TError.h"
 #include <assert.h>
 
-using namespace ROOT;
+
+namespace CppyyLegacy {
 
 #ifdef NDEBUG
 # define R__MAYBE_AssertReadCountLocIsFromCurrentThread(READERSCOUNTLOC)
@@ -50,7 +51,7 @@ Internal::UniqueLockRecurseCount::UniqueLockRecurseCount()
 {
    static bool singleton = false;
    if (singleton) {
-      ::Fatal("UniqueLockRecurseCount Ctor", "Only one TReentrantRWLock using a UniqueLockRecurseCount is allowed.");
+      ::CppyyLegacy::Fatal("UniqueLockRecurseCount Ctor", "Only one TReentrantRWLock using a UniqueLockRecurseCount is allowed.");
    }
    singleton = true;
 }
@@ -380,13 +381,12 @@ void TReentrantRWLock<MutexT, RecurseCountsT>::AssertReadCountLocIsFromCurrentTh
    }
 }
 
+template class TReentrantRWLock<TSpinMutex, Internal::RecurseCounts>;
+template class TReentrantRWLock<TMutex, Internal::RecurseCounts>;
+template class TReentrantRWLock<std::mutex, Internal::RecurseCounts>;
 
-namespace ROOT {
-template class TReentrantRWLock<ROOT::TSpinMutex, ROOT::Internal::RecurseCounts>;
-template class TReentrantRWLock<TMutex, ROOT::Internal::RecurseCounts>;
-template class TReentrantRWLock<std::mutex, ROOT::Internal::RecurseCounts>;
+template class TReentrantRWLock<TSpinMutex, Internal::UniqueLockRecurseCount>;
+template class TReentrantRWLock<TMutex, Internal::UniqueLockRecurseCount>;
+template class TReentrantRWLock<std::mutex, Internal::UniqueLockRecurseCount>;
 
-template class TReentrantRWLock<ROOT::TSpinMutex, ROOT::Internal::UniqueLockRecurseCount>;
-template class TReentrantRWLock<TMutex, ROOT::Internal::UniqueLockRecurseCount>;
-template class TReentrantRWLock<std::mutex, ROOT::Internal::UniqueLockRecurseCount>;
-}
+} // namespace CppyyLegacy

@@ -38,6 +38,9 @@
 #include "TSysEvtHandler.h"
 #include "TTime.h"
 
+
+namespace CppyyLegacy {
+
 class TSeqCollection;
 class TFdSet;
 class TVirtualMutex;
@@ -478,6 +481,8 @@ public:
    ClassDef(TSystem,0)  //ABC defining a generic interface to the OS
 };
 
-R__EXTERN TSystem *gSystem;
+} // namespace CppyyLegacy
+
+R__EXTERN CppyyLegacy::TSystem *gSystem;
 
 #endif

@@ -25,7 +25,10 @@ functions (accessible via TROOT::GetListOfGlobalFunctions()).
 #include <iostream>
 #include "TVirtualMutex.h"
 
-ClassImp(TFunction);
+
+ClassImp(CppyyLegacy::TFunction);
+
+namespace CppyyLegacy {
 
 ////////////////////////////////////////////////////////////////////////////////
 /// Default TFunction ctor. TFunctions are constructed in TROOT via
@@ -320,3 +323,5 @@ Bool_t TFunction::Update(MethodInfo_t *info)
       return kTRUE;
    }
 }
+
+} // namespace CppyyLegacy

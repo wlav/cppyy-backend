@@ -33,9 +33,12 @@
 #include "TClassStreamer.h"
 #include <stdlib.h>
 
+
 namespace {
-   const Int_t  kMapOffset = 2;
+   const CppyyLegacy::Int_t  kMapOffset = 2;
 }
+
+namespace CppyyLegacy {
 
 ////////////////////////////////////////////////////////////////////////////////
 /// Constructor.
@@ -307,3 +310,5 @@ void TConvertMapToProxy::operator()(TBuffer &b, void *pmember, Int_t size)
 
    }
 }
+
+} // namespace CppyyLegacy

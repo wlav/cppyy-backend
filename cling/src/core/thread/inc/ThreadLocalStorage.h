@@ -283,10 +283,10 @@ public:
 template <int marker, typename T>
 T &TTHREAD_TLS_INIT() {
    TTHREAD_TLS(T*) ptr = NULL;
-   TTHREAD_TLS(Bool_t) isInit(kFALSE);
+   TTHREAD_TLS(CppyyLegacy::Bool_t) isInit(CppyyLegacy::kFALSE);
    if (!isInit) {
       ptr = new T;
-      isInit = kTRUE;
+      isInit = CppyyLegacy::kTRUE;
    }
    return *ptr;
 }
@@ -294,10 +294,10 @@ T &TTHREAD_TLS_INIT() {
 template <int marker, typename Array, typename T>
 Array &TTHREAD_TLS_INIT_ARRAY() {
    TTHREAD_TLS(Array*) ptr = NULL;
-   TTHREAD_TLS(Bool_t) isInit(kFALSE);
+   TTHREAD_TLS(CppyyLegacy::Bool_t) isInit(CppyyLegacy::kFALSE);
    if (!isInit) {
       ptr = new Array[sizeof(Array)/sizeof(T)];
-      isInit = kTRUE;
+      isInit = CppyyLegacy::kTRUE;
    }
    return *ptr;
 }
@@ -305,10 +305,10 @@ Array &TTHREAD_TLS_INIT_ARRAY() {
 template <int marker, typename T, typename ArgType>
 T &TTHREAD_TLS_INIT(ArgType arg) {
    TTHREAD_TLS(T*) ptr = NULL;
-   TTHREAD_TLS(Bool_t) isInit(kFALSE);
+   TTHREAD_TLS(CppyyLegacy::Bool_t) isInit(CppyyLegacy::kFALSE);
    if (!isInit) {
       ptr = new T(arg);
-      isInit = kTRUE;
+      isInit = CppyyLegacy::kTRUE;
    }
    return *ptr;
 }
@@ -394,4 +394,3 @@ T &TTHREAD_TLS_INIT(ArgType arg) {
 #endif // __cplusplus
 
 #endif
-

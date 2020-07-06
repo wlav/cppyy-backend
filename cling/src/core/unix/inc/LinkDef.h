@@ -14,6 +14,9 @@
 #pragma link off all classes;
 #pragma link off all functions;
 
-#pragma link C++ class TUnixSystem;
+#pragma link C++ namespace CppyyLegacy;
+#ifndef _WIN32
+#pragma link C++ class CppyyLegacy::TUnixSystem;
+#endif
 
 #endif

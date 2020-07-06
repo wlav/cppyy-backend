@@ -4,9 +4,11 @@
 #ifndef ROOT_TSchemaRule
 #define ROOT_TSchemaRule
 
-class TBuffer;
-class TVirtualObject;
-class TObjArray;
+namespace CppyyLegacy {
+   class TBuffer;
+   class TVirtualObject;
+   class TObjArray;
+}
 
 #include "TObject.h"
 #include "TNamed.h"
@@ -16,7 +18,8 @@ class TObjArray;
 #include <vector>
 #include <utility>
 
-namespace ROOT {
+
+namespace CppyyLegacy {
 
    class TSchemaRule: public TObject
    {
@@ -121,6 +124,7 @@ namespace ROOT {
          RuleType_t                   fRuleType;       //  Type of the rule
          TString                      fAttributes;     //  Attributes to be applied to the member (like Owner/NotOwner)
    };
-} // End of namespace ROOT
+
+} // namespace CppyyLegacy
 
 #endif // ROOT_TSchemaRule

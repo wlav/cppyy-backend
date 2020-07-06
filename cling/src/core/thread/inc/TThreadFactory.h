@@ -9,7 +9,6 @@
  * For the list of contributors see $ROOTSYS/README/CREDITS.             *
  *************************************************************************/
 
-
 #ifndef ROOT_TThreadFactory
 #define ROOT_TThreadFactory
 
@@ -23,6 +22,9 @@
 //////////////////////////////////////////////////////////////////////////
 
 #include "TNamed.h"
+
+
+namespace CppyyLegacy {
 
 class TMutexImp;
 class TConditionImp;
@@ -44,6 +46,7 @@ public:
 
 R__EXTERN TThreadFactory *gThreadFactory;
 
+} // namespace CppyyLegacy
 #endif
 
 

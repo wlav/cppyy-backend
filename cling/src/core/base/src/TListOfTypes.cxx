@@ -20,7 +20,6 @@ added to the collection (and thus visible via ls or Print) only if
 it is requested explicitly.
 */
 
-
 #include "TListOfTypes.h"
 
 #include "TInterpreter.h"
@@ -32,6 +31,9 @@ it is requested explicitly.
 #include "TClass.h"
 #include "TProtoClass.h"
 #include "TListOfEnums.h"
+
+
+namespace CppyyLegacy {
 
 TListOfTypes::TListOfTypes() : THashTable(100, 3)
 {
@@ -133,3 +135,5 @@ TDataType *TListOfTypes::FindType(const char *name) const
    }
    return result;
 }
+
+} // namespace CppyyLegacy

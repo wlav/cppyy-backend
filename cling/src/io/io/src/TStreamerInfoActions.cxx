@@ -25,6 +25,9 @@
 #include "TProcessID.h"
 #include "TFile.h"
 
+
+namespace CppyyLegacy {
+
 static const Int_t kRegrouped = TStreamerInfo::kOffsetL;
 
 // More possible optimizations:
@@ -47,7 +50,7 @@ namespace TStreamerInfoActions
    bool IsDefaultVector(TVirtualCollectionProxy &proxy)
    {
       const auto props = proxy.GetProperties();
-      const bool isVector = proxy.GetCollectionType() == ROOT::kSTLvector;
+      const bool isVector = proxy.GetCollectionType() == CppyyLegacy::kSTLvector;
       const bool hasDefaultAlloc = !(props & TVirtualCollectionProxy::kCustomAlloc);
       const bool isEmulated = props & TVirtualCollectionProxy::kIsEmulated;
 
@@ -540,7 +543,6 @@ namespace TStreamerInfoActions
                   if (!pp[ndx]) {
                      // -- We do not have a pointer to a varying-length array.
                      // Error("WriteBufferAux", "The pointer to element %s::%s type %d (%s) is null\n", GetName(), aElement->GetFullName(), compinfo[i]->fType, aElement->GetTypeName());
-                     // ::ErrorHandler(kError, "::WriteStreamerLoop", Form("The pointer to element %s::%s type %d (%s) is null\n", config->fInfo->GetName(), config->fCompInfo->fElem->GetFullName(), config->fCompInfo->fType, config->fCompInfo->fElem->GetTypeName()));
                      printf("WriteStreamerLoop - The pointer to element %s::%s type %d (%s) is null\n", config->fInfo->GetName(), config->fCompInfo->fElem->GetFullName(), config->fCompInfo->fType, config->fCompInfo->fElem->GetTypeName());
                      continue;
                   }
@@ -580,7 +582,6 @@ namespace TStreamerInfoActions
                   if (!pp[ndx]) {
                      // -- We do not have a pointer to a varying-length array.
                      //Error("WriteBufferAux", "The pointer to element %s::%s type %d (%s) is null\n", GetName(), aElement->GetFullName(), compinfo[i]->fType, aElement->GetTypeName());
-                     // ::ErrorHandler(kError, "::WriteTextStreamerLoop", Form("The pointer to element %s::%s type %d (%s) is null\n", config->fInfo->GetName(), config->fCompInfo->fElem->GetFullName(), config->fCompInfo->fType, config->fCompInfo->fElem->GetTypeName()));
                      printf("WriteStreamerLoop - The pointer to element %s::%s type %d (%s) is null\n", config->fInfo->GetName(), config->fCompInfo->fElem->GetFullName(), config->fCompInfo->fType, config->fCompInfo->fElem->GetTypeName());
                      continue;
                   }
@@ -1658,16 +1659,16 @@ namespace TStreamerInfoActions
 
    ESelectLooper SelectLooper(TVirtualCollectionProxy &proxy)
    {
-      if ( (proxy.GetCollectionType() == ROOT::kSTLvector) || (proxy.GetProperties() & TVirtualCollectionProxy::kIsEmulated) ) {
+      if ( (proxy.GetCollectionType() == CppyyLegacy::kSTLvector) || (proxy.GetProperties() & TVirtualCollectionProxy::kIsEmulated) ) {
          if (proxy.GetProperties() & TVirtualCollectionProxy::kCustomAlloc)
             return kGenericLooper;
          else
             return kVectorLooper;
-      } else if (proxy.GetCollectionType() == ROOT::kSTLset || proxy.GetCollectionType() == ROOT::kSTLunorderedset
-                 || proxy.GetCollectionType() == ROOT::kSTLmultiset || proxy.GetCollectionType() == ROOT::kSTLunorderedmultiset
-                 || proxy.GetCollectionType() == ROOT::kSTLmap || proxy.GetCollectionType() == ROOT::kSTLmultimap
-                 || proxy.GetCollectionType() == ROOT::kSTLunorderedmap || proxy.GetCollectionType() == ROOT::kSTLunorderedmultimap
-                 || proxy.GetCollectionType() == ROOT::kSTLbitset) {
+      } else if (proxy.GetCollectionType() == CppyyLegacy::kSTLset || proxy.GetCollectionType() == CppyyLegacy::kSTLunorderedset
+                 || proxy.GetCollectionType() == CppyyLegacy::kSTLmultiset || proxy.GetCollectionType() == CppyyLegacy::kSTLunorderedmultiset
+                 || proxy.GetCollectionType() == CppyyLegacy::kSTLmap || proxy.GetCollectionType() == CppyyLegacy::kSTLmultimap
+                 || proxy.GetCollectionType() == CppyyLegacy::kSTLunorderedmap || proxy.GetCollectionType() == CppyyLegacy::kSTLunorderedmultimap
+                 || proxy.GetCollectionType() == CppyyLegacy::kSTLbitset) {
          return kAssociativeLooper;
       } else {
          return kGenericLooper;
@@ -3880,10 +3881,10 @@ TStreamerInfoActions::TActionSequence *TStreamerInfoActions::TActionSequence::Cr
       // We can speed up the iteration in case of vector.  We also know that all emulated collection are stored internally as a vector.
       Long_t increment = proxy.GetIncrement();
       sequence->fLoopConfig = new TVectorLoopConfig(&proxy, increment, /* read */ kTRUE);
-   } else if (proxy.GetCollectionType() == ROOT::kSTLset || proxy.GetCollectionType() == ROOT::kSTLunorderedset
-              || proxy.GetCollectionType() == ROOT::kSTLmultiset || proxy.GetCollectionType() == ROOT::kSTLunorderedmultiset
-              || proxy.GetCollectionType() == ROOT::kSTLmap || proxy.GetCollectionType() == ROOT::kSTLmultimap
-              || proxy.GetCollectionType() == ROOT::kSTLunorderedmap || proxy.GetCollectionType() == ROOT::kSTLunorderedmultimap)
+   } else if (proxy.GetCollectionType() == CppyyLegacy::kSTLset || proxy.GetCollectionType() == CppyyLegacy::kSTLunorderedset
+              || proxy.GetCollectionType() == CppyyLegacy::kSTLmultiset || proxy.GetCollectionType() == CppyyLegacy::kSTLunorderedmultiset
+              || proxy.GetCollectionType() == CppyyLegacy::kSTLmap || proxy.GetCollectionType() == CppyyLegacy::kSTLmultimap
+              || proxy.GetCollectionType() == CppyyLegacy::kSTLunorderedmap || proxy.GetCollectionType() == CppyyLegacy::kSTLunorderedmultimap)
    {
       Long_t increment = proxy.GetIncrement();
       sequence->fLoopConfig = new TVectorLoopConfig(&proxy, increment, /* read */ kTRUE);
@@ -3915,7 +3916,7 @@ TStreamerInfoActions::TActionSequence *TStreamerInfoActions::TActionSequence::Cr
             // increment the version number of the derived class when the
             // base class changed.  Since we will be member wise streaming
             // this class, let's warn the user that something is wrong.
-            ::Warning("CreateReadMemberWiseActions","%s",
+            ::CppyyLegacy::Warning("CreateReadMemberWiseActions","%s",
                       baseEl->GetErrorMessage());
             baseEl->SetBit(TStreamerElement::kWarned);
          }
@@ -3942,8 +3943,8 @@ TStreamerInfoActions::TActionSequence *TStreamerInfoActions::TActionSequence::Cr
       }
       switch (SelectLooper(proxy)) {
       case kAssociativeLooper:
-//         } else if (proxy.GetCollectionType() == ROOT::kSTLset || proxy.GetCollectionType() == ROOT::kSTLmultiset
-//                    || proxy.GetCollectionType() == ROOT::kSTLmap || proxy.GetCollectionType() == ROOT::kSTLmultimap) {
+//         } else if (proxy.GetCollectionType() == CppyyLegacy::kSTLset || proxy.GetCollectionType() == CppyyLegacy::kSTLmultiset
+//                    || proxy.GetCollectionType() == CppyyLegacy::kSTLmap || proxy.GetCollectionType() == CppyyLegacy::kSTLmultimap) {
 //            sequence->AddAction( GenericAssocCollectionAction, new TConfigSTL(info,i,compinfo,offset,0,proxy.GetCollectionClass(),0,0) );
       case kVectorLooper:
       case kVectorPtrLooper:
@@ -3997,8 +3998,8 @@ TStreamerInfoActions::TActionSequence *TStreamerInfoActions::TActionSequence::Cr
          // We can speed up the iteration in case of vector.  We also know that all emulated collection are stored internally as a vector.
          Long_t increment = proxy.GetIncrement();
          sequence->fLoopConfig = new TVectorLoopConfig(&proxy, increment, /* read */ kFALSE);
-      /*} else if (proxy.GetCollectionType() == ROOT::kSTLset || proxy.GetCollectionType() == ROOT::kSTLmultiset
-                 || proxy.GetCollectionType() == ROOT::kSTLmap || proxy.GetCollectionType() == ROOT::kSTLmultimap)
+      /*} else if (proxy.GetCollectionType() == CppyyLegacy::kSTLset || proxy.GetCollectionType() == CppyyLegacy::kSTLmultiset
+                 || proxy.GetCollectionType() == CppyyLegacy::kSTLmap || proxy.GetCollectionType() == CppyyLegacy::kSTLmultimap)
       {
          Long_t increment = proxy.GetIncrement();
          sequence->fLoopConfig = new TVectorLoopConfig(increment);
@@ -4047,8 +4048,8 @@ TStreamerInfoActions::TActionSequence *TStreamerInfoActions::TActionSequence::Cr
             }
          }
          if ( IsDefaultVector(proxy)
-               /*|| (proxy.GetCollectionType() == ROOT::kSTLset || proxy.GetCollectionType() == ROOT::kSTLmultiset
-               || proxy.GetCollectionType() == ROOT::kSTLmap || proxy.GetCollectionType() == ROOT::kSTLmultimap) */ )
+               /*|| (proxy.GetCollectionType() == CppyyLegacy::kSTLset || proxy.GetCollectionType() == CppyyLegacy::kSTLmultiset
+               || proxy.GetCollectionType() == CppyyLegacy::kSTLmap || proxy.GetCollectionType() == CppyyLegacy::kSTLmultimap) */ )
          {
 
             // We can speed up the iteration in case of vector.  We also know that all emulated collection are stored internally as a vector.
@@ -4059,8 +4060,8 @@ TStreamerInfoActions::TActionSequence *TStreamerInfoActions::TActionSequence::Cr
                sequence->AddAction(GetCollectionWriteAction<VectorLooper>(info,element,oldType,i,compinfo,offset));
             }
 
-   //         } else if (proxy.GetCollectionType() == ROOT::kSTLset || proxy.GetCollectionType() == ROOT::kSTLmultiset
-   //                    || proxy.GetCollectionType() == ROOT::kSTLmap || proxy.GetCollectionType() == ROOT::kSTLmultimap) {
+   //         } else if (proxy.GetCollectionType() == CppyyLegacy::kSTLset || proxy.GetCollectionType() == CppyyLegacy::kSTLmultiset
+   //                    || proxy.GetCollectionType() == CppyyLegacy::kSTLmap || proxy.GetCollectionType() == CppyyLegacy::kSTLmultimap) {
    //            sequence->AddAction( GenericAssocCollectionAction, new TConfigSTL(info,i,compinfo,offset,0,proxy.GetCollectionClass(),0,0) );
          } else {
             // The usual collection case.
@@ -4120,8 +4121,8 @@ TStreamerInfoActions::TActionSequence *TStreamerInfoActions::TActionSequence::Cr
          }
 #else
          if ( IsDefaultVector(proxy)
-               /*|| (proxy.GetCollectionType() == ROOT::kSTLset || proxy.GetCollectionType() == ROOT::kSTLmultiset
-                || proxy.GetCollectionType() == ROOT::kSTLmap || proxy.GetCollectionType() == ROOT::kSTLmultimap)*/ )
+               /*|| (proxy.GetCollectionType() == CppyyLegacy::kSTLset || proxy.GetCollectionType() == CppyyLegacy::kSTLmultiset
+                || proxy.GetCollectionType() == CppyyLegacy::kSTLmap || proxy.GetCollectionType() == CppyyLegacy::kSTLmultimap)*/ )
          {
             sequence->AddAction( GetCollectionWriteAction<VectorLooper>(info,element,oldType,i,compinfo,offset) );
          } else {
@@ -4360,4 +4361,4 @@ void TStreamerInfoActions::TActionSequence::Print(Option_t *opt) const
    }
 }
 
-
+} // namespace CppyyLegacy

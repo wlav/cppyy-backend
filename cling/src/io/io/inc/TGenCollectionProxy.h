@@ -8,19 +8,21 @@
  * For the licensing terms see $ROOTSYS/LICENSE.                         *
  * For the list of contributors see $ROOTSYS/README/CREDITS.             *
  *************************************************************************/
+
 #ifndef ROOT_TGenCollectionProxy
 #define ROOT_TGenCollectionProxy
 
 #include "TBuffer.h"
-
 #include "TVirtualCollectionProxy.h"
-
 #include "TCollectionProxyInfo.h"
 
 #include <atomic>
 #include <string>
 #include <map>
 #include <stdlib.h>
+
+
+namespace CppyyLegacy {
 
 class TObjArray;
 class TCollectionProxyFactory;
@@ -57,9 +59,9 @@ public:
     * @date    10/10/2004
     */
    struct Value  {
-      ROOT::NewFunc_t fCtor;       ///< Method cache for containee constructor
-      ROOT::DesFunc_t fDtor;       ///< Method cache for containee destructor
-      ROOT::DelFunc_t fDelete;     ///< Method cache for containee delete
+      CppyyLegacy::NewFunc_t fCtor;       ///< Method cache for containee constructor
+      CppyyLegacy::DesFunc_t fDtor;       ///< Method cache for containee destructor
+      CppyyLegacy::DelFunc_t fDelete;     ///< Method cache for containee delete
       UInt_t          fCase;       ///< type of data of Value_type
       UInt_t          fProperties; ///< Additional properties of the value type (kNeedDelete)
       TClassRef       fType;       ///< TClass reference of Value_type in collection
@@ -283,8 +285,8 @@ public:
    };
 
 protected:
-   typedef ROOT::Detail::TCollectionProxyInfo::Environ<char[64]> Env_t;
-   typedef ROOT::Detail::TCollectionProxyInfo::EnvironBase EnvironBase_t;
+   typedef CppyyLegacy::Detail::TCollectionProxyInfo::Environ<char[64]> Env_t;
+   typedef CppyyLegacy::Detail::TCollectionProxyInfo::EnvironBase EnvironBase_t;
    typedef std::vector<TStaging*>          Staged_t;  ///< Collection of pre-allocated staged array for associative containers.
    typedef std::vector<EnvironBase_t*>     Proxies_t;
    mutable TObjArray *fReadMemberWise;                                   ///< Array of bundle of TStreamerInfoActions to stream out (read)
@@ -356,7 +358,7 @@ private:
 public:
    // Initializing constructor
    TGenCollectionProxy(Info_t typ, size_t iter_size);
-   TGenCollectionProxy(const ROOT::Detail::TCollectionProxyInfo &info, TClass *cl);
+   TGenCollectionProxy(const CppyyLegacy::Detail::TCollectionProxyInfo &info, TClass *cl);
 
    // Standard destructor.
    virtual ~TGenCollectionProxy();
@@ -484,5 +486,5 @@ struct AnyCollectionProxy : public TGenCollectionProxy  {
    virtual ~AnyCollectionProxy() {  }
 };
 
+} // namespace CppyyLegacy
 #endif
-

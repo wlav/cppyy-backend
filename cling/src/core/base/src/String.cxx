@@ -19,6 +19,9 @@
 #include <string>
 #include "TBuffer.h"
 
+
+namespace CppyyLegacy {
+
 void std_string_streamer(TBuffer &b, void *objadd)
 {
    // Streamer function for std::string object.
@@ -28,6 +31,8 @@ void std_string_streamer(TBuffer &b, void *objadd)
       b.WriteStdString((std::string*)objadd);
    }
 }
+
+} // namespace CppyyLegacy
 
 // Declare the streamer to the string TClass object
 RootStreamer(std::string,std_string_streamer);

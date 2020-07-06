@@ -13,11 +13,8 @@
 #define ROOT_TStreamerInfo
 
 #include <atomic>
-
 #include "TVirtualStreamerInfo.h"
-
 #include "ThreadLocalStorage.h"
-
 #include "TVirtualCollectionProxy.h"
 
 /**
@@ -25,6 +22,9 @@
 \ingroup IO
 Describe Streamer information for one class version
 */
+
+
+namespace CppyyLegacy {
 
 class TFile;
 class TClass;
@@ -35,8 +35,8 @@ class TStreamerElement;
 class TStreamerBasicType;
 class TClassStreamer;
 class TVirtualArray;
-namespace ROOT { namespace Detail { class TCollectionProxyInfo; } }
-namespace ROOT { class TSchemaRule; }
+namespace Detail { class TCollectionProxyInfo; }
+class TSchemaRule;
 
 namespace TStreamerInfoActions { class TActionSequence; }
 
@@ -120,7 +120,7 @@ private:
    template <typename T> static T GetTypedValueAux(Int_t type, void *ladd, int k, Int_t len);
    static void       PrintValueAux(char *ladd, Int_t atype, TStreamerElement * aElement, Int_t aleng, Int_t *count);
 
-   void              InsertArtificialElements(std::vector<const ROOT::TSchemaRule*> &rules);
+   void              InsertArtificialElements(std::vector<const CppyyLegacy::TSchemaRule*> &rules);
    void              DestructorImpl(void* p, Bool_t dtorOnly);
 
 private:
@@ -262,7 +262,6 @@ public:
    void                SetClass(TClass *cl) {fClass = cl;}
    void                SetClassVersion(Int_t vers) {fClassVersion=vers;}
    void                SetOnFileClassVersion(Int_t vers) {fOnFileClassVersion=vers;}
-   void                TagFile(TFile *fFile);
 private:
    // Try to remove those functions from the public interface.
    Int_t               WriteBuffer(TBuffer &b, char *pointer, Int_t first);
@@ -274,8 +273,8 @@ public:
 
    virtual TVirtualCollectionProxy *GenEmulatedProxy(const char* class_name, Bool_t silent);
    virtual TClassStreamer *GenEmulatedClassStreamer(const char* class_name, Bool_t silent);
-   virtual TVirtualCollectionProxy *GenExplicitProxy( const ::ROOT::Detail::TCollectionProxyInfo &info, TClass *cl );
-   virtual TClassStreamer *GenExplicitClassStreamer( const ::ROOT::Detail::TCollectionProxyInfo &info, TClass *cl );
+   virtual TVirtualCollectionProxy *GenExplicitProxy( const CppyyLegacy::Detail::TCollectionProxyInfo &info, TClass *cl );
+   virtual TClassStreamer *GenExplicitClassStreamer( const CppyyLegacy::Detail::TCollectionProxyInfo &info, TClass *cl );
 
    static TStreamerElement   *GetCurrentElement();
 
@@ -288,5 +287,5 @@ public:
    ClassDef(TStreamerInfo,9)  //Streamer information for one class version
 };
 
-
+} // namespace CppyyLegacy
 #endif

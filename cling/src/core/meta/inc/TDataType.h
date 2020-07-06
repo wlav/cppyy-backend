@@ -25,6 +25,8 @@
 #include "TDictionary.h"
 
 
+namespace CppyyLegacy {
+
 enum EDataType {
    kChar_t   = 1,  kUChar_t  = 11, kShort_t    = 2,  kUShort_t = 12,
    kInt_t    = 3,  kUInt_t   = 13, kLong_t     = 4,  kULong_t  = 14,
@@ -78,5 +80,7 @@ public:
 
    ClassDef(TDataType,2)  //Basic data type descriptor
 };
+
+} // namespace CppyyLegacy
 
 #endif

@@ -12,7 +12,6 @@
 #ifndef ROOT_TBaseClass
 #define ROOT_TBaseClass
 
-
 //////////////////////////////////////////////////////////////////////////
 //                                                                      //
 // TBaseClass                                                           //
@@ -21,11 +20,13 @@
 //                                                                      //
 //////////////////////////////////////////////////////////////////////////
 
-
 #include "TDictionary.h"
 #include "TClassRef.h"
 
 #include <atomic>
+
+
+namespace CppyyLegacy {
 
 class TClass;
 
@@ -59,11 +60,12 @@ public:
    TClass        *GetClassPointer(Bool_t load=kTRUE);
    ptrdiff_t      GetDelta();
    Bool_t         IsFolder() const {return kTRUE;}
-   ROOT::ESTLType IsSTLContainer();
+   CppyyLegacy::ESTLType IsSTLContainer();
    Long_t         Property() const;
    void           SetClass(TClass* cl) { fClass = cl; }
 
    ClassDef(TBaseClass,2)  //Description of a base class
 };
 
+} // namespace CppyyLegacy
 #endif

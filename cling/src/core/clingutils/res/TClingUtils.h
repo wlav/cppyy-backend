@@ -79,7 +79,7 @@ namespace cling {
    }
 }
 
-// For ROOT::ESTLType
+// For CppyyLegacy::ESTLType
 #include "ESTLType.h"
 
 // for TClassEdit::TInterpreterLookupHelper
@@ -87,7 +87,7 @@ namespace cling {
 
 #include "Varargs.h"
 
-namespace ROOT {
+namespace CppyyLegacy {
 namespace TMetaUtils {
 
 ///\returns the resolved normalized absolute path possibly resolving symlinks.
@@ -149,8 +149,6 @@ public:
    void AddTemplAndNargsToKeep(const clang::ClassTemplateDecl* templ, unsigned int i);
    int GetNargsToKeep(const clang::ClassTemplateDecl* templ) const;
    const TemplPtrIntMap_t GetTemplNargsToKeepMap() const;
-   void keepTypedef(const cling::LookupHelper &lh, const char* name,
-                    bool replace = false);
 };
 
 //______________________________________________________________________________
@@ -358,7 +356,7 @@ EIOCtorCategory CheckConstructor(const clang::CXXRecordDecl*, const RConstructor
 const clang::FunctionDecl* ClassInfo__HasMethod(const clang::DeclContext *cl, char const*, const cling::Interpreter& interp);
 
 //______________________________________________________________________________
-void CreateNameTypeMap(clang::CXXRecordDecl const&, std::map<std::string, ROOT::Internal::TSchemaType>&);
+void CreateNameTypeMap(clang::CXXRecordDecl const&, std::map<std::string, CppyyLegacy::Internal::TSchemaType>&);
 
 //______________________________________________________________________________
 int ElementStreamer(std::ostream& finalString,
@@ -458,7 +456,7 @@ std::pair<bool, int> GetTrivialIntegralReturnValue(const clang::FunctionDecl *fu
 int IsSTLContainer(const AnnotatedRecordDecl &annotated);
 
 //______________________________________________________________________________
-ROOT::ESTLType IsSTLContainer(const clang::FieldDecl &m);
+CppyyLegacy::ESTLType IsSTLContainer(const clang::FieldDecl &m);
 
 //______________________________________________________________________________
 int IsSTLContainer(const clang::CXXBaseSpecifier &base);
@@ -652,7 +650,7 @@ bool IsOfType(const clang::CXXRecordDecl &cl, const std::string& type, const cli
 
 //______________________________________________________________________________
 // Return which kind of STL container the decl is, if any.
-ROOT::ESTLType IsSTLCont(const clang::RecordDecl &cl);
+CppyyLegacy::ESTLType IsSTLCont(const clang::RecordDecl &cl);
 
 //______________________________________________________________________________
 // Check if 'input' or any of its template parameter was substituted when
@@ -688,7 +686,7 @@ const clang::RecordDecl* ExtractEnclosingScopes(const clang::Decl& decl,
                                           std::list<std::pair<std::string,unsigned int> >& enclosingSc);
 //______________________________________________________________________________
 // Kind of stl container
-ROOT::ESTLType STLKind(const llvm::StringRef type);
+CppyyLegacy::ESTLType STLKind(const llvm::StringRef type);
 
 //______________________________________________________________________________
 // Set the toolchain and the include paths for relocatability
@@ -717,7 +715,7 @@ inline bool &GetWarningsAreErrors()
 //______________________________________________________________________________
 // Inclusive minimum error level a message needs to get handled
 inline int &GetErrorIgnoreLevel() {
-   static int gErrorIgnoreLevel = ROOT::TMetaUtils::kError;
+   static int gErrorIgnoreLevel = CppyyLegacy::TMetaUtils::kError;
    return gErrorIgnoreLevel;
 }
 
@@ -729,17 +727,17 @@ inline void LevelPrint(bool prefix, int level, const char *location, const char 
 
    const char *type = 0;
 
-   if (level >= ROOT::TMetaUtils::kInfo)
+   if (level >= CppyyLegacy::TMetaUtils::kInfo)
       type = "Info";
-   if (level >= ROOT::TMetaUtils::kNote)
+   if (level >= CppyyLegacy::TMetaUtils::kNote)
       type = "Note";
-   if (level >= ROOT::TMetaUtils::kWarning)
+   if (level >= CppyyLegacy::TMetaUtils::kWarning)
       type = "Warning";
-   if (level >= ROOT::TMetaUtils::kError)
+   if (level >= CppyyLegacy::TMetaUtils::kError)
       type = "Error";
-   if (level >= ROOT::TMetaUtils::kSysError)
+   if (level >= CppyyLegacy::TMetaUtils::kSysError)
       type = "SysError";
-   if (level >= ROOT::TMetaUtils::kFatal)
+   if (level >= CppyyLegacy::TMetaUtils::kFatal)
       type = "Fatal";
 
    if (!location || !location[0]) {
@@ -754,7 +752,7 @@ inline void LevelPrint(bool prefix, int level, const char *location, const char 
    fflush(stderr);
 
    // Keep track of the warnings/errors we printed.
-   if (level >= ROOT::TMetaUtils::kError || (level == ROOT::TMetaUtils::kWarning && GetWarningsAreErrors())) {
+   if (level >= CppyyLegacy::TMetaUtils::kError || (level == CppyyLegacy::TMetaUtils::kWarning && GetWarningsAreErrors())) {
       ++GetNumberOfErrors();
    }
 }
@@ -765,7 +763,7 @@ inline void Error(const char *location, const char *va_(fmt), ...)
 {
    va_list ap;
    va_start(ap,va_(fmt));
-   LevelPrint(true, ROOT::TMetaUtils::kError, location, va_(fmt), ap);
+   LevelPrint(true, CppyyLegacy::TMetaUtils::kError, location, va_(fmt), ap);
    va_end(ap);
 }
 
@@ -775,7 +773,7 @@ inline void SysError(const char *location, const char *va_(fmt), ...)
 {
    va_list ap;
    va_start(ap, va_(fmt));
-   LevelPrint(true, ROOT::TMetaUtils::kSysError, location, va_(fmt), ap);
+   LevelPrint(true, CppyyLegacy::TMetaUtils::kSysError, location, va_(fmt), ap);
    va_end(ap);
 }
 
@@ -785,7 +783,7 @@ inline void Info(const char *location, const char *va_(fmt), ...)
 {
    va_list ap;
    va_start(ap,va_(fmt));
-   LevelPrint(true, ROOT::TMetaUtils::kInfo, location, va_(fmt), ap);
+   LevelPrint(true, CppyyLegacy::TMetaUtils::kInfo, location, va_(fmt), ap);
    va_end(ap);
 }
 
@@ -795,7 +793,7 @@ inline void Warning(const char *location, const char *va_(fmt), ...)
 {
    va_list ap;
    va_start(ap,va_(fmt));
-   LevelPrint(true, ROOT::TMetaUtils::kWarning, location, va_(fmt), ap);
+   LevelPrint(true, CppyyLegacy::TMetaUtils::kWarning, location, va_(fmt), ap);
    va_end(ap);
 }
 
@@ -805,7 +803,7 @@ inline void Fatal(const char *location, const char *va_(fmt), ...)
 {
    va_list ap;
    va_start(ap,va_(fmt));
-   LevelPrint(true, ROOT::TMetaUtils::kFatal, location, va_(fmt), ap);
+   LevelPrint(true, CppyyLegacy::TMetaUtils::kFatal, location, va_(fmt), ap);
    va_end(ap);
 }
 
@@ -870,6 +868,6 @@ int FwdDeclFromTypeDefNameDecl(const clang::TypedefNameDecl& tdnDecl,
 
 } // namespace TMetaUtils
 
-} // namespace ROOT
+} // namespace CppyyLegacy
 
 #endif // ROOT_TMetaUtils

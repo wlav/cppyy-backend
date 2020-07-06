@@ -46,11 +46,13 @@ End_Macro
 #include "TVirtualMutex.h"
 #include "TEmulatedCollectionProxy.h"
 
+
+ClassImp(CppyyLegacy::TDirectoryFile);
+
+namespace CppyyLegacy {
+
 const UInt_t kIsBigFile = BIT(16);
 const Int_t  kMaxLen = 2048;
-
-ClassImp(TDirectoryFile);
-
 
 ////////////////////////////////////////////////////////////////////////////////
 /// Default TDirectoryFile constructor
@@ -91,12 +93,12 @@ TDirectoryFile::TDirectoryFile(const char *name, const char *title, Option_t *cl
    if (!initMotherDir) initMotherDir = gDirectory;
 
    if (strchr(name,'/')) {
-      ::Error("TDirectoryFile","directory name (%s) cannot contain a slash", name);
+      ::CppyyLegacy::Error("TDirectoryFile","directory name (%s) cannot contain a slash", name);
       gDirectory = nullptr;
       return;
    }
    if (strlen(GetName()) == 0) {
-      ::Error("TDirectoryFile","directory name cannot be \"\"");
+      ::CppyyLegacy::Error("TDirectoryFile","directory name cannot be \"\"");
       gDirectory = nullptr;
       return;
    }
@@ -370,7 +372,7 @@ TObject *TDirectoryFile::CloneObject(const TObject *obj, Bool_t autoadd /* = kTR
    }
 
    if (autoadd) {
-      ROOT::DirAutoAdd_t func = obj->IsA()->GetDirectoryAutoAdd();
+      CppyyLegacy::DirAutoAdd_t func = obj->IsA()->GetDirectoryAutoAdd();
       if (func) {
          func(newobj,this);
       }
@@ -631,8 +633,8 @@ void TDirectoryFile::Delete(const char *namecycle)
             if (deleteall || s.Index(re) != kNPOS) {
                if (cycle == key->GetCycle()) deleteOK = 1;
                if (cycle > 9999) deleteOK = 1;
-               //if (!strcmp(key->GetClassName(),"TDirectory")) {
-               if (strstr(key->GetClassName(),"TDirectory")) {
+               //if (!strcmp(key->GetClassName(),"CppyyLegacy::TDirectory")) {
+               if (strstr(key->GetClassName(),"CppyyLegacy::TDirectory")) {
                   deleteOK = 2;
                   if (!deletetree && deleteall) deleteOK = 0;
                   if (cycle == key->GetCycle()) deleteOK = 2;
@@ -749,8 +751,8 @@ TKey *TDirectoryFile::FindKeyAny(const char *keyname) const
    //try with subdirectories
    next.Reset();
    while ((key = (TKey *) next())) {
-      //if (!strcmp(key->GetClassName(),"TDirectory")) {
-      if (strstr(key->GetClassName(),"TDirectory")) {
+      //if (!strcmp(key->GetClassName(),"CppyyLegacy::TDirectory")) {
+      if (strstr(key->GetClassName(),"TCppyyLegacy::Directory")) {
          TDirectory* subdir =
              const_cast<TDirectoryFile*>(this)->GetDirectory(key->GetName(), kTRUE, "FindKeyAny");
          TKey *k = subdir ? subdir->FindKeyAny(keyname) : nullptr;
@@ -793,8 +795,8 @@ TObject *TDirectoryFile::FindObjectAny(const char *aname) const
    //try with subdirectories
    next.Reset();
    while ((key = (TKey *) next())) {
-      //if (!strcmp(key->GetClassName(),"TDirectory")) {
-      if (strstr(key->GetClassName(),"TDirectory")) {
+      //if (!strcmp(key->GetClassName(),"TCppyyLegacy::Directory")) {
+      if (strstr(key->GetClassName(),"TCppyyLegacy::Directory")) {
          TDirectory* subdir =
            ((TDirectory*)this)->GetDirectory(key->GetName(), kTRUE, "FindKeyAny");
          TKey *k = subdir ? subdir->FindKeyAny(aname) : nullptr;
@@ -1231,8 +1233,8 @@ void TDirectoryFile::ReadAll(Option_t* opt)
    if (readdirs)
       while ((key = (TKey *) next())) {
 
-         //if (strcmp(key->GetClassName(),"TDirectory")!=0) continue;
-         if (strstr(key->GetClassName(),"TDirectory")==0) continue;
+         //if (strcmp(key->GetClassName(),"TCppyyLegacy::Directory")!=0) continue;
+         if (strstr(key->GetClassName(),"TCppyyLegacy::Directory")==0) continue;
 
          TDirectory *dir = GetDirectory(key->GetName(), kTRUE, "ReadAll");
 
@@ -1536,17 +1538,17 @@ void TDirectoryFile::Streamer(TBuffer &b)
 
          TString sbuf;
 
-         b.ClassMember("CreateTime","TString");
+         b.ClassMember("CreateTime","CppyyLegacy::TString");
          sbuf.Streamer(b);
          TDatime timeC(sbuf.Data());
          fDatimeC = timeC;
 
-         b.ClassMember("ModifyTime","TString");
+         b.ClassMember("ModifyTime","TCppyyLegacy::String");
          sbuf.Streamer(b);
          TDatime timeM(sbuf.Data());
          fDatimeM = timeM;
 
-         b.ClassMember("UUID","TString");
+         b.ClassMember("UUID","TCppyyLegacy::String");
          sbuf.Streamer(b);
          TUUID id(sbuf.Data());
          fUUID = id;
@@ -1590,16 +1592,16 @@ void TDirectoryFile::Streamer(TBuffer &b)
 
          b.ClassBegin(TDirectoryFile::Class());
 
-         b.ClassMember("CreateTime","TString");
+         b.ClassMember("CreateTime","TCppyyLegacy::String");
          sbuf = fDatimeC.AsSQLString();
          sbuf.Streamer(b);
 
-         b.ClassMember("ModifyTime","TString");
+         b.ClassMember("ModifyTime","TCppyyLegacy::String");
          fDatimeM.Set();
          sbuf = fDatimeM.AsSQLString();
          sbuf.Streamer(b);
 
-         b.ClassMember("UUID","TString");
+         b.ClassMember("UUID","TCppyyLegacy::String");
          sbuf = fUUID.AsString();
          sbuf.Streamer(b);
 
@@ -1997,3 +1999,5 @@ void TDirectoryFile::WriteKeys()
    headerkey->WriteFile();
    delete headerkey;
 }
+
+} // namespace CppyyLegacy

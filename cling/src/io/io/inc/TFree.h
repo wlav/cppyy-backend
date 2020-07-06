@@ -12,7 +12,6 @@
 #ifndef ROOT_TFree
 #define ROOT_TFree
 
-
 //////////////////////////////////////////////////////////////////////////
 //                                                                      //
 // TFree                                                                //
@@ -23,6 +22,8 @@
 
 #include "TObject.h"
 
+
+namespace CppyyLegacy {
 
 class TFree : public TObject {
 
@@ -48,4 +49,5 @@ public:
    ClassDef(TFree,1);  //Description of free segments on a file
 };
 
+} // namespace CppyyLegacy
 #endif

@@ -26,7 +26,10 @@ The TEnum class implements the enum type.
 
 #include "TListOfEnums.h"
 
-ClassImp(TEnum);
+
+ClassImp(CppyyLegacy::TEnum);
+
+namespace CppyyLegacy {
 
 ////////////////////////////////////////////////////////////////////////////////
 /// Constructor for TEnum class.
@@ -295,3 +298,5 @@ TEnum *TEnum::GetEnum(const char *enumName, ESearchAction sa)
 
    return theEnum;
 }
+
+} // namespace CppyyLegacy

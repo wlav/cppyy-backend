@@ -24,6 +24,9 @@
 \ingroup IO
 */
 
+
+namespace CppyyLegacy {
+
 namespace TStreamerInfoActions {
 
    /// Base class of the Configurations.
@@ -285,6 +288,5 @@ namespace TStreamerInfoActions {
 
 }
 
+} // namespace CppyyLegacy
 #endif // ROOT_TStreamerInfoActions
-
-

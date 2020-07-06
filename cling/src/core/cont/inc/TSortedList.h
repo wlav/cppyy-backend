@@ -12,7 +12,6 @@
 #ifndef ROOT_TSortedList
 #define ROOT_TSortedList
 
-
 //////////////////////////////////////////////////////////////////////////
 //                                                                      //
 // TSortedList                                                          //
@@ -24,6 +23,8 @@
 
 #include "TList.h"
 
+
+namespace CppyyLegacy {
 
 class TSortedList : public TList {
 
@@ -50,5 +51,5 @@ public:
    ClassDef(TSortedList,0)  //A sorted list
 };
 
+} // namespace CppyyLegacy
 #endif
-

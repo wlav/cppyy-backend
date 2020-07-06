@@ -43,7 +43,10 @@ from the Clang C++ compiler, not CINT.
 #include "llvm/ADT/APSInt.h"
 #include "llvm/ADT/APFloat.h"
 
+
 using namespace clang;
+
+namespace CppyyLegacy {
 
 TClingDataMemberInfo::TClingDataMemberInfo(cling::Interpreter *interp,
                                            TClingClassInfo *ci)
@@ -64,7 +67,7 @@ TClingDataMemberInfo::TClingDataMemberInfo(cling::Interpreter *interp,
       // Could trigger deserialization of decls.
       cling::Interpreter::PushTransactionRAII RAII(interp);
       fIter = llvm::cast<clang::DeclContext>(D)->decls_begin();
-      const TagDecl *TD = ROOT::TMetaUtils::GetAnnotatedRedeclarable(llvm::dyn_cast<TagDecl>(D));
+      const TagDecl *TD = CppyyLegacy::TMetaUtils::GetAnnotatedRedeclarable(llvm::dyn_cast<TagDecl>(D));
       if (TD)
          fIter = TD->decls_begin();
 
@@ -108,8 +111,8 @@ void TClingDataMemberInfo::CheckForIoTypeAndName() const
 
    const Decl* decl = GetDecl();
 
-   if (code == 3 || code == 2) ROOT::TMetaUtils::ExtractAttrPropertyFromName(*decl,"ioname",fIoName);
-   if (code == 3 || code == 1) ROOT::TMetaUtils::ExtractAttrPropertyFromName(*decl,"iotype",fIoType);
+   if (code == 3 || code == 2) CppyyLegacy::TMetaUtils::ExtractAttrPropertyFromName(*decl,"ioname",fIoName);
+   if (code == 3 || code == 1) CppyyLegacy::TMetaUtils::ExtractAttrPropertyFromName(*decl,"iotype",fIoType);
 
 }
 
@@ -600,16 +603,16 @@ const char *TClingDataMemberInfo::TypeName() const
       }
 
       // if (we_need_to_do_the_subst_because_the_class_is_a_template_instance_of_double32_t)
-      vdType = ROOT::TMetaUtils::ReSubstTemplateArg(vdType, fClassInfo->GetType() );
+      vdType = CppyyLegacy::TMetaUtils::ReSubstTemplateArg(vdType, fClassInfo->GetType() );
 
-      ROOT::TMetaUtils::GetFullyQualifiedTypeName(buf, vdType, *fInterp);
+      CppyyLegacy::TMetaUtils::GetFullyQualifiedTypeName(buf, vdType, *fInterp);
 
       return buf.c_str();
    }
    return 0;
 }
 
-const char *TClingDataMemberInfo::TypeTrueName(const ROOT::TMetaUtils::TNormalizedCtxt &normCtxt) const
+const char *TClingDataMemberInfo::TypeTrueName(const CppyyLegacy::TMetaUtils::TNormalizedCtxt &normCtxt) const
 {
    if (!IsValid()) {
       return 0;
@@ -623,9 +626,9 @@ const char *TClingDataMemberInfo::TypeTrueName(const ROOT::TMetaUtils::TNormaliz
    buf.clear();
    if (const clang::ValueDecl *vd = llvm::dyn_cast<clang::ValueDecl>(GetDecl())) {
       // if (we_need_to_do_the_subst_because_the_class_is_a_template_instance_of_double32_t)
-      clang::QualType vdType = ROOT::TMetaUtils::ReSubstTemplateArg(vd->getType(), fClassInfo->GetType());
+      clang::QualType vdType = CppyyLegacy::TMetaUtils::ReSubstTemplateArg(vd->getType(), fClassInfo->GetType());
 
-      ROOT::TMetaUtils::GetNormalizedName(buf, vdType, *fInterp, normCtxt);
+      CppyyLegacy::TMetaUtils::GetNormalizedName(buf, vdType, *fInterp, normCtxt);
 
       // In CINT's version, the type name returns did *not* include any array
       // information, ROOT's existing code depends on it.
@@ -669,8 +672,8 @@ const char *TClingDataMemberInfo::Title()
    const Decl* decl = GetDecl();
    for (Decl::attr_iterator attrIt = decl->attr_begin();
         attrIt!=decl->attr_end() && !titleFound ;++attrIt){
-      if (0 == ROOT::TMetaUtils::extractAttrString(*attrIt, attribute_s) &&
-          attribute_s.find(ROOT::TMetaUtils::propNames::separator) == std::string::npos){
+      if (0 == CppyyLegacy::TMetaUtils::extractAttrString(*attrIt, attribute_s) &&
+          attribute_s.find(CppyyLegacy::TMetaUtils::propNames::separator) == std::string::npos){
          fTitle = attribute_s;
          titleFound=true;
       }
@@ -680,7 +683,7 @@ const char *TClingDataMemberInfo::Title()
       // Try to get the comment from the header file if present
       // but not for decls from AST file, where rootcling would have
       // created an annotation
-      fTitle = ROOT::TMetaUtils::GetComment(*GetDecl()).str();
+      fTitle = CppyyLegacy::TMetaUtils::GetComment(*GetDecl()).str();
    }
 
    return fTitle.c_str();
@@ -695,7 +698,8 @@ llvm::StringRef TClingDataMemberInfo::ValidArrayIndex() const
       return llvm::StringRef();
    }
    const clang::DeclaratorDecl *FD = llvm::dyn_cast<clang::DeclaratorDecl>(GetDecl());
-   if (FD) return ROOT::TMetaUtils::DataMemberInfo__ValidArrayIndex(*FD);
+   if (FD) return CppyyLegacy::TMetaUtils::DataMemberInfo__ValidArrayIndex(*FD);
    else return llvm::StringRef();
 }
 
+} // namespace CppyyLegacy

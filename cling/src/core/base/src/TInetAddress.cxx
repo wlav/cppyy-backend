@@ -18,8 +18,13 @@ This class represents an Internet Protocol (IP) address.
 #include "TInetAddress.h"
 #include "TBuffer.h"
 #include "TClass.h"
+
+
+ClassImp(CppyyLegacy::TInetAddress);
+
+namespace CppyyLegacy {
+
 #define Printf TStringPrintf
-ClassImp(TInetAddress);
 
 ////////////////////////////////////////////////////////////////////////////////
 /// Default ctor. Used in case of unknown host. Not a valid address.
@@ -208,3 +213,5 @@ void TInetAddress::Streamer(TBuffer &R__b)
       R__b.WriteClassBuffer(TInetAddress::Class(), this);
    }
 }
+
+} // namespace CppyyLegacy

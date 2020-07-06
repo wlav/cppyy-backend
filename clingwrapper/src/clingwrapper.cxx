@@ -44,6 +44,8 @@
 #include <string.h>
 #include <typeinfo>
 
+using namespace CppyyLegacy;
+
 // temp
 #include <iostream>
 typedef CPyCppyy::Parameter Parameter;
@@ -205,7 +207,7 @@ class ApplicationStarter {
 public:
     ApplicationStarter() {
     // initialize ROOT early to guarantee proper order of shutdown later on (gROOT is a
-    // macro that resolves to the ROOT::GetROOT() function call)
+    // macro that resolves to the ::CppyyLegacy::GetROOT() function call)
         (void)gROOT;
 
     // setup dummy holders for global and std namespaces
@@ -675,7 +677,7 @@ void Cppyy::Destruct(TCppType_t type, TCppObject_t instance)
     if (cr->ClassProperty() & (kClassHasExplicitDtor | kClassHasImplicitDtor))
         cr->Destructor((void*)instance);
     else {
-        ROOT::DelFunc_t fdel = cr->GetDelete();
+        ::CppyyLegacy::DelFunc_t fdel = cr->GetDelete();
         if (fdel) fdel((void*)instance);
         else {
             auto ib = sHasOperatorDelete.find(type);

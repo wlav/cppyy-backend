@@ -39,7 +39,10 @@ array with the  digest.
 #include <io.h>
 #endif
 
-ClassImp(TMD5);
+
+ClassImp(CppyyLegacy::TMD5);
+
+namespace CppyyLegacy {
 
 ////////////////////////////////////////////////////////////////////////////////
 /// Create TMD5 object. Set bit count to 0 and buffer to mysterious
@@ -558,3 +561,5 @@ TBuffer &operator<<(TBuffer &buf, const TMD5 &uuid)
    const_cast<TMD5&>(uuid).Streamer(buf);
    return buf;
 }
+
+} // namespace CppyyLegacy

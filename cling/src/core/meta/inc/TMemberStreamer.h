@@ -24,6 +24,9 @@
 //                                                                      //
 //////////////////////////////////////////////////////////////////////////
 
+
+namespace CppyyLegacy {
+
 class TMemberStreamer {
 protected:
    TMemberStreamer() : fStreamer(0) {};
@@ -52,4 +55,5 @@ private:
    TClassRef            fOnFileClass;
 };
 
+} // namespace CppyyLegacy
 #endif

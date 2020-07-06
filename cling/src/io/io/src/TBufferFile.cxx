@@ -46,6 +46,10 @@ The concrete implementation of TBuffer for writing/reading to/from a ROOT file o
 #endif
 
 
+ClassImp(CppyyLegacy::TBufferFile);
+
+namespace CppyyLegacy {
+
 const UInt_t kNewClassTag       = 0xFFFFFFFF;
 const UInt_t kClassMask         = 0x80000000;  // OR the class index with this
 const UInt_t kByteCountMask     = 0x40000000;  // OR the byte count with this
@@ -54,8 +58,6 @@ const Version_t kByteCountVMask = 0x4000;      // OR the version byte count with
 const Version_t kMaxVersion     = 0x3FFF;      // highest possible version number
 const Int_t  kMapOffset         = 2;   // first 2 map entries are taken by null obj and self obj
 
-
-ClassImp(TBufferFile);
 
 ////////////////////////////////////////////////////////////////////////////////
 /// Thread-safe check on StreamerInfos of a TClass
@@ -3142,7 +3144,7 @@ UInt_t TBufferFile::CheckObject(UInt_t offset, const TClass *cl, Bool_t readClas
             fMap->Remove(offset);
             fMap->Add(offset, -1);
             Warning("CheckObject", "reference to object of unavailable class %s, offset=%d"
-                    " pointer will be 0", cl ? cl->GetName() : "TObject",offset);
+                    " pointer will be 0", cl ? cl->GetName() : "CppyyLegacy::TObject",offset);
             offset = 0;
          }
 
@@ -3633,3 +3635,5 @@ Int_t TBufferFile::ApplySequence(const TStreamerInfoActions::TActionSequence &se
 
    return 0;
 }
+
+} // namespace CppyyLegacy

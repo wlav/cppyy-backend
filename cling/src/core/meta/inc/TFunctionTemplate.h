@@ -12,7 +12,6 @@
 #ifndef ROOT_TFunctionTemplate
 #define ROOT_TFunctionTemplate
 
-
 //////////////////////////////////////////////////////////////////////////
 //                                                                      //
 // TFunctionTemplate                                                    //
@@ -22,6 +21,9 @@
 //////////////////////////////////////////////////////////////////////////
 
 #include "TDictionary.h"
+
+
+namespace CppyyLegacy {
 
 class TFunctionTemplate : public TDictionary {
 protected:
@@ -49,4 +51,5 @@ public:
 
 };
 
+} // namespace CppyyLegacy
 #endif

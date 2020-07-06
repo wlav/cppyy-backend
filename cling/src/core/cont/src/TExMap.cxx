@@ -24,7 +24,9 @@ method (linear probing).
 #include <string.h>
 
 
-ClassImp(TExMap);
+ClassImp(CppyyLegacy::TExMap);
+
+namespace CppyyLegacy {
 
 ////////////////////////////////////////////////////////////////////////////////
 /// Create a TExMap.
@@ -383,8 +385,11 @@ void TExMap::Streamer(TBuffer &b)
    }
 }
 
+} // namespace CppyyLegacy
 
 ClassImp(TExMapIter);
+
+namespace CppyyLegacy {
 
 ////////////////////////////////////////////////////////////////////////////////
 /// Create TExMap iterator.
@@ -432,3 +437,5 @@ Bool_t TExMapIter::Next(Long64_t &key, Long64_t &value)
    ULong64_t hash;
    return Next(hash, key, value);
 }
+
+} // namespace CppyyLegacy

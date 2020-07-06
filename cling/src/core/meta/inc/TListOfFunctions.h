@@ -23,10 +23,11 @@
 //////////////////////////////////////////////////////////////////////////
 
 #include "THashList.h"
-
 #include "THashTable.h"
-
 #include "TDictionary.h"
+
+
+namespace CppyyLegacy {
 
 class TExMap;
 class TFunction;
@@ -122,5 +123,5 @@ public:
    ClassDef(TListOfFunctionsIter,0)
 };
 
-
+} // namespace CppyyLegacy
 #endif // ROOT_TListOfFunctions

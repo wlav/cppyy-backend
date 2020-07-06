@@ -22,6 +22,8 @@
 #include "TClassEdit.h"
 #include <memory>
 
+using namespace CppyyLegacy;
+
 std::string gPCMFilename;
 std::vector<std::string> gClassesToStore;
 std::vector<std::string> gTypedefsToStore;

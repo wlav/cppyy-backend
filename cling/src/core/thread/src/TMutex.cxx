@@ -25,7 +25,10 @@
 #include <errno.h>
 #include "TError.h"
 
-ClassImp(TMutex);
+
+ClassImp(CppyyLegacy::TMutex);
+
+namespace CppyyLegacy {
 
 ////////////////////////////////////////////////////////////////////////////////
 /// Create a mutex lock. The actual mutex implementation will be
@@ -89,3 +92,5 @@ TVirtualMutex *TMutex::Factory(Bool_t recursive)
    TVirtualMutex *ret = new TMutex(recursive);
    return ret;
 }
+
+} // namespace CppyyLegacy

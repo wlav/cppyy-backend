@@ -39,7 +39,11 @@ initialized when the program starts (see the ClassImp macro).
 #include <stdlib.h>
 #include <string>
 #define Printf TStringPrintf
-using namespace ROOT;
+
+
+ClassImp(CppyyLegacy::TClassTable);
+
+namespace CppyyLegacy {
 
 TClassTable *gClassTable;
 
@@ -52,11 +56,8 @@ Bool_t       TClassTable::fgSorted;
 UInt_t       TClassTable::fgCursor;
 TClassTable::IdMap_t *TClassTable::fgIdMap;
 
-ClassImp(TClassTable);
-
 ////////////////////////////////////////////////////////////////////////////////
 
-namespace ROOT {
    class TClassRec {
    public:
       TClassRec(TClassRec *next) :
@@ -139,15 +140,6 @@ namespace ROOT {
    private:
       TMap fMap;
    public:
-#ifdef R__COMPLETE_MEM_TERMINATION
-      ~TMapTypeToClassRec() {
-         TIter next(&fMap);
-         TObjString *key;
-         while((key = (TObjString*)next())) {
-            delete key;
-         }
-      }
-#endif
 
       void Add(const char *key, TClassRec *&obj)
       {
@@ -211,7 +203,7 @@ namespace ROOT {
       static std::vector<std::pair<const char *, const char *>> delayedAddClassAlternate;
       return delayedAddClassAlternate;
    }
-}
+
 
 ////////////////////////////////////////////////////////////////////////////////
 /// TClassTable is a singleton (i.e. only one can exist per application).
@@ -333,7 +325,7 @@ int   TClassTable::Classes() { return fgTally; }
 //______________________________________________________________________________
 void  TClassTable::Init() { fgCursor = 0; SortTable(); }
 
-namespace ROOT { class TForNamespace {}; } // Dummy class to give a typeid to namespace (see also TGenericClassInfo)
+class TForNamespace {}; // Dummy class to give a typeid to namespace (see also TGenericClassInfo)
 
 ////////////////////////////////////////////////////////////////////////////////
 /// Add a class to the class table (this is a static function).
@@ -346,23 +338,23 @@ void TClassTable::Add(const char *cname, Version_t id,  const std::type_info &in
       new TClassTable;
 
    if (!cname || *cname == 0)
-      ::Fatal("TClassTable::Add()", "Failed to deduce type for '%s'", info.name());
+      ::CppyyLegacy::Fatal("TClassTable::Add()", "Failed to deduce type for '%s'", info.name());
 
    // check if already in table, if so return
    TClassRec *r = FindElementImpl(cname, kTRUE);
    if (r->fName && r->fInfo) {
-      if ( strcmp(r->fInfo->name(),typeid(ROOT::TForNamespace).name())==0
-           && strcmp(info.name(),typeid(ROOT::TForNamespace).name())==0 ) {
+      if ( strcmp(r->fInfo->name(),typeid(TForNamespace).name())==0
+           && strcmp(info.name(),typeid(TForNamespace).name())==0 ) {
          // We have a namespace being reloaded.
          // This okay we just keep the old one.
          return;
       }
       if (!TClassEdit::IsStdClass(cname)) {
          // Warn only for class that are not STD classes
-         ::Warning("TClassTable::Add", "class %s already in TClassTable", cname);
+         ::CppyyLegacy::Warning("TClassTable::Add", "class %s already in TClassTable", cname);
       }
       return;
-   } else if (ROOT::Internal::gROOTLocal && gCling) {
+   } else if (Internal::gROOTLocal && gCling) {
       TClass *oldcl = (TClass*)gROOT->GetListOfClasses()->FindObject(cname);
       if (oldcl) { //  && oldcl->GetClassInfo()) {
          // As a work-around to ROOT-6012, we need to register the class even if
@@ -408,7 +400,7 @@ void TClassTable::Add(TProtoClass *proto)
       if (r->fProto) delete r->fProto;
       r->fProto = proto;
       return;
-   } else if (ROOT::Internal::gROOTLocal && gCling) {
+   } else if (Internal::gROOTLocal && gCling) {
       TClass *oldcl = (TClass*)gROOT->GetListOfClasses()->FindObject(cname);
       if (oldcl) { //  && oldcl->GetClassInfo()) {
                    // As a work-around to ROOT-6012, we need to register the class even if
@@ -416,7 +408,7 @@ void TClassTable::Add(TProtoClass *proto)
                    // files loaded by the current dictionary wil also de-activate the update
                    // class info mechanism!
 
-         ::Warning("TClassTable::Add(TProtoClass*)","Called for existing class without a prior call add the dictionary function.");
+         ::CppyyLegacy::Warning("TClassTable::Add(TProtoClass*)","Called for existing class without a prior call add the dictionary function.");
       }
    }
 
@@ -437,7 +429,7 @@ void TClassTable::AddAlternate(const char *normName, const char *alternate)
    if (!gClassTable)
       new TClassTable;
 
-   UInt_t slot = ROOT::ClassTableHash(alternate, fgSize);
+   UInt_t slot = ClassTableHash(alternate, fgSize);
 
    for (const TClassAlt *a = fgAlternate[slot]; a; a = a->fNext.get()) {
       if (strcmp(alternate,a->fName)==0) {
@@ -459,7 +451,7 @@ Bool_t TClassTable::Check(const char *cname, std::string &normname)
 {
    if (!CheckClassTableInit()) return kFALSE;
 
-   UInt_t slot = ROOT::ClassTableHash(cname, fgSize);
+   UInt_t slot = ClassTableHash(cname, fgSize);
 
    // Check if 'cname' is a known normalized name.
    for (TClassRec *r = fgTable[slot]; r; r = r->fNext)
@@ -484,7 +476,7 @@ void TClassTable::Remove(const char *cname)
 {
    if (!CheckClassTableInit()) return;
 
-   UInt_t slot = ROOT::ClassTableHash(cname,fgSize);
+   UInt_t slot = ClassTableHash(cname,fgSize);
 
    TClassRec *r;
    TClassRec *prev = 0;
@@ -512,7 +504,7 @@ void TClassTable::Remove(const char *cname)
 
 TClassRec *TClassTable::FindElementImpl(const char *cname, Bool_t insert)
 {
-   UInt_t slot = ROOT::ClassTableHash(cname,fgSize);
+   UInt_t slot = ClassTableHash(cname,fgSize);
 
    for (TClassRec *r = fgTable[slot]; r; r = r->fNext)
       if (strcmp(cname,r->fName)==0) return r;
@@ -571,7 +563,7 @@ Int_t TClassTable::GetPragmaBits(const char *cname)
 DictFuncPtr_t TClassTable::GetDict(const char *cname)
 {
    if (gDebug > 9) {
-      ::Info("GetDict", "searches for %s", cname);
+      ::CppyyLegacy::Info("GetDict", "searches for %s", cname);
       fgIdMap->Print();
    }
 
@@ -589,7 +581,7 @@ DictFuncPtr_t TClassTable::GetDict(const std::type_info& info)
    if (!CheckClassTableInit()) return nullptr;
 
    if (gDebug > 9) {
-      ::Info("GetDict", "searches for %s at 0x%td", info.name(), (intptr_t)&info);
+      ::CppyyLegacy::Info("GetDict", "searches for %s at 0x%td", info.name(), (intptr_t)&info);
       fgIdMap->Print();
    }
 
@@ -607,7 +599,7 @@ DictFuncPtr_t TClassTable::GetDictNorm(const char *cname)
    if (!CheckClassTableInit()) return nullptr;
 
    if (gDebug > 9) {
-      ::Info("GetDict", "searches for %s", cname);
+      ::CppyyLegacy::Info("GetDict", "searches for %s", cname);
       fgIdMap->Print();
    }
 
@@ -623,13 +615,13 @@ DictFuncPtr_t TClassTable::GetDictNorm(const char *cname)
 TProtoClass *TClassTable::GetProto(const char *cname)
 {
    if (gDebug > 9) {
-      ::Info("GetDict", "searches for %s", cname);
+      ::CppyyLegacy::Info("GetDict", "searches for %s", cname);
    }
 
    if (!CheckClassTableInit()) return nullptr;
 
    if (gDebug > 9) {
-      ::Info("GetDict", "searches for %s", cname);
+      ::CppyyLegacy::Info("GetDict", "searches for %s", cname);
       fgIdMap->Print();
    }
 
@@ -645,7 +637,7 @@ TProtoClass *TClassTable::GetProto(const char *cname)
 TProtoClass *TClassTable::GetProtoNorm(const char *cname)
 {
    if (gDebug > 9) {
-      ::Info("GetDict", "searches for %s", cname);
+      ::CppyyLegacy::Info("GetDict", "searches for %s", cname);
    }
 
    if (!CheckClassTableInit()) return nullptr;
@@ -731,7 +723,7 @@ void TClassTable::SortTable()
          for (TClassRec *r = fgTable[i]; r; r = r->fNext)
             fgSortedTable[j++] = r;
 
-      ::qsort(fgSortedTable, fgTally, sizeof(TClassRec *), ::ClassComp);
+      ::qsort(fgSortedTable, fgTally, sizeof(TClassRec *), ::CppyyLegacy::ClassComp);
       fgSorted = kTRUE;
    }
 }
@@ -753,11 +745,13 @@ void TClassTable::Terminate()
    }
 }
 
+} // namespace CppyyLegacy
+
 ////////////////////////////////////////////////////////////////////////////////
 /// Global function called by the ctor of a class's init class
 /// (see the ClassImp macro).
 
-void ROOT::AddClass(const char *cname, Version_t id,
+void CppyyLegacy::AddClass(const char *cname, Version_t id,
                     const std::type_info& info,
                     DictFuncPtr_t dict,
                     Int_t pragmabits)
@@ -779,7 +773,7 @@ void ROOT::AddClass(const char *cname, Version_t id,
 /// Global function called by GenerateInitInstance.
 /// (see the ClassImp macro).
 
-void ROOT::AddClassAlternate(const char *normName, const char *alternate)
+void CppyyLegacy::AddClassAlternate(const char *normName, const char *alternate)
 {
    if (!TROOT::Initialized() && !gClassTable) {
       GetDelayedAddClassAlternate().emplace_back(normName, alternate);
@@ -802,7 +796,7 @@ void ROOT::AddClassAlternate(const char *normName, const char *alternate)
 ///  - The Class Version 1, unless specify via ClassDef indicates that the
 ///    I/O should use the TClass checksum to distinguish the layout of the class
 
-void ROOT::ResetClassVersion(TClass *cl, const char *cname, Short_t newid)
+void CppyyLegacy::ResetClassVersion(TClass *cl, const char *cname, Short_t newid)
 {
    if (cname && cname!=(void*)-1) {
       TClassRec *r = TClassTable::FindElement(cname,kFALSE);
@@ -834,7 +828,7 @@ void ROOT::ResetClassVersion(TClass *cl, const char *cname, Short_t newid)
 /// Global function called by the dtor of a class's init class
 /// (see the ClassImp macro).
 
-void ROOT::RemoveClass(const char *cname)
+void CppyyLegacy::RemoveClass(const char *cname)
 {
    // don't delete class information since it is needed by the I/O system
    // to write the StreamerInfo to file
@@ -859,7 +853,7 @@ void ROOT::RemoveClass(const char *cname)
 /// Global function to register the implementation file and line of
 /// a class template (i.e. NOT a concrete class).
 
-TNamed *ROOT::RegisterClassTemplate(const char *name, const char *file,
+CppyyLegacy::TNamed *CppyyLegacy::RegisterClassTemplate(const char *name, const char *file,
                                     Int_t line)
 {
    static TList table;

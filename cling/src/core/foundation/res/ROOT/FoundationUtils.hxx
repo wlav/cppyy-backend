@@ -21,7 +21,8 @@
 
 #include <string>
 
-namespace ROOT {
+namespace CppyyLegacy {
+
 namespace FoundationUtils {
 
    ///\returns the $PWD.
@@ -75,6 +76,7 @@ namespace FoundationUtils {
    const std::string& GetEtcDir();
 
    } // namespace FoundationUtils
-} // namespace ROOT
+
+} // namespace CppyyLegacy
 
 #endif // ROOT_CORE_FOUNDATION_FOUNDATIONUTILS_HXX

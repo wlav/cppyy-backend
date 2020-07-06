@@ -22,6 +22,8 @@
 #include "TString.h"
 
 
+namespace CppyyLegacy {
+
 ////////////////////////////////////////////////////////////////////////////////
 /// Replace string with the contents of strm, stopping at an EOF.
 
@@ -157,10 +159,12 @@ std::istream& TString::ReadToken(std::istream& strm)
    return strm;
 }
 
+} // namespace CppyyLegacy
+
 ////////////////////////////////////////////////////////////////////////////////
 /// Read string from stream.
 
-std::istream& operator>>(std::istream& strm, TString& s)
+std::istream& operator>>(std::istream& strm, CppyyLegacy::TString& s)
 {
    return s.ReadToken(strm);
 }
@@ -168,12 +172,12 @@ std::istream& operator>>(std::istream& strm, TString& s)
 ////////////////////////////////////////////////////////////////////////////////
 /// Write string to stream.
 
-std::ostream& operator<<(std::ostream& os, const TString& s)
+std::ostream& operator<<(std::ostream& os, const CppyyLegacy::TString& s)
 {
    if (os.good()) {
       if (os.tie()) os.tie()->flush(); // instead of opfx
-      UInt_t len = s.Length();
-      UInt_t wid = os.width();
+      CppyyLegacy::UInt_t len = s.Length();
+      CppyyLegacy::UInt_t wid = os.width();
       wid = (len < wid) ? wid - len : 0;
       os.width(wid);
       long flags = os.flags();
@@ -188,6 +192,8 @@ std::ostream& operator<<(std::ostream& os, const TString& s)
       os.flush();
    return os;
 }
+
+namespace CppyyLegacy {
 
 // ------------------- C I/O ------------------------------------
 
@@ -224,3 +230,5 @@ void TString::Puts(FILE *fp)
 {
    fputs(GetPointer(), fp);
 }
+
+} // namespace CppyyLegacy

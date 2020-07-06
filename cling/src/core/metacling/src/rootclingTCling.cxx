@@ -23,6 +23,8 @@
 #include "TROOT.h"
 #include "TCling.h"
 
+namespace CppyyLegacy {
+
 extern "C"
 const char ** *TROOT__GetExtraInterpreterArgs()
 {
@@ -42,10 +44,11 @@ const char *TROOT__GetEtcDir()
 }
 
 extern "C"
-cling::Interpreter *TCling__GetInterpreter()
+cling::Interpreter* TCling__GetInterpreter()
 {
    static auto triggerInitialization = gROOT;
    (void)triggerInitialization;
    return (cling::Interpreter *)((TCling *)gCling)->GetInterpreterImpl();
 }
 
+} // namespace CppyyLegacy

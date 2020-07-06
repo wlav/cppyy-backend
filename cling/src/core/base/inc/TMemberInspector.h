@@ -25,6 +25,9 @@
 
 #include "Rtypes.h"
 
+
+namespace CppyyLegacy {
+
 class TObject;
 class TClass;
 
@@ -78,5 +81,7 @@ public:
 
    ClassDef(TMemberInspector,0)  //ABC for inspecting class data members
 };
+
+} // namespace CppyyLegacy
 
 #endif

@@ -22,14 +22,16 @@ Data member is public for historical reasons.
 #include "TBuffer.h"
 
 
-ClassImp(TArray);
+ClassImp(CppyyLegacy::TArray);
+
+namespace CppyyLegacy {
 
 ////////////////////////////////////////////////////////////////////////////////
 /// Generate an out-of-bounds error. Always returns false.
 
 Bool_t TArray::OutOfBoundsError(const char *where, Int_t i) const
 {
-   ::Error(where, "index %d out of bounds (size: %d, this: 0x%td)", i, fN, (intptr_t)this);
+   ::CppyyLegacy::Error(where, "index %d out of bounds (size: %d, this: 0x%td)", i, fN, (intptr_t)this);
    return kFALSE;
 }
 
@@ -60,7 +62,7 @@ TArray *TArray::ReadArray(TBuffer &b, const TClass *clReq)
 
       a = (TArray *) clRef->New();
       if (!a) {
-         ::Error("TArray::ReadArray", "could not create object of class %s",
+         ::CppyyLegacy::Error("TArray::ReadArray", "could not create object of class %s",
                  clRef->GetName());
          // Exception
          return 0;
@@ -106,11 +108,13 @@ void TArray::WriteArray(TBuffer &b, const TArray *a)
    }
 }
 
+} // namespace CppyyLegacy
+
 ////////////////////////////////////////////////////////////////////////////////
 /// Write TArray or derived object to buffer.
 
-TBuffer &operator<<(TBuffer &buf, const TArray *obj)
+CppyyLegacy::TBuffer &operator<<(CppyyLegacy::TBuffer &buf, const CppyyLegacy::TArray *obj)
 {
-   TArray::WriteArray(buf, obj);
+   CppyyLegacy::TArray::WriteArray(buf, obj);
    return buf;
 }

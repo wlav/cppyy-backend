@@ -21,7 +21,9 @@ values.
 #include "TNamed.h"
 
 
-ClassImp(TDictAttributeMap);
+ClassImp(CppyyLegacy::TDictAttributeMap);
+
+namespace CppyyLegacy {
 
 ////////////////////////////////////////////////////////////////////////////////
 ///Default constructor.
@@ -109,3 +111,5 @@ void TDictAttributeMap::Clear(Option_t* /*option = ""*/)
 {
    fStringProperty.Delete();
 }
+
+} // namespace CppyyLegacy

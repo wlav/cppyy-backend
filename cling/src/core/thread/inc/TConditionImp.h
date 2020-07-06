@@ -26,6 +26,8 @@
 #include "TObject.h"
 
 
+namespace CppyyLegacy {
+
 class TConditionImp : public TObject {
 
 public:
@@ -40,4 +42,5 @@ public:
    ClassDef(TConditionImp,0)  // Condition variable implementation ABC
 };
 
+} // namespace CppyyLegacy
 #endif

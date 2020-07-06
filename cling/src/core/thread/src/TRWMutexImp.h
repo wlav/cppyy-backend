@@ -17,10 +17,10 @@
 
 #include "TBuffer.h" // Needed by ClassDefInlineOverride
 
-namespace ROOT {
-template <typename MutexT, typename RecurseCountsT = ROOT::Internal::RecurseCounts>
+namespace CppyyLegacy {
+template <typename MutexT, typename RecurseCountsT = Internal::RecurseCounts>
 class TRWMutexImp : public TVirtualRWMutex {
-   ROOT::TReentrantRWLock<MutexT, RecurseCountsT> fMutexImp;
+   TReentrantRWLock<MutexT, RecurseCountsT> fMutexImp;
 
 public:
    Hint_t * ReadLock() override;
@@ -36,6 +36,6 @@ public:
    ClassDefInlineOverride(TRWMutexImp,0)  // Concrete RW mutex lock class
 };
 
-} // namespace ROOT.
+} // namespace CppyyLegacy
 
 #endif

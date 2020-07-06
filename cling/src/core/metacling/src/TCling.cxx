@@ -195,6 +195,8 @@ extern "C" {
 #endif
 #endif
 
+namespace CppyyLegacy {
+
 //______________________________________________________________________________
 // Infrastructure to detect and react to libCling being teared down.
 //
@@ -202,8 +204,8 @@ namespace {
    class TCling_UnloadMarker {
    public:
       ~TCling_UnloadMarker() {
-         if (ROOT::Internal::gROOTLocal) {
-            ROOT::Internal::gROOTLocal->~TROOT();
+         if (CppyyLegacy::Internal::gROOTLocal) {
+            CppyyLegacy::Internal::gROOTLocal->~TROOT();
          }
       }
    };
@@ -262,7 +264,7 @@ R__DLLEXPORT bool TCling__TEST_isInvalidDecl(ClassInfo_t *input) {
 
 using namespace std;
 using namespace clang;
-using namespace ROOT;
+using namespace CppyyLegacy;
 
 namespace {
   static const std::string gInterpreterClassDef = R"ICF(
@@ -296,7 +298,7 @@ _ClassDefOutline_(name,id,,override)\
 static int DeclFileLine() { return __LINE__; }
 )ICF";
 
-// The macros below use ::Error, so let's ensure it is included
+// The macros below use ::CppyyLegacy::Error, so let's ensure it is included
   static const std::string gClassDefInterpMacro = R"ICF(
 #include "TError.h"
 
@@ -309,8 +311,8 @@ public: \
    static Version_t Class_Version() { return id; } \
    static TClass *Dictionary() { return 0; } \
    virtual_keyword TClass *IsA() const overrd { return name::Class(); } \
-   virtual_keyword void ShowMembers(TMemberInspector&insp) const overrd { ::ROOT::Class_ShowMembers(name::Class(), this, insp); } \
-   virtual_keyword void Streamer(TBuffer&) overrd { ::Error("Streamer", "Cannot stream interpreted class."); } \
+   virtual_keyword void ShowMembers(TMemberInspector&insp) const overrd { ::CppyyLegacy::Class_ShowMembers(name::Class(), this, insp); } \
+   virtual_keyword void Streamer(TBuffer&) overrd { ::CppyyLegacy::Error("Streamer", "Cannot stream interpreted class."); } \
    void StreamerNVirtual(TBuffer&ClassDef_StreamerNVirtual_b) { name::Streamer(ClassDef_StreamerNVirtual_b); } \
    static const char *DeclFileName() { return __FILE__; } \
    static int ImplFileLine() { return 0; } \
@@ -549,7 +551,7 @@ void TCling::HandleNewDecl(const void* DV, bool isDeserialized, std::set<TClass*
 }
 
 extern "C"
-void TCling__GetNormalizedContext(const ROOT::TMetaUtils::TNormalizedCtxt*& normCtxt)
+void TCling__GetNormalizedContext(const CppyyLegacy::TMetaUtils::TNormalizedCtxt*& normCtxt)
 {
    // We are sure in this context of the type of the interpreter
    normCtxt = &( (TCling*) gInterpreter)->GetNormalizedContext();
@@ -934,9 +936,17 @@ bool TClingLookupHelper__ExistingTypeCheck(const std::string &tname,
       // This is a raw type and an already loaded typedef.
       const char *newname = type->GetFullTypeName();
       if (type->GetType() == kLong64_t) {
-         newname = "Long64_t";
+#ifdef _WIN32
+         newname = "__int64";
+#else
+         newname = "long long";
+#endif
       } else if (type->GetType() == kULong64_t) {
-         newname = "ULong64_t";
+#ifdef _WIN32
+         newname = "unsigned __int64";
+#else
+         newname = "unsigned long long";
+#endif
       }
       if (strcmp(inner,newname) == 0) {
          return true;
@@ -1210,7 +1220,7 @@ TCling::TCling(const char *name, const char *title, const char* const argv[])
 
    // rootcling sets its arguments through TROOT::GetExtraInterpreterArgs().
    if (!fromRootCling) {
-      ROOT::TMetaUtils::SetPathsForRelocatability(clingArgsStorage);
+      CppyyLegacy::TMetaUtils::SetPathsForRelocatability(clingArgsStorage);
 
       // Add -I early so ASTReader can find the headers.
       std::string interpInclude(TROOT::GetEtcDir().Data());
@@ -1262,7 +1272,7 @@ TCling::TCling(const char *name, const char *title, const char* const argv[])
          StringRef Env(*EnvOpt);
          while (!Env.empty()) {
             StringRef Arg;
-            std::tie(Arg, Env) = Env.split(ROOT::FoundationUtils::GetEnvPathSeparator());
+            std::tie(Arg, Env) = Env.split(CppyyLegacy::FoundationUtils::GetEnvPathSeparator());
             if (std::find(Paths.begin(), Paths.end(), Arg.str()) == Paths.end())
                Paths.push_back(Arg.str());
          }
@@ -1279,7 +1289,7 @@ TCling::TCling(const char *name, const char *title, const char* const argv[])
       //GetEnvVarPath("LD_LIBRARY_PATH", Paths);
       std::string EnvVarPath;
       for (const std::string& P : Paths)
-         EnvVarPath += P + ROOT::FoundationUtils::GetEnvPathSeparator();
+         EnvVarPath += P + CppyyLegacy::FoundationUtils::GetEnvPathSeparator();
       // FIXME: We should make cling -fprebuilt-module-path work.
       gSystem->Setenv("CLING_PREBUILT_MODULE_PATH", EnvVarPath.c_str());
    }
@@ -1302,11 +1312,11 @@ TCling::TCling(const char *name, const char *title, const char* const argv[])
       Paths.push_back(gSystem->WorkingDirectory());
 
       for (const std::string& P : Paths) {
-         std::string ModuleMapLoc = P + ROOT::FoundationUtils::GetPathSeparator()
+         std::string ModuleMapLoc = P + CppyyLegacy::FoundationUtils::GetPathSeparator()
             + "module.modulemap";
          if (!llvm::sys::fs::exists(ModuleMapLoc)) {
             if (gDebug > 1)
-               ::Info("TCling::TCling", "Modulemap %s does not exist \n",
+               ::CppyyLegacy::Info("TCling::TCling", "Modulemap %s does not exist \n",
                       ModuleMapLoc.c_str());
 
             continue;
@@ -1398,8 +1408,8 @@ TCling::TCling(const char *name, const char *title, const char* const argv[])
    RegisterPreIncludedHeaders(*fInterpreter);
 
    // We are now ready (enough is loaded) to init the list of opaque typedefs.
-   fNormalizedCtxt = new ROOT::TMetaUtils::TNormalizedCtxt(fInterpreter->getLookupHelper());
-   fLookupHelper = new ROOT::TMetaUtils::TClingLookupHelper(*fInterpreter, *fNormalizedCtxt,
+   fNormalizedCtxt = new CppyyLegacy::TMetaUtils::TNormalizedCtxt(fInterpreter->getLookupHelper());
+   fLookupHelper = new CppyyLegacy::TMetaUtils::TClingLookupHelper(*fInterpreter, *fNormalizedCtxt,
                                                             TClingLookupHelper__ExistingTypeCheck,
                                                             TClingLookupHelper__AutoParse,
                                                             &fIsShuttingDown);
@@ -1503,7 +1513,7 @@ static std::string FindLibraryName(void (*func)())
    {
       return {};
    }
-   return ROOT::TMetaUtils::GetRealPath(moduleName);
+   return CppyyLegacy::TMetaUtils::GetRealPath(moduleName);
 #else
    Dl_info info;
    if (dladdr((void*)func, &info) == 0) {
@@ -1511,7 +1521,7 @@ static std::string FindLibraryName(void (*func)())
       return {};
    } else {
       if (strchr(info.dli_fname, '/'))
-         return ROOT::TMetaUtils::GetRealPath(info.dli_fname);
+         return CppyyLegacy::TMetaUtils::GetRealPath(info.dli_fname);
       // Else absolute path. For all we know that's a binary.
       // Some people have dictionaries in binaries, this is how we find their path:
       // (see also https://stackoverflow.com/a/1024937/6182509)
@@ -1519,23 +1529,23 @@ static std::string FindLibraryName(void (*func)())
       char buf[PATH_MAX] = { 0 };
       uint32_t bufsize = sizeof(buf);
       if (_NSGetExecutablePath(buf, &bufsize) >= 0)
-         return ROOT::TMetaUtils::GetRealPath(buf);
-      return ROOT::TMetaUtils::GetRealPath(info.dli_fname);
+         return CppyyLegacy::TMetaUtils::GetRealPath(buf);
+      return CppyyLegacy::TMetaUtils::GetRealPath(info.dli_fname);
 # elif defined(R__UNIX)
       char buf[PATH_MAX] = { 0 };
       // Cross our fingers that /proc/self/exe exists.
       if (readlink("/proc/self/exe", buf, sizeof(buf)) > 0)
-         return ROOT::TMetaUtils::GetRealPath(buf);
+         return CppyyLegacy::TMetaUtils::GetRealPath(buf);
       std::string pipeCmd = std::string("which \"") + info.dli_fname + "\"";
       FILE* pipe = popen(pipeCmd.c_str(), "r");
       if (!pipe)
-         return ROOT::TMetaUtils::GetRealPath(info.dli_fname);
+         return CppyyLegacy::TMetaUtils::GetRealPath(info.dli_fname);
       std::string result;
       while (fgets(buf, sizeof(buf), pipe)) {
          result += buf;
       }
       pclose(pipe);
-      return ROOT::TMetaUtils::GetRealPath(result);
+      return CppyyLegacy::TMetaUtils::GetRealPath(result);
 # else
 #  error "Unsupported platform."
 # endif
@@ -1568,7 +1578,7 @@ void TCling::RegisterRdictForLoadPCM(const std::string &pcmFileNameFullPath, llv
       return;
 
    if (llvm::sys::fs::exists(pcmFileNameFullPath)) {
-      ::Error("TCling::RegisterRdictForLoadPCM", "Rdict '%s' is both in Module extension and in File system.", pcmFileNameFullPath.c_str());
+      ::CppyyLegacy::Error("TCling::RegisterRdictForLoadPCM", "Rdict '%s' is both in Module extension and in File system.", pcmFileNameFullPath.c_str());
       return;
    }
 
@@ -1594,7 +1604,7 @@ void TCling::LoadPCMImpl(TFile &pcmFile)
 
    TObjArray *protoClasses;
    if (gDebug > 1)
-      ::Info("TCling::LoadPCMImpl", "reading protoclasses for %s \n", pcmFile.GetName());
+      ::CppyyLegacy::Info("TCling::LoadPCMImpl", "reading protoclasses for %s \n", pcmFile.GetName());
 
    pcmFile.GetObject("__ProtoClasses", protoClasses);
 
@@ -1617,7 +1627,7 @@ void TCling::LoadPCMImpl(TFile &pcmFile)
             if (existingCl->GetState() != TClass::kHasTClassInit) {
                DictFuncPtr_t dict = gClassTable->GetDict(proto->GetName());
                if (!dict) {
-                  ::Error("TCling::LoadPCM", "Inconsistent TClassTable for %s", proto->GetName());
+                  ::CppyyLegacy::Error("TCling::LoadPCM", "Inconsistent TClassTable for %s", proto->GetName());
                } else {
                   // This will replace the existing TClass.
                   TClass *ncl = (*dict)();
@@ -1714,13 +1724,13 @@ void TCling::LoadPCM(std::string pcmFileNameFullPath)
    llvm::SaveAndRestore<Int_t> SaveGDebug(gDebug);
    if (gDebug > 5) {
       gDebug -= 5;
-      ::Info("TCling::LoadPCM", "Loading ROOT PCM %s", pcmFileName.Data());
+      ::CppyyLegacy::Info("TCling::LoadPCM", "Loading ROOT PCM %s", pcmFileName.Data());
    } else {
       gDebug = 0;
    }
 
    if (llvm::sys::fs::is_symlink_file(pcmFileNameFullPath))
-      pcmFileNameFullPath = ROOT::TMetaUtils::GetRealPath(pcmFileNameFullPath);
+      pcmFileNameFullPath = CppyyLegacy::TMetaUtils::GetRealPath(pcmFileNameFullPath);
 
    auto pendingRdict = fPendingRdicts.find(pcmFileNameFullPath);
    if (pendingRdict != fPendingRdicts.end()) {
@@ -1737,11 +1747,11 @@ void TCling::LoadPCM(std::string pcmFileNameFullPath)
    }
 
    if (!llvm::sys::fs::exists(pcmFileNameFullPath)) {
-      ::Error("TCling::LoadPCM", "ROOT PCM %s file does not exist",
+      ::CppyyLegacy::Error("TCling::LoadPCM", "ROOT PCM %s file does not exist",
               pcmFileNameFullPath.data());
       if (!fPendingRdicts.empty())
          for (const auto &rdict : fPendingRdicts)
-            ::Info("TCling::LoadPCM", "In-memory ROOT PCM candidate %s\n",
+            ::CppyyLegacy::Info("TCling::LoadPCM", "In-memory ROOT PCM candidate %s\n",
                    rdict.first.c_str());
       return;
    }
@@ -1835,7 +1845,7 @@ static void PrintDlError(const char *dyLibName, const char *modulename)
 #else
    const char *dyLibError = dlerror();
 #endif
-   ::Error("TCling::RegisterModule", "Cannot open shared library %s for dictionary %s:\n  %s", dyLibName, modulename,
+   ::CppyyLegacy::Error("TCling::RegisterModule", "Cannot open shared library %s for dictionary %s:\n  %s", dyLibName, modulename,
            (dyLibError) ? dyLibError : "");
 }
 
@@ -1951,7 +1961,7 @@ void TCling::RegisterModule(const char* modulename,
    assert(!llvm::sys::fs::is_symlink_file(dyLibName));
 
    if (dyLibName.empty()) {
-      ::Error("TCling::RegisterModule", "Dictionary trigger function for %s not found", modulename);
+      ::CppyyLegacy::Error("TCling::RegisterModule", "Dictionary trigger function for %s not found", modulename);
       return;
    }
 
@@ -2158,7 +2168,7 @@ void TCling::RegisterModule(const char* modulename,
       llvm::sys::fs::make_absolute(pcmFileNameFullPath);
       llvm::sys::path::remove_filename(pcmFileNameFullPath);
       llvm::sys::path::append(pcmFileNameFullPath,
-                              ROOT::TMetaUtils::GetModuleFileName(modulename));
+                              CppyyLegacy::TMetaUtils::GetModuleFileName(modulename));
       LoadPCM(pcmFileNameFullPath.str().str());
    }
 
@@ -2628,7 +2638,7 @@ void TCling::InspectMembers(TMemberInspector& insp, const void* obj,
       clang::QualType memberQT = iField->getType();
       if (recordType) {
          // if (we_need_to_do_the_subst_because_the_class_is_a_template_instance_of_double32_t)
-         memberQT = ROOT::TMetaUtils::ReSubstTemplateArg(memberQT, recordType);
+         memberQT = CppyyLegacy::TMetaUtils::ReSubstTemplateArg(memberQT, recordType);
       }
       memberQT = cling::utils::Transform::GetPartiallyDesugaredType(astContext, memberQT, fNormalizedCtxt->GetConfig(), false /* fully qualify */);
       if (memberQT.isNull()) {
@@ -2665,7 +2675,7 @@ void TCling::InspectMembers(TMemberInspector& insp, const void* obj,
             = memNonPtrType->getAs<clang::PointerType>()->getPointeeType();
          if (recordType) {
             // if (we_need_to_do_the_subst_because_the_class_is_a_template_instance_of_double32_t)
-            ptrQT = ROOT::TMetaUtils::ReSubstTemplateArg(ptrQT, recordType);
+            ptrQT = CppyyLegacy::TMetaUtils::ReSubstTemplateArg(ptrQT, recordType);
          }
          ptrQT = cling::utils::Transform::GetPartiallyDesugaredType(astContext, ptrQT, fNormalizedCtxt->GetConfig(), false /* fully qualify */);
          if (ptrQT.isNull()) {
@@ -2726,7 +2736,7 @@ void TCling::InspectMembers(TMemberInspector& insp, const void* obj,
 
       // Check if this field has a custom ioname, if not, just use the one of the decl
       std::string ioname(iField->getName());
-      ROOT::TMetaUtils::ExtractAttrPropertyFromName(**iField,"ioname",ioname);
+      CppyyLegacy::TMetaUtils::ExtractAttrPropertyFromName(**iField,"ioname",ioname);
       fieldName += ioname;
       fieldName += arraySize;
 
@@ -2761,8 +2771,8 @@ void TCling::InspectMembers(TMemberInspector& insp, const void* obj,
             // nested objects get an extra call to InspectMember
             // R__insp.InspectMember("FileStat_t", (void*)&fFileStat, "fFileStat.", false);
             std::string sFieldRecName;
-            if (!ROOT::TMetaUtils::ExtractAttrPropertyFromName(*fieldRecDecl,"iotype",sFieldRecName)){
-               ROOT::TMetaUtils::GetNormalizedName(sFieldRecName,
+            if (!CppyyLegacy::TMetaUtils::ExtractAttrPropertyFromName(*fieldRecDecl,"iotype",sFieldRecName)){
+               CppyyLegacy::TMetaUtils::GetNormalizedName(sFieldRecName,
                                                    clang::QualType(memNonPtrType,0),
                                                    *fInterpreter,
                                                    *fNormalizedCtxt);
@@ -2811,7 +2821,7 @@ void TCling::InspectMembers(TMemberInspector& insp, const void* obj,
       } else {
          // Try with the normalised Name, as a fallback
          if (!baseCl){
-            ROOT::TMetaUtils::GetNormalizedName(sBaseName,
+            CppyyLegacy::TMetaUtils::GetNormalizedName(sBaseName,
                                                 baseQT,
                                                 *fInterpreter,
                                                 *fNormalizedCtxt);
@@ -2821,7 +2831,7 @@ void TCling::InspectMembers(TMemberInspector& insp, const void* obj,
 
       if (!baseCl){
          std::string qualNameForDiag;
-         ROOT::TMetaUtils::GetQualifiedName(qualNameForDiag, *baseDecl);
+         CppyyLegacy::TMetaUtils::GetQualifiedName(qualNameForDiag, *baseDecl);
          Error("InspectMembers",
                "Cannot find TClass for base class %s", qualNameForDiag.c_str() );
          continue;
@@ -3370,11 +3380,11 @@ void TCling::RecursiveRemove(TObject* obj)
    // to RecursiveRemove will take the write lock and performance
    // of many threads trying to access the write lock at the same
    // time is relatively bad.
-   R__READ_LOCKGUARD(ROOT::gCoreMutex);
+   R__READ_LOCKGUARD(CppyyLegacy::gCoreMutex);
    if (obj->IsOnHeap() && fgSetOfSpecials && !((std::set<TObject*>*)fgSetOfSpecials)->empty()) {
       std::set<TObject*>::iterator iSpecial = ((std::set<TObject*>*)fgSetOfSpecials)->find(obj);
       if (iSpecial != ((std::set<TObject*>*)fgSetOfSpecials)->end()) {
-         R__WRITE_LOCKGUARD(ROOT::gCoreMutex);
+         R__WRITE_LOCKGUARD(CppyyLegacy::gCoreMutex);
          DeleteGlobal(obj);
          ((std::set<TObject*>*)fgSetOfSpecials)->erase(iSpecial);
       }
@@ -3630,13 +3640,13 @@ static std::string AlternateTuple(const char *classname, const cling::LookupHelp
    std::string alternateName = "TEmulatedTuple";
    alternateName.append( classname + 5 );
 
-   std::string fullname = "ROOT::Internal::" + alternateName;
+   std::string fullname = "CppyyLegacy::Internal::" + alternateName;
    if (lh.findScope(fullname, cling::LookupHelper::NoDiagnostics,
                     /*resultType*/nullptr, /* intantiateTemplate= */ false))
       return fullname;
 
    std::string guard_name;
-   ROOT::TMetaUtils::GetCppName(guard_name,alternateName.c_str());
+   CppyyLegacy::TMetaUtils::GetCppName(guard_name,alternateName.c_str());
    std::ostringstream guard;
    guard << "ROOT_INTERNAL_TEmulated_";
    guard << guard_name;
@@ -3644,7 +3654,7 @@ static std::string AlternateTuple(const char *classname, const cling::LookupHelp
    std::ostringstream alternateTuple;
    alternateTuple << "#ifndef " << guard.str() << "\n";
    alternateTuple << "#define " << guard.str() << "\n";
-   alternateTuple << "namespace ROOT { namespace Internal {\n";
+   alternateTuple << "namespace CppyyLegacy { namespace Internal {\n";
    alternateTuple << "template <class... Types> struct TEmulatedTuple;\n";
    alternateTuple << "template <> struct " << alternateName << " {\n";
 
@@ -3686,7 +3696,7 @@ static std::string AlternateTuple(const char *classname, const cling::LookupHelp
       Error("Load","Could not declare %s",alternateName.c_str());
       return "";
    }
-   alternateName = "ROOT::Internal::" + alternateName;
+   alternateName = "CppyyLegacy::Internal::" + alternateName;
    return alternateName;
 }
 
@@ -3921,7 +3931,7 @@ TCling::CheckClassInfo(const char *name, Bool_t autoload, Bool_t isClassOrNamesp
             // Since the point of instantiation is invalid, we 'guess' that
             // the 'instantiation' of the forwarded type appended in
             // findscope.
-            if (ROOT::TMetaUtils::IsSTLCont(*tmpltDecl)) {
+            if (CppyyLegacy::TMetaUtils::IsSTLCont(*tmpltDecl)) {
                // For STL Collection we return kUnknown.
                SetClassAutoloading(storeAutoload);
                return kUnknown;
@@ -3941,14 +3951,14 @@ TCling::CheckClassInfo(const char *name, Bool_t autoload, Bool_t isClassOrNamesp
          if (isClassOrNamespaceOnly) {
             // We do not need to check for ClassDefInline when this is called from
             // TClass::Init, we only do it for the call from TClass::GetClass.
-            auto hasDictionary = tci.GetMethod("Dictionary", "", false, 0, ROOT::kExactMatch);
-            auto implLineFunc = tci.GetMethod("ImplFileLine", "", false, 0, ROOT::kExactMatch);
+            auto hasDictionary = tci.GetMethod("Dictionary", "", false, 0, CppyyLegacy::kExactMatch);
+            auto implLineFunc = tci.GetMethod("ImplFileLine", "", false, 0, CppyyLegacy::kExactMatch);
 
             if (hasDictionary.IsValid() && implLineFunc.IsValid()) {
                int lineNumber = 0;
                bool success = false;
                std::tie(success, lineNumber) =
-                  ROOT::TMetaUtils::GetTrivialIntegralReturnValue(implLineFunc.GetMethodDecl(), *fInterpreter);
+                  CppyyLegacy::TMetaUtils::GetTrivialIntegralReturnValue(implLineFunc.GetMethodDecl(), *fInterpreter);
                hasClassDefInline = success && (lineNumber == -1);
             }
          }
@@ -4205,7 +4215,7 @@ TClass *TCling::GenerateTClass(const char *classname, Bool_t emulation, Bool_t s
 
    Version_t version = 1;
    if (TClassEdit::IsSTLCont(classname)) {
-      version = TClass::GetClass("TVirtualStreamerInfo")->GetClassVersion();
+      version = TClass::GetClass("CppyyLegacy::TVirtualStreamerInfo")->GetClassVersion();
    }
    TClass *cl = new TClass(classname, version, silent);
    if (emulation || strstr(classname, "(anonymous)")) {
@@ -4226,7 +4236,7 @@ TClass *TCling::GenerateTClass(const char *classname, Bool_t emulation, Bool_t s
             return cl;
          }
          TClingMethodInfo mi = cli->GetMethod("Class_Version", "", 0 /*poffset*/,
-                                              ROOT::kExactMatch,
+                                              CppyyLegacy::kExactMatch,
                                               TClingClassInfo::kInThisScope);
          if (!mi.IsValid()) {
             if (cl->TestBit(TClass::kIsTObject)) {
@@ -4236,7 +4246,7 @@ TClass *TCling::GenerateTClass(const char *classname, Bool_t emulation, Bool_t s
             }
             return cl;
          }
-         newvers = ROOT::TMetaUtils::GetClassVersion(llvm::dyn_cast<clang::RecordDecl>(cli->GetDecl()),
+         newvers = CppyyLegacy::TMetaUtils::GetClassVersion(llvm::dyn_cast<clang::RecordDecl>(cli->GetDecl()),
                                                      *fInterpreter);
          if (newvers == -1) {
             // Didn't manage to determine the class version from the AST.
@@ -4267,40 +4277,6 @@ TClass *TCling::GenerateTClass(const char *classname, Bool_t emulation, Bool_t s
 //   }
 }
 
-#if 0
-////////////////////////////////////////////////////////////////////////////////
-
-static void GenerateTClass_GatherInnerIncludes(cling::Interpreter *interp, TString &includes,TClingClassInfo *info)
-{
-   includes += info->FileName();
-
-   const clang::ClassTemplateSpecializationDecl *templateCl
-      = llvm::dyn_cast<clang::ClassTemplateSpecializationDecl>(info->GetDecl());
-   if (templateCl) {
-      for(unsigned int i=0; i <  templateCl->getTemplateArgs().size(); ++i) {
-          const clang::TemplateArgument &arg( templateCl->getTemplateArgs().get(i) );
-          if (arg.getKind() == clang::TemplateArgument::Type) {
-             const clang::Type *uType = ROOT::TMetaUtils::GetUnderlyingType( arg.getAsType() );
-
-            if (!uType->isFundamentalType() && !uType->isEnumeralType()) {
-               // We really need a header file.
-               const clang::CXXRecordDecl *argdecl = uType->getAsCXXRecordDecl();
-               if (argdecl) {
-                  includes += ";";
-                  TClingClassInfo subinfo(interp,*(argdecl->getASTContext().getRecordType(argdecl).getTypePtr()));
-                  GenerateTClass_GatherInnerIncludes(interp, includes, &subinfo);
-               } else {
-                  std::string Result;
-                  llvm::raw_string_ostream OS(Result);
-                  arg.print(argdecl->getASTContext().getPrintingPolicy(),OS);
-                  Warning("TCling::GenerateTClass","Missing header file for %s",OS.str().c_str());
-               }
-            }
-          }
-      }
-   }
-}
-#endif
 
 ////////////////////////////////////////////////////////////////////////////////
 /// Generate a TClass for the given class.
@@ -4333,7 +4309,7 @@ TClass *TCling::GenerateTClass(ClassInfo_t *classinfo, Bool_t silent /* = kFALSE
       }
 #endif
       if (cl == 0) {
-         int version = TClass::GetClass("TVirtualStreamerInfo")->GetClassVersion();
+         int version = TClass::GetClass("CppyyLegacy::TVirtualStreamerInfo")->GetClassVersion();
          cl = new TClass(classinfo, version, 0, 0, -1, -1, silent);
          cl->SetBit(TClass::kIsEmulation);
       }
@@ -4427,7 +4403,7 @@ TInterpreter::DeclId_t TCling::GetDataMember(ClassInfo_t *opaque_cl, const char 
       // TClass from the one in the AST.
       if (const ValueDecl* decl = (const ValueDecl*) d){
          std::string ioName;
-         bool hasIoName = ROOT::TMetaUtils::ExtractAttrPropertyFromName(*decl,"ioname",ioName);
+         bool hasIoName = CppyyLegacy::TMetaUtils::ExtractAttrPropertyFromName(*decl,"ioname",ioName);
          if (hasIoName && ioName != name) return 0;
       }
       return d;
@@ -5823,7 +5799,7 @@ static cling::Interpreter::CompilationResult ExecAutoParse(const char *what,
       // dictionary generation time. That won't be an issue with the PCMs.
 
       Sema &SemaR = interpreter->getSema();
-      ROOT::Internal::ParsingStateRAII parsingStateRAII(interpreter->getParser(), SemaR);
+      CppyyLegacy::Internal::ParsingStateRAII parsingStateRAII(interpreter->getParser(), SemaR);
       clangDiagSuppr diagSuppr(SemaR.getDiagnostics());
 
       #if defined(R__MUST_REVISIT)
@@ -5995,7 +5971,7 @@ Int_t TCling::AutoParse(const char *cls)
    if (fClingCallbacks->IsAutoloadingEnabled()
          && !gClassTable->GetDictNorm(cls)) {
       // Need RAII against recursive (dictionary payload) parsing (ROOT-8445).
-      ROOT::Internal::ParsingStateRAII parsingStateRAII(fInterpreter->getParser(),
+      CppyyLegacy::Internal::ParsingStateRAII parsingStateRAII(fInterpreter->getParser(),
          fInterpreter->getSema());
       AutoLoad(cls, true /*knowDictNotLoaded*/);
    }
@@ -6096,7 +6072,7 @@ static bool MayExistInObjectFile(llvm::object::ObjectFile *soFile, uint32_t hash
 static bool FindSymbol(const std::string &library_filename,
                        const std::string &mangled_name, unsigned IgnoreSymbolFlags = 0)
 {
-   auto ObjF = llvm::object::ObjectFile::createObjectFile(ROOT::TMetaUtils::GetRealPath(library_filename));
+   auto ObjF = llvm::object::ObjectFile::createObjectFile(CppyyLegacy::TMetaUtils::GetRealPath(library_filename));
    if (!ObjF) {
       if (gDebug > 1)
          Warning("TCling__FindSymbol", "Failed to read object file %s", library_filename.c_str());
@@ -6472,7 +6448,7 @@ void TCling::UpdateClassInfoWithDecl(const NamedDecl* ND)
       }
 
       clang::QualType type(tdDef->getTypeForDecl(), 0);
-      ROOT::TMetaUtils::GetNormalizedName(name, type, *fInterpreter, *fNormalizedCtxt);
+      CppyyLegacy::TMetaUtils::GetNormalizedName(name, type, *fInterpreter, *fNormalizedCtxt);
    } else if (ns) {
       canon = ns->getCanonicalDecl();
       name = ND->getQualifiedNameAsString();
@@ -7209,7 +7185,7 @@ Bool_t TCling::LoadText(const char* text) const
 const char* TCling::MapCppName(const char* name) const
 {
    TTHREAD_TLS_DECL(std::string,buffer);
-   ROOT::TMetaUtils::GetCppName(buffer,name);
+   CppyyLegacy::TMetaUtils::GetCppName(buffer,name);
    return buffer.c_str();
 }
 
@@ -8336,13 +8312,13 @@ void TCling::SetDeclAttr(DeclId_t declId, const char* attribute)
 
 static void ConstructorName(std::string &name, const clang::NamedDecl *decl,
                             cling::Interpreter &interp,
-                            const ROOT::TMetaUtils::TNormalizedCtxt &normCtxt)
+                            const CppyyLegacy::TMetaUtils::TNormalizedCtxt &normCtxt)
 {
    const clang::TypeDecl* td = llvm::dyn_cast<clang::TypeDecl>(decl->getDeclContext());
    if (!td) return;
 
    clang::QualType qualType(td->getTypeForDecl(),0);
-   ROOT::TMetaUtils::GetNormalizedName(name, qualType, interp, normCtxt);
+   CppyyLegacy::TMetaUtils::GetNormalizedName(name, qualType, interp, normCtxt);
    unsigned int level = 0;
    for(size_t cursor = name.length()-1; cursor != 0; --cursor) {
       if (name[cursor] == '>') ++level;
@@ -8560,7 +8536,7 @@ void TCling::FuncTempInfo_Title(FuncTempInfo_t *ft_info, TString &output) const
    // Iterate over the redeclarations, we can have multiple definitions in the
    // redecl chain (came from merging of pcms).
    if (const RedeclarableTemplateDecl *AnnotFD
-       = ROOT::TMetaUtils::GetAnnotatedRedeclarable((const RedeclarableTemplateDecl*)ft)) {
+       = CppyyLegacy::TMetaUtils::GetAnnotatedRedeclarable((const RedeclarableTemplateDecl*)ft)) {
       if (AnnotateAttr *A = AnnotFD->getAttr<AnnotateAttr>()) {
          output = A->getAnnotation().str();
          return;
@@ -8570,7 +8546,7 @@ void TCling::FuncTempInfo_Title(FuncTempInfo_t *ft_info, TString &output) const
       // Try to get the comment from the header file if present
       // but not for decls from AST file, where rootcling would have
       // created an annotation
-      output = ROOT::TMetaUtils::GetComment(*ft).str();
+      output = CppyyLegacy::TMetaUtils::GetComment(*ft).str();
    }
 }
 
@@ -9087,7 +9063,7 @@ const char* TCling::TypedefInfo_Title(TypedefInfo_t* tinfo) const
 
 ////////////////////////////////////////////////////////////////////////////////
 
-void TCling::SnapshotMutexState(ROOT::TVirtualRWMutex* mtx)
+void TCling::SnapshotMutexState(CppyyLegacy::TVirtualRWMutex* mtx)
 {
    if (!fInitialMutex.back()) {
       if (fInitialMutex.back().fRecurseCount) {
@@ -9147,3 +9123,5 @@ void *TCling::RewindInterpreterMutex()
    fInitialMutex.emplace_back();
    return nullptr;
 }
+
+} // namespace CppyyLegacy

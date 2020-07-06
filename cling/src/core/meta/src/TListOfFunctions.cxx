@@ -23,7 +23,10 @@ unloaded function.
 #include "TInterpreter.h"
 #include "TVirtualMutex.h"
 
-ClassImp(TListOfFunctions);
+
+ClassImp(CppyyLegacy::TListOfFunctions);
+
+namespace CppyyLegacy {
 
 ////////////////////////////////////////////////////////////////////////////////
 /// Constructor.
@@ -552,7 +555,11 @@ Int_t TListOfFunctions::GetSize() const
 Iterator for TListOfFunctions.
 */
 
+} // namespace CppyyLegacy
+
 ClassImp(TListOfFunctionsIter);
+
+namespace CppyyLegacy {
 
 ////////////////////////////////////////////////////////////////////////////////
 
@@ -567,3 +574,4 @@ TObject *TListOfFunctionsIter::Next()
    return TListIter::Next();
 }
 
+} // namespace CppyyLegacy

@@ -17,7 +17,8 @@
 #include <vector> // for IsContainer
 #include "ROOT/RSpan.hxx" // for IsContainer
 
-namespace ROOT {
+
+namespace CppyyLegacy {
 
 /// ROOT type_traits extensions
 namespace TypeTraits {
@@ -37,7 +38,7 @@ template <typename T> constexpr bool HasCallOp(char /*badOverload*/) { return fa
 // testing, drop it completely
 #ifdef KEEP_CALLABLE_TRAITS
 /// Extract types from the signature of a callable object. See CallableTraits.
-template <typename T, bool HasCallOp = ROOT::Detail::HasCallOp<T>(0)>
+template <typename T, bool HasCallOp = CppyyLegacy::Detail::HasCallOp<T>(0)>
 struct CallableTraitsImpl {};
 
 // Extract signature of operator() and delegate to the appropriate CallableTraitsImpl overloads
@@ -51,32 +52,32 @@ struct CallableTraitsImpl<T, true> {
 // lambdas, std::function, const member functions
 template <typename R, typename T, typename... Args>
 struct CallableTraitsImpl<R (T::*)(Args...) const, false> {
-   using arg_types = ROOT::TypeTraits::TypeList<typename std::decay<Args>::type...>;
-   using arg_types_nodecay = ROOT::TypeTraits::TypeList<Args...>;
+   using arg_types = CppyyLegacy::TypeTraits::TypeList<typename std::decay<Args>::type...>;
+   using arg_types_nodecay = CppyyLegacy::TypeTraits::TypeList<Args...>;
    using ret_type = R;
 };
 
 // mutable lambdas and functor classes, non-const member functions
 template <typename R, typename T, typename... Args>
 struct CallableTraitsImpl<R (T::*)(Args...), false> {
-   using arg_types = ROOT::TypeTraits::TypeList<typename std::decay<Args>::type...>;
-   using arg_types_nodecay = ROOT::TypeTraits::TypeList<Args...>;
+   using arg_types = CppyyLegacy::TypeTraits::TypeList<typename std::decay<Args>::type...>;
+   using arg_types_nodecay = CppyyLegacy::TypeTraits::TypeList<Args...>;
    using ret_type = R;
 };
 
 // function pointers
 template <typename R, typename... Args>
 struct CallableTraitsImpl<R (*)(Args...), false> {
-   using arg_types = ROOT::TypeTraits::TypeList<typename std::decay<Args>::type...>;
-   using arg_types_nodecay = ROOT::TypeTraits::TypeList<Args...>;
+   using arg_types = CppyyLegacy::TypeTraits::TypeList<typename std::decay<Args>::type...>;
+   using arg_types_nodecay = CppyyLegacy::TypeTraits::TypeList<Args...>;
    using ret_type = R;
 };
 
 // free functions
 template <typename R, typename... Args>
 struct CallableTraitsImpl<R(Args...), false> {
-   using arg_types = ROOT::TypeTraits::TypeList<typename std::decay<Args>::type...>;
-   using arg_types_nodecay = ROOT::TypeTraits::TypeList<Args...>;
+   using arg_types = CppyyLegacy::TypeTraits::TypeList<typename std::decay<Args>::type...>;
+   using arg_types_nodecay = CppyyLegacy::TypeTraits::TypeList<Args...>;
    using ret_type = R;
 };
 #endif // KEEP_CALLABLE_TRAITS
@@ -84,7 +85,7 @@ struct CallableTraitsImpl<R(Args...), false> {
 
 namespace TypeTraits {
 
-///\class ROOT::TypeTraits::
+///\class CppyyLegacy::TypeTraits::
 template <class T>
 class IsSmartOrDumbPtr : public std::integral_constant<bool, std::is_pointer<T>::value> {
 };
@@ -158,7 +159,7 @@ using IsFloatNumeral = std::is_floating_point<T>;
 ///   - arg_types: a `TypeList` of all types in the signature, decayed through std::decay
 ///   - arg_types_nodecay: a `TypeList` of all types in the signature, including cv-qualifiers
 template<typename F>
-using CallableTraits = ROOT::Detail::CallableTraitsImpl<F>;
+using CallableTraits = CppyyLegacy::Detail::CallableTraitsImpl<F>;
 #endif
 
 // Return first of a variadic list of types.
@@ -236,6 +237,7 @@ struct HasBeginAndEnd {
    static constexpr bool const value = Check<T>(0);
 };
 
-} // ns TypeTraits
-} // ns ROOT
+} // namespace TypeTraits
+} // namespace CppyyLegacy
+
 #endif // ROOT_TTypeTraits

@@ -54,8 +54,10 @@ but the class metadata comes from the Clang C++ compiler, not CINT.
 #include <sstream>
 #include <string>
 
+
 using namespace clang;
-using namespace ROOT;
+
+namespace CppyyLegacy {
 
 static std::string FullyQualifiedName(const Decl *decl) {
    // Return the fully qualified name without worrying about normalizing it.
@@ -215,7 +217,7 @@ long TClingClassInfo::ClassProperty() const
    return property;
 }
 
-void TClingClassInfo::Delete(void *arena, const ROOT::TMetaUtils::TNormalizedCtxt &normCtxt) const
+void TClingClassInfo::Delete(void *arena, const TMetaUtils::TNormalizedCtxt &normCtxt) const
 {
    // Invoke operator delete on a pointer to an object
    // of this class type.
@@ -232,7 +234,7 @@ void TClingClassInfo::Delete(void *arena, const ROOT::TMetaUtils::TNormalizedCtx
    cf.ExecDestructor(this, arena, /*nary=*/0, /*withFree=*/true);
 }
 
-void TClingClassInfo::DeleteArray(void *arena, bool dtorOnly, const ROOT::TMetaUtils::TNormalizedCtxt &normCtxt) const
+void TClingClassInfo::DeleteArray(void *arena, bool dtorOnly, const TMetaUtils::TNormalizedCtxt &normCtxt) const
 {
    // Invoke operator delete[] on a pointer to an array object
    // of this class type.
@@ -252,7 +254,7 @@ void TClingClassInfo::DeleteArray(void *arena, bool dtorOnly, const ROOT::TMetaU
    cf.ExecDestructor(this, arena, /*nary=*/1, /*withFree=*/true);
 }
 
-void TClingClassInfo::Destruct(void *arena, const ROOT::TMetaUtils::TNormalizedCtxt &normCtxt) const
+void TClingClassInfo::Destruct(void *arena, const TMetaUtils::TNormalizedCtxt &normCtxt) const
 {
    // Invoke placement operator delete on a pointer to an array object
    // of this class type.
@@ -630,7 +632,7 @@ ptrdiff_t TClingClassInfo::GetBaseOffset(TClingClassInfo* base, void* address, b
 {
 
    {
-      R__READ_LOCKGUARD(ROOT::gCoreMutex);
+      R__READ_LOCKGUARD(gCoreMutex);
 
       // Check for the offset in the cache.
       auto iter = fOffsetCache.find(base->GetDecl());
@@ -652,7 +654,7 @@ ptrdiff_t TClingClassInfo::GetBaseOffset(TClingClassInfo* base, void* address, b
    }
 
    // Compute the offset.
-   R__WRITE_LOCKGUARD(ROOT::gCoreMutex);
+   R__WRITE_LOCKGUARD(gCoreMutex);
    TClingBaseClassInfo binfo(fInterp, this, base);
    return binfo.Offset(address, isDerivedObject);
 }
@@ -1058,7 +1060,7 @@ int TClingClassInfo::Next()
    return InternalNext();
 }
 
-void *TClingClassInfo::New(const ROOT::TMetaUtils::TNormalizedCtxt &normCtxt) const
+void *TClingClassInfo::New(const TMetaUtils::TNormalizedCtxt &normCtxt) const
 {
    // Invoke a new expression to use the class constructor
    // that takes no arguments to create an object of this class type.
@@ -1098,7 +1100,7 @@ void *TClingClassInfo::New(const ROOT::TMetaUtils::TNormalizedCtxt &normCtxt) co
    return obj;
 }
 
-void *TClingClassInfo::New(int n, const ROOT::TMetaUtils::TNormalizedCtxt &normCtxt) const
+void *TClingClassInfo::New(int n, const TMetaUtils::TNormalizedCtxt &normCtxt) const
 {
    // Invoke a new expression to use the class constructor
    // that takes no arguments to create an array object
@@ -1143,7 +1145,7 @@ void *TClingClassInfo::New(int n, const ROOT::TMetaUtils::TNormalizedCtxt &normC
    return obj;
 }
 
-void *TClingClassInfo::New(int n, void *arena, const ROOT::TMetaUtils::TNormalizedCtxt &normCtxt) const
+void *TClingClassInfo::New(int n, void *arena, const TMetaUtils::TNormalizedCtxt &normCtxt) const
 {
    // Invoke a placement new expression to use the class
    // constructor that takes no arguments to create an
@@ -1183,7 +1185,7 @@ void *TClingClassInfo::New(int n, void *arena, const ROOT::TMetaUtils::TNormaliz
    return obj;
 }
 
-void *TClingClassInfo::New(void *arena, const ROOT::TMetaUtils::TNormalizedCtxt &normCtxt) const
+void *TClingClassInfo::New(void *arena, const TMetaUtils::TNormalizedCtxt &normCtxt) const
 {
    // Invoke a placement new expression to use the class
    // constructor that takes no arguments to create an
@@ -1337,11 +1339,11 @@ const char *TClingClassInfo::FileName()
       return 0;
    }
    if (fDeclFileName.empty())
-     fDeclFileName = ROOT::TMetaUtils::GetFileName(*GetDecl(), *fInterp);
+     fDeclFileName = TMetaUtils::GetFileName(*GetDecl(), *fInterp);
    return fDeclFileName.c_str();
 }
 
-void TClingClassInfo::FullName(std::string &output, const ROOT::TMetaUtils::TNormalizedCtxt &normCtxt) const
+void TClingClassInfo::FullName(std::string &output, const TMetaUtils::TNormalizedCtxt &normCtxt) const
 {
    // Return QualifiedName.
    output.clear();
@@ -1350,7 +1352,7 @@ void TClingClassInfo::FullName(std::string &output, const ROOT::TMetaUtils::TNor
    }
    if (fType) {
       QualType type(fType, 0);
-      ROOT::TMetaUtils::GetNormalizedName(output, type, *fInterp, normCtxt);
+      TMetaUtils::GetNormalizedName(output, type, *fInterp, normCtxt);
    }
    else {
       if (const NamedDecl* ND =
@@ -1377,7 +1379,7 @@ const char *TClingClassInfo::Title()
    R__LOCKGUARD(gInterpreterMutex);
 
    if (const TagDecl *TD = llvm::dyn_cast<TagDecl>(GetDecl())) {
-      if ( (TD = ROOT::TMetaUtils::GetAnnotatedRedeclarable(TD)) ) {
+      if ( (TD = TMetaUtils::GetAnnotatedRedeclarable(TD)) ) {
          if (AnnotateAttr *A = TD->getAttr<AnnotateAttr>()) {
             std::string attr = A->getAnnotation().str();
             if (attr.find(TMetaUtils::propNames::separator) != std::string::npos) {
@@ -1398,7 +1400,7 @@ const char *TClingClassInfo::Title()
    const CXXRecordDecl *CRD =
       llvm::dyn_cast<CXXRecordDecl>(GetDecl());
    if (CRD && !CRD->isFromASTFile()) {
-      fTitle = ROOT::TMetaUtils::GetClassComment(*CRD,0,*fInterp).str();
+      fTitle = TMetaUtils::GetClassComment(*CRD,0,*fInterp).str();
    }
    return fTitle.c_str();
 }
@@ -1421,3 +1423,4 @@ const char *TClingClassInfo::TmpltName() const
    return buf.c_str();
 }
 
+} // namespace CppyyLegacy

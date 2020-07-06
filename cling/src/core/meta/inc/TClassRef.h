@@ -22,8 +22,10 @@
 //////////////////////////////////////////////////////////////////////////
 
 #include "TClass.h"
-
 #include <string>
+
+
+namespace CppyyLegacy {
 
 class TClassRef {
 
@@ -75,4 +77,5 @@ public:
 
 };
 
+} // namespace CppyyLegacy
 #endif

@@ -22,11 +22,12 @@
 //////////////////////////////////////////////////////////////////////////
 
 #include "Rtypes.h"
-
 #include "Match.h"
 
-class TString;
 
+namespace CppyyLegacy {
+
+class TString;
 
 class TRegexp {
 
@@ -56,5 +57,7 @@ public:
 
    ClassDef(TRegexp,0)  // Regular expression class
 };
+
+} // namespace CppyyLegacy
 
 #endif

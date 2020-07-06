@@ -36,31 +36,30 @@ namespace cling {
    class Interpreter;
 }
 
-namespace ROOT {
+namespace CppyyLegacy {
+
    namespace TMetaUtils {
       class TNormalizedCtxt;
    }
-}
 
-namespace ROOT {
-namespace Internal {
+   namespace Internal {
 
    class RStl {
    private:
-      typedef std::set<ROOT::TMetaUtils::AnnotatedRecordDecl,ROOT::TMetaUtils::AnnotatedRecordDecl::CompareByName> list_t;
+      typedef std::set<TMetaUtils::AnnotatedRecordDecl,TMetaUtils::AnnotatedRecordDecl::CompareByName> list_t;
       list_t fList;
 
    public:
       static RStl& Instance();
       ~RStl() {};
 
-      void GenerateTClassFor(const char *requestedName, const clang::CXXRecordDecl *stlClass, const cling::Interpreter &interp, const ROOT::TMetaUtils::TNormalizedCtxt &normCtxt);
-      void GenerateTClassFor(const clang::QualType &type, const cling::Interpreter &interp, const ROOT::TMetaUtils::TNormalizedCtxt &normCtxt);
+      void GenerateTClassFor(const char *requestedName, const clang::CXXRecordDecl *stlClass, const cling::Interpreter &interp, const TMetaUtils::TNormalizedCtxt &normCtxt);
+      void GenerateTClassFor(const clang::QualType &type, const cling::Interpreter &interp, const TMetaUtils::TNormalizedCtxt &normCtxt);
       void Print();
       void WriteClassInit(std::ostream &strm,
                           const cling::Interpreter &interp,
-                          const ROOT::TMetaUtils::TNormalizedCtxt &normCtxt,
-                          const ROOT::TMetaUtils::RConstructorTypes&,
+                          const TMetaUtils::TNormalizedCtxt &normCtxt,
+                          const TMetaUtils::RConstructorTypes&,
                           bool &needCollectionProxy,
                           void (*emitStreamerInfo)(const char*) );
 //       void WriteStreamer(FILE *file,const clang::CXXRecordDecl *stlcl);
@@ -72,6 +71,6 @@ namespace Internal {
       RStl& operator=(const RStl&);
    };
 
-}
-}
+} } // namespace CppyyLegacy
+
 #endif // R__RSTL_H

@@ -13,9 +13,6 @@
  Each ROOT class (see TClass) has a linked list of methods.
  This class describes one single method (member function).
  The method info is obtained via the CINT api. See class TCling.
-
- The method information is used a.o. by the THml class and by the
- TTree class.
 */
 
 #include "TClass.h"
@@ -28,7 +25,9 @@
 #include "TDataMember.h"
 
 
-ClassImp(TMethod);
+ClassImp(CppyyLegacy::TMethod);
+
+namespace CppyyLegacy {
 
 ////////////////////////////////////////////////////////////////////////////////
 /// Default TMethod ctor. TMethods are constructed in TClass.
@@ -280,3 +279,5 @@ Bool_t TMethod::Update(MethodInfo_t *info)
       return kTRUE;
    return kFALSE;
 }
+
+} // namespace CppyyLegacy

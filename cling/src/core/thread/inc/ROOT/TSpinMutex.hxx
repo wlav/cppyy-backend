@@ -14,10 +14,11 @@
 
 #include <atomic>
 
-namespace ROOT {
+
+namespace CppyyLegacy {
 
    /**
-    * \class ROOT::TSpinMutex
+    * \class CppyyLegacy::TSpinMutex
     * \brief A spin mutex class which respects the STL interface for mutexes.
     * \ingroup Multicore
     * This class allows to acquire spin locks also in combination with templates in the STL such as
@@ -26,14 +27,14 @@ namespace ROOT {
     * For example:
     * 
     * ~~~ {.cpp}
-    * ROOT::TSpinMutex m;
+    * CppyyLegacy::TSpinMutex m;
     * std::condition_variable cv;
     * bool ready = false;
     *
     * void worker_thread()
     * {
     *    // Wait until main() sends data
-    *    std::unique_lock<ROOT::TSpinMutex> lk(m);
+    *    std::unique_lock<CppyyLegacy::TSpinMutex> lk(m);
     *    cv.wait(lk, []{return ready;});
     *    [...]
     * }
@@ -55,6 +56,7 @@ namespace ROOT {
       bool try_lock() { return !fAFlag.test_and_set(std::memory_order_acquire); }
 
    };
-}
+
+} // namespace CppyyLegacy
 
 #endif

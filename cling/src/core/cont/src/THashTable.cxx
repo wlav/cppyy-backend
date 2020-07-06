@@ -27,7 +27,10 @@ use THashList instead.
 #include "TError.h"
 #include "TROOT.h"
 
-ClassImp(THashTable);
+
+ClassImp(CppyyLegacy::THashTable);
+
+namespace CppyyLegacy {
 
 ////////////////////////////////////////////////////////////////////////////////
 /// Create a THashTable object. Capacity is the initial hashtable capacity
@@ -95,7 +98,7 @@ void THashTable::Add(TObject *obj)
 
    Int_t slot = GetCheckedHashValue(obj);
 
-   R__COLLECTION_WRITE_LOCKGUARD(ROOT::gCoreMutex);
+   R__COLLECTION_WRITE_LOCKGUARD(gCoreMutex);
 
    AddImpl(slot,obj);
 
@@ -115,7 +118,7 @@ void THashTable::AddBefore(const TObject *before, TObject *obj)
 
    Int_t slot = GetCheckedHashValue(obj);
 
-   R__COLLECTION_WRITE_LOCKGUARD(ROOT::gCoreMutex);
+   R__COLLECTION_WRITE_LOCKGUARD(gCoreMutex);
    if (!fCont[slot]) {
       fCont[slot] = new TList;
       fUsedSlots++;
@@ -137,7 +140,7 @@ void THashTable::AddBefore(const TObject *before, TObject *obj)
 
 void THashTable::AddAll(const TCollection *col)
 {
-   R__COLLECTION_WRITE_LOCKGUARD(ROOT::gCoreMutex);
+   R__COLLECTION_WRITE_LOCKGUARD(gCoreMutex);
 
    // Hashing after AddAll can be much more expensive than
    // hashing before, as we need to add more elements.
@@ -166,7 +169,7 @@ void THashTable::AddAll(const TCollection *col)
 
 void THashTable::Clear(Option_t *option)
 {
-   R__COLLECTION_WRITE_LOCKGUARD(ROOT::gCoreMutex);
+   R__COLLECTION_WRITE_LOCKGUARD(gCoreMutex);
 
    for (int i = 0; i < fSize; i++) {
       // option "nodelete" is passed when Clear is called from
@@ -192,7 +195,7 @@ Int_t THashTable::Collisions(const char *name) const
 {
    Int_t slot = GetHashValue(name);
 
-   R__COLLECTION_READ_LOCKGUARD(ROOT::gCoreMutex);
+   R__COLLECTION_READ_LOCKGUARD(gCoreMutex);
 
    if (fCont[slot]) return fCont[slot]->GetSize();
    return 0;
@@ -208,7 +211,7 @@ Int_t THashTable::Collisions(TObject *obj) const
 
    Int_t slot = GetHashValue(obj);
 
-   R__COLLECTION_READ_LOCKGUARD(ROOT::gCoreMutex);
+   R__COLLECTION_READ_LOCKGUARD(gCoreMutex);
 
    if (fCont[slot]) return fCont[slot]->GetSize();
    return 0;
@@ -219,7 +222,7 @@ Int_t THashTable::Collisions(TObject *obj) const
 
 void THashTable::Delete(Option_t *)
 {
-   R__COLLECTION_WRITE_LOCKGUARD(ROOT::gCoreMutex);
+   R__COLLECTION_WRITE_LOCKGUARD(gCoreMutex);
 
    for (int i = 0; i < fSize; i++)
       if (fCont[i]) {
@@ -239,7 +242,7 @@ TObject *THashTable::FindObject(const char *name) const
 {
    Int_t slot = GetHashValue(name);
 
-   R__COLLECTION_READ_LOCKGUARD(ROOT::gCoreMutex);
+   R__COLLECTION_READ_LOCKGUARD(gCoreMutex);
 
    if (fCont[slot]) return fCont[slot]->FindObject(name);
    return 0;
@@ -266,7 +269,7 @@ const TList *THashTable::GetListForObject(const char *name) const
 {
    Int_t slot = GetHashValue(name);
 
-   R__COLLECTION_READ_LOCKGUARD(ROOT::gCoreMutex);
+   R__COLLECTION_READ_LOCKGUARD(gCoreMutex);
 
    return fCont[slot];
 }
@@ -282,7 +285,7 @@ const TList *THashTable::GetListForObject(const TObject *obj) const
 
    Int_t slot = GetHashValue(obj);
 
-   R__COLLECTION_READ_LOCKGUARD(ROOT::gCoreMutex);
+   R__COLLECTION_READ_LOCKGUARD(gCoreMutex);
 
    return fCont[slot];
 }
@@ -296,7 +299,7 @@ TObject **THashTable::GetObjectRef(const TObject *obj) const
 
    Int_t slot = GetHashValue(obj);
 
-   R__COLLECTION_READ_LOCKGUARD(ROOT::gCoreMutex);
+   R__COLLECTION_READ_LOCKGUARD(gCoreMutex);
 
    if (fCont[slot]) return fCont[slot]->GetObjectRef(obj);
    return 0;
@@ -363,7 +366,7 @@ void THashTable::Rehash(Int_t newCapacity, Bool_t /* checkObjValidity */)
 {
    THashTable *ht = new THashTable(newCapacity);
 
-   R__COLLECTION_WRITE_LOCKGUARD(ROOT::gCoreMutex);
+   R__COLLECTION_WRITE_LOCKGUARD(gCoreMutex);
 
    TIter next(this);
    TObject *obj;
@@ -409,10 +412,10 @@ TObject *THashTable::Remove(TObject *obj)
 {
    Int_t slot = GetHashValue(obj);
 
-   R__COLLECTION_READ_LOCKGUARD(ROOT::gCoreMutex);
+   R__COLLECTION_READ_LOCKGUARD(gCoreMutex);
 
    if (fCont[slot]) {
-      R__COLLECTION_WRITE_LOCKGUARD(ROOT::gCoreMutex);
+      R__COLLECTION_WRITE_LOCKGUARD(gCoreMutex);
 
       TObject *ob = fCont[slot]->Remove(obj);
       if (ob) {
@@ -433,7 +436,7 @@ TObject *THashTable::Remove(TObject *obj)
 TObject *THashTable::RemoveSlow(TObject *obj)
 {
 
-   R__COLLECTION_WRITE_LOCKGUARD(ROOT::gCoreMutex);
+   R__COLLECTION_WRITE_LOCKGUARD(gCoreMutex);
 
    for (int i = 0; i < fSize; i++) {
       if (fCont[i]) {
@@ -455,7 +458,11 @@ TObject *THashTable::RemoveSlow(TObject *obj)
 Iterator of hash table.
 */
 
+} // namespace CppyyLegacy
+
 ClassImp(THashTableIter);
+
+namespace CppyyLegacy {
 
 ////////////////////////////////////////////////////////////////////////////////
 /// Create a hashtable iterator. By default the iteration direction
@@ -496,7 +503,7 @@ TIterator &THashTableIter::operator=(const TIterator &rhs)
       fDirection = rhs1.fDirection;
       fCursor    = rhs1.fCursor;
       if (rhs1.fListCursor) {
-         // R__COLLECTION_READ_LOCKGUARD(ROOT::gCoreMutex);
+         // R__COLLECTION_READ_LOCKGUARD(gCoreMutex);
 
          fListCursor = (TListIter *)rhs1.fListCursor->GetCollection()->MakeIterator();
          if (fListCursor)
@@ -516,7 +523,7 @@ THashTableIter &THashTableIter::operator=(const THashTableIter &rhs)
       fDirection = rhs.fDirection;
       fCursor    = rhs.fCursor;
       if (rhs.fListCursor) {
-         // R__COLLECTION_READ_LOCKGUARD(ROOT::gCoreMutex);
+         // R__COLLECTION_READ_LOCKGUARD(gCoreMutex);
 
          fListCursor = (TListIter *)rhs.fListCursor->GetCollection()->MakeIterator();
          if (fListCursor)
@@ -539,7 +546,7 @@ THashTableIter::~THashTableIter()
 
 TObject *THashTableIter::Next()
 {
-   // R__COLLECTION_READ_LOCKGUARD(ROOT::gCoreMutex);
+   // R__COLLECTION_READ_LOCKGUARD(gCoreMutex);
 
    while (kTRUE) {
       if (!fListCursor) {
@@ -560,7 +567,7 @@ TObject *THashTableIter::Next()
 
 Int_t THashTableIter::NextSlot()
 {
-   // R__COLLECTION_READ_LOCKGUARD(ROOT::gCoreMutex);
+   // R__COLLECTION_READ_LOCKGUARD(gCoreMutex);
 
    if (fDirection == kIterForward) {
       for ( ; fCursor < fTable->Capacity() && fTable->fCont[fCursor] == 0;
@@ -619,3 +626,5 @@ TObject *THashTableIter::operator*() const
 {
    return (fListCursor ? fListCursor->operator*() : nullptr);
 }
+
+} // namespace CppyyLegacy

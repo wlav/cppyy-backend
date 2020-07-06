@@ -13,33 +13,34 @@
 #pragma extra_include "string";
 #pragma create TClass std::string;
 
-#pragma link C++ enum EAccessMode;
-#pragma link C++ enum ESignals;
-#pragma link C++ enum ESysConstants;
+#pragma link C++ namespace CppyyLegacy;
 
-#pragma link C++ struct FileStat_t;
-#pragma link C++ struct UserGroup_t;
-#pragma link C++ struct RedirectHandle_t;
+#pragma link C++ enum CppyyLegacy::EAccessMode;
+#pragma link C++ enum CppyyLegacy::ESignals;
+#pragma link C++ enum CppyyLegacy::ESysConstants;
 
-#pragma link C++ class TFolder+;
-#pragma link C++ class TMD5+;
-#pragma link C++ class TMemberInspector;
-#pragma link C++ class TNamed+;
-#pragma link C++ class TObjString+;
-#pragma link C++ class TObject-;
-#pragma link C++ class TProcessID+;
-#pragma link C++ class TProcessUUID+;
-#pragma link C++ class TROOT;
-#pragma link C++ class TRegexp;
-#pragma link C++ class TSignalHandler;
-#pragma link C++ class TStdExceptionHandler;
-#pragma link C++ class TStopwatch+;
-#pragma link C++ class TStorage;
-#pragma link C++ class TString-!;
-#pragma link off class TString::Rep_t;
-#pragma link C++ class TSubString;
-#pragma link C++ class TSystem+;
-#pragma link C++ class TTime;
-#pragma link C++ class TUUID+;
+#pragma link C++ struct CppyyLegacy::FileStat_t;
+#pragma link C++ struct CppyyLegacy::UserGroup_t;
+#pragma link C++ struct CppyyLegacy::RedirectHandle_t;
+
+#pragma link C++ class CppyyLegacy::TFolder+;
+#pragma link C++ class CppyyLegacy::TMD5+;
+#pragma link C++ class CppyyLegacy::TMemberInspector;
+#pragma link C++ class CppyyLegacy::TNamed+;
+#pragma link C++ class CppyyLegacy::TObjString+;
+#pragma link C++ class CppyyLegacy::TObject-;
+#pragma link C++ class CppyyLegacy::TProcessID+;
+#pragma link C++ class CppyyLegacy::TProcessUUID+;
+#pragma link C++ class CppyyLegacy::TROOT;
+#pragma link C++ class CppyyLegacy::TRegexp;
+#pragma link C++ class CppyyLegacy::TSignalHandler;
+#pragma link C++ class CppyyLegacy::TStdExceptionHandler;
+#pragma link C++ class CppyyLegacy::TStorage;
+#pragma link C++ class CppyyLegacy::TString-!;
+#pragma link off class CppyyLegacy::TString::Rep_t;
+#pragma link C++ class CppyyLegacy::TSubString;
+#pragma link C++ class CppyyLegacy::TSystem+;
+#pragma link C++ class CppyyLegacy::TTime;
+#pragma link C++ class CppyyLegacy::TUUID+;
 
 #endif

@@ -12,7 +12,6 @@
 #ifndef ROOT_TDataMember
 #define ROOT_TDataMember
 
-
 //////////////////////////////////////////////////////////////////////////
 //                                                                      //
 // TDataMember                                                          //
@@ -22,6 +21,9 @@
 //////////////////////////////////////////////////////////////////////////
 
 #include "TDictionary.h"
+
+
+namespace CppyyLegacy {
 
 class TList;
 class TClass;
@@ -110,4 +112,5 @@ public:
    ClassDef(TOptionListItem,2); //Element in the list of options.
 };
 
+} // namespace CppyyLegacy
 #endif

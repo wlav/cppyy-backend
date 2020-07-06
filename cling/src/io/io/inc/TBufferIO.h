@@ -21,8 +21,10 @@
 //////////////////////////////////////////////////////////////////////////
 
 #include "TBuffer.h"
-
 #include "TString.h"
+
+
+namespace CppyyLegacy {
 
 class TExMap;
 
@@ -117,4 +119,5 @@ public:
    ClassDefOverride(TBufferIO, 0) // base class, share methods for TBufferFile
 };
 
+} // namespace CppyyLegacy
 #endif

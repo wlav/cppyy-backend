@@ -27,15 +27,17 @@
 //////////////////////////////////////////////////////////////////////////
 
 #include "TClingClassInfo.h"
-
 #include "clang/AST/DeclCXX.h"
 
 #include <utility>
 #include <vector>
 
+
 namespace cling {
    class Interpreter;
 }
+
+namespace CppyyLegacy {
 
 class TClingClassInfo;
 
@@ -74,12 +76,14 @@ public:
    ptrdiff_t     Offset(void * address = 0, bool isDerivedObject = true) const;
    long          Property() const;
    long          Tagnum() const;
-   void          FullName(std::string &output, const ROOT::TMetaUtils::TNormalizedCtxt &normCtxt) const;
+   void          FullName(std::string &output, const CppyyLegacy::TMetaUtils::TNormalizedCtxt &normCtxt) const;
    const char   *Name() const;
    const char   *TmpltName() const;
 
 private:
    OffsetPtrFunc_t GenerateBaseOffsetFunction(TClingClassInfo* derivedClass, TClingClassInfo* targetClass, void* address, bool isDerivedObject) const;
 };
+
+} // namespace CppyyLegacy
 
 #endif // ROOT_TClingBaseClassInfo

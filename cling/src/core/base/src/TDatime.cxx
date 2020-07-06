@@ -41,7 +41,9 @@ required, use TTimeStamp.
 #include "TString.h"
 
 
-ClassImp(TDatime);
+ClassImp(CppyyLegacy::TDatime);
+
+namespace CppyyLegacy {
 
 ////////////////////////////////////////////////////////////////////////////////
 /// Create a TDatime and set it to the current time.
@@ -499,19 +501,21 @@ Int_t TDatime::GetLegalGlobalDayFromDate(Int_t date)
       calstart = TDatime::GetGlobalDayFromDate(15821001);
    Int_t d = TDatime::GetGlobalDayFromDate(date);
    if (d < calstart)
-      ::Warning("TDatime::GetLegalGlobalDayFromDate", "dates before Oct. 1582 are inaccurate.");
+      ::CppyyLegacy::Warning("TDatime::GetLegalGlobalDayFromDate", "dates before Oct. 1582 are inaccurate.");
    Int_t dte = TDatime::GetDateFromGlobalDay(d);
    if (dte != date) {
-      ::Error("TDatime::GetLegalGlobalDayFromDate", "illegal date %d", dte);
+      ::CppyyLegacy::Error("TDatime::GetLegalGlobalDayFromDate", "illegal date %d", dte);
       return 0;
    }
    return d;
 }
 
+} // namespace CppyyLegacy
+
 ////////////////////////////////////////////////////////////////////////////////
 /// Print a TDatime at the prompt.
 
-std::string cling::printValue(const TDatime* val) {
+std::string cling::printValue(const CppyyLegacy::TDatime* val) {
    char buf[30];
    return std::string(val->AsString(buf));
 }

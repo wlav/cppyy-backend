@@ -22,9 +22,10 @@
 #include <ctype.h>
 #include <string.h>
 
-
 #include "Match.h"
 
+
+namespace CppyyLegacy {
 
 // Metacharacters in the input:
 #define BOL     '^'             // start-of-line anchor
@@ -492,3 +493,5 @@ static int esc(const char** s)
    }
    return (unsigned char)rval;
 }
+
+} // namespace CppyyLegacy

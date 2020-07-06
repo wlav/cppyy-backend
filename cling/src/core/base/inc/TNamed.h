@@ -21,10 +21,11 @@
 //                                                                      //
 //////////////////////////////////////////////////////////////////////////
 
-
 #include "TObject.h"
 #include "TString.h"
 
+
+namespace CppyyLegacy {
 
 class TNamed : public TObject {
 
@@ -57,5 +58,7 @@ public:
 
    ClassDef(TNamed,1)  //The basis for a named object (name, title)
 };
+
+} // namespace CppyyLegacy
 
 #endif

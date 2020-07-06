@@ -21,7 +21,8 @@
 #include "ROOT/TSpinMutex.hxx"
 #include "TMutex.h"
 
-namespace ROOT {
+
+namespace CppyyLegacy {
 
 ////////////////////////////////////////////////////////////////////////////////
 /// Take the Read Lock of the mutex.
@@ -108,9 +109,9 @@ TRWMutexImp<MutexT, RecurseCountsT>::GetStateBefore()
 }
 
 template class TRWMutexImp<TMutex>;
-template class TRWMutexImp<ROOT::TSpinMutex>;
+template class TRWMutexImp<TSpinMutex>;
 template class TRWMutexImp<std::mutex>;
-template class TRWMutexImp<TMutex, ROOT::Internal::UniqueLockRecurseCount>;
-template class TRWMutexImp<ROOT::TSpinMutex, ROOT::Internal::UniqueLockRecurseCount>;
+template class TRWMutexImp<TMutex, Internal::UniqueLockRecurseCount>;
+template class TRWMutexImp<TSpinMutex, Internal::UniqueLockRecurseCount>;
 
-} // End of namespace ROOT
+} // namespace CppyyLegacy

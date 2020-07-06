@@ -18,6 +18,9 @@
 #include "ClassSelectionRule.h"
 #include <iostream>
 
+
+namespace CppyyLegacy {
+
 void ClassSelectionRule::AddFieldSelectionRule(const VariableSelectionRule& field)
 {
   fFieldSelectionRules.emplace_back(field);
@@ -176,3 +179,5 @@ int ClassSelectionRule::RequestedVersionNumber() const
 {
    return fRequestedVersionNumber;
 }
+
+} // namespace CppyyLegacy

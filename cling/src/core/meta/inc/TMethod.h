@@ -12,7 +12,6 @@
 #ifndef ROOT_TMethod
 #define ROOT_TMethod
 
-
 //////////////////////////////////////////////////////////////////////////
 //                                                                      //
 // TMethod                                                              //
@@ -22,6 +21,9 @@
 //////////////////////////////////////////////////////////////////////////
 
 #include "TFunction.h"
+
+
+namespace CppyyLegacy {
 
 class TList;
 class TDataMember;
@@ -52,4 +54,5 @@ public:
    ClassDef(TMethod,0)  //Dictionary for a class member function (method)
 };
 
+} // namespace CppyyLegacy
 #endif

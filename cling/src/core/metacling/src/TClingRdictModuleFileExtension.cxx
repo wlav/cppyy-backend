@@ -33,6 +33,9 @@
 #include "llvm/Support/Path.h"
 #include "llvm/Support/raw_ostream.h"
 
+
+namespace CppyyLegacy {
+
 /// Rdict module extension block name.
 const std::string ROOT_CLING_RDICT_BLOCK_NAME = "root.cling.rdict";
 
@@ -124,7 +127,7 @@ TClingRdictModuleFileExtension::Reader::Reader(clang::ModuleFileExtension *Ext, 
       case FIRST_EXTENSION_RECORD_ID + 1: {
          // FIXME: Remove the string copy in fPendingRdicts.
          std::string ResolvedFileName
-            = ROOT::TMetaUtils::GetRealPath(Mod.FileName);
+            = CppyyLegacy::TMetaUtils::GetRealPath(Mod.FileName);
          llvm::StringRef ModDir = llvm::sys::path::parent_path(ResolvedFileName);
          llvm::SmallString<255> FullRdictName = ModDir;
          llvm::sys::path::append(FullRdictName, CurrentRdictName);
@@ -168,3 +171,5 @@ TClingRdictModuleFileExtension::createExtensionReader(const clang::ModuleFileExt
    return std::unique_ptr<clang::ModuleFileExtensionReader>(
       new TClingRdictModuleFileExtension::Reader(this, Reader, Mod, Stream));
 }
+
+} // namespace CppyyLegacy

@@ -9,7 +9,6 @@
  * For the list of contributors see $ROOTSYS/README/CREDITS.             *
  *************************************************************************/
 
-
 #ifndef ROOT_TInterpreter
 #define ROOT_TInterpreter
 
@@ -31,6 +30,8 @@
 #include <typeinfo>
 #include <vector>
 
+namespace CppyyLegacy {
+
 class TClass;
 class TEnv;
 class TFunction;
@@ -42,20 +43,18 @@ class TListOfEnums;
 R__EXTERN TVirtualMutex *gInterpreterMutex;
 
 #if defined (_REENTRANT) || defined (WIN32)
-# define R__LOCKGUARD_CLING(mutex)  ::ROOT::Internal::InterpreterMutexRegistrationRAII _R__UNIQUE_(R__guard)(mutex); { }
+# define R__LOCKGUARD_CLING(mutex)  ::CppyyLegacy::Internal::InterpreterMutexRegistrationRAII _R__UNIQUE_(R__guard)(mutex); { }
 #else
 # define R__LOCKGUARD_CLING(mutex)  (void)(mutex); { }
 #endif
 
-namespace ROOT {
 namespace Internal {
 struct InterpreterMutexRegistrationRAII {
    TLockGuard fLockGuard;
    InterpreterMutexRegistrationRAII(TVirtualMutex* mutex);
    ~InterpreterMutexRegistrationRAII();
 };
-}
-}
+} // namespace Internal
 
 class TInterpreter : public TNamed {
 
@@ -230,10 +229,10 @@ public:
    virtual void     CreateListOfMethodArgs(TFunction *m) const = 0;
    virtual void     UpdateListOfMethods(TClass *cl) const = 0;
    virtual TString  GetMangledName(TClass *cl, const char *method, const char *params, Bool_t objectIsConst = kFALSE) = 0;
-   virtual TString  GetMangledNameWithPrototype(TClass *cl, const char *method, const char *proto, Bool_t objectIsConst = kFALSE, ROOT::EFunctionMatchMode /* mode */ = ROOT::kConversionMatch) = 0;
+   virtual TString  GetMangledNameWithPrototype(TClass *cl, const char *method, const char *proto, Bool_t objectIsConst = kFALSE, CppyyLegacy::EFunctionMatchMode /* mode */ = CppyyLegacy::kConversionMatch) = 0;
    virtual void     GetInterpreterTypeName(const char *name, std::string &output, Bool_t full = kFALSE) = 0;
    virtual void    *GetInterfaceMethod(TClass *cl, const char *method, const char *params, Bool_t objectIsConst = kFALSE) = 0;
-   virtual void    *GetInterfaceMethodWithPrototype(TClass *cl, const char *method, const char *proto, Bool_t objectIsConst = kFALSE, ROOT::EFunctionMatchMode /* mode */ = ROOT::kConversionMatch) = 0;
+   virtual void    *GetInterfaceMethodWithPrototype(TClass *cl, const char *method, const char *proto, Bool_t objectIsConst = kFALSE, CppyyLegacy::EFunctionMatchMode /* mode */ = CppyyLegacy::kConversionMatch) = 0;
    virtual void     Execute(const char *function, const char *params, int *error = 0) = 0;
    virtual void     Execute(TObject *obj, TClass *cl, const char *method, const char *params, int *error = 0) = 0;
    virtual void     Execute(TObject *obj, TClass *cl, TMethod *method, TObjArray *params, int *error = 0) = 0;
@@ -245,7 +244,7 @@ public:
    virtual const char *TypeName(const char *s) = 0;
    virtual std::string ToString(const char *type, void *obj) = 0;
 
-   virtual void     SnapshotMutexState(ROOT::TVirtualRWMutex* mtx) = 0;
+   virtual void     SnapshotMutexState(CppyyLegacy::TVirtualRWMutex* mtx) = 0;
    virtual void     ForgetMutexState() = 0;
 
    // All the functions below must be virtual with a dummy implementation
@@ -302,7 +301,7 @@ public:
    virtual void     UpdateEnumConstants(TEnum* enumObj, TClass* cl) const = 0;
    virtual void     LoadEnums(TListOfEnums& cl) const = 0;
    virtual DeclId_t GetFunction(ClassInfo_t *cl, const char *funcname) = 0;
-   virtual DeclId_t GetFunctionWithPrototype(ClassInfo_t *cl, const char* method, const char* proto, Bool_t objectIsConst = kFALSE, ROOT::EFunctionMatchMode mode = ROOT::kConversionMatch) = 0;
+   virtual DeclId_t GetFunctionWithPrototype(ClassInfo_t *cl, const char* method, const char* proto, Bool_t objectIsConst = kFALSE, CppyyLegacy::EFunctionMatchMode mode = CppyyLegacy::kConversionMatch) = 0;
    virtual DeclId_t GetFunctionWithValues(ClassInfo_t *cl, const char* method, const char* params, Bool_t objectIsConst = kFALSE) = 0;
    virtual DeclId_t GetFunctionTemplate(ClassInfo_t *cl, const char *funcname) = 0;
    virtual void     GetFunctionOverloads(ClassInfo_t *cl, const char *funcname, std::vector<DeclId_t>& res) const = 0;
@@ -387,10 +386,10 @@ public:
    virtual void   CallFunc_SetFunc(CallFunc_t * /* func */, ClassInfo_t * /* info */, const char * /* method */, const char * /* params */, bool /* objectIsConst */, intptr_t * /* Offset */) const {;}
    virtual void   CallFunc_SetFunc(CallFunc_t * /* func */, ClassInfo_t * /* info */, const char * /* method */, const char * /* params */, intptr_t * /* Offset */) const {;}
    virtual void   CallFunc_SetFunc(CallFunc_t * /* func */, MethodInfo_t * /* info */) const {;}
-   virtual void   CallFunc_SetFuncProto(CallFunc_t * /* func */, ClassInfo_t * /* info */, const char * /* method */, const char * /* proto */, intptr_t * /* Offset */, ROOT::EFunctionMatchMode /* mode */ = ROOT::kConversionMatch) const {;}
-   virtual void   CallFunc_SetFuncProto(CallFunc_t * /* func */, ClassInfo_t * /* info */, const char * /* method */, const char * /* proto */, bool /* objectIsConst */, intptr_t * /* Offset */, ROOT::EFunctionMatchMode /* mode */ = ROOT::kConversionMatch) const {;}
-   virtual void   CallFunc_SetFuncProto(CallFunc_t* func, ClassInfo_t* info, const char* method, const std::vector<TypeInfo_t*> &proto, intptr_t* Offset, ROOT::EFunctionMatchMode mode = ROOT::kConversionMatch) const = 0;
-   virtual void   CallFunc_SetFuncProto(CallFunc_t* func, ClassInfo_t* info, const char* method, const std::vector<TypeInfo_t*> &proto, bool objectIsConst, intptr_t* Offset, ROOT::EFunctionMatchMode mode = ROOT::kConversionMatch) const = 0;
+   virtual void   CallFunc_SetFuncProto(CallFunc_t * /* func */, ClassInfo_t * /* info */, const char * /* method */, const char * /* proto */, intptr_t * /* Offset */, CppyyLegacy::EFunctionMatchMode /* mode */ = CppyyLegacy::kConversionMatch) const {;}
+   virtual void   CallFunc_SetFuncProto(CallFunc_t * /* func */, ClassInfo_t * /* info */, const char * /* method */, const char * /* proto */, bool /* objectIsConst */, intptr_t * /* Offset */, CppyyLegacy::EFunctionMatchMode /* mode */ = CppyyLegacy::kConversionMatch) const {;}
+   virtual void   CallFunc_SetFuncProto(CallFunc_t* func, ClassInfo_t* info, const char* method, const std::vector<TypeInfo_t*> &proto, intptr_t* Offset, CppyyLegacy::EFunctionMatchMode mode = CppyyLegacy::kConversionMatch) const = 0;
+   virtual void   CallFunc_SetFuncProto(CallFunc_t* func, ClassInfo_t* info, const char* method, const std::vector<TypeInfo_t*> &proto, bool objectIsConst, intptr_t* Offset, CppyyLegacy::EFunctionMatchMode mode = CppyyLegacy::kConversionMatch) const = 0;
 
    virtual std::string CallFunc_GetWrapperCode(CallFunc_t *func) const = 0;
 
@@ -407,7 +406,7 @@ public:
    virtual ClassInfo_t  *ClassInfo_Factory(DeclId_t declid) const = 0;
    virtual intptr_t ClassInfo_GetBaseOffset(ClassInfo_t* /* fromDerived */,
                                             ClassInfo_t* /* toBase */, void* /* address */ = 0, bool /*isderived*/ = true) const {return 0;}
-   virtual int    ClassInfo_GetMethodNArg(ClassInfo_t * /* info */, const char * /* method */,const char * /* proto */, Bool_t /* objectIsConst */ = false, ROOT::EFunctionMatchMode /* mode */ = ROOT::kConversionMatch) const {return 0;}
+   virtual int    ClassInfo_GetMethodNArg(ClassInfo_t * /* info */, const char * /* method */,const char * /* proto */, Bool_t /* objectIsConst */ = false, CppyyLegacy::EFunctionMatchMode /* mode */ = CppyyLegacy::kConversionMatch) const {return 0;}
    virtual Bool_t ClassInfo_HasDefaultConstructor(ClassInfo_t * /* info */) const {return 0;}
    virtual Bool_t ClassInfo_HasMethod(ClassInfo_t * /* info */, const char * /* name */) const {return 0;}
    virtual void   ClassInfo_Init(ClassInfo_t * /* info */, const char * /* funcname */) const {;}
@@ -418,8 +417,8 @@ public:
    virtual EDataType ClassInfo_GetUnderlyingType(ClassInfo_t * /* info */) const {return kNumDataTypes;}
    virtual Bool_t ClassInfo_IsLoaded(ClassInfo_t * /* info */) const {return 0;}
    virtual Bool_t ClassInfo_IsValid(ClassInfo_t * /* info */) const {return 0;}
-   virtual Bool_t ClassInfo_IsValidMethod(ClassInfo_t * /* info */, const char * /* method */,const char * /* proto */, intptr_t * /* offset */, ROOT::EFunctionMatchMode /* mode */ = ROOT::kConversionMatch) const {return 0;}
-   virtual Bool_t ClassInfo_IsValidMethod(ClassInfo_t * /* info */, const char * /* method */,const char * /* proto */, Bool_t /* objectIsConst */, intptr_t * /* offset */, ROOT::EFunctionMatchMode /* mode */ = ROOT::kConversionMatch) const {return 0;}
+   virtual Bool_t ClassInfo_IsValidMethod(ClassInfo_t * /* info */, const char * /* method */,const char * /* proto */, intptr_t * /* offset */, CppyyLegacy::EFunctionMatchMode /* mode */ = CppyyLegacy::kConversionMatch) const {return 0;}
+   virtual Bool_t ClassInfo_IsValidMethod(ClassInfo_t * /* info */, const char * /* method */,const char * /* proto */, Bool_t /* objectIsConst */, intptr_t * /* offset */, CppyyLegacy::EFunctionMatchMode /* mode */ = CppyyLegacy::kConversionMatch) const {return 0;}
    virtual int    ClassInfo_Next(ClassInfo_t * /* info */) const {return 0;}
    virtual void  *ClassInfo_New(ClassInfo_t * /* info */) const {return 0;}
    virtual void  *ClassInfo_New(ClassInfo_t * /* info */, int /* n */) const {return 0;}
@@ -551,25 +550,30 @@ public:
    ClassDef(TInterpreter,0)  //ABC defining interface to generic interpreter
 };
 
+} // namespace CppyyLegacy
+
+#ifndef __CINT__
+#define gInterpreter (::CppyyLegacy::TInterpreter::Instance())
+R__EXTERN ::CppyyLegacy::TInterpreter* gCling;
+#endif
+
+namespace CppyyLegacy {
 
 typedef TInterpreter *CreateInterpreter_t(void* shlibHandle, const char* argv[]);
 typedef void *DestroyInterpreter_t(TInterpreter*);
 
-#ifndef __CINT__
-#define gInterpreter (TInterpreter::Instance())
-R__EXTERN TInterpreter* gCling;
-#endif
-
-inline ROOT::Internal::InterpreterMutexRegistrationRAII::InterpreterMutexRegistrationRAII(TVirtualMutex* mutex):
+inline CppyyLegacy::Internal::InterpreterMutexRegistrationRAII::InterpreterMutexRegistrationRAII(TVirtualMutex* mutex):
    fLockGuard(mutex)
 {
    if (gCoreMutex)
       ::gCling->SnapshotMutexState(gCoreMutex);
 }
-inline ROOT::Internal::InterpreterMutexRegistrationRAII::~InterpreterMutexRegistrationRAII()
+inline CppyyLegacy::Internal::InterpreterMutexRegistrationRAII::~InterpreterMutexRegistrationRAII()
 {
    if (gCoreMutex)
       ::gCling->ForgetMutexState();
 }
+
+} // namespace CppyyLegacy
 
 #endif

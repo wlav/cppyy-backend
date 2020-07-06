@@ -17,10 +17,12 @@ extern "C" {
    R__DLLEXPORT void usedToIdentifyRootClingByDlSym() {}
 }
 
+using namespace CppyyLegacy;
+
 // force compiler to emit symbol for function above
 static void (*dlsymaddr)() = &usedToIdentifyRootClingByDlSym;
 
-ROOT::Internal::RootCling::TROOTSYSSetter gROOTSYSSetter;
+CppyyLegacy::Internal::RootCling::TROOTSYSSetter gROOTSYSSetter;
 
 static const char *GetIncludeDir() {
    static std::string incdir = std::string(getenv("ROOTSYS")) + "/include";
@@ -36,7 +38,7 @@ int main(int argc, char **argv)
 {
    (void) dlsymaddr; // avoid unused variable warning
 
-   ROOT::Internal::RootCling::DriverConfig config{};
+   CppyyLegacy::Internal::RootCling::DriverConfig config{};
 
    config.fBuildingROOTStage1 = true;
    config.fTROOT__GetIncludeDir = &GetIncludeDir;

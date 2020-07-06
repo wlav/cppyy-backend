@@ -44,7 +44,10 @@ One can use two mechanisms to find the object corresponding to a TUUID:
 #include "TObjString.h"
 #include "TUUID.h"
 
-ClassImp(TProcessUUID);
+
+ClassImp(CppyyLegacy::TProcessUUID);
+
+namespace CppyyLegacy {
 
 ////////////////////////////////////////////////////////////////////////////////
 /// Default constructor.
@@ -151,3 +154,5 @@ void TProcessUUID::RemoveUUID(UInt_t number)
       lnk = lnk->Next();
    }
 }
+
+} // namespace CppyyLegacy

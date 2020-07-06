@@ -23,13 +23,15 @@ Abstract Interface class describing Streamer information for one class.
 #include "TStreamerInfo.h"
 
 
+ClassImp(CppyyLegacy::TVirtualStreamerInfo);
+
+namespace CppyyLegacy {
+
 TVirtualStreamerInfo *TVirtualStreamerInfo::fgInfoFactory    = 0;
 
 Bool_t  TVirtualStreamerInfo::fgCanDelete        = kTRUE;
 Bool_t  TVirtualStreamerInfo::fgOptimize         = kTRUE;
 Bool_t  TVirtualStreamerInfo::fgStreamMemberWise = kTRUE;
-
-ClassImp(TVirtualStreamerInfo);
 
 ////////////////////////////////////////////////////////////////////////////////
 /// Default constructor.
@@ -178,7 +180,7 @@ TVirtualStreamerInfo *TVirtualStreamerInfo::Factory()
 {
    if (!fgInfoFactory) {
       R__LOCKGUARD(gInterpreterMutex);
-      fgInfoFactory = (TVirtualStreamerInfo*)gInterpreter->ProcessLine("new TStreamerInfo{};");
+      fgInfoFactory = (TVirtualStreamerInfo*)gInterpreter->ProcessLine("new CppyyLegacy::TStreamerInfo{};");
    }
 
    return fgInfoFactory;
@@ -233,3 +235,5 @@ void TVirtualStreamerInfo::Streamer(TBuffer &R__b)
 {
    TNamed::Streamer(R__b);
 }
+
+} // namespace CppyyLegacy

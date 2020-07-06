@@ -26,8 +26,10 @@
 #include "TObject.h"
 #include "TConditionImp.h"
 
-class TMutex;
 
+namespace CppyyLegacy {
+
+class TMutex;
 
 class TCondition : public TObject {
 
@@ -56,4 +58,5 @@ public:
    ClassDef(TCondition,0)  // Condition variable class
 };
 
+} // namespace CppyyLegacy
 #endif

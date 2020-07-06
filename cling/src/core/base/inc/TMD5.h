@@ -35,11 +35,13 @@
 
 #include "Rtypes.h"
 
+
+namespace CppyyLegacy {
+
 // forward declaration
 class TBuffer;
 class TMD5;
 Bool_t operator==(const TMD5 &m1, const TMD5 &m2);
-
 
 class TMD5 {
 
@@ -82,14 +84,19 @@ public:
    ClassDef(TMD5,1)  // MD5 cryptographic hash functions with a 128 bit output
 };
 
-inline TBuffer &operator>>(TBuffer &buf, TMD5 &md5)
+} // namespace CppyyLegacy
+
+inline CppyyLegacy::TBuffer &operator>>(CppyyLegacy::TBuffer &buf, CppyyLegacy::TMD5 &md5)
 { md5.Streamer(buf); return buf; }
 
 // Not inlined in order to avoid const casted away warning in user code.
-TBuffer &operator<<(TBuffer &buf, const TMD5 &md5);
+CppyyLegacy::TBuffer &operator<<(CppyyLegacy::TBuffer &buf, const CppyyLegacy::TMD5 &md5);
+
+namespace CppyyLegacy {
 
 inline Bool_t operator!=(const TMD5 &m1, const TMD5 &m2)
 { return !(m1 == m2); }
 
+} // namespace CppyyLegacy
 
 #endif

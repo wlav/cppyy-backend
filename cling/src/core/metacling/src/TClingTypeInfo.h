@@ -27,15 +27,18 @@
 
 #include "clang/AST/Type.h"
 
+
 namespace cling {
 class Interpreter;
 }
 
-namespace ROOT {
+namespace CppyyLegacy {
    namespace TMetaUtils {
       class TNormalizedCtxt;
    }
 }
+
+namespace CppyyLegacy {
 
 class TClingTypeInfo {
 
@@ -65,9 +68,11 @@ public:
    int                  RefType() const; // Get CINT reftype of type.
    int                  Size() const; // Get size in bytes of type.
    const char          *StemName() const; // Get name of type chain leaf node.
-   const char          *TrueName(const ROOT::TMetaUtils::TNormalizedCtxt &normCtxt) const; // Get name of type with no typedefs.
-   std::string          NormalizedName(const ROOT::TMetaUtils::TNormalizedCtxt &normCtxt) const; // Get name of type with no typedefs.
+   const char          *TrueName(const CppyyLegacy::TMetaUtils::TNormalizedCtxt &normCtxt) const; // Get name of type with no typedefs.
+   std::string          NormalizedName(const CppyyLegacy::TMetaUtils::TNormalizedCtxt &normCtxt) const; // Get name of type with no typedefs.
 
 };
+
+} // namespace CppyyLegacy
 
 #endif // ROOT_TClingTypeInfo

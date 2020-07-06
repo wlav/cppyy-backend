@@ -12,7 +12,6 @@
 #ifndef ROOT_THashTable
 #define ROOT_THashTable
 
-
 //////////////////////////////////////////////////////////////////////////
 //                                                                      //
 // THashTable                                                           //
@@ -27,10 +26,12 @@
 #include "TCollection.h"
 #include "TString.h"
 
+
+namespace CppyyLegacy {
+
 class TList;
 class TListIter;
 class THashTableIter;
-
 
 class THashTable : public TCollection {
 
@@ -45,7 +46,7 @@ private:
    Int_t       GetCheckedHashValue(TObject *obj) const;
    Int_t       GetHashValue(const TObject *obj) const;
    Int_t       GetHashValue(TString &s) const { return s.Hash() % fSize; }
-   Int_t       GetHashValue(const char *str) const { return ::Hash(str) % fSize; }
+   Int_t       GetHashValue(const char *str) const { return ::CppyyLegacy::Hash(str) % fSize; }
 
    void        AddImpl(Int_t slot, TObject *object);
 
@@ -138,4 +139,5 @@ public:
    ClassDef(THashTableIter,0)  //Hash table iterator
 };
 
+} // namespace CppyyLegacy
 #endif

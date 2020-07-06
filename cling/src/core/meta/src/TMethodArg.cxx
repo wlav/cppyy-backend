@@ -24,7 +24,10 @@ See class TCling.
 
 */
 
-ClassImp(TMethodArg);
+
+ClassImp(CppyyLegacy::TMethodArg);
+
+namespace CppyyLegacy {
 
 ////////////////////////////////////////////////////////////////////////////////
 /// Default TMethodArg ctor. TMethodArgs are constructed in TFunction
@@ -132,3 +135,5 @@ void TMethodArg::Update(MethodArgInfo_t *info)
       SetTitle(gCling->MethodArgInfo_TypeName(fInfo));
    }
 }
+
+} // namespace CppyyLegacy

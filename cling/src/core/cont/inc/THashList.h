@@ -28,8 +28,10 @@
 
 #include "TList.h"
 
-class THashTable;
 
+namespace CppyyLegacy {
+
+class THashTable;
 
 class THashList : public TList {
 
@@ -72,4 +74,5 @@ public:
    ClassDef(THashList,0)  //Doubly linked list with hashtable for lookup
 };
 
+} // namespace CppyyLegacy
 #endif

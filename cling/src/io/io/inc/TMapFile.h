@@ -18,6 +18,9 @@
 #include "TObject.h"
 #include "TROOT.h"
 
+
+namespace CppyyLegacy {
+
 class TDirectory;
 class TList;
 class TMapRec;
@@ -153,4 +156,5 @@ public:
    TMapRec      *GetNext(Long_t offset = 0) const { return (TMapRec *)((intptr_t) fNext + offset); }
 };
 
+} // namespace CppyyLegacy
 #endif

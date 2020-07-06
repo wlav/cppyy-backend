@@ -13,6 +13,7 @@
 
 #include <stack>
 
+
 namespace clang {
    class Decl;
    class LookupResult;
@@ -32,6 +33,9 @@ namespace cling {
 namespace llvm {
    class StringRef;
 }
+
+
+namespace CppyyLegacy {
 
 // The callbacks are used to update the list of globals in ROOT.
 //
@@ -121,3 +125,5 @@ private:
    bool shouldResolveAtRuntime(clang::LookupResult &R, clang::Scope *S);
    bool tryInjectImplicitAutoKeyword(clang::LookupResult &R, clang::Scope *S);
 };
+
+} // namespace CppyyLegacy

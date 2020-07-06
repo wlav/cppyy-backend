@@ -22,11 +22,14 @@
 #include "TWin32Condition.h"
 #include "TWin32Thread.h"
 
+
+ClassImp(CppyyLegacy::TWin32ThreadFactory);
+
+namespace CppyyLegacy {
+
 // Force creation of TWin32ThreadFactory when shared library will be loaded
 // (don't explicitly create a TWin32ThreadFactory).
 static TWin32ThreadFactory gWin32ThreadFactoryCreator;
-
-ClassImp(TWin32ThreadFactory);
 
 ////////////////////////////////////////////////////////////////////////////////
 /// Create Win32 thread factory. Also sets global gThreadFactory to this.
@@ -60,3 +63,5 @@ TConditionImp *TWin32ThreadFactory::CreateConditionImp(TMutexImp *m)
 {
    return new TWin32Condition(m);
 }
+
+} // namespace CppyyLegacy

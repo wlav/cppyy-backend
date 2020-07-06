@@ -11,7 +11,7 @@
 
 #include "Compression.h"
 
-namespace ROOT {
+namespace CppyyLegacy {
 
 ////////////////////////////////////////////////////////////////////////////////
 
@@ -21,17 +21,17 @@ namespace ROOT {
     if (compressionLevel < 0) compressionLevel = 0;
     if (compressionLevel > 99) compressionLevel = 99;
     int algo = algorithm;
-    if (algorithm >= ROOT::RCompressionSetting::EAlgorithm::kUndefined) algo = 0;
+    if (algorithm >= RCompressionSetting::EAlgorithm::kUndefined) algo = 0;
     return algo * 100 + compressionLevel;
   }
 
-  int CompressionSettings(ROOT::ECompressionAlgorithm algorithm,
+  int CompressionSettings(ECompressionAlgorithm algorithm,
                           int compressionLevel)
   {
     if (compressionLevel < 0) compressionLevel = 0;
     if (compressionLevel > 99) compressionLevel = 99;
     int algo = algorithm;
-    if (algorithm >= ROOT::ECompressionAlgorithm::kUndefinedCompressionAlgorithm) algo = 0;
+    if (algorithm >= ECompressionAlgorithm::kUndefinedCompressionAlgorithm) algo = 0;
     return algo * 100 + compressionLevel;
   }
 }

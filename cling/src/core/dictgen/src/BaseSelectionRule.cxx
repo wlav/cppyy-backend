@@ -38,6 +38,9 @@
 #endif
 #include <sys/stat.h>
 
+
+namespace CppyyLegacy {
+
 static const char *R__GetDeclSourceFileName(const clang::Decl* D)
 {
    clang::ASTContext& ctx = D->getASTContext();
@@ -215,7 +218,7 @@ BaseSelectionRule::EMatchType BaseSelectionRule::Match(const clang::NamedDecl *d
       //Either it's a CXXRecordDecl ot a TypedefNameDecl
       const clang::TypedefNameDecl* typedefNameDecl = llvm::dyn_cast<clang::TypedefNameDecl> (decl);
       isTypedefNametoRecordDecl = typedefNameDecl &&
-                                  ROOT::TMetaUtils::GetUnderlyingRecordDecl(typedefNameDecl->getUnderlyingType());
+                                  CppyyLegacy::TMetaUtils::GetUnderlyingRecordDecl(typedefNameDecl->getUnderlyingType());
       }
 
    if (! isTypedefNametoRecordDecl && fCXXRecordDecl !=0 && fCXXRecordDecl != (void*)-1) {
@@ -234,7 +237,7 @@ BaseSelectionRule::EMatchType BaseSelectionRule::Match(const clang::NamedDecl *d
          // Possibly take the most expensive path if the fCXXRecordDecl is not
          // set or we already took the expensive path and found nothing (-1).
          const clang::CXXRecordDecl *target
-            = fHasFromTypedefAttribute ? nullptr : ROOT::TMetaUtils::ScopeSearch(name_value.c_str(), *fInterp,
+            = fHasFromTypedefAttribute ? nullptr : CppyyLegacy::TMetaUtils::ScopeSearch(name_value.c_str(), *fInterp,
                                                    true /*diagnose*/, 0);
 
          if ( target ) {
@@ -268,13 +271,13 @@ BaseSelectionRule::EMatchType BaseSelectionRule::Match(const clang::NamedDecl *d
              strstr(name.c_str(), "::R__Init")) {
             return kNoMatch;
          }
-         if (!name.compare(0, 24, "ROOT::R__dummyintdefault")) {
+         if (!name.compare(0, 24, "CppyyLegacy::R__dummyintdefault")) {
             return kNoMatch;
          }
-         if (!name.compare(0, 27, "ROOT::R__dummyVersionNumber")) {
+         if (!name.compare(0, 27, "CppyyLegacy::R__dummyVersionNumber")) {
             return kNoMatch;
          }
-         if (!name.compare(0, 22, "ROOT::R__dummyStreamer")) {
+         if (!name.compare(0, 22, "CppyyLegacy::R__dummyStreamer")) {
             return kNoMatch;
          }
          if (name.find("(anonymous namespace)") != std::string::npos) {
@@ -313,12 +316,12 @@ BaseSelectionRule::EMatchType BaseSelectionRule::Match(const clang::NamedDecl *d
          // The reason for this check is that we have rules like std::map<*, int>
          // We do not know how the internal representation of the innocuous "map"
          // is. We therefore have to act on a nicer name, obtained with TClassEdit
-         // The check ROOT::TMetaUtils::IsStdDropDefaultClass is there to call
+         // The check CppyyLegacy::TMetaUtils::IsStdDropDefaultClass is there to call
          // TClassEdit only when necessary as it can be expensive, a performance
          // optimisation.
          if (!patternMatched &&
                D &&
-               //ROOT::TMetaUtils::IsStdDropDefaultClass(*D)) {
+               //CppyyLegacy::TMetaUtils::IsStdDropDefaultClass(*D)) {
                0 != TClassEdit::IsSTLCont(name)) {
             TClassEdit::GetNormalizedName(auxName, name);
             if (name.size() != auxName.size()) {
@@ -548,7 +551,7 @@ void BaseSelectionRule::FillCache()
    fHasFromTypedefAttribute = GetAttributeValue("fromTypedef",value);
    fIsFromTypedef = (value == "true");
 
-   GetAttributeValue(ROOT::TMetaUtils::propNames::nArgsToKeep,fNArgsToKeep);
+   GetAttributeValue(CppyyLegacy::TMetaUtils::propNames::nArgsToKeep,fNArgsToKeep);
 
 
    if (fHasPatternAttribute || fHasProtoPatternAttribute) {
@@ -559,4 +562,4 @@ void BaseSelectionRule::FillCache()
 
 }
 
-
+} // namespace CppyyLegacy

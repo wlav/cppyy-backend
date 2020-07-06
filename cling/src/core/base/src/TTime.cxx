@@ -20,7 +20,9 @@ Basic time type with millisecond precision.
 #include "TError.h"
 
 
-ClassImp(TTime);
+ClassImp(CppyyLegacy::TTime);
+
+namespace CppyyLegacy {
 
 ////////////////////////////////////////////////////////////////////////////////
 /// Return the time as a string.
@@ -51,3 +53,5 @@ TTime::operator unsigned long() const
 #endif
    return (ULong_t) fMilliSec;
 }
+
+} // namespace CppyyLegacy

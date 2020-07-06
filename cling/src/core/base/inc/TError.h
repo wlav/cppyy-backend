@@ -30,6 +30,8 @@
 #include <stdarg.h>
 
 
+namespace CppyyLegacy {
+
 class TVirtualMutex;
 
 const Int_t kUnset    =  -1;
@@ -95,15 +97,17 @@ R__EXTERN const char *kCheckMsg;
 
 #define R__ASSERT(e)                                                     \
    do {                                                                  \
-      if (!(e)) ::Fatal("", kAssertMsg, _QUOTE_(e), __LINE__, __FILE__); \
+      if (!(e)) ::CppyyLegacy::Fatal("", kAssertMsg, _QUOTE_(e), __LINE__, __FILE__); \
    } while (false)
 #define R__CHECK(e)                                                       \
    do {                                                                   \
-      if (!(e)) ::Warning("", kCheckMsg, _QUOTE_(e), __LINE__, __FILE__); \
+      if (!(e)) ::CppyyLegacy::Warning("", kCheckMsg, _QUOTE_(e), __LINE__, __FILE__); \
    } while (false)
 
 R__EXTERN Int_t  gErrorIgnoreLevel;
 R__EXTERN Int_t  gErrorAbortLevel;
 R__EXTERN Bool_t gPrintViaErrorHandler;
+
+} // namespace CppyyLegacy
 
 #endif

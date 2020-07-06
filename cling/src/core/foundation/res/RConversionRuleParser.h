@@ -15,8 +15,9 @@
 #include "TSchemaType.h"
 #include "DllImport.h"
 
-namespace ROOT
-{
+
+namespace CppyyLegacy {
+
    //---------------------------------------------------------------------------
    // Global variables
    //---------------------------------------------------------------------------
@@ -25,7 +26,7 @@ namespace ROOT
    R__EXTERN SchemaRuleClassMap_t gReadRules;
    R__EXTERN SchemaRuleClassMap_t gReadRawRules;
 
-   typedef std::map<std::string, ROOT::Internal::TSchemaType> MembersTypeMap_t;
+   typedef std::map<std::string, Internal::TSchemaType> MembersTypeMap_t;
 
    //---------------------------------------------------------------------------
    // Create the data member name-type map
@@ -67,7 +68,7 @@ namespace ROOT
    //---------------------------------------------------------------------------
    // Parse read pragma
    //---------------------------------------------------------------------------
-   bool ParseRule(std::string rule, ROOT::Internal::MembersMap_t &result, std::string &error_string );
+   bool ParseRule(std::string rule, Internal::MembersMap_t &result, std::string &error_string );
 
    //---------------------------------------------------------------------------
    // Parse read pragma
@@ -78,7 +79,7 @@ namespace ROOT
    // Parse readraw pragma
    //---------------------------------------------------------------------------
    void ProcessReadRawPragma( const char* args, std::string& error_string );
-}
+
+} // namespace CppyyLegacy
 
 #endif // R__CONVERSION_RULE_PARSER_H
-

@@ -29,6 +29,8 @@
 #include "TMap.h"
 
 
+namespace CppyyLegacy {
+
 class THashList;
 class TMap;
 
@@ -99,5 +101,7 @@ public:
 
    ClassDef(TUrl,1)  //Represents an URL
 };
+
+} // namespace CppyyLegacy
 
 #endif

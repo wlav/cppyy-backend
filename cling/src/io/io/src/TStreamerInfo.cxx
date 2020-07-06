@@ -68,11 +68,15 @@ element type.
 #include <memory>
 #include <array>
 #define Printf TStringPrintf
+
+
+ClassImp(CppyyLegacy::TStreamerInfo);
+
+namespace CppyyLegacy {
+
 std::atomic<Int_t> TStreamerInfo::fgCount{0};
 
 const Int_t kMaxLen = 1024;
-
-ClassImp(TStreamerInfo);
 
 static void R__TObjArray_InsertAt(TObjArray *arr, TObject *obj, Int_t at)
 {
@@ -288,7 +292,7 @@ void TStreamerInfo::Build()
 
    Bool_t needAllocClass = kFALSE;
    Bool_t wasCompiled = fComp != 0;
-   ROOT::TSchemaRuleSet::TMatches rules;
+   CppyyLegacy::TSchemaRuleSet::TMatches rules;
    if (fClass->GetSchemaRules()) {
        rules = fClass->GetSchemaRules()->FindRules(fClass->GetName(), fClassVersion);
    }
@@ -326,7 +330,7 @@ void TStreamerInfo::Build()
             TVirtualCollectionProxy *proxy = base->GetClassPointer()->GetCollectionProxy();
             if (proxy) element = new TStreamerSTL(bname, btitle, offset, bname, *proxy, kFALSE);
             else       element = new TStreamerSTL(bname, btitle, offset, bname, 0, kFALSE);
-            if (fClass->IsLoaded() && ((TStreamerSTL*)element)->GetSTLtype() != ROOT::kSTLvector) {
+            if (fClass->IsLoaded() && ((TStreamerSTL*)element)->GetSTLtype() != ::CppyyLegacy::kSTLvector) {
                if (!element->GetClassPointer()->IsLoaded()) {
                   Error("Build","The class \"%s\" is compiled and its base class \"%s\" is a collection and we do not have a dictionary for it, we will not be able to read or write this base class.",GetName(),bname);
                   delete element;
@@ -505,7 +509,7 @@ void TStreamerInfo::Build()
             if (proxy) element = new TStreamerSTL(dmName, dmTitle, offset, dmFull, *proxy, dmIsPtr);
             else element = new TStreamerSTL(dmName, dmTitle, offset, dmFull, dmFull, dmIsPtr);
             bool hasCustomAlloc = proxy ? proxy->GetProperties() & TVirtualCollectionProxy::kCustomAlloc : kFALSE;
-            if (((TStreamerSTL*)element)->GetSTLtype() != ROOT::kSTLvector || hasCustomAlloc) {
+            if (((TStreamerSTL*)element)->GetSTLtype() != ::CppyyLegacy::kSTLvector || hasCustomAlloc) {
                auto printErrorMsg = [&](const char* category)
                   {
                      Error("Build","The class \"%s\" is %s and for its data member \"%s\" we do not have a dictionary for the collection \"%s\". Because of this, we will not be able to read or write this data member.",GetName(), category, dmName, dmType);
@@ -737,7 +741,7 @@ void TStreamerInfo::BuildCheck(TFile *file /* = 0 */)
       }
 
   } else {
-      if (fClass->GetCollectionType() > ROOT::kNotSTL) {
+      if (fClass->GetCollectionType() > ::CppyyLegacy::kNotSTL) {
          if (TClassEdit::IsSTLCont(fClass->GetName())) {
             // We have a collection that is indeed an STL collection,
             // we know we don't need its streamerInfo.
@@ -761,7 +765,7 @@ void TStreamerInfo::BuildCheck(TFile *file /* = 0 */)
          // the error message about the missing dictionary was not printed.
          // For consistency, let's print it now!
 
-         ::Warning("TClass::TClass", "no dictionary for class %s is available", GetName());
+         ::CppyyLegacy::Warning("TClass::TClass", "no dictionary for class %s is available", GetName());
       }
 
       // Case of a custom collection (the user provided a CollectionProxy
@@ -1163,7 +1167,7 @@ void TStreamerInfo::BuildCheck(TFile *file /* = 0 */)
       }
       if (!fClass->IsLoaded() &&  this->fOnFileClassVersion>1)
       {
-         ROOT::ResetClassVersion(fClass,(const char*)-1, this->fClassVersion);
+         CppyyLegacy::ResetClassVersion(fClass,(const char*)-1, this->fClassVersion);
       }
    }
    // FIXME: This code can never execute because Build() calls
@@ -1233,7 +1237,7 @@ void TStreamerInfo::BuildEmulated(TFile *file)
       if (ty <= kULong)                         continue;
       duName = element->GetName();
       duName.Append("QWERTY");
-      TStreamerBasicType *bt = new TStreamerBasicType(duName, "", 0, kInt,"Int_t");
+      TStreamerBasicType *bt = new TStreamerBasicType(duName, "", 0, kInt,"CppyyLegacy::Int_t");
       {for (int j=ndata-1;j>=i;j--) {elements->AddAtAndExpand(elements->At(j),j+1);}}
       elements->AddAt(bt,i);
       ndata++;
@@ -1307,30 +1311,30 @@ static TString UpdateAssociativeToVector(const char *name)
       static const char* allocPrefix = "std::allocator<";
       static const unsigned int allocPrefixLen (strlen(allocPrefix));
       switch (stlkind) {
-         case ROOT::kSTLvector:
-         case ROOT::kSTLlist:
-         case ROOT::kSTLforwardlist:
-         case ROOT::kSTLdeque:
+         case ::CppyyLegacy::kSTLvector:
+         case ::CppyyLegacy::kSTLlist:
+         case ::CppyyLegacy::kSTLforwardlist:
+         case ::CppyyLegacy::kSTLdeque:
             if (narg>2 && strncmp(inside[2].c_str(),allocPrefix,allocPrefixLen)==0) {
                --narg;
             }
             break;
-         case ROOT::kSTLset:
-         case ROOT::kSTLmultiset:
-         case ROOT::kSTLmap:
-         case ROOT::kSTLmultimap:
+         case ::CppyyLegacy::kSTLset:
+         case ::CppyyLegacy::kSTLmultiset:
+         case ::CppyyLegacy::kSTLmap:
+         case ::CppyyLegacy::kSTLmultimap:
             if (narg>4 && strncmp(inside[4].c_str(),allocPrefix,allocPrefixLen)==0) {
                --narg;
             }
             break;
-         case ROOT::kSTLunorderedset:
-         case ROOT::kSTLunorderedmultiset:
+         case ::CppyyLegacy::kSTLunorderedset:
+         case ::CppyyLegacy::kSTLunorderedmultiset:
             if (narg>5 && strncmp(inside[5].c_str(),allocPrefix,allocPrefixLen)==0) {
                --narg;
             }
             break;
-         case ROOT::kSTLunorderedmap:
-         case ROOT::kSTLunorderedmultimap:
+         case ::CppyyLegacy::kSTLunorderedmap:
+         case ::CppyyLegacy::kSTLunorderedmultimap:
             if (narg>6 && strncmp(inside[6].c_str(),allocPrefix,allocPrefixLen)==0) {
                --narg;
             }
@@ -1344,10 +1348,10 @@ static TString UpdateAssociativeToVector(const char *name)
             // (for which we do not know the sorting).
             std::string what;
             switch ( stlkind )  {
-               case ROOT::kSTLmap:
-               case ROOT::kSTLunorderedmap:
-               case ROOT::kSTLmultimap:
-               case ROOT::kSTLunorderedmultimap: {
+               case ::CppyyLegacy::kSTLmap:
+               case ::CppyyLegacy::kSTLunorderedmap:
+               case ::CppyyLegacy::kSTLmultimap:
+               case ::CppyyLegacy::kSTLunorderedmultimap: {
                   what = "std::pair<";
                   what += inside[1];
                   what += ",";
@@ -1363,10 +1367,10 @@ static TString UpdateAssociativeToVector(const char *name)
                   narg = 2;
                   break;
                }
-               case ROOT::kSTLset:
-               case ROOT::kSTLunorderedset:
-               case ROOT::kSTLmultiset:
-               case ROOT::kSTLunorderedmultiset:
+               case ::CppyyLegacy::kSTLset:
+               case ::CppyyLegacy::kSTLunorderedset:
+               case ::CppyyLegacy::kSTLmultiset:
+               case ::CppyyLegacy::kSTLunorderedmultiset:
                   inside[0] = "std::vector";
                   break;
             }
@@ -1664,7 +1668,7 @@ static TString UpdateAssociativeToVector(const char *name)
       TVirtualCollectionProxy *current = newClass->GetCollectionProxy();
       Int_t stlkind = old->GetCollectionType();
 
-      if (stlkind == ROOT::kSTLmap || stlkind == ROOT::kSTLmultimap) {
+      if (stlkind == ::CppyyLegacy::kSTLmap || stlkind == ::CppyyLegacy::kSTLmultimap) {
 
          if (current->GetValueClass() == nullptr) {
             // This should really never happen (the content of map should always
@@ -1870,8 +1874,8 @@ void TStreamerInfo::BuildOld()
    // Get schema rules for this class
    /////////////////////////////////////////////////////////////////////////////
 
-   ROOT::TSchemaRuleSet::TMatches rules;
-   const ROOT::TSchemaRuleSet* ruleSet = fClass->GetSchemaRules();
+   CppyyLegacy::TSchemaRuleSet::TMatches rules;
+   const CppyyLegacy::TSchemaRuleSet* ruleSet = fClass->GetSchemaRules();
 
    if (ruleSet) rules = ruleSet->FindRules( GetName(), fOnFileClassVersion, fCheckSum );
 
@@ -1917,7 +1921,7 @@ void TStreamerInfo::BuildOld()
             ////////////////////////////////////////////////////////////////////
 
             if( !baseclass && !fClass->TestBit( TClass::kIsEmulation ) ) {
-               const ROOT::TSchemaRule* rule = (rules ? rules.GetRuleWithSource( base->GetName() ) : 0);
+               const CppyyLegacy::TSchemaRule* rule = (rules ? rules.GetRuleWithSource( base->GetName() ) : 0);
 
                //---------------------------------------------------------------
                // No renaming, sorry
@@ -2060,7 +2064,7 @@ void TStreamerInfo::BuildOld()
                   continue;
                } else if (bc->GetClassPointer()->GetCollectionProxy()
                           && !bc->GetClassPointer()->IsLoaded()
-                          && bc->GetClassPointer()->GetCollectionProxy()->GetCollectionType() != ROOT::kSTLvector) {
+                          && bc->GetClassPointer()->GetCollectionProxy()->GetCollectionType() != ::CppyyLegacy::kSTLvector) {
                   Error("BuildOld","The class \"%s\" is compiled and its base class \"%s\" is a collection and we do not have a dictionary for it, we will not be able to read or write this base class.",GetName(),bc->GetName());
                   offset = kMissing;
                   element->SetOffset(kMissing);
@@ -2188,7 +2192,7 @@ void TStreamerInfo::BuildOld()
             TClass *elemDm = ! (dt || dm->IsBasic()) ? TClass::GetClass(dmClassName.Data()) : 0;
             if (elemDm && elemDm->GetCollectionProxy()
                 && !elemDm->IsLoaded()
-                && elemDm->GetCollectionProxy()->GetCollectionType() != ROOT::kSTLvector) {
+                && elemDm->GetCollectionProxy()->GetCollectionType() != ::CppyyLegacy::kSTLvector) {
                Error("BuildOld","The class \"%s\" is compiled and for its data member \"%s\", we do not have a dictionary for the collection \"%s\", we will not be able to read or write this data member.",GetName(),dm->GetName(),elemDm->GetName());
                offset = kMissing;
                element->SetOffset(kMissing);
@@ -2237,8 +2241,8 @@ void TStreamerInfo::BuildOld()
                // All the values of EDataType have the same semantic in EReadWrite
                newType = (EReadWrite)theType->GetType();
             }
-            if ((newType == ::kChar_t) && dmIsPtr && !isArray && !hasCount) {
-               newType = ::kCharStar;
+            if ((newType == ::CppyyLegacy::kChar_t) && dmIsPtr && !isArray && !hasCount) {
+               newType = ::CppyyLegacy::kCharStar;
             } else if (dmIsPtr) {
                newType += kOffsetP;
             } else if (isArray) {
@@ -2339,8 +2343,8 @@ void TStreamerInfo::BuildOld()
                Int_t oldkind = oldClass->GetCollectionType();
                Int_t newkind = newClass->GetCollectionType();
 
-               if ( (oldkind==ROOT::kSTLmap || oldkind==ROOT::kSTLmultimap) &&
-                    (newkind!=ROOT::kSTLmap && newkind!=ROOT::kSTLmultimap) ) {
+               if ( (oldkind==::CppyyLegacy::kSTLmap || oldkind==::CppyyLegacy::kSTLmultimap) &&
+                    (newkind!=::CppyyLegacy::kSTLmap && newkind!=::CppyyLegacy::kSTLmultimap) ) {
 
                   Int_t elemType = element->GetType();
                   Bool_t isPrealloc = (elemType == kObjectp) || (elemType == kAnyp) || (elemType == (kObjectp + kOffsetL)) || (elemType == (kAnyp + kOffsetL));
@@ -2366,8 +2370,8 @@ void TStreamerInfo::BuildOld()
                   }
                   element->Update(oldClass, newClass.GetClass());
 
-               } else if ( (newkind==ROOT::kSTLmap || newkind==ROOT::kSTLmultimap) &&
-                           (oldkind!=ROOT::kSTLmap && oldkind!=ROOT::kSTLmultimap) ) {
+               } else if ( (newkind==::CppyyLegacy::kSTLmap || newkind==::CppyyLegacy::kSTLmultimap) &&
+                           (oldkind!=::CppyyLegacy::kSTLmap && oldkind!=::CppyyLegacy::kSTLmultimap) ) {
                   element->SetNewType(-2);
                } else {
                   element->Update(oldClass, newClass.GetClass());
@@ -2772,13 +2776,13 @@ namespace {
                }
             }
          } else if (fClassName != other.fClassName) {
-            if ( (fClassName == "long" && (other.fClassName == "long long" || other.fClassName == "Long64_t"))
-                  || ( (fClassName == "long long" || fClassName == "Long64_t") && other.fClassName == "long") ) {
+            if ( (fClassName == "long" && (other.fClassName == "long long" || other.fClassName == "CppyyLegacy::Long64_t"))
+                  || ( (fClassName == "long long" || fClassName == "CppyyLegacy::Long64_t") && other.fClassName == "long") ) {
                // This is okay both have the same on file format.
-            } else if ( (fClassName == "unsigned long" && (other.fClassName == "unsigned long long" || other.fClassName == "ULong64_t"))
-                       || ( (fClassName == "unsigned long long" || fClassName == "ULong64_t") && other.fClassName == "unsigned long") ) {
+            } else if ( (fClassName == "unsigned long" && (other.fClassName == "unsigned long long" || other.fClassName == "CppyyLegacy::ULong64_t"))
+                       || ( (fClassName == "unsigned long long" || fClassName == "CppyyLegacy::ULong64_t") && other.fClassName == "unsigned long") ) {
                // This is okay both have the same on file format.
-            } else if (TClassEdit::IsSTLCont(fClassName)) {
+            } else if (TClassEdit::IsSTLCont(fClassName.Data())) {
                TString name = TClassEdit::ShortType( fClassName, TClassEdit::kDropStlDefault );
                TString othername = TClassEdit::ShortType( other.fClassName, TClassEdit::kDropStlDefault );
                if (name != othername) {
@@ -2963,7 +2967,7 @@ Bool_t TStreamerInfo::CompareContent(TClass *cl, TVirtualStreamerInfo *info, Boo
             break;
          }
       }
-      if (TClassEdit::IsSTLCont(localClass)) {
+      if (TClassEdit::IsSTLCont(localClass.Data())) {
          localClass = TClassEdit::ShortType( localClass, TClassEdit::kDropStlDefault );
          otherClass = TClassEdit::ShortType( otherClass, TClassEdit::kDropStlDefault );
       }
@@ -3405,12 +3409,12 @@ UInt_t TStreamerInfo::GetCheckSum(TClass::ECheckSum code) const
       } else {
          type = TClassEdit::GetLong64_Name(TClassEdit::ResolveTypedef(el->GetTypeName(),kTRUE));
       }
-      if (TClassEdit::IsSTLCont(type)) {
+      if (TClassEdit::IsSTLCont(type.Data())) {
          type = TClassEdit::ShortType( type, TClassEdit::kDropStlDefault | TClassEdit::kLong64 );
       }
       if (code == TClass::kReflex || code == TClass::kReflexNoComment) {
-         type.ReplaceAll("ULong64_t","unsigned long long");
-         type.ReplaceAll("Long64_t","long long");
+         type.ReplaceAll("CppyyLegacy::ULong64_t","unsigned long long");
+         type.ReplaceAll("CppyyLegacy::Long64_t","long long");
          type.ReplaceAll("signed char","char");
          type.ReplaceAll("<signed char","<char");
          type.ReplaceAll(",signed char",",char");
@@ -3823,7 +3827,7 @@ T TStreamerInfo::GetTypedValueSTLP(TVirtualCollectionProxy *cont, Int_t i, Int_t
 ////////////////////////////////////////////////////////////////////////////////
 /// Insert new members as expressed in the array of TSchemaRule(s).
 
-void TStreamerInfo::InsertArtificialElements(std::vector<const ROOT::TSchemaRule*> &rules)
+void TStreamerInfo::InsertArtificialElements(std::vector<const CppyyLegacy::TSchemaRule*> &rules)
 {
    if (rules.empty()) return;
 
@@ -4544,15 +4548,15 @@ void TStreamerInfo::Streamer(TBuffer &R__b)
       if (R__v > 1) {
          //R__b.ReadClassBuffer(TStreamerInfo::Class(), this, R__v, R__s, R__c);
          R__b.ClassBegin(TStreamerInfo::Class(), R__v);
-         R__b.ClassMember("TNamed");
+         R__b.ClassMember("CppyyLegacy::TNamed");
          TNamed::Streamer(R__b);
          fName = TClassEdit::GetLong64_Name( fName.Data() ).c_str();
-         R__b.ClassMember("fCheckSum","UInt_t");
+         R__b.ClassMember("fCheckSum","CppyyLegacy::UInt_t");
          R__b >> fCheckSum;
-         R__b.ClassMember("fClassVersion","Int_t");
+         R__b.ClassMember("fClassVersion","CpppyyLegacy::Int_t");
          R__b >> fClassVersion;
          fOnFileClassVersion = fClassVersion;
-         R__b.ClassMember("fElements","TObjArray*");
+         R__b.ClassMember("fElements","CppyyLegacy::TObjArray*");
          R__b >> fElements;
          R__b.ClassEnd(TStreamerInfo::Class());
          R__b.SetBufferOffset(R__s+R__c+sizeof(UInt_t));
@@ -4608,18 +4612,18 @@ void TStreamerInfo::Streamer(TBuffer &R__b)
    } else {
       R__c = R__b.WriteVersion(TStreamerInfo::IsA(), kTRUE);
       R__b.ClassBegin(TStreamerInfo::Class());
-      R__b.ClassMember("TNamed");
+      R__b.ClassMember("CppyyLegacy::TNamed");
       TNamed::Streamer(R__b);
-      R__b.ClassMember("fCheckSum","UInt_t");
+      R__b.ClassMember("fCheckSum","CppyyLegacy::UInt_t");
       R__b << fCheckSum;
-      R__b.ClassMember("fClassVersion","Int_t");
+      R__b.ClassMember("fClassVersion","CppyyLegacy::Int_t");
       R__b << ((fClassVersion > 0) ? fClassVersion : -fClassVersion);
 
       //------------------------------------------------------------------------
       // Stream only non-artificial streamer elements
       //////////////////////////////////////////////////////////////////////////
 
-      R__b.ClassMember("fElements","TObjArray*");
+      R__b.ClassMember("fElements","CppyyLegacy::TObjArray*");
       {
          TObjArray elements(fElements->GetEntriesFast());
          TStreamerElement *el;
@@ -4638,35 +4642,6 @@ void TStreamerInfo::Streamer(TBuffer &R__b)
       }
       R__b.ClassEnd(TStreamerInfo::Class());
       R__b.SetByteCount(R__c, kTRUE);
-   }
-}
-
-////////////////////////////////////////////////////////////////////////////////
-/// Mark the classindex of the current file as using this TStreamerInfo.
-/// This function is deprecated and its functionality is now done by
-/// the overloads of TBuffer::TagStreamerInfo.
-
-void TStreamerInfo::TagFile(TFile *file)
-{
-   if (file) {
-      // If the value of the atomic is kFALSE (equal to expected), change its value
-      // to kTRUE and return true. Leave it as it is otherwise and return false.
-      static std::atomic<Bool_t> onlyonce(kFALSE);
-      Bool_t expected = kFALSE;
-      if (onlyonce.compare_exchange_strong(expected,kTRUE)) {
-         Warning("TagFile","This function is deprecated, use TBuffer::TagStreamerInfo instead");
-      }
-      TArrayC *cindex = file->GetClassIndex();
-      Int_t nindex = cindex->GetSize();
-      if (fNumber < 0 || fNumber >= nindex) {
-         Error("TagFile","StreamerInfo: %s number: %d out of range[0,%d] in file: %s",
-               GetName(),fNumber,nindex,file->GetName());
-         return;
-      }
-      if (cindex->fArray[fNumber] == 0) {
-         cindex->fArray[0]       = 1;
-         cindex->fArray[fNumber] = 1;
-      }
    }
 }
 
@@ -4945,7 +4920,7 @@ TStreamerInfo::GenEmulatedClassStreamer(const char* class_name, Bool_t silent)
 /// Generate proxy from static functions.
 
 TVirtualCollectionProxy*
-TStreamerInfo::GenExplicitProxy( const ::ROOT::TCollectionProxyInfo &info, TClass *cl )
+TStreamerInfo::GenExplicitProxy( const ::CppyyLegacy::TCollectionProxyInfo &info, TClass *cl )
 {
    return TCollectionProxyFactory::GenExplicitProxy(info, cl);
 }
@@ -4954,7 +4929,9 @@ TStreamerInfo::GenExplicitProxy( const ::ROOT::TCollectionProxyInfo &info, TClas
 /// Generate class streamer from static functions.
 
 TClassStreamer*
-TStreamerInfo::GenExplicitClassStreamer( const ::ROOT::TCollectionProxyInfo &info, TClass *cl )
+TStreamerInfo::GenExplicitClassStreamer( const ::CppyyLegacy::TCollectionProxyInfo &info, TClass *cl )
 {
    return TCollectionProxyFactory::GenExplicitClassStreamer(info, cl);
 }
+
+} // namespace CppyyLegacy

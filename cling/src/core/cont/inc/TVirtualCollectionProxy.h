@@ -31,6 +31,9 @@
 
 #define ROOT_COLLECTIONPROXY_VERSION 3
 
+
+namespace CppyyLegacy {
+
 class TClass;
 namespace TStreamerInfoActions {
    class TActionSequence;
@@ -194,4 +197,5 @@ public:
 
 };
 
+} // namespace CppyyLegacy
 #endif

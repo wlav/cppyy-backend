@@ -53,6 +53,8 @@
 #include "Byteswap.h"
 #endif
 
+namespace CppyyLegacy {
+
 //______________________________________________________________________________
 inline void tobuf(char *&buf, Bool_t x)
 {
@@ -584,5 +586,7 @@ inline ULong64_t net2host(ULong64_t x) { return host2net(x); }
 inline Long64_t  net2host(Long64_t x)  { return host2net(x); }
 inline Float_t   net2host(Float_t x)   { return host2net(x); }
 inline Double_t  net2host(Double_t x)  { return host2net(x); }
+
+} // namespace CppyyLegacy
 
 #endif

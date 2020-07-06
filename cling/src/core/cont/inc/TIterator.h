@@ -12,7 +12,6 @@
 #ifndef ROOT_TIterator
 #define ROOT_TIterator
 
-
 //////////////////////////////////////////////////////////////////////////
 //                                                                      //
 // TIterator                                                            //
@@ -23,6 +22,9 @@
 //////////////////////////////////////////////////////////////////////////
 
 #include "Rtypes.h"
+
+
+namespace CppyyLegacy {
 
 class TCollection;
 class TObject;
@@ -48,4 +50,5 @@ public:
    ClassDef(TIterator,0)  //Iterator abstract base class
 };
 
+} // namespace CppyyLegacy
 #endif

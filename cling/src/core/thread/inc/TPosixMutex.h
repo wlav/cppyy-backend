@@ -29,6 +29,9 @@
 struct pthread_mutex_t;
 #endif
 
+
+namespace CppyyLegacy {
+
 class TPosixMutex : public TMutexImp {
 
 friend class TPosixCondition;
@@ -49,4 +52,5 @@ public:
    ClassDef(TPosixMutex,0)  // Posix mutex lock
 };
 
+} // namespace CppyyLegacy
 #endif

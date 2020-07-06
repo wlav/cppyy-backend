@@ -45,15 +45,18 @@ In a later release the collections may become templatized.
 
 #include "TSpinLockGuard.h"
 
+
+ClassImp(CppyyLegacy::TCollection);
+ClassImp(CppyyLegacy::TIter);
+
+namespace CppyyLegacy {
+
 TVirtualMutex *gCollectionMutex = 0;
 
 TCollection   *TCollection::fgCurrentCollection = 0;
 TObjectTable  *TCollection::fgGarbageCollection = 0;
 Bool_t         TCollection::fgEmptyingGarbage   = kFALSE;
 Int_t          TCollection::fgGarbageStack      = 0;
-
-ClassImp(TCollection);
-ClassImp(TIter);
 
 #ifdef R__CHECK_COLLECTION_MULTI_ACCESS
 
@@ -74,7 +77,7 @@ void TCollection::TErrorLock::ConflictReport(std::thread::id holder, const char 
    //   ") from multiple threads at a time. holder=" << "0x" << std::hex << holder << " readers=" << fReadSet.size() <<
    //   "0x" << std::hex << local << std::endl;
 
-   ::Error(function,
+   ::CppyyLegacy::Error(function,
            "Access (%s) to a collection (%s:%p) from multiple threads at a time. holder=%s readers=%lu intruder=%s",
            accesstype, collection->IsA()->GetName(), collection, cur.str().c_str(), fReadSet.size(), loc.str().c_str());
 
@@ -83,7 +86,7 @@ void TCollection::TErrorLock::ConflictReport(std::thread::id holder, const char 
    for (auto r : tmp) {
       std::stringstream reader;
       reader << "0x" << std::hex << r;
-      ::Error(function, " Readers includes %s", reader.str().c_str());
+      ::CppyyLegacy::Error(function, " Readers includes %s", reader.str().c_str());
    }
    gSystem->StackTrace();
 }
@@ -153,7 +156,7 @@ void TCollection::TErrorLock::ReadLock(const TCollection *collection, const char
    auto local = std::this_thread::get_id();
 
    {
-      ROOT::Internal::TSpinLockGuard guard(fSpinLockFlag);
+      Internal::TSpinLockGuard guard(fSpinLockFlag);
       fReadSet.insert(local); // this is not thread safe ...
    }
    ++fReadCurrentRecurse;
@@ -168,7 +171,7 @@ void TCollection::TErrorLock::ReadUnlock()
 {
    auto local = std::this_thread::get_id();
    {
-      ROOT::Internal::TSpinLockGuard guard(fSpinLockFlag);
+      Internal::TSpinLockGuard guard(fSpinLockFlag);
       fReadSet.erase(local); // this is not thread safe ...
    }
    --fReadCurrentRecurse;
@@ -182,7 +185,7 @@ void TCollection::TErrorLock::ReadUnlock()
 TCollection::~TCollection()
 {
    // Required since we overload TObject::Hash.
-   ROOT::CallRecursiveRemoveIfNeeded(*this);
+   CallRecursiveRemoveIfNeeded(*this);
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -744,7 +747,7 @@ TIter TIter::End()
 ////////////////////////////////////////////////////////////////////////////////
 /// Return an empty collection for use with nullptr TRangeCast
 
-const TCollection &ROOT::Internal::EmptyCollection()
+const TCollection &Internal::EmptyCollection()
 {
    static TObjArray sEmpty;
    return sEmpty;
@@ -753,7 +756,9 @@ const TCollection &ROOT::Internal::EmptyCollection()
 ////////////////////////////////////////////////////////////////////////////////
 /// Return true if 'cl' inherits from 'base'.
 
-bool ROOT::Internal::ContaineeInheritsFrom(TClass *cl, TClass *base)
+bool Internal::ContaineeInheritsFrom(TClass *cl, TClass *base)
 {
    return cl->InheritsFrom(base);
 }
+
+} // namespace CppyyLegacy

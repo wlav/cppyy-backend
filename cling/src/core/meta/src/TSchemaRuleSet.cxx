@@ -16,10 +16,12 @@
 #include "TStreamerElement.h"
 #include "TClassEdit.h"
 
-ClassImp(TSchemaRule);
 
-using namespace ROOT;
-using namespace ROOT::Detail;
+ClassImp(CppyyLegacy::TSchemaRule);
+
+namespace CppyyLegacy {
+
+using namespace Detail;
 
 ////////////////////////////////////////////////////////////////////////////////
 /// Default constructor.
@@ -269,7 +271,7 @@ Bool_t TSchemaRuleSet::HasRuleWithSourceClass( const TString &source ) const
             }
          }
          // Both side are pairs and have convertible types, let records this as a renaming rule
-         ROOT::TSchemaRule *ruleobj = new ROOT::TSchemaRule();
+         ::CppyyLegacy::TSchemaRule *ruleobj = new ::CppyyLegacy::TSchemaRule();
          ruleobj->SetSourceClass(source);
          ruleobj->SetTargetClass(fClass->GetName());
          ruleobj->SetVersion("[1-]");
@@ -548,17 +550,18 @@ Bool_t TSchemaRuleSet::TMatches::HasRuleWithTarget( const TString& name, Bool_t 
 }
 
 ////////////////////////////////////////////////////////////////////////////////
-/// Stream an object of class ROOT::TSchemaRuleSet.
+/// Stream an object of class TSchemaRuleSet.
 
 void TSchemaRuleSet::Streamer(TBuffer &R__b)
 {
    if (R__b.IsReading()) {
-      R__b.ReadClassBuffer(ROOT::Detail::TSchemaRuleSet::Class(),this);
+      R__b.ReadClassBuffer(TSchemaRuleSet::Class(),this);
       fAllRules->Clear();
       fAllRules->AddAll(fPersistentRules);
    } else {
       GetClassCheckSum();
-      R__b.WriteClassBuffer(ROOT::Detail::TSchemaRuleSet::Class(),this);
+      R__b.WriteClassBuffer(TSchemaRuleSet::Class(),this);
    }
 }
 
+} // namespace CppyyLegacy

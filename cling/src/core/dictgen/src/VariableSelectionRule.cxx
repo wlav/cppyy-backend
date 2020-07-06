@@ -18,6 +18,9 @@
 #include "VariableSelectionRule.h"
 #include <iostream>
 
+
+namespace CppyyLegacy {
+
 void VariableSelectionRule::Print(std::ostream &out) const
 {
    out<<"\t\tSelected: ";
@@ -32,3 +35,5 @@ void VariableSelectionRule::Print(std::ostream &out) const
    }
    PrintAttributes(out,3);
 }
+
+} // namespace CppyyLegacy

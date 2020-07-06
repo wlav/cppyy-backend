@@ -27,9 +27,7 @@
 //////////////////////////////////////////////////////////////////////////
 
 #include "TClingClassInfo.h"
-
 #include "TClingDeclInfo.h"
-
 #include "cling/Interpreter/Interpreter.h"
 
 #include "clang/AST/ASTContext.h"
@@ -39,16 +37,19 @@
 #include <vector>
 #include <string>
 
+
 namespace clang {
    class Decl;
    class ValueDecl;
 }
 
-namespace ROOT {
+namespace CppyyLegacy {
    namespace TMetaUtils {
       class TNormalizedCtxt;
    }
 }
+
+namespace CppyyLegacy {
 
 class TClingClassInfo;
 
@@ -135,11 +136,13 @@ public:
    long               TypeProperty() const;
    int                TypeSize() const;
    const char        *TypeName() const;
-   const char        *TypeTrueName(const ROOT::TMetaUtils::TNormalizedCtxt &normCtxt) const;
+   const char        *TypeTrueName(const CppyyLegacy::TMetaUtils::TNormalizedCtxt &normCtxt) const;
    const char        *Name() override;
    const char        *Title();
    llvm::StringRef    ValidArrayIndex() const;
 
 };
+
+} // namespace CppyyLegacy
 
 #endif // ROOT_TClingDataMemberInfo

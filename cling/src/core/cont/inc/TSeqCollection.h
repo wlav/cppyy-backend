@@ -12,7 +12,6 @@
 #ifndef ROOT_TSeqCollection
 #define ROOT_TSeqCollection
 
-
 //////////////////////////////////////////////////////////////////////////
 //                                                                      //
 // TSeqCollection                                                       //
@@ -24,6 +23,8 @@
 
 #include "TCollection.h"
 
+
+namespace CppyyLegacy {
 
 class TSeqCollection : public TCollection {
 
@@ -67,4 +68,5 @@ public:
    ClassDef(TSeqCollection,0)  //Sequenceable collection ABC
 };
 
+} // namespace CppyyLegacy
 #endif

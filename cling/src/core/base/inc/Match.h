@@ -23,10 +23,14 @@
 #include <sys/types.h>
 #endif
 
+namespace CppyyLegacy {
+
 typedef unsigned short Pattern_t;
 
 int         Makepat(const char*, Pattern_t*, int);
 const char* Matchs(const char*, size_t len, const Pattern_t*,
                    const char**);
+
+} // namespace CppyyLegacy
 
 #endif

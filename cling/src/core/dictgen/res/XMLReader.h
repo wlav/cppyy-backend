@@ -25,11 +25,17 @@
 #include <vector>
 #include <map>
 
-class SelectionRules;
+
+namespace CppyyLegacy {
+   class SelectionRules;
+}
 
 namespace cling {
    class Interpreter;
 }
+
+
+namespace CppyyLegacy {
 
 class XMLReader {
 public:
@@ -110,5 +116,7 @@ public:
 //    bool Parse(std::ifstream &file, SelectionRules& out);
 
 };
+
+} // namespace CppyyLegacy
 
 #endif

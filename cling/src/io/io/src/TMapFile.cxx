@@ -120,11 +120,11 @@ union semun {
 #endif
 #define Printf TStringPrintf
 
+
+namespace CppyyLegacy {
+
 intptr_t TMapFile::fgMapAddress = 0;
 void  *TMapFile::fgMmallocDesc = 0;
-
-//void *ROOT::Internal::gMmallocDesc = 0; //is initialized in TStorage.cxx
-
 
 namespace {
 ////////////////////////////////////////////////////////////////////////////////
@@ -141,14 +141,14 @@ namespace {
 
 
 ////////////////////////////////////////////////////////////////////////////////
-/// Set ROOT::Internal::gFreeIfTMapFile on library load.
+/// Set CppyyLegacy::Internal::gFreeIfTMapFile on library load.
 
 struct SetFreeIfTMapFile_t {
    SetFreeIfTMapFile_t() {
-      ROOT::Internal::gFreeIfTMapFile = FreeIfTMapFile;
+      CppyyLegacy::Internal::gFreeIfTMapFile = FreeIfTMapFile;
    }
    ~SetFreeIfTMapFile_t() {
-      ROOT::Internal::gFreeIfTMapFile = nullptr;
+      CppyyLegacy::Internal::gFreeIfTMapFile = nullptr;
    }
 } gSetFreeIfTMapFile;
 
@@ -186,10 +186,11 @@ TObject *TMapRec::GetObject() const
    return fObject;
 }
 
-
-
+} // namespace CppyyLegacy
 
 ClassImp(TMapFile);
+
+namespace CppyyLegacy {
 
 ////////////////////////////////////////////////////////////////////////////////
 /// Default ctor. Does not much except setting some basic values.
@@ -419,7 +420,7 @@ TMapFile::TMapFile(const char *name, const char *title, Option_t *option,
       if (fWritable) {
          // create new TMapFile object in mapped heap to get correct vtbl ptr
          CreateSemaphore();
-         ROOT::Internal::gMmallocDesc = fMmallocDesc;
+         CppyyLegacy::Internal::gMmallocDesc = fMmallocDesc;
          TMapFile *mf = new TMapFile(*mapfil);
          mf->fFd        = fFd;
          mf->fWritable  = kTRUE;
@@ -430,10 +431,10 @@ TMapFile::TMapFile(const char *name, const char *title, Option_t *option,
          mf->CreateSemaphore(fSemaphore);
 #endif
          mmalloc_setkey(fMmallocDesc, 0, mf);
-         ROOT::Internal::gMmallocDesc = 0;
+         CppyyLegacy::Internal::gMmallocDesc = 0;
          mapfil = mf;
       } else {
-         ROOT::Internal::gMmallocDesc = 0;    // make sure we are in sbrk heap
+         CppyyLegacy::Internal::gMmallocDesc = 0;    // make sure we are in sbrk heap
          fOffset      = ((struct mdesc *) fMmallocDesc)->offset;
          TMapFile *mf = new TMapFile(*mapfil, fOffset);
          delete [] mf->fOption;
@@ -471,12 +472,12 @@ TMapFile::TMapFile(const char *name, const char *title, Option_t *option,
 
       CreateSemaphore();
 
-      ROOT::Internal::gMmallocDesc = fMmallocDesc;
+      CppyyLegacy::Internal::gMmallocDesc = fMmallocDesc;
 
       mapfil = new TMapFile(*this);
       mmalloc_setkey(fMmallocDesc, 0, mapfil);
 
-      ROOT::Internal::gMmallocDesc = 0;
+      CppyyLegacy::Internal::gMmallocDesc = 0;
 
       // store shadow mapfile
       fVersion  = -1;   // make this the shadow map file
@@ -501,7 +502,7 @@ zombie:
    // error in file opening occured, make this object a zombie
    MakeZombie();
    newMapFile   = this;
-   ROOT::Internal::gMmallocDesc = 0;
+   CppyyLegacy::Internal::gMmallocDesc = 0;
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -594,7 +595,7 @@ void TMapFile::Add(const TObject *obj, const char *name)
    if (lock)
       AcquireSemaphore();
 
-   ROOT::Internal::gMmallocDesc = fMmallocDesc;
+   CppyyLegacy::Internal::gMmallocDesc = fMmallocDesc;
 
    const char *n;
    if (name && *name)
@@ -615,7 +616,7 @@ void TMapFile::Add(const TObject *obj, const char *name)
       fLast        = mr;
    }
 
-   ROOT::Internal::gMmallocDesc = 0;
+   CppyyLegacy::Internal::gMmallocDesc = 0;
 
    if (lock)
       ReleaseSemaphore();
@@ -630,7 +631,7 @@ void TMapFile::Update(TObject *obj)
 
    AcquireSemaphore();
 
-   ROOT::Internal::gMmallocDesc = fMmallocDesc;
+   CppyyLegacy::Internal::gMmallocDesc = fMmallocDesc;
 
    Bool_t all = (obj == 0) ? kTRUE : kFALSE;
 
@@ -654,7 +655,7 @@ void TMapFile::Update(TObject *obj)
       mr = mr->fNext;
    }
 
-   ROOT::Internal::gMmallocDesc = 0;
+   CppyyLegacy::Internal::gMmallocDesc = 0;
 
    ReleaseSemaphore();
 }
@@ -1211,3 +1212,4 @@ TMapFile *TMapFile::WhichMapFile(void *addr)
    return 0;
 }
 
+} // namespace CppyyLegacy

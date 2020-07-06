@@ -39,7 +39,9 @@ only from memory.
 #define TRACE(x);
 #endif
 #define Printf TStringPrintf
-ClassImp(TMemFile);
+ClassImp(CppyyLegacy::TMemFile);
+
+namespace CppyyLegacy {
 
 ////////////////////////////////////////////////////////////////////////////////
 /// Constructor allocating the memory buffer.
@@ -578,3 +580,5 @@ void TMemFile::ResetErrno() const
 {
    TSystem::ResetErrno();
 }
+
+} // namespace CppyyLegacy

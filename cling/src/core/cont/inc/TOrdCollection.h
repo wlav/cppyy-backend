@@ -12,7 +12,6 @@
 #ifndef ROOT_TOrdCollection
 #define ROOT_TOrdCollection
 
-
 //////////////////////////////////////////////////////////////////////////
 //                                                                      //
 // TOrdCollection                                                       //
@@ -22,12 +21,12 @@
 //////////////////////////////////////////////////////////////////////////
 
 #include "TSeqCollection.h"
-
 #include <iterator>
 
 
-class TOrdCollectionIter;
+namespace CppyyLegacy {
 
+class TOrdCollectionIter;
 
 class TOrdCollection : public TSeqCollection {
 
@@ -137,4 +136,5 @@ inline Int_t TOrdCollection::PhysIndex(Int_t idx) const
 inline Int_t TOrdCollection::LogIndex(Int_t idx) const
    { return (idx < fGapStart) ? idx : idx - fGapSize; }
 
+} // namespace CppyyLegacy
 #endif

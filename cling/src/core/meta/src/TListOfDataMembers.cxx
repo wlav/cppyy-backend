@@ -29,9 +29,12 @@ unloaded data member.
 
 #include <sstream>
 
-const unsigned int idsSize=19;
 
-ClassImp(TListOfDataMembers);
+ClassImp(CppyyLegacy::TListOfDataMembers);
+
+namespace CppyyLegacy {
+
+const unsigned int idsSize=19;
 
 ////////////////////////////////////////////////////////////////////////////////
 /// Constructor.
@@ -581,3 +584,5 @@ void TListOfDataMembers::Unload(TDictionary *mem)
       fUnloaded->Add(mem);
    }
 }
+
+} // namespace CppyyLegacy

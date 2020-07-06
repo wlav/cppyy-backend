@@ -48,15 +48,15 @@
 
 #define _ROOT_LIBCPP_BEGIN_NAMESPACE_LFTS \
 namespace std { \
-namespace experimental { inline namespace __ROOT {
+namespace experimental { inline namespace __CppyyLegacy {
 #define _ROOT_LIBCPP_END_NAMESPACE_LFTS } } }
 #else
 
 // Microsoft compiler does not support inline namespace yet.
 #define _ROOT_LIBCPP_BEGIN_NAMESPACE_LFTS \
 namespace std { \
-namespace experimental { namespace __ROOT {
-#define _ROOT_LIBCPP_END_NAMESPACE_LFTS } using namespace __ROOT; } }
+namespace experimental { namespace __CppyyLegacy {
+#define _ROOT_LIBCPP_END_NAMESPACE_LFTS } using namespace __CppyyLegacy; } }
 
 #endif
 
@@ -124,7 +124,7 @@ namespace experimental { namespace __ROOT {
 
 namespace std {
 #ifdef _LOCAL_VSTD
-inline namespace __ROOT {
+inline namespace __CppyyLegacy {
 #else
 // libC++ wins.
 inline namespace __1 {
@@ -537,7 +537,7 @@ inline namespace __1 {
       return __npos;
    }
 
-} // namespace __1 or __ROOT
+} // namespace __1 or __CppyyLegacy
 
 } // namespace std
 

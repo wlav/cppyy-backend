@@ -12,7 +12,6 @@
 #ifndef ROOT_TArray
 #define ROOT_TArray
 
-
 //////////////////////////////////////////////////////////////////////////
 //                                                                      //
 // TArray                                                               //
@@ -24,6 +23,9 @@
 
 #include "Rtypes.h"
 #include <string.h>
+
+
+namespace CppyyLegacy {
 
 class TBuffer;
 
@@ -52,26 +54,30 @@ public:
    static TArray *ReadArray(TBuffer &b, const TClass *clReq);
    static void    WriteArray(TBuffer &b, const TArray *a);
 
-   friend TBuffer &operator<<(TBuffer &b, const TArray *obj);
+   //friend TBuffer& ::operator<<(TBuffer &b, const TArray *obj);
 
    ClassDef(TArray,1)  //Abstract array base class
 };
 
+} // namespace CppyyLegacy
+
 #if defined R__TEMPLATE_OVERLOAD_BUG
 template <>
 #endif
-inline TBuffer &operator>>(TBuffer &buf, TArray *&obj)
+inline CppyyLegacy::TBuffer &operator>>(CppyyLegacy::TBuffer &buf, CppyyLegacy::TArray *&obj)
 {
    // Read TArray object from buffer.
 
-   obj = (TArray *) TArray::ReadArray(buf, TArray::Class());
+   obj = (CppyyLegacy::TArray *) CppyyLegacy::TArray::ReadArray(buf, CppyyLegacy::TArray::Class());
    return buf;
 }
 
 #if defined R__TEMPLATE_OVERLOAD_BUG
 template <>
 #endif
-TBuffer &operator<<(TBuffer &b, const TArray *obj);
+CppyyLegacy::TBuffer &operator<<(CppyyLegacy::TBuffer &b, const CppyyLegacy::TArray *obj);
+
+namespace CppyyLegacy {
 
 inline Bool_t TArray::BoundsOk(const char *where, Int_t at) const
 {
@@ -80,4 +86,5 @@ inline Bool_t TArray::BoundsOk(const char *where, Int_t at) const
                   : kTRUE;
 }
 
+} // namespace CppyyLegacy
 #endif

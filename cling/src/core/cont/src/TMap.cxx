@@ -24,7 +24,10 @@ Both key and value must inherit from TObject.
 #include "TROOT.h"
 #include "TRegexp.h"
 
-ClassImp(TMap);
+
+ClassImp(CppyyLegacy::TMap);
+
+namespace CppyyLegacy {
 
 ////////////////////////////////////////////////////////////////////////////////
 /// TMap ctor. See THashTable for a description of the arguments.
@@ -442,14 +445,18 @@ Class used by TMap to store (key,value) pairs.
 TPair::~TPair()
 {
    // Required since we overload TObject::Hash.
-   ROOT::CallRecursiveRemoveIfNeeded(*this);
+   CallRecursiveRemoveIfNeeded(*this);
 }
+
+} // namespace CppyyLegacy
 
 /** \class TMapIter
 Iterator of map.
 */
 
 ClassImp(TMapIter);
+
+namespace CppyyLegacy {
 
 ////////////////////////////////////////////////////////////////////////////////
 /// Create a map iterator. Use dir to specify the desired iteration direction.
@@ -568,3 +575,5 @@ TObject *TMapIter::operator*() const
 {
    return (fCursor ? fCursor->operator*() : nullptr);
 }
+
+} // namespace CppyyLegacy

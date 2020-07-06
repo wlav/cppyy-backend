@@ -23,6 +23,8 @@ even if the object is not of a class in the Cint/Reflex dictionary.
 #include "TClassRef.h"
 
 
+namespace CppyyLegacy {
+
 class TVirtualObject {
 private:
 
@@ -42,4 +44,5 @@ public:
 
 };
 
+} // namespace CppyyLegacy
 #endif // ROOT_TVirtualObject

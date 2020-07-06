@@ -24,6 +24,9 @@ TClass::fRefStart.
 
 #include "TClassRef.h"
 
+
+namespace CppyyLegacy {
+
 ////////////////////////////////////////////////////////////////////////////////
 /// Copy ctor, increases reference count to original TClass object.
 
@@ -94,3 +97,4 @@ TClass *TClassRef::InternalGetClass() const
    }
 }
 
+} // namespace CppyyLegacy

@@ -31,7 +31,8 @@
 #include <unistd.h>
 #endif // _WIN32
 
-namespace ROOT {
+namespace CppyyLegacy {
+
 namespace FoundationUtils {
 std::string GetCurrentDir()
 {
@@ -179,4 +180,4 @@ const std::string& GetEtcDir() {
 }
 
 } // namespace FoundationUtils
-} // namespace ROOT
+} // namespace CppyyLegacy

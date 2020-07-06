@@ -45,11 +45,15 @@ of TUUIDs.
 #include "TVirtualMutex.h"
 #include "TError.h"
 
+
+ClassImp(CppyyLegacy::TProcessID);
+
+namespace CppyyLegacy {
+
 TObjArray  *TProcessID::fgPIDs   = 0; //pointer to the list of TProcessID
 TProcessID *TProcessID::fgPID    = 0; //pointer to the TProcessID of the current session
 std::atomic_uint TProcessID::fgNumber(0); //Current referenced object instance count
 TExMap     *TProcessID::fgObjPIDs= 0; //Table (pointer,pids)
-ClassImp(TProcessID);
 
 static std::atomic<TProcessID *> gIsValidCache;
 using PIDCacheContent_t = std::pair<Int_t, TProcessID*>;
@@ -98,7 +102,7 @@ TProcessID::~TProcessID()
       delete current;
    }
 
-   R__WRITE_LOCKGUARD(ROOT::gCoreMutex);
+   R__WRITE_LOCKGUARD(gCoreMutex);
    fgPIDs->Remove(this);
 }
 
@@ -107,13 +111,13 @@ TProcessID::~TProcessID()
 
 TProcessID *TProcessID::AddProcessID()
 {
-   R__WRITE_LOCKGUARD(ROOT::gCoreMutex);
+   R__WRITE_LOCKGUARD(gCoreMutex);
 
    if (fgPIDs && fgPIDs->GetEntriesFast() >= 65534) {
       if (fgPIDs->GetEntriesFast() == 65534) {
-         ::Warning("TProcessID::AddProcessID","Maximum number of TProcessID (65535) is almost reached (one left).");
+         ::CppyyLegacy::Warning("TProcessID::AddProcessID","Maximum number of TProcessID (65535) is almost reached (one left).");
       } else {
-         ::Fatal("TProcessID::AddProcessID","Maximum number of TProcessID (65535) has been reached.");
+         ::CppyyLegacy::Fatal("TProcessID::AddProcessID","Maximum number of TProcessID (65535) has been reached.");
       }
    }
 
@@ -146,7 +150,7 @@ TProcessID *TProcessID::AddProcessID()
 
 UInt_t TProcessID::AssignID(TObject *obj)
 {
-   R__WRITE_LOCKGUARD(ROOT::gCoreMutex);
+   R__WRITE_LOCKGUARD(gCoreMutex);
 
    UInt_t uid = obj->GetUniqueID() & 0xffffff;
    if (obj == fgPID->GetObjectWithID(uid)) return uid;
@@ -195,7 +199,7 @@ void TProcessID::CheckInit()
 
 void TProcessID::Cleanup()
 {
-   R__WRITE_LOCKGUARD(ROOT::gCoreMutex);
+   R__WRITE_LOCKGUARD(gCoreMutex);
 
    fgPIDs->Delete();
    gROOT->GetListOfCleanups()->Remove(fgPIDs);
@@ -263,7 +267,7 @@ TProcessID *TProcessID::GetProcessWithUID(UInt_t uid, const void *obj)
       if (fgObjPIDs==0) return 0;
       ULong_t hash = Void_Hash(obj);
 
-      R__READ_LOCKGUARD(ROOT::gCoreMutex);
+      R__READ_LOCKGUARD(gCoreMutex);
       pid = fgObjPIDs->GetValue(hash,(intptr_t)obj);
       return (TProcessID*)fgPIDs->At(pid);
    } else {
@@ -271,7 +275,7 @@ TProcessID *TProcessID::GetProcessWithUID(UInt_t uid, const void *obj)
       if (current && current->first == pid)
          return current->second;
 
-      R__READ_LOCKGUARD(ROOT::gCoreMutex);
+      R__READ_LOCKGUARD(gCoreMutex);
       auto res = (TProcessID*)fgPIDs->At(pid);
 
       auto next = new PIDCacheContent_t(pid, res);
@@ -354,7 +358,7 @@ Bool_t TProcessID::IsValid(TProcessID *pid)
    if (gIsValidCache == pid)
       return kTRUE;
 
-   R__READ_LOCKGUARD(ROOT::gCoreMutex);
+   R__READ_LOCKGUARD(gCoreMutex);
 
    if (fgPIDs==0) return kFALSE;
    if (fgPIDs->IndexOf(pid) >= 0) {
@@ -405,7 +409,7 @@ void TProcessID::RecursiveRemove(TObject *obj)
    if (!obj->TestBit(kIsReferenced)) return;
    UInt_t uid = obj->GetUniqueID() & 0xffffff;
    if (obj == GetObjectWithID(uid)) {
-      R__WRITE_LOCKGUARD(ROOT::gCoreMutex);
+      R__WRITE_LOCKGUARD(gCoreMutex);
       if (fgObjPIDs) {
          ULong64_t hash = Void_Hash(obj);
          fgObjPIDs->Remove(hash,(Long64_t)obj);
@@ -423,3 +427,5 @@ void TProcessID::SetObjectCount(UInt_t number)
 {
    fgNumber = number;
 }
+
+} // namespace CppyyLegacy

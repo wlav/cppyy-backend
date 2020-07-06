@@ -12,7 +12,6 @@
 #ifndef ROOT_TDictAttributeMap
 #define ROOT_TDictAttributeMap
 
-
 //////////////////////////////////////////////////////////////////////////
 //                                                                      //
 // TDictAttributeMap                                                    //
@@ -21,10 +20,11 @@
 //                                                                      //
 //////////////////////////////////////////////////////////////////////////
 
-
 #include "TObject.h"
 #include "THashTable.h"
 
+
+namespace CppyyLegacy {
 
 class TDictAttributeMap : public TObject
 {
@@ -48,5 +48,5 @@ private:
    ClassDef(TDictAttributeMap,2)  // Container for name/value pairs of TDictionary attributes
 };
 
+} // namespace CppyyLegacy
 #endif // ROOT_TDictAttributeMap
-

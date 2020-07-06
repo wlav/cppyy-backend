@@ -15,7 +15,10 @@
 #include "TClassEdit.h"
 #include "TStreamer.h"
 
-ClassImp(TRealData);
+
+ClassImp(CppyyLegacy::TRealData);
+
+namespace CppyyLegacy {
 
 /** \class TRealData
 The TRealData class manages the effective list of all data members
@@ -116,3 +119,4 @@ TMemberStreamer *TRealData::GetStreamer() const
    return fStreamer; // return fDataMember->GetStreamer();
 }
 
+} // namespace CppyyLegacy

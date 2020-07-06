@@ -17,6 +17,9 @@
 #include "TBuffer.h"
 #include "TClass.h"
 
+
+namespace CppyyLegacy {
+
 class TDirectory;
 class TFile;
 
@@ -110,4 +113,5 @@ protected:
    ClassDef(TKey,4); //Header description of a logical record on file.
 };
 
+} // namespace CppyyLegacy
 #endif

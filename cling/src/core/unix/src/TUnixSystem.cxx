@@ -272,6 +272,8 @@ namespace {
    }
 }
 
+namespace CppyyLegacy {
+
 struct TUtmpContent {
    STRUCT_UTMP *fUtmpContents;
    UInt_t       fEntries; // Number of entries in utmp file.
@@ -371,7 +373,7 @@ public:
       if (n >= 0 && n < kFDSETSIZE) {
          fds_bits[n/kNFDBITS] |= (1UL << (n % kNFDBITS));
       } else {
-         ::Fatal("TFdSet::Set","fd (%d) out of range [0..%d]", n, kFDSETSIZE-1);
+         ::CppyyLegacy::Fatal("TFdSet::Set","fd (%d) out of range [0..%d]", n, kFDSETSIZE-1);
       }
    }
    void   Clr(Int_t n)
@@ -379,7 +381,7 @@ public:
       if (n >= 0 && n < kFDSETSIZE) {
          fds_bits[n/kNFDBITS] &= ~(1UL << (n % kNFDBITS));
       } else {
-         ::Fatal("TFdSet::Clr","fd (%d) out of range [0..%d]", n, kFDSETSIZE-1);
+         ::CppyyLegacy::Fatal("TFdSet::Clr","fd (%d) out of range [0..%d]", n, kFDSETSIZE-1);
       }
    }
    Int_t  IsSet(Int_t n)
@@ -387,7 +389,7 @@ public:
       if (n >= 0 && n < kFDSETSIZE) {
          return (fds_bits[n/kNFDBITS] & (1UL << (n % kNFDBITS))) != 0;
       } else {
-         ::Fatal("TFdSet::IsSet","fd (%d) out of range [0..%d]", n, kFDSETSIZE-1);
+         ::CppyyLegacy::Fatal("TFdSet::IsSet","fd (%d) out of range [0..%d]", n, kFDSETSIZE-1);
          return 0;
       }
    }
@@ -462,7 +464,7 @@ static void SetRootSys()
       char respath[kMAXPATHLEN];
       if (!realpath(info.dli_fname, respath)) {
          if (!gSystem->Getenv("ROOTSYS"))
-            ::SysError("TUnixSystem::SetRootSys", "error getting realpath of libCoreLegacy, please set ROOTSYS in the shell");
+            ::CppyyLegacy::SysError("TUnixSystem::SetRootSys", "error getting realpath of libCoreLegacy, please set ROOTSYS in the shell");
       } else {
          TString rs = gSystem->DirName(respath);
          gSystem->Setenv("ROOTSYS", gSystem->DirName(rs));
@@ -505,7 +507,7 @@ static void DylibAdded(const struct mach_header *mh, intptr_t /* vmaddr_slide */
       char respath[kMAXPATHLEN];
       if (!realpath(lib, respath)) {
          if (!gSystem->Getenv("ROOTSYS"))
-            ::SysError("TUnixSystem::DylibAdded", "error getting realpath of libCoreLegacy, please set ROOTSYS in the shell");
+            ::CppyyLegacy::SysError("TUnixSystem::DylibAdded", "error getting realpath of libCoreLegacy, please set ROOTSYS in the shell");
       } else {
          TString rs = gSystem->DirName(respath);
          gSystem->Setenv("ROOTSYS", gSystem->DirName(rs));
@@ -545,7 +547,11 @@ static void DylibAdded(const struct mach_header *mh, intptr_t /* vmaddr_slide */
 }
 #endif
 
+} // namespace CppyyLegacy
+
 ClassImp(TUnixSystem);
+
+namespace CppyyLegacy {
 
 ////////////////////////////////////////////////////////////////////////////////
 
@@ -602,7 +608,7 @@ Bool_t TUnixSystem::Init()
 #endif
 
    // This is a fallback in case TROOT::GetRootSys() can't determine ROOTSYS
-   gRootDir = ROOT::FoundationUtils::GetFallbackRootSys().c_str();
+   gRootDir = FoundationUtils::GetFallbackRootSys().c_str();
 
    return kFALSE;
 }
@@ -2887,7 +2893,7 @@ char *TUnixSystem::GetServiceByPort(int port)
    struct servent *sp;
 
    if ((sp = getservbyport(htons(port), kProtocolName)) == 0) {
-      //::Error("GetServiceByPort", "no service \"%d\" with protocol \"%s\"",
+      //::CppyyLegacy::Error("GetServiceByPort", "no service \"%d\" with protocol \"%s\"",
       //        port, kProtocolName);
       return Form("%d", port);
    }
@@ -3428,7 +3434,7 @@ void TUnixSystem::UnixSignal(ESignals sig, SigHandler_t handler)
 #endif
       if (sigaction(gSignalMap[sig].fCode, &sigact,
                     gSignalMap[sig].fOldHandler) < 0)
-         ::SysError("TUnixSystem::UnixSignal", "sigaction");
+         ::CppyyLegacy::SysError("TUnixSystem::UnixSignal", "sigaction");
    }
 }
 
@@ -3455,10 +3461,10 @@ void TUnixSystem::UnixIgnoreSignal(ESignals sig, Bool_t ignore)
          sigemptyset(&sigact.sa_mask);
          sigact.sa_flags = 0;
          if (sigaction(gSignalMap[sig].fCode, &sigact, &oldsigact[sig]) < 0)
-            ::SysError("TUnixSystem::UnixIgnoreSignal", "sigaction");
+            ::CppyyLegacy::SysError("TUnixSystem::UnixIgnoreSignal", "sigaction");
       } else {
          if (sigaction(gSignalMap[sig].fCode, &oldsigact[sig], 0) < 0)
-            ::SysError("TUnixSystem::UnixIgnoreSignal", "sigaction");
+            ::CppyyLegacy::SysError("TUnixSystem::UnixIgnoreSignal", "sigaction");
       }
    }
 }
@@ -3498,7 +3504,7 @@ void TUnixSystem::UnixSigAlarmInterruptsSyscalls(Bool_t set)
 #endif
       }
       if (sigaction(gSignalMap[kSigAlarm].fCode, &sigact, 0) < 0)
-         ::SysError("TUnixSystem::UnixSigAlarmInterruptsSyscalls", "sigaction");
+         ::CppyyLegacy::SysError("TUnixSystem::UnixSigAlarmInterruptsSyscalls", "sigaction");
    }
 }
 
@@ -3518,7 +3524,7 @@ void TUnixSystem::UnixResetSignal(ESignals sig)
    if (gSignalMap[sig].fOldHandler) {
       // restore old signal handler
       if (sigaction(gSignalMap[sig].fCode, gSignalMap[sig].fOldHandler, 0) < 0)
-         ::SysError("TUnixSystem::UnixSignal", "sigaction");
+         ::CppyyLegacy::SysError("TUnixSystem::UnixSignal", "sigaction");
       delete gSignalMap[sig].fOldHandler;
       gSignalMap[sig].fOldHandler = 0;
       gSignalMap[sig].fHandler    = 0;
@@ -3554,7 +3560,7 @@ Long64_t TUnixSystem::UnixNow()
 
       jan95 = mktime(&tp);
       if ((int)jan95 == -1) {
-         ::SysError("TUnixSystem::UnixNow", "error converting 950001 0:00 to time_t");
+         ::CppyyLegacy::SysError("TUnixSystem::UnixNow", "error converting 950001 0:00 to time_t");
          return 0;
       }
    }
@@ -3580,7 +3586,7 @@ int TUnixSystem::UnixSetitimer(Long_t ms)
    }
    int st = setitimer(ITIMER_REAL, &itv, 0);
    if (st == -1)
-      ::SysError("TUnixSystem::UnixSetitimer", "setitimer");
+      ::CppyyLegacy::SysError("TUnixSystem::UnixSetitimer", "setitimer");
    return st;
 }
 
@@ -3861,7 +3867,7 @@ int TUnixSystem::UnixTcpConnect(const char *hostname, int port,
    // Create socket
    int sock;
    if ((sock = socket(AF_INET, SOCK_STREAM, 0)) < 0) {
-      ::SysError("TUnixSystem::UnixTcpConnect", "socket (%s:%d)",
+      ::CppyyLegacy::SysError("TUnixSystem::UnixTcpConnect", "socket (%s:%d)",
                  hostname, port);
       return -1;
    }
@@ -3875,7 +3881,7 @@ int TUnixSystem::UnixTcpConnect(const char *hostname, int port,
       if (GetErrno() == EINTR)
          ResetErrno();
       else {
-         ::SysError("TUnixSystem::UnixTcpConnect", "connect (%s:%d)",
+         ::CppyyLegacy::SysError("TUnixSystem::UnixTcpConnect", "connect (%s:%d)",
                     hostname, port);
          close(sock);
          return -1;
@@ -3912,7 +3918,7 @@ int TUnixSystem::UnixUdpConnect(const char *hostname, int port)
    // Create socket
    int sock;
    if ((sock = socket(AF_INET, SOCK_DGRAM, 0)) < 0) {
-      ::SysError("TUnixSystem::UnixUdpConnect", "socket (%s:%d)",
+      ::CppyyLegacy::SysError("TUnixSystem::UnixUdpConnect", "socket (%s:%d)",
                  hostname, port);
       return -1;
    }
@@ -3921,7 +3927,7 @@ int TUnixSystem::UnixUdpConnect(const char *hostname, int port)
       if (GetErrno() == EINTR)
          ResetErrno();
       else {
-         ::SysError("TUnixSystem::UnixUdpConnect", "connect (%s:%d)",
+         ::CppyyLegacy::SysError("TUnixSystem::UnixUdpConnect", "connect (%s:%d)",
                     hostname, port);
          close(sock);
          return -1;
@@ -3944,7 +3950,7 @@ int TUnixSystem::UnixUnixConnect(int port)
 int TUnixSystem::UnixUnixConnect(const char *sockpath)
 {
    if (!sockpath || strlen(sockpath) <= 0) {
-      ::SysError("TUnixSystem::UnixUnixConnect", "socket path undefined");
+      ::CppyyLegacy::SysError("TUnixSystem::UnixUnixConnect", "socket path undefined");
       return -1;
    }
 
@@ -3953,7 +3959,7 @@ int TUnixSystem::UnixUnixConnect(const char *sockpath)
    unserver.sun_family = AF_UNIX;
 
    if (strlen(sockpath) > sizeof(unserver.sun_path)-1) {
-      ::Error("TUnixSystem::UnixUnixConnect", "socket path %s, longer than max allowed length (%u)",
+      ::CppyyLegacy::Error("TUnixSystem::UnixUnixConnect", "socket path %s, longer than max allowed length (%u)",
               sockpath, (UInt_t)sizeof(unserver.sun_path)-1);
       return -1;
    }
@@ -3961,7 +3967,7 @@ int TUnixSystem::UnixUnixConnect(const char *sockpath)
 
    // Open socket
    if ((sock = socket(AF_UNIX, SOCK_STREAM, 0)) < 0) {
-      ::SysError("TUnixSystem::UnixUnixConnect", "socket");
+      ::CppyyLegacy::SysError("TUnixSystem::UnixUnixConnect", "socket");
       return -1;
    }
 
@@ -3969,7 +3975,7 @@ int TUnixSystem::UnixUnixConnect(const char *sockpath)
       if (GetErrno() == EINTR)
          ResetErrno();
       else {
-         ::SysError("TUnixSystem::UnixUnixConnect", "connect");
+         ::CppyyLegacy::SysError("TUnixSystem::UnixUnixConnect", "connect");
          close(sock);
          return -1;
       }
@@ -3997,7 +4003,7 @@ int TUnixSystem::UnixTcpService(int port, Bool_t reuse, int backlog,
    struct servent *sp;
 
    if (port == 0 && reuse) {
-      ::Error("TUnixSystem::UnixTcpService", "cannot do a port scan while reuse is true");
+      ::CppyyLegacy::Error("TUnixSystem::UnixTcpService", "cannot do a port scan while reuse is true");
       return -1;
    }
 
@@ -4009,7 +4015,7 @@ int TUnixSystem::UnixTcpService(int port, Bool_t reuse, int backlog,
    // Create tcp socket
    int sock;
    if ((sock = socket(AF_INET, SOCK_STREAM, 0)) < 0) {
-      ::SysError("TUnixSystem::UnixTcpService", "socket");
+      ::CppyyLegacy::SysError("TUnixSystem::UnixTcpService", "socket");
       return -1;
    }
 
@@ -4030,7 +4036,7 @@ int TUnixSystem::UnixTcpService(int port, Bool_t reuse, int backlog,
    // Bind socket
    if (port > 0) {
       if (::bind(sock, (struct sockaddr*) &inserver, sizeof(inserver))) {
-         ::SysError("TUnixSystem::UnixTcpService", "bind");
+         ::CppyyLegacy::SysError("TUnixSystem::UnixTcpService", "bind");
          close(sock);
          return -2;
       }
@@ -4042,7 +4048,7 @@ int TUnixSystem::UnixTcpService(int port, Bool_t reuse, int backlog,
          tryport++;
       } while (bret < 0 && GetErrno() == EADDRINUSE && tryport < kSOCKET_MAXPORT);
       if (bret < 0) {
-         ::SysError("TUnixSystem::UnixTcpService", "bind (port scan)");
+         ::CppyyLegacy::SysError("TUnixSystem::UnixTcpService", "bind (port scan)");
          close(sock);
          return -2;
       }
@@ -4050,7 +4056,7 @@ int TUnixSystem::UnixTcpService(int port, Bool_t reuse, int backlog,
 
    // Start accepting connections
    if (::listen(sock, backlog)) {
-      ::SysError("TUnixSystem::UnixTcpService", "listen");
+      ::CppyyLegacy::SysError("TUnixSystem::UnixTcpService", "listen");
       close(sock);
       return -3;
    }
@@ -4079,7 +4085,7 @@ int TUnixSystem::UnixUdpService(int port, int backlog)
    // Create udp socket
    int sock;
    if ((sock = socket(AF_INET, SOCK_DGRAM, 0)) < 0) {
-      ::SysError("TUnixSystem::UnixUdpService", "socket");
+      ::CppyyLegacy::SysError("TUnixSystem::UnixUdpService", "socket");
       return -1;
    }
 
@@ -4092,7 +4098,7 @@ int TUnixSystem::UnixUdpService(int port, int backlog)
    // Bind socket
    if (port > 0) {
       if (::bind(sock, (struct sockaddr*) &inserver, sizeof(inserver))) {
-         ::SysError("TUnixSystem::UnixUdpService", "bind");
+         ::CppyyLegacy::SysError("TUnixSystem::UnixUdpService", "bind");
          close(sock);
          return -2;
       }
@@ -4104,7 +4110,7 @@ int TUnixSystem::UnixUdpService(int port, int backlog)
          tryport++;
       } while (bret < 0 && GetErrno() == EADDRINUSE && tryport < kSOCKET_MAXPORT);
       if (bret < 0) {
-         ::SysError("TUnixSystem::UnixUdpService", "bind (port scan)");
+         ::CppyyLegacy::SysError("TUnixSystem::UnixUdpService", "bind (port scan)");
          close(sock);
          return -2;
       }
@@ -4112,7 +4118,7 @@ int TUnixSystem::UnixUdpService(int port, int backlog)
 
    // Start accepting connections
    if (::listen(sock, backlog)) {
-      ::SysError("TUnixSystem::UnixUdpService", "listen");
+      ::CppyyLegacy::SysError("TUnixSystem::UnixUdpService", "listen");
       close(sock);
       return -3;
    }
@@ -4153,7 +4159,7 @@ int TUnixSystem::UnixUnixService(int port, int backlog)
 int TUnixSystem::UnixUnixService(const char *sockpath, int backlog)
 {
    if (!sockpath || strlen(sockpath) <= 0) {
-      ::SysError("TUnixSystem::UnixUnixService", "socket path undefined");
+      ::CppyyLegacy::SysError("TUnixSystem::UnixUnixService", "socket path undefined");
       return -1;
    }
 
@@ -4165,7 +4171,7 @@ int TUnixSystem::UnixUnixService(const char *sockpath, int backlog)
    unserver.sun_family = AF_UNIX;
 
    if (strlen(sockpath) > sizeof(unserver.sun_path)-1) {
-      ::Error("TUnixSystem::UnixUnixService", "socket path %s, longer than max allowed length (%u)",
+      ::CppyyLegacy::Error("TUnixSystem::UnixUnixService", "socket path %s, longer than max allowed length (%u)",
               sockpath, (UInt_t)sizeof(unserver.sun_path)-1);
       return -1;
    }
@@ -4173,19 +4179,19 @@ int TUnixSystem::UnixUnixService(const char *sockpath, int backlog)
 
    // Create socket
    if ((sock = socket(AF_UNIX, SOCK_STREAM, 0)) < 0) {
-      ::SysError("TUnixSystem::UnixUnixService", "socket");
+      ::CppyyLegacy::SysError("TUnixSystem::UnixUnixService", "socket");
       return -1;
    }
 
    if (::bind(sock, (struct sockaddr*) &unserver, strlen(unserver.sun_path)+2)) {
-      ::SysError("TUnixSystem::UnixUnixService", "bind");
+      ::CppyyLegacy::SysError("TUnixSystem::UnixUnixService", "bind");
       close(sock);
       return -1;
    }
 
    // Start accepting connections
    if (::listen(sock, backlog)) {
-      ::SysError("TUnixSystem::UnixUnixService", "listen");
+      ::CppyyLegacy::SysError("TUnixSystem::UnixUnixService", "listen");
       close(sock);
       return -1;
    }
@@ -4231,7 +4237,7 @@ int TUnixSystem::UnixRecv(int sock, void *buffer, int length, int flag)
             return -4;
          else {
             if (GetErrno() != EINTR)
-               ::SysError("TUnixSystem::UnixRecv", "recv");
+               ::CppyyLegacy::SysError("TUnixSystem::UnixRecv", "recv");
             if (GetErrno() == EPIPE || GetErrno() == ECONNRESET)
                return -5;
             else
@@ -4271,7 +4277,7 @@ int TUnixSystem::UnixSend(int sock, const void *buffer, int length, int flag)
             return -4;
          else {
             if (GetErrno() != EINTR)
-               ::SysError("TUnixSystem::UnixSend", "send");
+               ::CppyyLegacy::SysError("TUnixSystem::UnixSend", "send");
             if (GetErrno() == EPIPE || GetErrno() == ECONNRESET)
                return -5;
             else
@@ -4454,3 +4460,4 @@ const char *TUnixSystem::FindDynamicLibrary(TString& sLib, Bool_t quiet)
    return 0;
 }
 
+} // namespace CppyyLegacy

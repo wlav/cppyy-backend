@@ -35,7 +35,9 @@
 #include <stdlib.h>
 
 
-ClassImp(TDataMember);
+ClassImp(CppyyLegacy::TDataMember);
+
+namespace CppyyLegacy {
 
 ////////////////////////////////////////////////////////////////////////////////
 /// Default TDataMember ctor. TDataMembers are constructed in TClass
@@ -734,3 +736,5 @@ TOptionListItem::TOptionListItem(TDataMember *d, Long_t val, Long_t valmask,
       fOptLabel = label;
    }
 }
+
+} // namespace CppyyLegacy

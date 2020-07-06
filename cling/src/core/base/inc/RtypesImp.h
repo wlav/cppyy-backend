@@ -19,29 +19,29 @@
 #include "TMemberInspector.h"
 #include "TError.h"
 
-namespace ROOT {
+namespace CppyyLegacy {
 namespace Internal {
    inline void GenericShowMembers(const char *topClassName,
                                   void *obj, TMemberInspector &R__insp,
                                   bool transientMember)
    {
-      Warning("ROOT::Internal::GenericShowMembers", "Please regenerate your dictionaries!");
+      Warning("CppyyLegacy::Internal::GenericShowMembers", "Please regenerate your dictionaries!");
       R__insp.GenericShowMembers(topClassName, obj, transientMember);
    }
 
   class TOperatorNewHelper { };
-}
-}
+} // namespace Internal
+} // namespace CppyyLegacy
 
 // This is to provide a placement operator new on all platforms
-inline void *operator new(size_t /*size*/, ROOT::Internal::TOperatorNewHelper *p)
+inline void *operator new(size_t /*size*/, CppyyLegacy::Internal::TOperatorNewHelper *p)
 {
    return((void*)p);
 }
 
 #ifdef R__PLACEMENTDELETE
 // this should never be used but help quiet down some compiler!
-inline void operator delete(void*, ROOT::Internal::TOperatorNewHelper*) { }
+inline void operator delete(void*, CppyyLegacy::Internal::TOperatorNewHelper*) { }
 #endif
 
 // The STL GenerateInitInstance are not unique and hence are declared static
@@ -50,7 +50,7 @@ inline void operator delete(void*, ROOT::Internal::TOperatorNewHelper*) { }
 #define RootStlStreamer(name,STREAMER)
 #else
 #define RootStlStreamer(name,STREAMER)                               \
-namespace ROOT {                                                     \
+namespace CppyyLegacy {                                              \
    static TGenericClassInfo *GenerateInitInstance(const name*);      \
    static Short_t _R__UNIQUE_(R__dummyStreamer) =                    \
            GenerateInitInstance((name*)0x0)->SetStreamer(STREAMER);  \
@@ -59,6 +59,7 @@ namespace ROOT {                                                     \
 #endif
 
 
+namespace CppyyLegacy {
 #if defined(__cplusplus)
 /* Helper class to avoid compiler warning about casting function pointer
 ** to void pointer.
@@ -91,5 +92,7 @@ typedef union {
    void (*_write)();
 } funcptr_and_voidptr_t;
 #endif
+
+} // namespace CppyyLegacy
 
 #endif

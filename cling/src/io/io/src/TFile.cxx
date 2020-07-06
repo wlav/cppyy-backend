@@ -125,6 +125,12 @@ The structure of a directory is shown in TDirectoryFile::TDirectoryFile
 #include "TGlobal.h"
 #include "ROOT/RMakeUnique.hxx"
 #define Printf TStringPrintf
+
+
+ClassImp(CppyyLegacy::TFile);
+
+namespace CppyyLegacy {
+
 using std::sqrt;
 
 std::atomic<Long64_t> TFile::fgBytesRead{0};
@@ -139,8 +145,6 @@ Bool_t   TFile::fgOnlyStaged = kFALSE;
 
 const Int_t kBEGIN = 100;
 
-ClassImp(TFile);
-
 //*-*x17 macros/layout_file
 // Needed to add the "fake" global gFile to the list of globals.
 namespace {
@@ -148,14 +152,14 @@ static struct AddPseudoGlobals {
 AddPseudoGlobals() {
    // User "gCling" as synonym for "libCoreLegacy static initialization has happened".
    // This code here must not trigger it.
-   TGlobalMappedFunction::MakeFunctor("gFile", "TFile*", TFile::CurrentFile);
+   TGlobalMappedFunction::MakeFunctor("gFile", "CppyyLegacy::TFile*", TFile::CurrentFile);
 }
 } gAddPseudoGlobals;
 }
 ////////////////////////////////////////////////////////////////////////////////
 /// File default Constructor.
 
-TFile::TFile() : TDirectoryFile(), fCompress(ROOT::RCompressionSetting::EAlgorithm::kUseGlobal)
+TFile::TFile() : TDirectoryFile(), fCompress(RCompressionSetting::EAlgorithm::kUseGlobal)
 {
    SetBit(kBinaryFile, kTRUE);
 
@@ -228,10 +232,10 @@ TFile::TFile() : TDirectoryFile(), fCompress(ROOT::RCompressionSetting::EAlgorit
 /// 9   | maximal compression level but slower and might use more memory.
 /// (For the currently supported algorithms, the maximum level is 9)
 /// If compress is negative it indicates the compression level is not set yet.
-/// The enumeration ROOT::RCompressionSetting::EAlgorithm associates each
+/// The enumeration RCompressionSetting::EAlgorithm associates each
 /// algorithm with a number. There is a utility function to help
 /// to set the value of compress. For example,
-///     ROOT::CompressionSettings(ROOT::kLZMA, 1)
+///     CompressionSettings(::CppyyLegacy::kLZMA, 1)
 /// will build an integer which will set the compression to use
 /// the LZMA algorithm and compression level 1.  These are defined
 /// in the header file <em>Compression.h</em>.
@@ -270,7 +274,7 @@ TFile::TFile(const char *fname1, Option_t *option, const char *ftitle, Int_t com
            : TDirectoryFile(), fCompress(compress), fUrl(fname1,kTRUE)
 {
    if (!gROOT)
-      ::Fatal("TFile::TFile", "ROOT system not initialized");
+      ::CppyyLegacy::Fatal("TFile::TFile", "ROOT system not initialized");
 
    // store name without the options as name and title
    TString sfname1 = fname1;
@@ -748,7 +752,7 @@ void TFile::Init(Bool_t create)
       TIter next(fKeys);
       TKey *key;
       while ((key = (TKey*)next())) {
-         if (!strcmp(key->GetClassName(),"TProcessID")) fNProcessIDs++;
+         if (!strcmp(key->GetClassName(),"CppyyLegacy::TProcessID")) fNProcessIDs++;
       }
       fProcessIDs = new TObjArray(fNProcessIDs+1);
    }
@@ -872,7 +876,7 @@ TFile *&TFile::CurrentFile()
    if (!gThreadTsd)
       return currentFile;
    else
-      return *(TFile**)(*gThreadTsd)(&currentFile,ROOT::kFileThreadSlot);
+      return *(TFile**)(*gThreadTsd)(&currentFile,::CppyyLegacy::kFileThreadSlot);
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -1100,7 +1104,7 @@ const TList *TFile::GetStreamerInfoCache()
 
 TFile::InfoListRet TFile::GetStreamerInfoListImpl(bool lookupSICache)
 {
-   ROOT::Internal::HashValue hash;
+   Internal::HashValue hash;
 
    if (fIsPcmFile) return {nullptr, 1, hash}; // No schema evolution for ROOT PCM files.
 
@@ -1687,7 +1691,7 @@ Int_t TFile::Recover()
       TDatime::GetDateTime(datime, date, time);
       TClass *tclass = TClass::GetClass(classname);
       if (seekpdir == fSeekDir && tclass && !tclass->InheritsFrom(TFile::Class())
-                               && strcmp(classname,"TBasket")) {
+                               && strcmp(classname,"CppyyLegacy::TBasket")) {
          key = new TKey(this);
          key->ReadKeyBuffer(bufread);
          if (!strcmp(key->GetName(),"StreamerInfo")) {
@@ -1871,9 +1875,9 @@ void TFile::Seek(Long64_t offset, ERelativeTo pos)
 
 void TFile::SetCompressionAlgorithm(Int_t algorithm)
 {
-   if (algorithm < 0 || algorithm >= ROOT::RCompressionSetting::EAlgorithm::kUndefined) algorithm = 0;
+   if (algorithm < 0 || algorithm >= RCompressionSetting::EAlgorithm::kUndefined) algorithm = 0;
    if (fCompress < 0) {
-      fCompress = 100 * algorithm + ROOT::RCompressionSetting::ELevel::kUseMin;
+      fCompress = 100 * algorithm + RCompressionSetting::ELevel::kUseMin;
    } else {
       int level = fCompress % 100;
       fCompress = 100 * algorithm + level;
@@ -1892,7 +1896,7 @@ void TFile::SetCompressionLevel(Int_t level)
       fCompress = level;
    } else {
       int algorithm = fCompress / 100;
-      if (algorithm >= ROOT::RCompressionSetting::EAlgorithm::kUndefined) algorithm = 0;
+      if (algorithm >= RCompressionSetting::EAlgorithm::kUndefined) algorithm = 0;
       fCompress = 100 * algorithm + level;
    }
 }
@@ -2380,8 +2384,8 @@ void TFile::WriteStreamerInfo()
                if (gDebug > 0) printf(" -class: %s stored the I/O customization rules\n",info->GetName());
 
                TObjArrayIter it( clinfo->GetSchemaRules()->GetRules() );
-               ROOT::TSchemaRule *rule;
-               while( (rule = (ROOT::TSchemaRule*)it.Next()) ) {
+               TSchemaRule *rule;
+               while( (rule = (TSchemaRule*)it.Next()) ) {
                   TObjString *obj = new TObjString();
                   rule->AsString(obj->String());
                   listOfRules.Add(obj);
@@ -2393,7 +2397,7 @@ void TFile::WriteStreamerInfo()
    }
 
    // Write the StreamerInfo list even if it is empty.
-   fClassIndex->fArray[0] = 2; //to prevent adding classes in TStreamerInfo::TagFile
+   fClassIndex->fArray[0] = 2;
 
    if (listOfRules.GetEntries()) {
       // Only add the list of rules if we have something to say.
@@ -2447,7 +2451,7 @@ TFile *TFile::Open(const char *url, Option_t *options, const char *ftitle,
 
    // Check input
    if (!url || strlen(url) <= 0) {
-      ::Error("TFile::Open", "no url specified");
+      ::CppyyLegacy::Error("TFile::Open", "no url specified");
       return f;
    }
 
@@ -2465,7 +2469,7 @@ TFile *TFile::Open(const char *url, Option_t *options, const char *ftitle,
       if (!(sto.IsNull())) {
          // Timeout in millisecs
          Int_t toms = sto.Atoi() * 1000;
-         if (gDebug > 0) ::Info("TFile::Open", "timeout of %d millisec requested", toms);
+         if (gDebug > 0) ::CppyyLegacy::Info("TFile::Open", "timeout of %d millisec requested", toms);
          // Remove from the options field
          sto.Insert(0, "TIMEOUT=");
          opts.ReplaceAll(sto, "");
@@ -2479,21 +2483,21 @@ TFile *TFile::Open(const char *url, Option_t *options, const char *ftitle,
             f = TFile::Open(fh);
             if (gDebug > 0) {
                if (aos == TFile::kAOSSuccess)
-                  ::Info("TFile::Open", "waited %d millisec for asynchronous open", toms - xtms);
+                  ::CppyyLegacy::Info("TFile::Open", "waited %d millisec for asynchronous open", toms - xtms);
                else
-                  ::Info("TFile::Open", "timeout option not supported (requires asynchronous"
+                  ::CppyyLegacy::Info("TFile::Open", "timeout option not supported (requires asynchronous"
                                         " open support)");
             }
          } else {
             if (xtms <= 0)
-               ::Error("TFile::Open", "timeout expired while opening '%s'", expandedUrl.Data());
+               ::CppyyLegacy::Error("TFile::Open", "timeout expired while opening '%s'", expandedUrl.Data());
             // Cleanup the request
             SafeDelete(fh);
          }
          // Done
          return f;
       } else {
-         ::Warning("TFile::Open", "incomplete 'TIMEOUT=' option specification - ignored");
+         ::CppyyLegacy::Warning("TFile::Open", "incomplete 'TIMEOUT=' option specification - ignored");
          opts.ReplaceAll("TIMEOUT=", "");
       }
    }
@@ -2616,7 +2620,7 @@ TFileOpenHandle *TFile::AsyncOpen(const char *url, Option_t *option,
 
    // Check input
    if (!url || strlen(url) <= 0) {
-      ::Error("TFile::AsyncOpen", "no url specified");
+      ::CppyyLegacy::Error("TFile::AsyncOpen", "no url specified");
       return fh;
    }
 
@@ -3111,7 +3115,7 @@ Bool_t TFile::Cp(const char *dst, Bool_t /* progressbar */, UInt_t buffersize)
 
    // Open destination file
    if (!(dfile = TFile::Open(dURL.GetUrl(), oopt))) {
-      ::Error("TFile::Cp", "cannot open destination file %s", dst);
+      ::CppyyLegacy::Error("TFile::Cp", "cannot open destination file %s", dst);
       goto copyout;
    }
 
@@ -3124,7 +3128,7 @@ Bool_t TFile::Cp(const char *dst, Bool_t /* progressbar */, UInt_t buffersize)
 
    copybuffer = new char[buffersize];
    if (!copybuffer) {
-      ::Error("TFile::Cp", "cannot allocate the copy buffer");
+      ::CppyyLegacy::Error("TFile::Cp", "cannot allocate the copy buffer");
       goto copyout;
    }
 
@@ -3153,7 +3157,7 @@ Bool_t TFile::Cp(const char *dst, Bool_t /* progressbar */, UInt_t buffersize)
       readop = sfile->ReadBuffer(copybuffer, (Int_t)readsize);
       read   = sfile->GetBytesRead() - b0;
       if ((read <= 0) || readop) {
-         ::Error("TFile::Cp", "cannot read from source file %s. readsize=%lld read=%lld readop=%d",
+         ::CppyyLegacy::Error("TFile::Cp", "cannot read from source file %s. readsize=%lld read=%lld readop=%d",
                               sfile->GetName(), readsize, read, readop);
          goto copyout;
       }
@@ -3162,7 +3166,7 @@ Bool_t TFile::Cp(const char *dst, Bool_t /* progressbar */, UInt_t buffersize)
       writeop = dfile->WriteBuffer(copybuffer, (Int_t)read);
       written = dfile->GetBytesWritten() - w0;
       if ((written != read) || writeop) {
-         ::Error("TFile::Cp", "cannot write %lld bytes to destination file %s", read, dst);
+         ::CppyyLegacy::Error("TFile::Cp", "cannot write %lld bytes to destination file %s", read, dst);
          goto copyout;
       }
       totalread += read;
@@ -3211,7 +3215,7 @@ Bool_t TFile::Cp(const char *src, const char *dst, Bool_t progressbar,
 
    // Open source file
    if (!(sfile = TFile::Open(sURL.GetUrl(), "READ"))) {
-      ::Error("TFile::Cp", "cannot open source file %s", src);
+      ::CppyyLegacy::Error("TFile::Cp", "cannot open source file %s", src);
    } else {
       success = sfile->Cp(dst, progressbar, buffersize);
    }
@@ -3223,3 +3227,5 @@ Bool_t TFile::Cp(const char *src, const char *dst, Bool_t progressbar,
 
    return success;
 }
+
+} // using namespace CppyyLegacy

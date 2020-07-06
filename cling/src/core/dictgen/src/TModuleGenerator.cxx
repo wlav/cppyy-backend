@@ -37,8 +37,11 @@
 
 #include <iostream>
 
-using namespace ROOT;
+
+using namespace CppyyLegacy;
 using namespace clang;
+
+namespace CppyyLegacy {
 
 ////////////////////////////////////////////////////////////////////////////////
 
@@ -65,12 +68,12 @@ TModuleGenerator::TModuleGenerator(CompilerInstance *CI,
    }
 
    fModuleFileName = fModuleDirName
-                     + ROOT::TMetaUtils::GetModuleFileName(fDictionaryName.c_str());
+                     + CppyyLegacy::TMetaUtils::GetModuleFileName(fDictionaryName.c_str());
 
    // Clean the dictionary name from characters which are not accepted in C++
    std::string tmpName = fDictionaryName;
    fDictionaryName.clear();
-   ROOT::TMetaUtils::GetCppName(fDictionaryName, tmpName.c_str());
+   CppyyLegacy::TMetaUtils::GetCppName(fDictionaryName, tmpName.c_str());
 
    // .pcm -> .pch
    if (IsPCH()) fModuleFileName[fModuleFileName.length() - 1] = 'h';
@@ -97,7 +100,7 @@ TModuleGenerator::GetSourceFileKind(const char *filename) const
 {
    if (filename[0] == '-') return kSFKNotC;
 
-   if (ROOT::TMetaUtils::IsLinkdefFile(filename)) {
+   if (CppyyLegacy::TMetaUtils::IsLinkdefFile(filename)) {
       return kSFKLinkdef;
    }
 
@@ -285,7 +288,7 @@ std::ostream &TModuleGenerator::WritePPIncludes(std::ostream &out) const
       if (fInlineInputHeaders){
          bool headerFound = FindHeader(incl,fullHeaderPath);
          if (!headerFound){
-            ROOT::TMetaUtils::Error(0, "Cannot find header %s: cannot inline it.\n", fullHeaderPath.c_str());
+            CppyyLegacy::TMetaUtils::Error(0, "Cannot find header %s: cannot inline it.\n", fullHeaderPath.c_str());
             continue;
          }
 
@@ -367,7 +370,7 @@ void TModuleGenerator::WriteRegistrationSourceImpl(std::ostream& out,
        << "\n};\n";
    out << "    static bool isInitialized = false;\n"
           "    if (!isInitialized) {\n"
-          "      TROOT::RegisterModule(\"" << demangledDictName << "\",\n"
+          "      ::CppyyLegacy::TROOT::RegisterModule(\"" << demangledDictName << "\",\n"
           "        headers, includePaths, payloadCode, fwdDeclCode,\n"
           "        TriggerDictionaryInitialization_" << dictName << "_Impl, "
                      << fwdDeclnArgsToKeepString << ", classesHeaders, "
@@ -463,7 +466,7 @@ void TModuleGenerator::WriteRegistrationSource(std::ostream &out, const std::str
    auto findAndAddToInlineHeaders = [&](const std::string& hdrName) {
       bool headerFound = FindHeader(hdrName,hdrFullPath);
       if (!headerFound) {
-         ROOT::TMetaUtils::Error(0, "Cannot find header %s: cannot inline it.\n", hdrName.c_str());
+         CppyyLegacy::TMetaUtils::Error(0, "Cannot find header %s: cannot inline it.\n", hdrName.c_str());
       } else {
          std::ifstream headerFile(hdrFullPath.c_str());
          const std::string headerFileAsStr((std::istreambuf_iterator<char>(headerFile)),
@@ -529,13 +532,13 @@ void TModuleGenerator::WriteRegistrationSource(std::ostream &out, const std::str
 ////////////////////////////////////////////////////////////////////////////////
 /// Write a header file describing the content of this module
 /// through a series of variables inside the namespace
-/// ROOT::Dict::[DictionaryName]. Each variable is an array of string
+/// CppyyLegacy::Dict::[DictionaryName]. Each variable is an array of string
 /// literals, with a const char* of 0 being the last element, e.g.
-/// ROOT::Dict::_DictName::arrIncludes[] = { "A.h", "B.h", 0 };
+/// CppyyLegacy::Dict::_DictName::arrIncludes[] = { "A.h", "B.h", 0 };
 
 void TModuleGenerator::WriteContentHeader(std::ostream &out) const
 {
-   out << "namespace ROOT { namespace Dict { namespace _"
+   out << "namespace CppyyLegacy { namespace Dict { namespace _"
        << GetDictionaryName() << "{\n";
 
    out << "const char* arrIncludes[] = {\n";
@@ -563,7 +566,7 @@ bool TModuleGenerator::FindHeader(const std::string &hdrName, std::string &hdrFu
    if (llvm::sys::fs::exists(hdrFullPath))
       return true;
    for (auto const &incDir : fCompI) {
-      hdrFullPath = incDir + ROOT::TMetaUtils::GetPathSeparator() + hdrName;
+      hdrFullPath = incDir + CppyyLegacy::TMetaUtils::GetPathSeparator() + hdrName;
       if (llvm::sys::fs::exists(hdrFullPath)) {
          return true;
       }
@@ -598,3 +601,5 @@ void TModuleGenerator::WriteUmbrellaHeader(std::ostream &out) const
    WritePPUndefines(out);
    WritePPIncludes(out);
 }
+
+} // namespace CppyyLegacy

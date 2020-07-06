@@ -20,9 +20,10 @@
 #include "TROOT.h"
 #include "Riostream.h"
 
-ClassImp(TSchemaRule);
 
-using namespace ROOT;
+ClassImp(CppyyLegacy::TSchemaRule);
+
+namespace CppyyLegacy {
 
 namespace {
    static Bool_t IsIrrelevantCharacter(char c)
@@ -325,14 +326,14 @@ Bool_t TSchemaRule::SetFromRule( const char *rule )
    // Parse the rule and check it's validity
    /////////////////////////////////////////////////////////////////////////////
 
-   ROOT::Internal::MembersMap_t rule_values;
+   Internal::MembersMap_t rule_values;
 
    std::string error_string;
-   if( !ROOT::ParseRule(rule, rule_values, error_string) ) {
+   if( !ParseRule(rule, rule_values, error_string) ) {
       Error("SetFromRule","The rule (%s) is invalid: %s",rule,error_string.c_str());
       return kFALSE;
    }
-   ROOT::Internal::MembersMap_t::const_iterator it1;
+   Internal::MembersMap_t::const_iterator it1;
 
    it1 = rule_values.find( "type" );
    if( it1 != rule_values.end() ) {
@@ -457,7 +458,7 @@ Bool_t TSchemaRule::TestChecksum( UInt_t checksum ) const
 void TSchemaRule::SetSourceClass( const TString& classname )
 {
    std::string normalizedName;
-   TClassEdit::GetNormalizedName(normalizedName, classname);
+   TClassEdit::GetNormalizedName(normalizedName, classname.Data());
    fSourceClass = normalizedName;
 }
 
@@ -475,7 +476,7 @@ const char *TSchemaRule::GetSourceClass() const
 void TSchemaRule::SetTargetClass( const TString& classname )
 {
    std::string normalizedName;
-   TClassEdit::GetNormalizedName(normalizedName, classname);
+   TClassEdit::GetNormalizedName(normalizedName, classname.Data());
    fTargetClass = normalizedName;
 }
 
@@ -974,8 +975,8 @@ void TSchemaRule::ProcessList( TObjArray* array, const TString& list )
 
 void TSchemaRule::ProcessDeclaration( TObjArray* array, const TString& list )
 {
-   std::list<std::pair<ROOT::Internal::TSchemaType,std::string> >           elems;
-   std::list<std::pair<ROOT::Internal::TSchemaType,std::string> >::iterator it;
+   std::list<std::pair<Internal::TSchemaType,std::string> >           elems;
+   std::list<std::pair<Internal::TSchemaType,std::string> >::iterator it;
    Internal::TSchemaRuleProcessor::SplitDeclaration( (const char*)list, elems );
 
    array->Clear();
@@ -989,31 +990,4 @@ void TSchemaRule::ProcessDeclaration( TObjArray* array, const TString& list )
    }
 }
 
-#if 0
-////////////////////////////////////////////////////////////////////////////////
-/// Generate the actual function for the rule.
-
-Bool_t TSchemaRule::GenerateFor( TStreamerInfo *info )
-{
-   String funcname = fSourceClass + "_to_" + fTargetClass;
-   if (info) funcname += "_v" + info->GetClassVersion();
-   TString names = fSource + "_" + fTarget;
-   name.ReplaceAll(',','_');
-   name.ReplaceAll(':','_');
-   funcname += "_" + name;
-
-   String filename = funcname + ".C";
-   if (!false) {
-      filename += '+';
-   }
-
-   std::ofstream fileout(filename);
-
-
-      ROOT::WriteReadRawRuleFunc( *rIt, 0, mappedname, nameTypeMap, fileout );
-      ROOT::WriteReadRuleFunc( *rIt, 0, mappedname, nameTypeMap, fileout );
-
-   gROOT->LoadMacro(filename);
-}
-
-#endif
+} // namespace CppyyLegacy

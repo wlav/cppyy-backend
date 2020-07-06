@@ -14,7 +14,7 @@
 #include "clang/Lex/Preprocessor.h"
 
 
-namespace ROOT {
+namespace CppyyLegacy {
  namespace Internal {
 
     ////////////////////////////////////////////////////////////////////////////////
@@ -93,6 +93,6 @@ namespace ROOT {
           Tok.setKind(clang::tok::semi);
        }
     };
+}
 
-}
-}
+} // namespace CppyyLegacy

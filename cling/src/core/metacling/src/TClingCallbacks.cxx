@@ -36,9 +36,13 @@
 #include "TClingUtils.h"
 #include "ClingRAII.h"
 
+
 using namespace clang;
 using namespace cling;
-using namespace ROOT::Internal;
+
+namespace CppyyLegacy {
+
+using namespace Internal;
 
 class TObject;
 
@@ -49,7 +53,7 @@ extern "C" {
    void TCling__UpdateListsOnUnloaded(const cling::Transaction&);
    void TCling__InvalidateGlobal(const clang::Decl*);
    void TCling__TransactionRollback(const cling::Transaction&);
-   void TCling__GetNormalizedContext(const ROOT::TMetaUtils::TNormalizedCtxt*&);
+   void TCling__GetNormalizedContext(const CppyyLegacy::TMetaUtils::TNormalizedCtxt*&);
    Decl* TCling__GetObjectDecl(TObject *obj);
    int TCling__AutoLoadCallback(const char* className);
    int TCling__AutoParseCallback(const char* className);
@@ -80,7 +84,7 @@ TClingCallbacks::TClingCallbacks(cling::Interpreter* interp, bool hasCodeGen)
      fIsAutoParsingSuspended(false), fPPOldFlag(false), fPPChanged(false) {
    if (hasCodeGen) {
       Transaction* T = 0;
-      m_Interpreter->declare("namespace __ROOT_SpecialObjects{}", &T);
+      m_Interpreter->declare("namespace __CppyyLegacy_SpecialObjects{}", &T);
       fROOTSpecialNamespace = dyn_cast<NamespaceDecl>(T->getFirstDecl().getSingleDecl());
    }
 }
@@ -102,7 +106,7 @@ void TClingCallbacks::InclusionDirective(clang::SourceLocation sLoc/*HashLoc*/,
    if (Imported) {
       // FIXME: We should make the module visible at that point.
       if (!SemaR.isModuleVisible(Imported))
-         ROOT::TMetaUtils::Info("TClingCallbacks::InclusionDirective",
+         CppyyLegacy::TMetaUtils::Info("TClingCallbacks::InclusionDirective",
                                 "Module %s resolved but not visible!", Imported->Name.c_str());
       else
         return;
@@ -364,9 +368,9 @@ bool TClingCallbacks::LookupObject(clang::TagDecl* Tag) {
 
       // Use the Normalized name for the autoload
       std::string Name;
-      const ROOT::TMetaUtils::TNormalizedCtxt* tNormCtxt = NULL;
+      const CppyyLegacy::TMetaUtils::TNormalizedCtxt* tNormCtxt = NULL;
       TCling__GetNormalizedContext(tNormCtxt);
-      ROOT::TMetaUtils::GetNormalizedName(Name,
+      CppyyLegacy::TMetaUtils::GetNormalizedName(Name,
                                           C.getTypeDeclType(RD),
                                           *m_Interpreter,
                                           *tNormCtxt);
@@ -633,7 +637,7 @@ bool TClingCallbacks::tryInjectImplicitAutoKeyword(LookupResult &R, Scope *S) {
                                      /*TypeSourceInfo*/0, SC_None);
 
    if (!Result) {
-      ROOT::TMetaUtils::Error("TClingCallbacks::tryInjectImplicitAutoKeyword",
+      CppyyLegacy::TMetaUtils::Error("TClingCallbacks::tryInjectImplicitAutoKeyword",
                               "Cannot create VarDecl");
       return false;
    }
@@ -808,3 +812,5 @@ void TCling__FindLoadedLibraries(std::vector<std::pair<uint32_t, std::string>> &
       SearchAndAddPath(Info.Path, sLibraries, sPaths, alreadyLookedPath, dyLibManager);
    }
 }
+
+} // namespace CppyyLegacy

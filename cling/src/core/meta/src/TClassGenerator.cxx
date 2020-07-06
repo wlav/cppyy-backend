@@ -16,10 +16,12 @@ to implement a user customized way to create the TClass objects.
 Use TROOT::AddClassGenerator to register a concrete instance.
 */
 
-
 #include "TClassGenerator.h"
 
-ClassImp(TClassGenerator);
+
+ClassImp(CppyyLegacy::TClassGenerator);
+
+namespace CppyyLegacy {
 
 //////////////////////////////////////////////////////////////////////////
 TClass *TClassGenerator::GetClass(const char* classname, Bool_t load, Bool_t /* silent */)
@@ -34,3 +36,5 @@ TClass *TClassGenerator::GetClass(const std::type_info& typeinfo, Bool_t load, B
    // Default implementation for backward compatibility ignoring the value of 'silent'
    return GetClass(typeinfo,load);
 }
+
+} // namespace CppyyLegacy

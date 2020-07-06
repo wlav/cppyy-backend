@@ -19,7 +19,10 @@ This class describes one single function template.
 #include "TClass.h"
 #include "TROOT.h"
 
-ClassImp(TFunctionTemplate);
+
+ClassImp(CppyyLegacy::TFunctionTemplate);
+
+namespace CppyyLegacy {
 
 ////////////////////////////////////////////////////////////////////////////////
 /// Default TFunctionTemplate ctor.
@@ -160,3 +163,4 @@ Bool_t TFunctionTemplate::Update(FuncTempInfo_t *info)
    }
 }
 
+} // namespace CppyyLegacy

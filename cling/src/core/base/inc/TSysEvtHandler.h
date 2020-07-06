@@ -31,6 +31,11 @@
 //                                                                      //
 //////////////////////////////////////////////////////////////////////////
 
+
+namespace std { class exception; }
+
+namespace CppyyLegacy {
+
 enum ESignals {
    kSigBus,
    kSigSegmentationViolation,
@@ -98,8 +103,6 @@ inline void TSignalHandler::HandleDelayedSignal()
 //                                                                      //
 //////////////////////////////////////////////////////////////////////////
 
-namespace std { class exception; }
-
 class TStdExceptionHandler : public TObject {
 
 public:
@@ -116,5 +119,7 @@ public:
 
    ClassDef(TStdExceptionHandler,0)  //C++ exception handler
 };
+
+} // namespace CppyyLegacy
 
 #endif

@@ -23,10 +23,11 @@
 //////////////////////////////////////////////////////////////////////////
 
 #include "THashList.h"
-
 #include "THashTable.h"
-
 #include "TDictionary.h"
+
+
+namespace CppyyLegacy {
 
 class TExMap;
 class TFunctionTemplate;
@@ -87,4 +88,5 @@ public:
    ClassDef(TListOfFunctionTemplates,0);  // List of TFunctions for a class
 };
 
+} // namespace CppyyLegacy
 #endif // ROOT_TListOfFunctionTemplates

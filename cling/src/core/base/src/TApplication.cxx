@@ -40,13 +40,17 @@ TApplication (see TRint).
 #include "TMethod.h"
 #include "TDataMember.h"
 #include <stdlib.h>
+
+
+ClassImp(CppyyLegacy::TApplication);
+
+namespace CppyyLegacy {
+
 #define Printf TStringPrintf
 TApplication *gApplication = 0;
 TList *TApplication::fgApplications = 0;  // List of available applications
 
 ////////////////////////////////////////////////////////////////////////////////
-
-ClassImp(TApplication);
 
 static void CallEndOfProcessCleanups()
 {
@@ -109,10 +113,10 @@ TApplication::TApplication(const char *appClassName, Int_t *argc, char **argv,
    }
 
    if (!gROOT)
-      ::Fatal("TApplication::TApplication", "ROOT system not initialized");
+      ::CppyyLegacy::Fatal("TApplication::TApplication", "ROOT system not initialized");
 
    if (!gSystem)
-      ::Fatal("TApplication::TApplication", "gSystem not initialized");
+      ::CppyyLegacy::Fatal("TApplication::TApplication", "gSystem not initialized");
 
    static Bool_t hasRegisterAtExit(kFALSE);
    if (!hasRegisterAtExit) {
@@ -327,3 +331,5 @@ TList *TApplication::GetApplications()
 {
    return fgApplications;
 }
+
+} // namespace CppyyLegacy

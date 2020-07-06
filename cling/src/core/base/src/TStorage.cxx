@@ -14,9 +14,7 @@
 
 Storage manager. The storage manager works best in conjunction with
 the custom ROOT new and delete operators defined in the file
-NewDelete.cxx (libNew.so). Only when using the custom allocation
-operators will memory usage statistics be gathered using the
-TStorage EnterStat(), RemoveStat(), etc. functions.
+NewDelete.cxx (libNew.so).
 Memory checking is by default enabled (when using libNew.so) and
 usage statistics is gathered. Using the resource (in .rootrc):
 Root.MemStat one can toggle statistics gathering on or off. More
@@ -38,6 +36,8 @@ and statistics gathering in the system.
 #include "TString.h"
 #include "TVirtualMutex.h"
 #include "TInterpreter.h"
+
+#define R__NOSTATS 1
 
 #if !defined(R__NOSTATS)
 #   define MEM_DEBUG
@@ -61,6 +61,12 @@ and statistics gathering in the system.
 
 #define PVOID (-1)
 #define Printf TStringPrintf
+
+
+ClassImp(CppyyLegacy::TStorage);
+
+namespace CppyyLegacy {
+
 size_t        TStorage::fgMaxBlockSize;
 FreeHookFun_t TStorage::fgFreeHook;
 void         *TStorage::fgFreeHookData;
@@ -68,82 +74,16 @@ ReAllocFun_t  TStorage::fgReAllocHook;
 ReAllocCFun_t TStorage::fgReAllocCHook;
 Bool_t        TStorage::fgHasCustomNewDelete;
 
-
-ClassImp(TStorage);
-
 //------------------------------------------------------------------------------
 
 static const char *gSpaceErr = "storage exhausted";
 
 const size_t kObjMaxSize = 10024;
 
-static Bool_t   gMemStatistics;
-static Int_t    gAllocated[kObjMaxSize], gFreed[kObjMaxSize];
-static Int_t    gAllocatedTotal, gFreedTotal;
-static void   **gTraceArray = 0;
-static Int_t    gTraceCapacity = 10, gTraceIndex = 0,
-                gMemSize = -1, gMemIndex = -1;
-
 // Used in NewDelete.cxx; set by TMapFile.
-ROOT::Internal::FreeIfTMapFile_t *ROOT::Internal::gFreeIfTMapFile = nullptr;
-void *ROOT::Internal::gMmallocDesc = 0; //is used and set in TMapFile
+Internal::FreeIfTMapFile_t *Internal::gFreeIfTMapFile = nullptr;
+void *Internal::gMmallocDesc = 0; //is used and set in TMapFile
 
-
-
-////////////////////////////////////////////////////////////////////////////////
-/// Register a memory allocation operation. If desired one can trap an
-/// allocation of a certain size in case one tries to find a memory
-/// leak of that particular size. This function is only called via
-/// the ROOT custom new operators.
-
-void TStorage::EnterStat(size_t size, void *p)
-{
-   TStorage::SetMaxBlockSize(TMath::Max(TStorage::GetMaxBlockSize(), size));
-
-   if (!gMemStatistics) return;
-
-   if ((Int_t)size == gMemSize) {
-      if (gTraceIndex == gMemIndex)
-         Fatal("EnterStat", "trapped allocation %d", gMemIndex);
-
-      if (!gTraceArray)
-         gTraceArray = (void**) malloc(sizeof(void*)*gTraceCapacity);
-
-      if (gTraceIndex >= gTraceCapacity) {
-         gTraceCapacity = gTraceCapacity*2;
-         gTraceArray = (void**) realloc(gTraceArray, sizeof(void*)*gTraceCapacity);
-      }
-      gTraceArray[gTraceIndex++] = p;
-   }
-   if (size >= kObjMaxSize)
-      gAllocated[kObjMaxSize-1]++;
-   else
-      gAllocated[size]++;
-   gAllocatedTotal += size;
-}
-
-////////////////////////////////////////////////////////////////////////////////
-/// Register a memory free operation. This function is only called via
-/// the custom ROOT delete operator.
-
-void TStorage::RemoveStat(void *vp)
-{
-   if (!gMemStatistics) return;
-
-   size_t size = storage_size(vp);
-   if ((Int_t)size == gMemSize) {
-      for (int i = 0; i < gTraceIndex; i++)
-         if (gTraceArray[i] == vp) {
-            gTraceArray[i] = 0;
-            break;
-         }
-   }
-   if (size >= kObjMaxSize)
-      gFreed[kObjMaxSize-1]++;
-   else
-      gFreed[size]++;
-   gFreedTotal += size;
-}
 
 ////////////////////////////////////////////////////////////////////////////////
 /// Allocate a block of memory, that later can be resized using
@@ -182,8 +122,8 @@ void TStorage::Dealloc(void *ptr)
 
 void *TStorage::ReAlloc(void *ovp, size_t size)
 {
-   ::Obsolete("ReAlloc(void*,size_t)", "v5-34-00", "v6-02-00");
-   ::Info("ReAlloc(void*,size_t)", "please use ReAlloc(void*,size_t,size_t)");
+   ::CppyyLegacy::Obsolete("ReAlloc(void*,size_t)", "v5-34-00", "v6-02-00");
+   ::CppyyLegacy::Info("ReAlloc(void*,size_t)", "please use ReAlloc(void*,size_t,size_t)");
 
    static const char *where = "TStorage::ReAlloc";
 
@@ -384,69 +324,12 @@ void TStorage::SetReAllocHooks(ReAllocFun_t rh1, ReAllocCFun_t rh2)
    fgReAllocCHook = rh2;
 }
 
-////////////////////////////////////////////////////////////////////////////////
-/// Print memory usage statistics.
-
-void TStorage::PrintStatistics()
-{
-   // Needs to be protected by global mutex
-   R__LOCKGUARD(gGlobalMutex);
-
-#if defined(MEM_DEBUG) && defined(MEM_STAT)
-
-   if (!gMemStatistics || !HasCustomNewDelete())
-      return;
-
-   //Printf("");
-   Printf("Heap statistics");
-   Printf("%12s%12s%12s%12s", "size", "alloc", "free", "diff");
-   Printf("================================================");
-
-   int i;
-   for (i = 0; i < (int)kObjMaxSize; i++)
-      if (gAllocated[i] != gFreed[i])
-      //if (gAllocated[i])
-         Printf("%12d%12d%12d%12d", i, gAllocated[i], gFreed[i],
-                gAllocated[i]-gFreed[i]);
-
-   if (gAllocatedTotal != gFreedTotal) {
-      Printf("------------------------------------------------");
-      Printf("Total:      %12d%12d%12d", gAllocatedTotal, gFreedTotal,
-              gAllocatedTotal-gFreedTotal);
-   }
-
-   if (gMemSize != -1) {
-      Printf("------------------------------------------------");
-      for (i= 0; i < gTraceIndex; i++)
-         if (gTraceArray[i])
-            Printf("block %d of size %d not freed", i, gMemSize);
-   }
-   Printf("================================================");
-   Printf(" ");
-#endif
-}
-
-////////////////////////////////////////////////////////////////////////////////
-/// Enable memory usage statistics gathering. Size is the size of the memory
-/// block that should be trapped and ix is after how many such allocations
-/// the trap should happen.
-
-void TStorage::EnableStatistics(int size, int ix)
-{
-#ifdef MEM_STAT
-   gMemSize       = size;
-   gMemIndex      = ix;
-   gMemStatistics = kTRUE;
-#else
-   int idum = size; int iidum = ix;
-#endif
-}
 
 ////////////////////////////////////////////////////////////////////////////////
 
 ULong_t TStorage::GetHeapBegin()
 {
-   ::Obsolete("GetHeapBegin()", "v5-34-00", "v6-02-00");
+   ::CppyyLegacy::Obsolete("GetHeapBegin()", "v5-34-00", "v6-02-00");
    //return begin of heap
    return 0;
 }
@@ -455,7 +338,7 @@ ULong_t TStorage::GetHeapBegin()
 
 ULong_t TStorage::GetHeapEnd()
 {
-   ::Obsolete("GetHeapBegin()", "v5-34-00", "v6-02-00");
+   ::CppyyLegacy::Obsolete("GetHeapBegin()", "v5-34-00", "v6-02-00");
    //return end of heap
    return 0;
 }
@@ -490,7 +373,7 @@ void TStorage::SetCustomNewDelete()
 
 void TStorage::AddToHeap(ULong_t, ULong_t)
 {
-   ::Obsolete("AddToHeap(ULong_t,ULong_t)", "v5-34-00", "v6-02-00");
+   ::CppyyLegacy::Obsolete("AddToHeap(ULong_t,ULong_t)", "v5-34-00", "v6-02-00");
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -498,7 +381,8 @@ void TStorage::AddToHeap(ULong_t, ULong_t)
 
 Bool_t TStorage::IsOnHeap(void *)
 {
-   ::Obsolete("IsOnHeap(void*)", "v5-34-00", "v6-02-00");
+   ::CppyyLegacy::Obsolete("IsOnHeap(void*)", "v5-34-00", "v6-02-00");
    return false;
 }
 
+} // namespace CppyyLegacy

@@ -32,6 +32,9 @@ namespace cling {
    class Interpreter;
 }
 
+
+namespace CppyyLegacy {
+
 class SelectionRules;
 class PragmaCreateCollector;
 class PragmaLinkCollector;
@@ -42,7 +45,7 @@ class LinkdefReader {
 
 public:
    LinkdefReader(cling::Interpreter &interp,
-                 ROOT::TMetaUtils::RConstructorTypes &IOConstructorTypes);
+                 CppyyLegacy::TMetaUtils::RConstructorTypes &IOConstructorTypes);
 
    bool LoadIncludes(std::string &extraInclude);
    bool Parse(SelectionRules &sr, llvm::StringRef code, const std::vector<std::string> &parserArgs, const char *llvmdir);
@@ -59,7 +62,7 @@ private:
    long fCount; // Number of rules created so far.
    SelectionRules    *fSelectionRules;     // set of rules being filleed.
    std::string        fIncludes;           // Extra set of file to be included by the intepreter.
-   ROOT::TMetaUtils::RConstructorTypes *fIOConstructorTypesPtr; // List of values of #pragma ioctortype
+   CppyyLegacy::TMetaUtils::RConstructorTypes *fIOConstructorTypesPtr; // List of values of #pragma ioctortype
    cling::Interpreter &fInterp;            // Our interpreter
 
    enum EPragmaNames { // the processed pragma attributes
@@ -111,5 +114,6 @@ private:
    bool IsPatternRule(const std::string &rule_token); // is it name or pattern
 };
 
+} // namespace CppyyLegacy
 #endif
 

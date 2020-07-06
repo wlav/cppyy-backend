@@ -24,6 +24,9 @@
 //                                                                      //
 //////////////////////////////////////////////////////////////////////////
 
+
+namespace CppyyLegacy {
+
 class TClassStreamer {
 protected:
    TClassStreamer() : fStreamer(0) {};
@@ -73,4 +76,5 @@ protected:
    TClassRef           fOnFileClass;
 };
 
+} // namespace CppyyLegacy
 #endif

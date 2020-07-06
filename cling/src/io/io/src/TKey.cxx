@@ -63,6 +63,11 @@
 
 #include "RZip.h"
 
+
+ClassImp(TKey);
+
+namespace CppyyLegacy {
+
 const Int_t kTitleMax = 32000;
 #if 0
 const Int_t kMAXFILEBUFFER = 262144;
@@ -76,12 +81,10 @@ const ULong64_t kPidOffsetMask = 0xffffffffffffUL;
 const UChar_t kPidOffsetShift = 48;
 
 TString &gTDirectoryString() {
-   TTHREAD_TLS_DECL_ARG(TString,gTDirectoryString,"TDirectory");
+   TTHREAD_TLS_DECL_ARG(TString,gTDirectoryString,"CppyyLegacy::TDirectory");
    return gTDirectoryString;
 }
 std::atomic<UInt_t> keyAbsNumber{0};
-
-ClassImp(TKey);
 
 ////////////////////////////////////////////////////////////////////////////////
 /// TKey default constructor.
@@ -250,7 +253,7 @@ TKey::TKey(const TObject *obj, const char *name, Int_t bufsize, TDirectory* moth
    fObjlen    = lbuf - fKeylen;
 
    Int_t cxlevel = GetFile() ? GetFile()->GetCompressionLevel() : 0;
-   ROOT::RCompressionSetting::EAlgorithm::EValues cxAlgorithm = static_cast<ROOT::RCompressionSetting::EAlgorithm::EValues>(GetFile() ? GetFile()->GetCompressionAlgorithm() : 0);
+   CppyyLegacy::RCompressionSetting::EAlgorithm::EValues cxAlgorithm = static_cast<CppyyLegacy::RCompressionSetting::EAlgorithm::EValues>(GetFile() ? GetFile()->GetCompressionAlgorithm() : 0);
    if (cxlevel > 0 && fObjlen > 256) {
       Int_t nbuffers = 1 + (fObjlen - 1)/kMAXZIPBUF;
       Int_t buflen = TMath::Max(512,fKeylen + fObjlen + 9*nbuffers + 28); //add 28 bytes in case object is placed in a deleted gap
@@ -341,7 +344,7 @@ TKey::TKey(const void *obj, const TClass *cl, const char *name, Int_t bufsize, T
    fObjlen    = lbuf - fKeylen;
 
    Int_t cxlevel = GetFile() ? GetFile()->GetCompressionLevel() : 0;
-   ROOT::RCompressionSetting::EAlgorithm::EValues cxAlgorithm = static_cast<ROOT::RCompressionSetting::EAlgorithm::EValues>(GetFile() ? GetFile()->GetCompressionAlgorithm() : 0);
+   CppyyLegacy::RCompressionSetting::EAlgorithm::EValues cxAlgorithm = static_cast<CppyyLegacy::RCompressionSetting::EAlgorithm::EValues>(GetFile() ? GetFile()->GetCompressionAlgorithm() : 0);
    if (cxlevel > 0 && fObjlen > 256) {
       Int_t nbuffers = 1 + (fObjlen - 1)/kMAXZIPBUF;
       Int_t buflen = TMath::Max(512,fKeylen + fObjlen + 9*nbuffers + 28); //add 28 bytes in case object is placed in a deleted gap
@@ -402,7 +405,7 @@ void TKey::Build(TDirectory* motherDir, const char* classname, Long64_t filepos)
 
    fClassName = classname;
    //the following test required for forward and backward compatibility
-   if (fClassName == "TDirectoryFile") SetBit(kIsDirectoryFile);
+   if (fClassName == "CppyyLegacy::TDirectoryFile") SetBit(kIsDirectoryFile);
 
    fVersion = TKey::Class_Version();
 
@@ -792,7 +795,7 @@ TObject *TKey::ReadObj()
 
    // Append the object to the directory if requested:
    {
-      ROOT::DirAutoAdd_t addfunc = cl->GetDirectoryAutoAdd();
+      CppyyLegacy::DirAutoAdd_t addfunc = cl->GetDirectoryAutoAdd();
       if (addfunc) {
          addfunc(pobj, fMotherDir);
       }
@@ -919,7 +922,7 @@ TObject *TKey::ReadObjWithBuffer(char *bufferRead)
 
    // Append the object to the directory if requested:
    {
-      ROOT::DirAutoAdd_t addfunc = cl->GetDirectoryAutoAdd();
+      CppyyLegacy::DirAutoAdd_t addfunc = cl->GetDirectoryAutoAdd();
       if (addfunc) {
          addfunc(pobj, fMotherDir);
       }
@@ -1072,7 +1075,7 @@ void *TKey::ReadObjectAny(const TClass* expectedClass)
 
    {
       // Append the object to the directory if requested:
-      ROOT::DirAutoAdd_t addfunc = cl->GetDirectoryAutoAdd();
+      CppyyLegacy::DirAutoAdd_t addfunc = cl->GetDirectoryAutoAdd();
       if (addfunc) {
          addfunc(pobj, fMotherDir);
       }
@@ -1136,7 +1139,7 @@ Int_t TKey::Read(TObject *obj)
 
    // Append the object to the directory if requested:
    {
-      ROOT::DirAutoAdd_t addfunc = obj->IsA()->GetDirectoryAutoAdd();
+      CppyyLegacy::DirAutoAdd_t addfunc = obj->IsA()->GetDirectoryAutoAdd();
       if (addfunc) {
          addfunc(obj, fMotherDir);
       }
@@ -1192,8 +1195,8 @@ void TKey::ReadKeyBuffer(char *&buffer)
    }
    fClassName.ReadBuffer(buffer);
    //the following test required for forward and backward compatibility
-   if (fClassName == "TDirectory") {
-      fClassName = "TDirectoryFile";
+   if (fClassName == "CppyyLegacy::TDirectory") {
+      fClassName = "CppyyLegacy::TDirectoryFile";
       SetBit(kIsDirectoryFile);
    }
 
@@ -1280,7 +1283,7 @@ Int_t TKey::Sizeof() const
    Int_t nbytes = 22; if (fVersion > 1000) nbytes += 8;
    nbytes      += fDatime.Sizeof();
    if (TestBit(kIsDirectoryFile)) {
-      nbytes   += 11; // strlen("TDirectory")+1
+      nbytes   += 24; // strlen("CppyyLegacy::TDirectory")+1
    } else {
       nbytes   += fClassName.Sizeof();
    }
@@ -1319,8 +1322,8 @@ void TKey::Streamer(TBuffer &b)
       }
       fClassName.Streamer(b);
       //the following test required for forward and backward compatibility
-      if (fClassName == "TDirectory") {
-         fClassName = "TDirectoryFile";
+      if (fClassName == "CppyyLegacy::TDirectory") {
+         fClassName = "CppyyLegacy::TDirectoryFile";
          SetBit(kIsDirectoryFile);
       }
       fName.Streamer(b);
@@ -1474,3 +1477,5 @@ const char *TKey::GetTitle() const
    }
    return fTitle.Data();
 }
+
+} // namespace CppyyLegacy

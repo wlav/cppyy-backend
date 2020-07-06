@@ -12,7 +12,6 @@
 #ifndef ROOT_TMutexImp
 #define ROOT_TMutexImp
 
-
 //////////////////////////////////////////////////////////////////////////
 //                                                                      //
 // TMutexImp                                                            //
@@ -24,8 +23,10 @@
 
 #include "Rtypes.h"
 #include "TObject.h"
-
 #include "TVirtualMutex.h"
+
+
+namespace CppyyLegacy {
 
 class TMutexImp : public TObject {
 
@@ -40,4 +41,5 @@ public:
    ClassDef(TMutexImp,0)  // Mutex lock implementation ABC
 };
 
+} // namespace CppyyLegacy
 #endif

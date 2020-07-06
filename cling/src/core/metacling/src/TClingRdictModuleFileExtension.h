@@ -19,9 +19,10 @@
 #define ROOT_CLING_RDICT_MODULE_FILE_EXTENSION_H
 
 #include "clang/Serialization/ModuleFileExtension.h"
-
 #include "llvm/Bitcode/BitstreamReader.h"
 
+
+namespace CppyyLegacy {
 /// A module file extension used for testing purposes.
 class TClingRdictModuleFileExtension : public clang::ModuleFileExtension {
 
@@ -58,5 +59,7 @@ public:
    createExtensionReader(const clang::ModuleFileExtensionMetadata &Metadata, clang::ASTReader &Reader,
                          clang::serialization::ModuleFile &Mod, const llvm::BitstreamCursor &Stream) override;
 };
+
+} // namespace CppyyLegacy
 
 #endif

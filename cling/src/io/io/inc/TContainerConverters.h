@@ -8,10 +8,14 @@
  * For the licensing terms see $ROOTSYS/LICENSE.                         *
  * For the list of contributors see $ROOTSYS/README/CREDITS.             *
  *************************************************************************/
+
 #ifndef ROOT_TContainerConverters
 #define ROOT_TContainerConverters
 
 #include "TMemberStreamer.h"
+
+
+namespace CppyyLegacy {
 
 class TVirtualCollectionProxy;
 class TGenCollectionStreamer;
@@ -40,4 +44,5 @@ public:
    Bool_t IsValid() { return fCollectionClass != 0; }
 };
 
+} // namespace CppyyLegacy
 #endif

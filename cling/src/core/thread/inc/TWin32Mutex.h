@@ -12,7 +12,6 @@
 #ifndef ROOT_TWin32Mutex
 #define ROOT_TWin32Mutex
 
-
 //////////////////////////////////////////////////////////////////////////
 //                                                                      //
 // TWin32Mutex                                                          //
@@ -22,12 +21,14 @@
 //////////////////////////////////////////////////////////////////////////
 
 #include "TMutexImp.h"
-
 #include "Windows4Root.h"
 
 #ifdef __CINT__
 struct CRITICAL_SECTION;
 #endif
+
+
+namespace CppyyLegacy {
 
 class TWin32Mutex : public TMutexImp {
 
@@ -49,4 +50,5 @@ public:
    ClassDef(TWin32Mutex,0)  // Win32 mutex lock
 };
 
+} // namespace CppyyLegacy
 #endif

@@ -14,109 +14,79 @@
 #pragma link off all classes;
 #pragma link off all functions;
 
-#pragma link C++ global kTRUE;
-#pragma link C++ global kFALSE;
-#pragma link C++ global kMaxUChar;
-#pragma link C++ global kMaxChar;
-#pragma link C++ global kMinChar;
-#pragma link C++ global kMaxUShort;
-#pragma link C++ global kMaxShort;
-#pragma link C++ global kMinShort;
-#pragma link C++ global kMaxUInt;
-#pragma link C++ global kMaxInt;
-#pragma link C++ global kMinInt;
-#pragma link C++ global kMaxULong;
-#pragma link C++ global kMaxLong;
-#pragma link C++ global kMinLong;
-#pragma link C++ global kMaxULong64;
-#pragma link C++ global kMaxLong64;
-#pragma link C++ global kMinLong64;
-#pragma link C++ global kBitsPerByte;
-#pragma link C++ global kNPOS;
-#pragma link C++ global kInfo;
-#pragma link C++ global kWarning;
-#pragma link C++ global kError;
-#pragma link C++ global kSysError;
-#pragma link C++ global kFatal;
+#pragma link C++ namespace CppyyLegacy;
 
-#pragma link C++ enum EObjBits;
-#pragma link C++ enum EEnvLevel;
-#pragma link C++ enum EColor;
-#pragma link C++ enum ELineStyle;
-#pragma link C++ enum EMarkerStyle;
+#pragma link C++ global CppyyLegacy::kTRUE;
+#pragma link C++ global CppyyLegacy::kFALSE;
+#pragma link C++ global CppyyLegacy::kMaxUChar;
+#pragma link C++ global CppyyLegacy::kMaxChar;
+#pragma link C++ global CppyyLegacy::kMinChar;
+#pragma link C++ global CppyyLegacy::kMaxUShort;
+#pragma link C++ global CppyyLegacy::kMaxShort;
+#pragma link C++ global CppyyLegacy::kMinShort;
+#pragma link C++ global CppyyLegacy::kMaxUInt;
+#pragma link C++ global CppyyLegacy::kMaxInt;
+#pragma link C++ global CppyyLegacy::kMinInt;
+#pragma link C++ global CppyyLegacy::kMaxULong;
+#pragma link C++ global CppyyLegacy::kMaxLong;
+#pragma link C++ global CppyyLegacy::kMinLong;
+#pragma link C++ global CppyyLegacy::kMaxULong64;
+#pragma link C++ global CppyyLegacy::kMaxLong64;
+#pragma link C++ global CppyyLegacy::kMinLong64;
+#pragma link C++ global CppyyLegacy::kBitsPerByte;
+#pragma link C++ global CppyyLegacy::kNPOS;
+#pragma link C++ global CppyyLegacy::kInfo;
+#pragma link C++ global CppyyLegacy::kWarning;
+#pragma link C++ global CppyyLegacy::kError;
+#pragma link C++ global CppyyLegacy::kSysError;
+#pragma link C++ global CppyyLegacy::kFatal;
 
-// This is not a global anymore but a function
-// gROOT is a preprocessor macro #define gROOT (ROOT::GetROOT()
-// #pragma link C++ global gROOT;
-#pragma link C++ global gEnv;
+#pragma link C++ enum CppyyLegacy::EObjBits;
+#pragma link C++ enum CppyyLegacy::EEnvLevel;
+#pragma link C++ enum CppyyLegacy::EColor;
+#pragma link C++ enum CppyyLegacy::ELineStyle;
+#pragma link C++ enum CppyyLegacy::EMarkerStyle;
+
+#pragma link C++ global CppyyLegacy::gEnv;
 #pragma link C++ global gSystem;
-#pragma link C++ global gApplication;
-#pragma link C++ global gDebug;
-#pragma link C++ global gErrorIgnoreLevel;
-#pragma link C++ global gErrorAbortLevel;
-#pragma link C++ global gPrintViaErrorHandler;
-#pragma link C++ global gRootDir;
-#pragma link C++ global gProgName;
-#pragma link C++ global gProgPath;
+#pragma link C++ global CppyyLegacy::gApplication;
+#pragma link C++ global CppyyLegacy::gDebug;
+#pragma link C++ global CppyyLegacy::gErrorIgnoreLevel;
+#pragma link C++ global CppyyLegacy::gErrorAbortLevel;
+#pragma link C++ global CppyyLegacy::gPrintViaErrorHandler;
+#pragma link C++ global CppyyLegacy::gRootDir;
+#pragma link C++ global CppyyLegacy::gProgName;
+#pragma link C++ global CppyyLegacy::gProgPath;
 
-#pragma link C++ function Info;
-#pragma link C++ function Warning;
-#pragma link C++ function Error;
-#pragma link C++ function SysError;
-#pragma link C++ function Fatal;
-#pragma link C++ function Obsolete;
-#pragma link C++ function Form;
-#pragma link C++ function Printf;
-#pragma link C++ function Strip;
-#pragma link C++ function StrDup;
-#pragma link C++ function Compress;
-#pragma link C++ function EscChar;
-#pragma link C++ function UnEscChar;
-#pragma link C++ function Hash(const char*);
+#pragma link C++ function CppyyLegacy::Info;
+#pragma link C++ function CppyyLegacy::Warning;
+#pragma link C++ function CppyyLegacy::Error;
+#pragma link C++ function CppyyLegacy::SysError;
+#pragma link C++ function CppyyLegacy::Fatal;
+#pragma link C++ function CppyyLegacy::Obsolete;
+#pragma link C++ function CppyyLegacy::Form;
+#pragma link C++ function CppyyLegacy::Printf;
+#pragma link C++ function CppyyLegacy::Strip;
+#pragma link C++ function CppyyLegacy::StrDup;
+#pragma link C++ function CppyyLegacy::Compress;
+#pragma link C++ function CppyyLegacy::EscChar;
+#pragma link C++ function CppyyLegacy::UnEscChar;
+#pragma link C++ function CppyyLegacy::Hash(const char*);
 
 // New representation of the pragma below
 // #pragma link C++ global gROOT;
-// a preprocessor statement transformed gROOT in a function call, ROOT::GetROOT().
-#pragma link C++ function ROOT::GetROOT();
+// a preprocessor statement transformed gROOT in a function call, CppyyLegacy::GetROOT().
+#pragma link C++ function CppyyLegacy::GetROOT();
 
 #pragma link C++ nestedtypedef;
-#pragma link C++ namespace ROOT;
-#pragma create TClass TMath;
-#pragma link C++ function TMath::BinarySearch(Long64_t, const Short_t*, Short_t);
-#pragma link C++ function TMath::BinarySearch(Long64_t, const Int_t*, Int_t);
-#pragma link C++ function TMath::BinarySearch(Long64_t, const Float_t*, Float_t);
-#pragma link C++ function TMath::BinarySearch(Long64_t, const Double_t*, Double_t);
-#pragma link C++ function TMath::BinarySearch(Long64_t, const Long_t*, Long_t);
-#pragma link C++ function TMath::BinarySearch(Long64_t, const Long64_t*, Long64_t);
+#pragma create TClass CppyyLegacy::TMath;
 
-#pragma link C++ function TMath::BinarySearch(Long64_t, const Short_t**, Short_t);
-#pragma link C++ function TMath::BinarySearch(Long64_t, const Int_t**, Int_t);
-#pragma link C++ function TMath::BinarySearch(Long64_t, const Float_t**, Float_t);
-#pragma link C++ function TMath::BinarySearch(Long64_t, const Double_t**, Double_t);
-#pragma link C++ function TMath::BinarySearch(Long64_t, const Long_t**, Long_t);
-#pragma link C++ function TMath::BinarySearch(Long64_t, const Long64_t**, Long64_t);
-
-#pragma link C++ function TMath::Sort(Long64_t, const Short_t*, Long64_t*, Bool_t);
-#pragma link C++ function TMath::Sort(Long64_t, const Int_t*, Long64_t*, Bool_t);
-#pragma link C++ function TMath::Sort(Long64_t, const Float_t*, Long64_t*, Bool_t);
-#pragma link C++ function TMath::Sort(Long64_t, const Double_t*, Long64_t*, Bool_t);
-#pragma link C++ function TMath::Sort(Long64_t, const Long_t*, Long64_t*, Bool_t);
-#pragma link C++ function TMath::Sort(Long64_t, const Long64_t*, Long64_t*, Bool_t);
-
-#pragma link C++ function TMath::Sort(Int_t, const Short_t*, Int_t*, Bool_t);
-#pragma link C++ function TMath::Sort(Int_t, const Int_t*, Int_t*, Bool_t);
-#pragma link C++ function TMath::Sort(Int_t, const Float_t*, Int_t*, Bool_t);
-#pragma link C++ function TMath::Sort(Int_t, const Double_t*, Int_t*, Bool_t);
-#pragma link C++ function TMath::Sort(Int_t, const Long_t*, Int_t*, Bool_t);
-#pragma link C++ function TMath::Sort(Int_t, const Long64_t*, Int_t*, Bool_t);
-
-#pragma link C++ class TApplication;
-#pragma link C++ class TApplicationImp;
-#pragma link C++ class TBuffer;
-#pragma link C++ class TDatime-;
-#pragma link C++ class TDirectory-;
-#pragma link C++ class TEnv+;
-#pragma link C++ class TEnvRec+;
-// Those are NOT going to be saved ... so no need for a +
+#pragma link C++ class CppyyLegacy::TApplication;
+#pragma link C++ class CppyyLegacy::TApplicationImp;
+#pragma link C++ class CppyyLegacy::TBuffer;
+#pragma link C++ class CppyyLegacy::TDatime-;
+#pragma link C++ class CppyyLegacy::TDirectory-;
+#pragma link C++ class CppyyLegacy::TEnv+;
+#pragma link C++ class CppyyLegacy::TEnvRec+;
 
 #endif

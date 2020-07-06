@@ -14,6 +14,9 @@
 #pragma link off all classes;
 #pragma link off all functions;
 
-#pragma link C++ class TWinNTSystem;
+#pragma link C++ namespace CppyyLegacy;
+#ifdef _WIN32
+#pragma link C++ class CppyyLegacy::TWinNTSystem;
+#endif
 
 #endif

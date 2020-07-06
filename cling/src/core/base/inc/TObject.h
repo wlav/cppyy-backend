@@ -12,7 +12,6 @@
 #ifndef ROOT_TObject
 #define ROOT_TObject
 
-
 #include "RConfigure.h"
 #include "Rtypes.h"
 #include "TStorage.h"
@@ -26,11 +25,13 @@
 #undef RemoveDirectory
 #endif
 
+
+namespace CppyyLegacy {
+
 class TList;
 class TBuffer;
 class TObjArray;
 class TMethod;
-
 
 class TObject {
 
@@ -265,7 +266,7 @@ inline TObject &TObject::operator=(const TObject &rhs)
 /// calling the function Hash during "insert" operations.  See TObject::HasInconsistenTObjectHash();
 ///
 /// (*) The setup is consistent when all classes in the class hierarchy that overload
-/// TObject::Hash do call ROOT::CallRecursiveRemoveIfNeeded in their destructor.
+/// TObject::Hash do call CppyyLegacy::CallRecursiveRemoveIfNeeded in their destructor.
 /// i.e. it is safe to call the Hash virtual function during the RecursiveRemove operation.
 
 inline ULong_t TObject::CheckedHash()
@@ -321,8 +322,9 @@ enum EObjBits {
    kInvalidObject    = TObject::kInvalidObject
 };
 
-namespace cling {
-   std::string printValue(TObject *val);
-}
+} // namespace CppyyLegacy
 
+namespace cling {
+   std::string printValue(CppyyLegacy::TObject *val);
+}
 #endif

@@ -61,7 +61,10 @@ as a TString, construct a TString from it, eg:
 namespace std { using ::list; }
 #endif
 
-ClassImp(TString);
+
+ClassImp(CppyyLegacy::TString);
+
+namespace CppyyLegacy {
 
 // Amount to shift hash values to avoid clustering
 const UInt_t kHashShift = 5;
@@ -1301,7 +1304,7 @@ TString *TString::ReadString(TBuffer &b, const TClass *clReq)
 
       a = (TString *) clRef->New();
       if (!a) {
-         ::Error("TString::ReadObject", "could not create object of class %s",
+         ::CppyyLegacy::Error("TString::ReadObject", "could not create object of class %s",
                  clRef->GetName());
          // Exception
          return a;
@@ -1372,26 +1375,30 @@ void TString::WriteString(TBuffer &b, const TString *a)
    }
 }
 
+} // namespace CppyyLegacy
+
 ////////////////////////////////////////////////////////////////////////////////
 /// Read string from TBuffer. Function declared in ClassDef.
 
 #if defined(R__TEMPLATE_OVERLOAD_BUG)
 template <>
 #endif
-TBuffer &operator>>(TBuffer &buf, TString *&s)
+CppyyLegacy::TBuffer &operator>>(CppyyLegacy::TBuffer &buf, CppyyLegacy::TString *&s)
 {
-   s = (TString *) TString::ReadString(buf, TString::Class());
+   s = (CppyyLegacy::TString *) CppyyLegacy::TString::ReadString(buf, CppyyLegacy::TString::Class());
    return buf;
 }
 
 ////////////////////////////////////////////////////////////////////////////////
 /// Write TString or derived to TBuffer.
 
-TBuffer &operator<<(TBuffer &buf, const TString *s)
+CppyyLegacy::TBuffer &operator<<(CppyyLegacy::TBuffer &buf, const CppyyLegacy::TString *s)
 {
-   TString::WriteString(buf, s);
+   CppyyLegacy::TString::WriteString(buf, s);
    return buf;
 }
+
+namespace CppyyLegacy {
 
 ////////////////////////////////////////////////////////////////////////////////
 // Related global functions
@@ -1487,7 +1494,7 @@ TString operator+(char c, const TString &s)
 
 Ssiz_t  TString::GetInitialCapacity()
 {
-   ::Obsolete("TString::GetInitialCapacity", "v5-30-00", "v5-32-00");
+   ::CppyyLegacy::Obsolete("TString::GetInitialCapacity", "v5-30-00", "v5-32-00");
    return 15;
 }
 
@@ -1495,7 +1502,7 @@ Ssiz_t  TString::GetInitialCapacity()
 
 Ssiz_t  TString::GetResizeIncrement()
 {
-   ::Obsolete("TString::GetResizeIncrement", "v5-30-00", "v5-32-00");
+   ::CppyyLegacy::Obsolete("TString::GetResizeIncrement", "v5-30-00", "v5-32-00");
    return 16;
 }
 
@@ -1503,7 +1510,7 @@ Ssiz_t  TString::GetResizeIncrement()
 
 Ssiz_t  TString::GetMaxWaste()
 {
-   ::Obsolete("TString::GetMaxWaste", "v5-30-00", "v5-32-00");
+   ::CppyyLegacy::Obsolete("TString::GetMaxWaste", "v5-30-00", "v5-32-00");
    return 15;
 }
 
@@ -1512,7 +1519,7 @@ Ssiz_t  TString::GetMaxWaste()
 
 Ssiz_t TString::InitialCapacity(Ssiz_t)
 {
-   ::Obsolete("TString::InitialCapacity", "v5-30-00", "v5-32-00");
+   ::CppyyLegacy::Obsolete("TString::InitialCapacity", "v5-30-00", "v5-32-00");
    return 15;
 }
 
@@ -1521,7 +1528,7 @@ Ssiz_t TString::InitialCapacity(Ssiz_t)
 
 Ssiz_t TString::ResizeIncrement(Ssiz_t)
 {
-   ::Obsolete("TString::ResizeIncrement", "v5-30-00", "v5-32-00");
+   ::CppyyLegacy::Obsolete("TString::ResizeIncrement", "v5-30-00", "v5-32-00");
    return 16;
 }
 
@@ -1531,7 +1538,7 @@ Ssiz_t TString::ResizeIncrement(Ssiz_t)
 
 Ssiz_t TString::MaxWaste(Ssiz_t)
 {
-   ::Obsolete("TString::MaxWaste", "v5-30-00", "v5-32-00");
+   ::CppyyLegacy::Obsolete("TString::MaxWaste", "v5-30-00", "v5-32-00");
    return 15;
 }
 
@@ -2586,19 +2593,21 @@ int strncasecmp(const char *str1, const char *str2, Ssiz_t n)
 }
 #endif
 
+} // namespace CppyyLegacy
+
 ////////////////////////////////////////////////////////////////////////////////
 /// Print a TString in the cling interpreter:
 
-std::string cling::printValue(const TString* val) {
-   TString s = TString::Format("\"%s\"[%d]", val->Data(), (int)val->Length());
+std::string cling::printValue(const CppyyLegacy::TString* val) {
+   CppyyLegacy::TString s = CppyyLegacy::TString::Format("\"%s\"[%d]", val->Data(), (int)val->Length());
    return s.Data();
 }
 
 ////////////////////////////////////////////////////////////////////////////////
 /// Print a TString in the cling interpreter:
 
-std::string cling::printValue(const TSubString* val) {
-   TString s = TString::Format("\"%.*s\"[%d]", (int)val->Length(), val->Data(), (int)val->Length());
+std::string cling::printValue(const CppyyLegacy::TSubString* val) {
+   CppyyLegacy::TString s = CppyyLegacy::TString::Format("\"%.*s\"[%d]", (int)val->Length(), val->Data(), (int)val->Length());
    return s.Data();
 }
 
@@ -2607,6 +2616,6 @@ std::string cling::printValue(const TSubString* val) {
 
 std::string cling::printValue(const std::string_view* val) {
    std::string str(*val);
-   TString s = TString::Format("\"%s\"[%d]", str.c_str(), (int)val->length());
+   CppyyLegacy::TString s = CppyyLegacy::TString::Format("\"%s\"[%d]", str.c_str(), (int)val->length());
    return s.Data();
 }

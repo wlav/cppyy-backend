@@ -33,7 +33,11 @@
 #include <iostream>
 
 #include <string>
+
 namespace std {} using namespace std;
+
+
+namespace CppyyLegacy {
 
 const Int_t kMaxLen = 1024;
 
@@ -140,7 +144,7 @@ static void GetRange(const char *comments, Double_t &xmin, Double_t &xmax, Doubl
       TString sbits(comma2+1,right-comma2-1);
       sscanf(sbits.Data(),"%d",&nbits);
       if (nbits < 2 || nbits > 32) {
-         ::Error("GetRange","Illegal specification for the number of bits; %d. reset to 32.",nbits);
+         ::CppyyLegacy::Error("GetRange","Illegal specification for the number of bits; %d. reset to 32.",nbits);
          nbits = 32;
       }
       right = comma2;
@@ -181,7 +185,11 @@ static void GetRange(const char *comments, Double_t &xmin, Double_t &xmax, Doubl
    if (xmin >= xmax && nbits <15) xmin = nbits+0.1;
 }
 
-ClassImp(TStreamerElement);
+} // namespace CppyyLegacy
+
+ClassImp(CppyyLegacy::TStreamerElement);
+
+namespace CppyyLegacy {
 
 ////////////////////////////////////////////////////////////////////////////////
 /// Default ctor.
@@ -262,7 +270,7 @@ Bool_t TStreamerElement::CannotSplit() const
    TClass *cl = GetClassPointer();
    if (!cl) return kFALSE;  //basic type
 
-   static TClassRef clonesArray("TClonesArray");
+   static TClassRef clonesArray("CppyyLegacy::TClonesArray");
    if (IsaPointer() && cl != clonesArray && !cl->GetCollectionProxy()) return kTRUE;
 
    switch(fType) {
@@ -488,22 +496,22 @@ void TStreamerElement::Streamer(TBuffer &R__b)
       // Any changes of class structure should be reflected by them starting from version 4
 
       R__b.ClassBegin(TStreamerElement::Class(), R__v);
-      R__b.ClassMember("TNamed");
+      R__b.ClassMember("CppyyLegacy::TNamed");
       TNamed::Streamer(R__b);
-      R__b.ClassMember("fType","Int_t");
+      R__b.ClassMember("fType","CppyyLegacy::Int_t");
       R__b >> fType;
-      R__b.ClassMember("fSize","Int_t");
+      R__b.ClassMember("fSize","CppyyLegacy::Int_t");
       R__b >> fSize;
-      R__b.ClassMember("fArrayLength","Int_t");
+      R__b.ClassMember("fArrayLength","CppyyLegacy::Int_t");
       R__b >> fArrayLength;
-      R__b.ClassMember("fArrayDim","Int_t");
+      R__b.ClassMember("fArrayDim","CppyyLegacy::Int_t");
       R__b >> fArrayDim;
-      R__b.ClassMember("fMaxIndex","Int_t", 5);
+      R__b.ClassMember("fMaxIndex","CppyyLegacy::Int_t", 5);
       if (R__v == 1) R__b.ReadStaticArray(fMaxIndex);
       else           R__b.ReadFastArray(fMaxIndex,5);
-      R__b.ClassMember("fTypeName","TString");
+      R__b.ClassMember("fTypeName","CppyyLegacy::TString");
       fTypeName.Streamer(R__b);
-      if (fType==11&&(fTypeName=="Bool_t"||fTypeName=="bool")) fType = 18;
+      if (fType==11&&(fTypeName=="CppyyLegacy::Bool_t"||fTypeName=="bool")) fType = 18;
       if (R__v > 1) {
          SetUniqueID(0);
       }
@@ -568,6 +576,8 @@ void TStreamerElement::Update(const TClass *oldClass, TClass *newClass)
    }
 }
 
+} // namespace CppyyLegacy
+
 //______________________________________________________________________________
 
 //////////////////////////////////////////////////////////////////////////
@@ -576,7 +586,9 @@ void TStreamerElement::Update(const TClass *oldClass, TClass *newClass)
 //                                                                      //
 //////////////////////////////////////////////////////////////////////////
 
-ClassImp(TStreamerBase);
+ClassImp(CppyyLegacy::TStreamerBase);
+
+namespace CppyyLegacy {
 
 ////////////////////////////////////////////////////////////////////////////////
 
@@ -603,8 +615,8 @@ TStreamerBase::TStreamerBase(const char *name, const char *title, Int_t offset)
 {
    // Create a TStreamerBase object.
 
-   if (strcmp(name,"TObject") == 0) fType = TVirtualStreamerInfo::kTObject;
-   if (strcmp(name,"TNamed")  == 0) fType = TVirtualStreamerInfo::kTNamed;
+   if (strcmp(name,"CppyyLegacy::TObject") == 0) fType = TVirtualStreamerInfo::kTObject;
+   if (strcmp(name,"CppyyLegacy::TNamed")  == 0) fType = TVirtualStreamerInfo::kTNamed;
    fNewType = fType;
    fBaseClass = TClass::GetClass(GetName());
    if (fBaseClass) {
@@ -772,7 +784,7 @@ void TStreamerBase::Streamer(TBuffer &R__b)
 
       R__b.ClassBegin(TStreamerBase::Class(), R__v);
 
-      R__b.ClassMember("TStreamerElement");
+      R__b.ClassMember("CppyyLegcy::TStreamerElement");
       TStreamerElement::Streamer(R__b);
       // If the class owning the TStreamerElement and the base class are not
       // loaded, on the file their streamer info might be in the following
@@ -783,7 +795,7 @@ void TStreamerBase::Streamer(TBuffer &R__b)
       // Eventually we need a v3 that stores directly fBaseCheckSum (and
       // a version of TStreamerElement should not stored fMaxIndex)
       if (R__v > 2) {
-         R__b.ClassMember("fBaseVersion","Int_t");
+         R__b.ClassMember("fBaseVersion","CppyyLegacy::Int_t");
          R__b >> fBaseVersion;
       } else {
          // could have been: fBaseVersion = GetClassPointer()->GetClassVersion();
@@ -857,6 +869,8 @@ Int_t TStreamerBase::WriteBuffer (TBuffer &b, char *pointer)
    return 0;
 }
 
+} // namespace CppyyLegacy
+
 //______________________________________________________________________________
 
 //////////////////////////////////////////////////////////////////////////
@@ -866,7 +880,9 @@ Int_t TStreamerBase::WriteBuffer (TBuffer &b, char *pointer)
 //                                                                      //
 //////////////////////////////////////////////////////////////////////////
 
-ClassImp(TStreamerBasicPointer);
+ClassImp(CppyyLegacy::TStreamerBasicPointer);
+
+namespace CppyyLegacy {
 
 ////////////////////////////////////////////////////////////////////////////////
 /// Default ctor.
@@ -968,6 +984,7 @@ void TStreamerBasicPointer::Streamer(TBuffer &R__b)
    }
 }
 
+} // namespace CppyyLegacy
 
 //______________________________________________________________________________
 
@@ -979,7 +996,9 @@ void TStreamerBasicPointer::Streamer(TBuffer &R__b)
 //                                                                      //
 //////////////////////////////////////////////////////////////////////////
 
-ClassImp(TStreamerLoop);
+ClassImp(CppyyLegacy::TStreamerLoop);
+
+namespace CppyyLegacy {
 
 ////////////////////////////////////////////////////////////////////////////////
 /// Default ctor.
@@ -1073,6 +1092,7 @@ void TStreamerLoop::Streamer(TBuffer &R__b)
    }
 }
 
+} // namespace CppyyLegacy
 
 //______________________________________________________________________________
 
@@ -1083,7 +1103,9 @@ void TStreamerLoop::Streamer(TBuffer &R__b)
 //                                                                      //
 //////////////////////////////////////////////////////////////////////////
 
-ClassImp(TStreamerBasicType);
+ClassImp(CppyyLegacy::TStreamerBasicType);
+
+namespace CppyyLegacy {
 
 ////////////////////////////////////////////////////////////////////////////////
 /// Default ctor.
@@ -1172,7 +1194,7 @@ void TStreamerBasicType::Streamer(TBuffer &R__b)
    }
 }
 
-
+} // namespace CppyyLegacy
 
 //______________________________________________________________________________
 
@@ -1183,7 +1205,9 @@ void TStreamerBasicType::Streamer(TBuffer &R__b)
 //                                                                      //
 //////////////////////////////////////////////////////////////////////////
 
-ClassImp(TStreamerObject);
+ClassImp(CppyyLegacy::TStreamerObject);
+
+namespace CppyyLegacy {
 
 ////////////////////////////////////////////////////////////////////////////////
 /// Default ctor.
@@ -1199,8 +1223,8 @@ TStreamerObject::TStreamerObject(const char *name, const char *title, Int_t offs
         : TStreamerElement(name,title,offset,0,typeName)
 {
    fType = TVirtualStreamerInfo::kObject;
-   if (strcmp(typeName,"TObject") == 0) fType = TVirtualStreamerInfo::kTObject;
-   if (strcmp(typeName,"TNamed")  == 0) fType = TVirtualStreamerInfo::kTNamed;
+   if (strcmp(typeName,"CppyyLegacy::TObject") == 0) fType = TVirtualStreamerInfo::kTObject;
+   if (strcmp(typeName,"CppyyLegacy::TNamed")  == 0) fType = TVirtualStreamerInfo::kTNamed;
    fNewType = fType;
    Init();
 }
@@ -1270,6 +1294,7 @@ void TStreamerObject::Streamer(TBuffer &R__b)
    }
 }
 
+} // namespace CppyyLegacy
 
 //______________________________________________________________________________
 
@@ -1280,7 +1305,9 @@ void TStreamerObject::Streamer(TBuffer &R__b)
 //                                                                      //
 //////////////////////////////////////////////////////////////////////////
 
-ClassImp(TStreamerObjectAny);
+ClassImp(CppyyLegacy::TStreamerObjectAny);
+
+namespace CppyyLegacy {
 
 ////////////////////////////////////////////////////////////////////////////////
 /// Default ctor.
@@ -1363,7 +1390,7 @@ void TStreamerObjectAny::Streamer(TBuffer &R__b)
    }
 }
 
-
+} // namespace CppyyLegacy
 
 //______________________________________________________________________________
 
@@ -1374,7 +1401,9 @@ void TStreamerObjectAny::Streamer(TBuffer &R__b)
 //                                                                      //
 //////////////////////////////////////////////////////////////////////////
 
-ClassImp(TStreamerObjectPointer);
+ClassImp(CppyyLegacy::TStreamerObjectPointer);
+
+namespace CppyyLegacy {
 
 ////////////////////////////////////////////////////////////////////////////////
 /// Default ctor.
@@ -1468,6 +1497,7 @@ void TStreamerObjectPointer::Streamer(TBuffer &R__b)
    }
 }
 
+} // namespace CppyyLegacy
 
 //______________________________________________________________________________
 
@@ -1478,7 +1508,9 @@ void TStreamerObjectPointer::Streamer(TBuffer &R__b)
 //                                                                      //
 //////////////////////////////////////////////////////////////////////////
 
-ClassImp(TStreamerObjectAnyPointer);
+ClassImp(CppyyLegacy::TStreamerObjectAnyPointer);
+
+namespace CppyyLegacy {
 
 ////////////////////////////////////////////////////////////////////////////////
 /// Default ctor.
@@ -1564,6 +1596,7 @@ void TStreamerObjectAnyPointer::Streamer(TBuffer &R__b)
    }
 }
 
+} // namespace CppyyLegacy
 
 //______________________________________________________________________________
 
@@ -1573,7 +1606,9 @@ void TStreamerObjectAnyPointer::Streamer(TBuffer &R__b)
 //                                                                      //
 //////////////////////////////////////////////////////////////////////////
 
-ClassImp(TStreamerString);
+ClassImp(CppyyLegacy::TStreamerString);
+
+namespace CppyyLegacy {
 
 ////////////////////////////////////////////////////////////////////////////////
 /// Default ctor.
@@ -1635,6 +1670,8 @@ void TStreamerString::Streamer(TBuffer &R__b)
    }
 }
 
+} // namespace CppyyLegacy
+
 //______________________________________________________________________________
 
 //////////////////////////////////////////////////////////////////////////
@@ -1643,7 +1680,9 @@ void TStreamerString::Streamer(TBuffer &R__b)
 //                                                                      //
 //////////////////////////////////////////////////////////////////////////
 
-ClassImp(TStreamerSTL);
+ClassImp(CppyyLegacy::TStreamerSTL);
+
+namespace CppyyLegacy {
 
 ////////////////////////////////////////////////////////////////////////////////
 /// Default ctor.
@@ -1657,7 +1696,7 @@ TStreamerSTL::TStreamerSTL() : fSTLtype(0),fCtype(0)
 
 TStreamerSTL::TStreamerSTL(const char *name, const char *title, Int_t offset,
                            const char *typeName, const TVirtualCollectionProxy &proxy, Bool_t dmPointer)
-        : TStreamerElement(name,title,offset,ROOT::kSTLany,typeName)
+        : TStreamerElement(name,title,offset,::CppyyLegacy::kSTLany,typeName)
 {
    fTypeName = TClassEdit::ShortType(fTypeName,TClassEdit::kDropStlDefault).c_str();
 
@@ -1671,7 +1710,7 @@ TStreamerSTL::TStreamerSTL(const char *name, const char *title, Int_t offset,
 
    if (dmPointer) fSTLtype += TVirtualStreamerInfo::kOffsetP;
 
-   if (fSTLtype == ROOT::kSTLbitset) {
+   if (fSTLtype == ::CppyyLegacy::kSTLbitset) {
       // Nothing to check
    } else if (proxy.GetValueClass()) {
       if (proxy.HasPointers()) fCtype = TVirtualStreamerInfo::kObjectp;
@@ -1688,7 +1727,7 @@ TStreamerSTL::TStreamerSTL(const char *name, const char *title, Int_t offset,
 
 TStreamerSTL::TStreamerSTL(const char *name, const char *title, Int_t offset,
                            const char *typeName, const char *trueType, Bool_t dmPointer)
-        : TStreamerElement(name,title,offset,ROOT::kSTLany,typeName)
+        : TStreamerElement(name,title,offset,::CppyyLegacy::kSTLany,typeName)
 {
    const char *t = trueType;
    if (!t || !*t) t = typeName;
@@ -1731,7 +1770,7 @@ TStreamerSTL::TStreamerSTL(const char *name, const char *title, Int_t offset,
    }
    fSTLtype = TClassEdit::STLKind(s);
    fCtype   = 0;
-   if (fSTLtype == ROOT::kNotSTL) { delete [] s; return;}
+   if (fSTLtype == ::CppyyLegacy::kNotSTL) { delete [] s; return;}
    if (dmPointer) fSTLtype += TVirtualStreamerInfo::kOffsetP;
 
    // find STL contained type
@@ -1751,7 +1790,7 @@ TStreamerSTL::TStreamerSTL(const char *name, const char *title, Int_t offset,
 
 
    TDataType *dt = (TDataType*)gROOT->GetListOfTypes()->FindObject(sopen);
-   if (fSTLtype == ROOT::kSTLbitset) {
+   if (fSTLtype == ::CppyyLegacy::kSTLbitset) {
       // Nothing to check
    } else if (dt) {
       fCtype = dt->GetType();
@@ -1883,19 +1922,19 @@ void TStreamerSTL::ls(Option_t *) const
 
 const char *TStreamerSTL::GetInclude() const
 {
-   if      (fSTLtype == ROOT::kSTLvector)            IncludeNameBuffer().Form("<%s>","vector");
-   else if (fSTLtype == ROOT::kSTLlist)              IncludeNameBuffer().Form("<%s>","list");
-   else if (fSTLtype == ROOT::kSTLforwardlist)       IncludeNameBuffer().Form("<%s>","forward_list");
-   else if (fSTLtype == ROOT::kSTLdeque)             IncludeNameBuffer().Form("<%s>","deque");
-   else if (fSTLtype == ROOT::kSTLmap)               IncludeNameBuffer().Form("<%s>","map");
-   else if (fSTLtype == ROOT::kSTLmultimap)          IncludeNameBuffer().Form("<%s>","map");
-   else if (fSTLtype == ROOT::kSTLset)               IncludeNameBuffer().Form("<%s>","set");
-   else if (fSTLtype == ROOT::kSTLmultiset)          IncludeNameBuffer().Form("<%s>","set");
-   else if (fSTLtype == ROOT::kSTLunorderedset)      IncludeNameBuffer().Form("<%s>","unordered_set");
-   else if (fSTLtype == ROOT::kSTLunorderedmultiset) IncludeNameBuffer().Form("<%s>","unordered_set");
-   else if (fSTLtype == ROOT::kSTLunorderedmap)      IncludeNameBuffer().Form("<%s>","unordered_map");
-   else if (fSTLtype == ROOT::kSTLunorderedmultimap) IncludeNameBuffer().Form("<%s>","unordered_map");
-   else if (fSTLtype == ROOT::kSTLbitset)            IncludeNameBuffer().Form("<%s>","bitset");
+   if      (fSTLtype == ::CppyyLegacy::kSTLvector)            IncludeNameBuffer().Form("<%s>","vector");
+   else if (fSTLtype == ::CppyyLegacy::kSTLlist)              IncludeNameBuffer().Form("<%s>","list");
+   else if (fSTLtype == ::CppyyLegacy::kSTLforwardlist)       IncludeNameBuffer().Form("<%s>","forward_list");
+   else if (fSTLtype == ::CppyyLegacy::kSTLdeque)             IncludeNameBuffer().Form("<%s>","deque");
+   else if (fSTLtype == ::CppyyLegacy::kSTLmap)               IncludeNameBuffer().Form("<%s>","map");
+   else if (fSTLtype == ::CppyyLegacy::kSTLmultimap)          IncludeNameBuffer().Form("<%s>","map");
+   else if (fSTLtype == ::CppyyLegacy::kSTLset)               IncludeNameBuffer().Form("<%s>","set");
+   else if (fSTLtype == ::CppyyLegacy::kSTLmultiset)          IncludeNameBuffer().Form("<%s>","set");
+   else if (fSTLtype == ::CppyyLegacy::kSTLunorderedset)      IncludeNameBuffer().Form("<%s>","unordered_set");
+   else if (fSTLtype == ::CppyyLegacy::kSTLunorderedmultiset) IncludeNameBuffer().Form("<%s>","unordered_set");
+   else if (fSTLtype == ::CppyyLegacy::kSTLunorderedmap)      IncludeNameBuffer().Form("<%s>","unordered_map");
+   else if (fSTLtype == ::CppyyLegacy::kSTLunorderedmultimap) IncludeNameBuffer().Form("<%s>","unordered_map");
+   else if (fSTLtype == ::CppyyLegacy::kSTLbitset)            IncludeNameBuffer().Form("<%s>","bitset");
    return IncludeNameBuffer();
 }
 
@@ -1925,15 +1964,15 @@ void TStreamerSTL::Streamer(TBuffer &R__b)
          R__b >> fCtype;
          R__b.CheckByteCount(R__s, R__c, TStreamerSTL::IsA());
       }
-      if (fSTLtype == ROOT::kSTLmultimap || fSTLtype == ROOT::kSTLset) {
+      if (fSTLtype == ::CppyyLegacy::kSTLmultimap || fSTLtype == ::CppyyLegacy::kSTLset) {
          // For a long time those where inverted in TStreamerElement
          // compared to the other definitions.  When we moved to version '4',
          // this got standardized, but we now need to fix it.
 
          if (fTypeName.BeginsWith("std::set") || fTypeName.BeginsWith("set")) {
-            fSTLtype = ROOT::kSTLset;
+            fSTLtype = ::CppyyLegacy::kSTLset;
          } else if (fTypeName.BeginsWith("std::multimap") || fTypeName.BeginsWith("multimap")) {
-            fSTLtype = ROOT::kSTLmultimap;
+            fSTLtype = ::CppyyLegacy::kSTLmultimap;
          }
       }
 
@@ -1945,7 +1984,7 @@ void TStreamerSTL::Streamer(TBuffer &R__b)
       if (R__b.GetParent()) { // Avoid resetting during a cloning.
          if (fCtype==TVirtualStreamerInfo::kObjectp || fCtype==TVirtualStreamerInfo::kAnyp || fCtype==TVirtualStreamerInfo::kObjectP || fCtype==TVirtualStreamerInfo::kAnyP) {
             SetBit(kDoNotDelete); // For backward compatibility
-         } else if ( fSTLtype == ROOT::kSTLmap || fSTLtype == ROOT::kSTLmultimap) {
+         } else if ( fSTLtype == ::CppyyLegacy::kSTLmap || fSTLtype == ::CppyyLegacy::kSTLmultimap) {
             // Here we would like to set the bit only if one of the element of the pair is a pointer,
             // however we have no easy to determine this short of parsing the class name.
             SetBit(kDoNotDelete); // For backward compatibility
@@ -1961,6 +2000,8 @@ void TStreamerSTL::Streamer(TBuffer &R__b)
    }
 }
 
+} // namespace CppyyLegacy
+
 //______________________________________________________________________________
 
 //////////////////////////////////////////////////////////////////////////
@@ -1969,7 +2010,9 @@ void TStreamerSTL::Streamer(TBuffer &R__b)
 //                                                                      //
 //////////////////////////////////////////////////////////////////////////
 
-ClassImp(TStreamerSTLstring);
+ClassImp(CppyyLegacy::TStreamerSTLstring);
+
+namespace CppyyLegacy {
 
 ////////////////////////////////////////////////////////////////////////////////
 /// Default ctor.
@@ -1996,8 +2039,8 @@ TStreamerSTLstring::TStreamerSTLstring(const char *name, const char *title, Int_
 
    fNewType = fType;
    fOffset  = offset;
-   fSTLtype = ROOT::kSTLstring;
-   fCtype   = ROOT::kSTLstring;
+   fSTLtype = ::CppyyLegacy::kSTLstring;
+   fCtype   = ::CppyyLegacy::kSTLstring;
    fTypeName= typeName;
 
 }
@@ -2047,6 +2090,8 @@ void TStreamerSTLstring::Streamer(TBuffer &R__b)
    }
 }
 
+} // namespace CppyyLegacy
+
 //______________________________________________________________________________
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -2055,7 +2100,9 @@ void TStreamerSTLstring::Streamer(TBuffer &R__b)
 //                                                                           //
 ///////////////////////////////////////////////////////////////////////////////
 
-ClassImp(TStreamerSTLstring);
+ClassImp(CppyyLegacy::TStreamerSTLstring);
+
+namespace CppyyLegacy {
 
 void TStreamerArtificial::Streamer(TBuffer& /* R__b */)
 {
@@ -2065,16 +2112,18 @@ void TStreamerArtificial::Streamer(TBuffer& /* R__b */)
    return;
 }
 
-ROOT::TSchemaRule::ReadFuncPtr_t     TStreamerArtificial::GetReadFunc()
+TSchemaRule::ReadFuncPtr_t     TStreamerArtificial::GetReadFunc()
 {
    // Return the read function if any.
 
    return fReadFunc;
 }
 
-ROOT::TSchemaRule::ReadRawFuncPtr_t  TStreamerArtificial::GetReadRawFunc()
+TSchemaRule::ReadRawFuncPtr_t  TStreamerArtificial::GetReadRawFunc()
 {
    // Return the raw read function if any.
 
    return fReadRawFunc;
 }
+
+} // namespace CppyyLegacy

@@ -14,30 +14,32 @@
 #pragma link off all classes;
 #pragma link off all functions;
 
-#pragma link C++ class TBufferIO;
-#pragma link C++ class TBufferFile;
-#pragma link C++ class TDirectoryFile-;
-#pragma link C++ class TFile-;
-#pragma link C++ class TFree;
-#pragma link C++ class TKey-;
-#pragma link C++ class TMapFile;
-#pragma link C++ class TMapRec;
-#pragma link C++ class TMemFile;
-#pragma link C++ class TStreamerInfo-;
-#pragma link C++ class TCollectionProxyFactory-;
-#pragma link C++ class TEmulatedCollectionProxy-;
-#pragma link C++ class TEmulatedMapProxy-;
-#pragma link C++ class TGenCollectionProxy-;
-#pragma link C++ class TGenCollectionProxy::Value-;
-#pragma link C++ class TGenCollectionProxy::Method-;
-#pragma link C++ class TCollectionStreamer-;
-#pragma link C++ class TCollectionClassStreamer-;
-#pragma link C++ class TCollectionMemberStreamer-;
-#pragma link C++ options=version(0) class TVirtualObject-;
-#pragma link C++ options=version(0) class TVirtualArray-;
-#pragma link C++ namespace TStreamerInfoActions;
-#pragma link C++ class TStreamerInfoActions::TConfiguredAction+;
-#pragma link C++ class TStreamerInfoActions::TActionSequence+;
-#pragma link C++ class TStreamerInfoActions::TConfiguration-;
+#pragma link C++ namespace CppyyLegacy;
+
+#pragma link C++ class CppyyLegacy::TBufferIO;
+#pragma link C++ class CppyyLegacy::TBufferFile;
+#pragma link C++ class CppyyLegacy::TDirectoryFile-;
+#pragma link C++ class CppyyLegacy::TFile-;
+#pragma link C++ class CppyyLegacy::TFree;
+#pragma link C++ class CppyyLegacy::TKey-;
+#pragma link C++ class CppyyLegacy::TMapFile;
+#pragma link C++ class CppyyLegacy::TMapRec;
+#pragma link C++ class CppyyLegacy::TMemFile;
+#pragma link C++ class CppyyLegacy::TStreamerInfo-;
+#pragma link C++ class CppyyLegacy::TCollectionProxyFactory-;
+#pragma link C++ class CppyyLegacy::TEmulatedCollectionProxy-;
+#pragma link C++ class CppyyLegacy::TEmulatedMapProxy-;
+#pragma link C++ class CppyyLegacy::TGenCollectionProxy-;
+#pragma link C++ class CppyyLegacy::TGenCollectionProxy::Value-;
+#pragma link C++ class CppyyLegacy::TGenCollectionProxy::Method-;
+#pragma link C++ class CppyyLegacy::TCollectionStreamer-;
+#pragma link C++ class CppyyLegacy::TCollectionClassStreamer-;
+#pragma link C++ class CppyyLegacy::TCollectionMemberStreamer-;
+#pragma link C++ options=version(0) class CppyyLegacy::TVirtualObject-;
+#pragma link C++ options=version(0) class CppyyLegacy::TVirtualArray-;
+#pragma link C++ namespace CppyyLegacy::TStreamerInfoActions;
+#pragma link C++ class CppyyLegacy::TStreamerInfoActions::TConfiguredAction+;
+#pragma link C++ class CppyyLegacy::TStreamerInfoActions::TActionSequence+;
+#pragma link C++ class CppyyLegacy::TStreamerInfoActions::TConfiguration-;
 
 #endif

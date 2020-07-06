@@ -24,6 +24,8 @@
 #include "TArray.h"
 
 
+namespace CppyyLegacy {
+
 class TArrayC : public TArray {
 
 public:
@@ -54,26 +56,29 @@ public:
    ClassDef(TArrayC,1)  //Array of chars
 };
 
+} // namespace CppyyLegacy
 
 #if defined R__TEMPLATE_OVERLOAD_BUG
 template <>
 #endif
-inline TBuffer &operator>>(TBuffer &buf, TArrayC *&obj)
+inline CppyyLegacy::TBuffer &operator>>(CppyyLegacy::TBuffer &buf, CppyyLegacy::TArrayC *&obj)
 {
    // Read TArrayC object from buffer.
 
-   obj = (TArrayC *) TArray::ReadArray(buf, TArrayC::Class());
+   obj = (CppyyLegacy::TArrayC *) CppyyLegacy::TArray::ReadArray(buf, CppyyLegacy::TArrayC::Class());
    return buf;
 }
 
 #if defined R__TEMPLATE_OVERLOAD_BUG
 template <>
 #endif
-inline TBuffer &operator<<(TBuffer &buf, const TArrayC *obj)
+inline CppyyLegacy::TBuffer &operator<<(CppyyLegacy::TBuffer &buf, const CppyyLegacy::TArrayC *obj)
 {
    // Write a TArrayC object into buffer
-   return buf << (const TArray*)obj;
+   return buf << (const CppyyLegacy::TArray*)obj;
 }
+
+namespace CppyyLegacy {
 
 inline Char_t TArrayC::At(Int_t i) const
 {
@@ -93,5 +98,7 @@ inline Char_t TArrayC::operator[](Int_t i) const
    if (!BoundsOk("TArrayC::operator[]", i)) return 0;
    return fArray[i];
 }
+
+} // namespace CppyyLegacy
 
 #endif

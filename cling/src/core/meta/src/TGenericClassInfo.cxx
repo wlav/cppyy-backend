@@ -24,7 +24,9 @@
 #include "TInterpreter.h"
 #include "TClassTable.h"
 
-namespace ROOT {
+
+namespace CppyyLegacy {
+
 namespace Internal {
 
    std::string GetDemangledTypeName(const std::type_info &t)
@@ -52,7 +54,7 @@ namespace Internal {
       return &theDefault;
    }
 
-   void TCDGIILIBase::SetInstance(::ROOT::TGenericClassInfo& R__instance,
+   void TCDGIILIBase::SetInstance(CppyyLegacy::TGenericClassInfo& R__instance,
                                   NewFunc_t New, NewArrFunc_t NewArray,
                                   DelFunc_t Delete, DelArrFunc_t DeleteArray,
                                   DesFunc_t Destruct) {
@@ -216,7 +218,7 @@ namespace Internal {
       delete fStreamer;
       if (!fClass) delete fIsA; // fIsA is adopted by the class if any.
       fIsA = 0;
-      using ROOT::Internal::gROOTLocal;
+      using CppyyLegacy::Internal::gROOTLocal;
       if (!gROOTLocal || !gROOTLocal->Initialized() || !gROOTLocal->GetListOfClasses()) return;
       if (fAction) GetAction().Unregister(GetClassName());
    }
@@ -239,7 +241,7 @@ namespace Internal {
       // upon returning, the TClass for TObject will have already been created
       // and fClass will have been set.
       if (!gROOT)
-         ::Fatal("TClass::TClass", "ROOT system not initialized");
+         ::CppyyLegacy::Fatal("TClass::TClass", "ROOT system not initialized");
 
       if (!fClass && fAction) {
          R__LOCKGUARD(gInterpreterMutex);
@@ -332,7 +334,7 @@ namespace Internal {
             rule->SetReadRawFunctionPointer( (TSchemaRule::ReadRawFuncPtr_t)it->fFunctionPtr );
          }
          if( !rset->AddRule( rule, TSchemaRuleSet::kCheckAll, &errmsg ) ) {
-            ::Warning( "TGenericClassInfo", "The rule for class: \"%s\": version, \"%s\" and data members: \"%s\" has been skipped because %s.",
+            ::CppyyLegacy::Warning( "TGenericClassInfo", "The rule for class: \"%s\": version, \"%s\" and data members: \"%s\" has been skipped because %s.",
                         GetClassName(), it->fVersion.c_str(), it->fTarget.c_str(), errmsg.Data() );
             delete rule;
          }
@@ -386,7 +388,7 @@ namespace Internal {
    {
       // Import the information from the class template.
 
-      TNamed *info = ROOT::RegisterClassTemplate(GetClassName(), 0, 0);
+      TNamed *info = CppyyLegacy::RegisterClassTemplate(GetClassName(), 0, 0);
       if (info) SetImplFile(info->GetTitle(), info->GetUniqueID());
    }
 
@@ -414,7 +416,7 @@ namespace Internal {
    {
       // Set a class version number.
 
-      ROOT::ResetClassVersion(fClass, GetClassName(),version);
+      CppyyLegacy::ResetClassVersion(fClass, GetClassName(),version);
       fVersion = version;
       return version;
    }
@@ -647,4 +649,4 @@ namespace Internal {
       return fDirAutoAdd;
    }
 
-}
+} // namespace CppyyLegacy

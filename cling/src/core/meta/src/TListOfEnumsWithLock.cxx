@@ -25,7 +25,10 @@ unloaded enum.
 #include "TInterpreter.h"
 #include "TVirtualMutex.h"
 
-ClassImp(TListOfEnumsWithLock);
+
+ClassImp(CppyyLegacy::TListOfEnumsWithLock);
+
+namespace CppyyLegacy {
 
 ////////////////////////////////////////////////////////////////////////////////
 
@@ -322,11 +325,15 @@ Int_t TListOfEnumsWithLock::GetSize() const
    return TListOfEnums::GetSize();
 }
 
+} // namespace CppyyLegacy
+
 /** \class TListOfEnumsWithLockIter
 Iterator for TListOfEnumsWithLock.
 */
 
 ClassImp(TListOfEnumsWithLockIter);
+
+namespace CppyyLegacy {
 
 ////////////////////////////////////////////////////////////////////////////////
 
@@ -340,3 +347,5 @@ TObject *TListOfEnumsWithLockIter::Next()
    R__LOCKGUARD(gInterpreterMutex);
    return TListIter::Next();
 }
+
+} // namespace CppyyLegacy

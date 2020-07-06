@@ -20,9 +20,12 @@
 
 #include "TThreadFactory.h"
 
-TThreadFactory *gThreadFactory = 0;
 
-ClassImp(TThreadFactory);
+ClassImp(CppyyLegacy::TThreadFactory);
+
+namespace CppyyLegacy {
+
+TThreadFactory *gThreadFactory = 0;
 
 ////////////////////////////////////////////////////////////////////////////////
 /// TThreadFactory ctor only called by derived classes.
@@ -31,3 +34,5 @@ TThreadFactory::TThreadFactory(const char *name, const char *title)
                : TNamed(name, title)
 {
 }
+
+} // namespace CppyyLegacy

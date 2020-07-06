@@ -17,5 +17,11 @@ ABC describing GUI independent application implementation protocol.
 
 #include "TApplicationImp.h"
 
-ClassImp(TApplicationImp);
+
+ClassImp(CppyyLegacy::TApplicationImp);
+
+namespace CppyyLegacy {
+
 TApplicationImp::~TApplicationImp() {}
+
+} // namespace CppyyLegacy

@@ -18,7 +18,10 @@ for collection iterators.
 #include "TIterator.h"
 #include "TError.h"
 
-ClassImp(TIterator);
+
+ClassImp(CppyyLegacy::TIterator);
+
+namespace CppyyLegacy {
 
 ////////////////////////////////////////////////////////////////////////////////
 /// Compare two iterator objects.
@@ -27,7 +30,7 @@ ClassImp(TIterator);
 
 Bool_t TIterator::operator!=(const TIterator &) const
 {
-   ::Warning("TIterator::operator!=", "this method must be overridden!");
+   ::CppyyLegacy::Warning("TIterator::operator!=", "this method must be overridden!");
    return false;
 }
 
@@ -38,6 +41,8 @@ Bool_t TIterator::operator!=(const TIterator &) const
 
 TObject *TIterator::operator*() const
 {
-   ::Warning("TIterator::operator*", "this method must be overridden!");
+   ::CppyyLegacy::Warning("TIterator::operator*", "this method must be overridden!");
    return nullptr;
 }
+
+} // namespace CppyyLegacy

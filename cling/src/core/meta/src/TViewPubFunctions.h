@@ -22,8 +22,10 @@
 
 #include "TList.h"
 
-class TClass;
 
+namespace CppyyLegacy {
+
+class TClass;
 
 class TViewPubFunctions : public TList {
 
@@ -124,6 +126,8 @@ public:
    // ClassDefInline does not yet support non default constructible classes
    // ClassDefInline(TViewPubFunctionsIter,0)  //Linked list iterator
 };
+
+} // namespace CppyyLegacy
 
 #if (__GNUC__ * 10000 + __GNUC_MINOR__ * 100 + __GNUC_PATCHLEVEL__) >= 40600
 #pragma GCC diagnostic pop

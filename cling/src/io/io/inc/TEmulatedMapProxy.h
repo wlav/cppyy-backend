@@ -8,10 +8,14 @@
  * For the licensing terms see $ROOTSYS/LICENSE.                         *
  * For the list of contributors see $ROOTSYS/README/CREDITS.             *
  *************************************************************************/
+
 #ifndef ROOT_TEmulatedMapProxy
 #define ROOT_TEmulatedMapProxy
 
 #include "TEmulatedCollectionProxy.h"
+
+
+namespace CppyyLegacy {
 
 class TEmulatedMapProxy : public TEmulatedCollectionProxy  {
 
@@ -56,4 +60,5 @@ public:
    }
 };
 
+} // namespace CppyyLegacy
 #endif

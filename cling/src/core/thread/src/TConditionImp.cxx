@@ -20,4 +20,4 @@
 
 #include "TConditionImp.h"
 
-ClassImp(TConditionImp);
+ClassImp(CppyyLegacy::TConditionImp);

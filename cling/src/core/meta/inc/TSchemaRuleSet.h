@@ -4,7 +4,9 @@
 #ifndef ROOT_TSchemaRuleSet
 #define ROOT_TSchemaRuleSet
 
-class TClass;
+namespace CppyyLegacy {
+   class TClass;
+}
 
 #include "TObject.h"
 #include "TObjArray.h"
@@ -12,7 +14,8 @@ class TClass;
 #include "TString.h"
 #include "TClassRef.h"
 
-namespace ROOT {
+
+namespace CppyyLegacy {
 
 class TSchemaRule;
 
@@ -72,7 +75,7 @@ namespace Detail {
       UInt_t     fCheckSum;        //  Target class checksum
    };
 
-} // End of Namespace Detail
-} // End of Namespace ROOT
+} // namespace Detail
+} // namespace CppyyLegacy
 
 #endif // ROOT_TSchemaRuleSet

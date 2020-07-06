@@ -27,12 +27,12 @@
 //////////////////////////////////////////////////////////////////////////
 
 #include "TClingDeclInfo.h"
-
 #include "TString.h"
 #include "TDictionary.h"
 
 #include "clang/AST/DeclBase.h"
 #include "llvm/ADT/SmallVector.h"
+
 
 namespace cling {
    class Interpreter;
@@ -42,11 +42,13 @@ namespace clang {
    class FunctionDecl;
 }
 
-namespace ROOT {
+namespace CppyyLegacy {
    namespace TMetaUtils {
       class TNormalizedCtxt;
    }
 }
+
+namespace CppyyLegacy {
 
 class TClingClassInfo;
 class TClingTypeInfo;
@@ -85,7 +87,7 @@ public:
    cling::Interpreter                          *GetInterpreter() const { return fInterp; }
    void                                         CreateSignature(TString &signature) const;
    void                                         Init(const clang::FunctionDecl*);
-   void                                        *InterfaceMethod(const ROOT::TMetaUtils::TNormalizedCtxt &normCtxt) const;
+   void                                        *InterfaceMethod(const CppyyLegacy::TMetaUtils::TNormalizedCtxt &normCtxt) const;
 
    const clang::Decl *GetDecl() const override {
      if (const clang::Decl* SingleDecl = TClingDeclInfo::GetDecl())
@@ -105,5 +107,7 @@ public:
    const char                                  *TypeName() const;
    const char                                  *Title();
 };
+
+} // namespace CppyyLegacy
 
 #endif // ROOT_TClingMethodInfo

@@ -22,11 +22,14 @@
 #include "TPosixCondition.h"
 #include "TPosixThread.h"
 
+
+ClassImp(CppyyLegacy::TPosixThreadFactory);
+
+namespace CppyyLegacy {
+
 // Force creation of TPosixThreadFactory when shared library will be loaded
 // (don't explicitly create a TPosixThreadFactory).
 static TPosixThreadFactory gPosixThreadFactoryCreator;
-
-ClassImp(TPosixThreadFactory);
 
 ////////////////////////////////////////////////////////////////////////////////
 /// Create Posix thread factory. Also sets global gThreadFactory to this.
@@ -60,3 +63,5 @@ TConditionImp *TPosixThreadFactory::CreateConditionImp(TMutexImp *m)
 {
    return new TPosixCondition(m);
 }
+
+} // namespace CppyyLegacy

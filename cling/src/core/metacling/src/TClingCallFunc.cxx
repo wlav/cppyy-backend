@@ -71,10 +71,14 @@ C++ interpreter and the Clang C++ compiler, not CINT.
 #include <string>
 #include <sstream>
 
-using namespace ROOT;
+
+using namespace CppyyLegacy;
 using namespace llvm;
 using namespace clang;
 using namespace std;
+
+
+namespace CppyyLegacy {
 
 static unsigned long long gWrapperSerial = 0LL;
 static const string kIndentString("   ");
@@ -234,7 +238,7 @@ namespace {
       }
       if (QT->isMemberPointerType())
          return (returnType)(intptr_t)val.getPtr();
-      ::Error("TClingCallFunc::sv_to", "Invalid Type!");
+      ::CppyyLegacy::Error("TClingCallFunc::sv_to", "Invalid Type!");
       QT->dump();
       return 0;
    }
@@ -277,7 +281,7 @@ void TClingCallFunc::collect_type_info(QualType &QT, ostringstream &typedefbuf, 
    PrintingPolicy Policy(FD->getASTContext().getPrintingPolicy());
    refType = kNotReference;
    if (QT->isRecordType() && forArgument) {
-      ROOT::TMetaUtils::GetNormalizedName(type_name, QT, *fInterp, fNormCtxt);
+      CppyyLegacy::TMetaUtils::GetNormalizedName(type_name, QT, *fInterp, fNormCtxt);
       return;
    }
    if (QT->isFunctionPointerType()) {
@@ -335,7 +339,7 @@ void TClingCallFunc::collect_type_info(QualType &QT, ostringstream &typedefbuf, 
       typedefbuf << "typedef " << ar_typedef_name << ";\n";
       return;
    }
-   ROOT::TMetaUtils::GetNormalizedName(type_name, QT, *fInterp, fNormCtxt);
+   CppyyLegacy::TMetaUtils::GetNormalizedName(type_name, QT, *fInterp, fNormCtxt);
 }
 
 void TClingCallFunc::make_narg_ctor(const unsigned N, ostringstream &typedefbuf,
@@ -486,7 +490,7 @@ void TClingCallFunc::make_narg_call(const std::string &return_type, const unsign
          QualType Ty = PVD->getType();
          QualType QT = Ty.getCanonicalType();
          std::string arg_type;
-         ROOT::TMetaUtils::GetNormalizedName(arg_type, QT, *fInterp, fNormCtxt);
+         CppyyLegacy::TMetaUtils::GetNormalizedName(arg_type, QT, *fInterp, fNormCtxt);
          callbuf << arg_type;
       }
       if (FD->isVariadic())
@@ -668,7 +672,7 @@ int TClingCallFunc::get_wrapper_code(std::string &wrapper_name, std::string &wra
    if (const TypeDecl *TD = dyn_cast<TypeDecl>(FD->getDeclContext())) {
       // This is a class, struct, or union member.
       QualType QT(TD->getTypeForDecl(), 0);
-      ROOT::TMetaUtils::GetNormalizedName(class_name, QT, *fInterp, fNormCtxt);
+      CppyyLegacy::TMetaUtils::GetNormalizedName(class_name, QT, *fInterp, fNormCtxt);
    } else if (const NamedDecl *ND = dyn_cast<NamedDecl>(FD->getDeclContext())) {
       // This is a namespace member.
       raw_string_ostream stream(class_name);
@@ -689,7 +693,7 @@ int TClingCallFunc::get_wrapper_code(std::string &wrapper_name, std::string &wra
          // Note: This might be ok, the body might be defined
          //       in a library, and all we have seen is the
          //       header file.
-         //::Error("TClingCallFunc::make_wrapper",
+         //::CppyyLegacy::Error("TClingCallFunc::make_wrapper",
          //      "Cannot make wrapper for a function which is "
          //      "declared but not defined!");
          // return 0;
@@ -697,7 +701,7 @@ int TClingCallFunc::get_wrapper_code(std::string &wrapper_name, std::string &wra
       case FunctionDecl::TK_FunctionTemplate: {
          // This decl is actually a function template,
          // not a function at all.
-         ::Error("TClingCallFunc::make_wrapper", "Cannot make wrapper for a function template!");
+         ::CppyyLegacy::Error("TClingCallFunc::make_wrapper", "Cannot make wrapper for a function template!");
          return 0;
       } break;
       case FunctionDecl::TK_MemberSpecialization: {
@@ -713,7 +717,7 @@ int TClingCallFunc::get_wrapper_code(std::string &wrapper_name, std::string &wra
             // Note: This might be ok, the body might be defined
             //       in a library, and all we have seen is the
             //       header file.
-            //::Error("TClingCallFunc::make_wrapper",
+            //::CppyyLegacy::Error("TClingCallFunc::make_wrapper",
             //      "Cannot make wrapper for a function template "
             //      "explicit specialization which is declared "
             //      "but not defined!");
@@ -722,7 +726,7 @@ int TClingCallFunc::get_wrapper_code(std::string &wrapper_name, std::string &wra
          }
          const FunctionDecl *Pattern = FD->getTemplateInstantiationPattern();
          if (!Pattern) {
-            ::Error("TClingCallFunc::make_wrapper", "Cannot make wrapper for a member function "
+            ::CppyyLegacy::Error("TClingCallFunc::make_wrapper", "Cannot make wrapper for a member function "
                                                     "instantiation with no pattern!");
             return 0;
          }
@@ -742,7 +746,7 @@ int TClingCallFunc::get_wrapper_code(std::string &wrapper_name, std::string &wra
             //       header file.
             break;
          } else if (!Pattern->hasBody()) {
-            //::Error("TClingCallFunc::make_wrapper", "Cannot make wrapper for a member function "
+            //::CppyyLegacy::Error("TClingCallFunc::make_wrapper", "Cannot make wrapper for a member function "
             //                                        "instantiation with no body!");
             needInstantiation = false;
          } else if (FD->isImplicitlyInstantiable()) {
@@ -760,7 +764,7 @@ int TClingCallFunc::get_wrapper_code(std::string &wrapper_name, std::string &wra
             // Note: This might be ok, the body might be defined
             //       in a library, and all we have seen is the
             //       header file.
-            //::Error("TClingCallFunc::make_wrapper",
+            //::CppyyLegacy::Error("TClingCallFunc::make_wrapper",
             //      "Cannot make wrapper for a function template "
             //      "explicit specialization which is declared "
             //      "but not defined!");
@@ -769,7 +773,7 @@ int TClingCallFunc::get_wrapper_code(std::string &wrapper_name, std::string &wra
          }
          const FunctionDecl *Pattern = FD->getTemplateInstantiationPattern();
          if (!Pattern) {
-            ::Error("TClingCallFunc::make_wrapper", "Cannot make wrapper for a function template"
+            ::CppyyLegacy::Error("TClingCallFunc::make_wrapper", "Cannot make wrapper for a function template"
                                                     "instantiation with no pattern!");
             return 0;
          }
@@ -790,7 +794,7 @@ int TClingCallFunc::get_wrapper_code(std::string &wrapper_name, std::string &wra
             break;
          }
          if (!Pattern->hasBody()) {
-         //   ::Error("TClingCallFunc::make_wrapper", "Cannot make wrapper for a function template"
+         //   ::CppyyLegacy::Error("TClingCallFunc::make_wrapper", "Cannot make wrapper for a function template"
          //                                           "instantiation with no body!");
             needInstantiation = false;
          } else if (FD->isImplicitlyInstantiable()) {
@@ -811,7 +815,7 @@ int TClingCallFunc::get_wrapper_code(std::string &wrapper_name, std::string &wra
             // Note: This might be ok, the body might be defined
             //       in a library, and all we have seen is the
             //       header file.
-            //::Error("TClingCallFunc::make_wrapper",
+            //::CppyyLegacy::Error("TClingCallFunc::make_wrapper",
             //      "Cannot make wrapper for a dependent function "
             //      "template explicit specialization which is declared "
             //      "but not defined!");
@@ -820,7 +824,7 @@ int TClingCallFunc::get_wrapper_code(std::string &wrapper_name, std::string &wra
          }
          const FunctionDecl *Pattern = FD->getTemplateInstantiationPattern();
          if (!Pattern) {
-            ::Error("TClingCallFunc::make_wrapper", "Cannot make wrapper for a dependent function template"
+            ::CppyyLegacy::Error("TClingCallFunc::make_wrapper", "Cannot make wrapper for a dependent function template"
                                                     "instantiation with no pattern!");
             return 0;
          }
@@ -841,7 +845,7 @@ int TClingCallFunc::get_wrapper_code(std::string &wrapper_name, std::string &wra
             break;
          }
          if (!Pattern->hasBody()) {
-            //::Error("TClingCallFunc::make_wrapper", "Cannot make wrapper for a dependent function template"
+            //::CppyyLegacy::Error("TClingCallFunc::make_wrapper", "Cannot make wrapper for a dependent function template"
             //                                        "instantiation with no body!");
             needInstantiation = false;
          } else if (FD->isImplicitlyInstantiable()) {
@@ -851,7 +855,7 @@ int TClingCallFunc::get_wrapper_code(std::string &wrapper_name, std::string &wra
       default: {
          // Will only happen if clang implementation changes.
          // Protect ourselves in case that happens.
-         ::Error("TClingCallFunc::make_wrapper", "Unhandled template kind!");
+         ::CppyyLegacy::Error("TClingCallFunc::make_wrapper", "Unhandled template kind!");
          return 0;
       } break;
       }
@@ -883,7 +887,7 @@ int TClingCallFunc::get_wrapper_code(std::string &wrapper_name, std::string &wra
                                       /*Recursive=*/true,
                                       /*DefinitionRequired=*/true);
       if (!FD->isDefined(Definition)) {
-         ::Error("TClingCallFunc::make_wrapper", "Failed to force template instantiation!");
+         ::CppyyLegacy::Error("TClingCallFunc::make_wrapper", "Failed to force template instantiation!");
          return 0;
       }
    }
@@ -893,10 +897,10 @@ int TClingCallFunc::get_wrapper_code(std::string &wrapper_name, std::string &wra
       case FunctionDecl::TK_NonTemplate: {
          // Ordinary function, not a template specialization.
          if (Definition->isDeleted()) {
-            ::Error("TClingCallFunc::make_wrapper", "Cannot make wrapper for a deleted function!");
+            ::CppyyLegacy::Error("TClingCallFunc::make_wrapper", "Cannot make wrapper for a deleted function!");
             return 0;
          } else if (Definition->isLateTemplateParsed()) {
-            ::Error("TClingCallFunc::make_wrapper", "Cannot make wrapper for a late template parsed "
+            ::CppyyLegacy::Error("TClingCallFunc::make_wrapper", "Cannot make wrapper for a late template parsed "
                                                     "function!");
             return 0;
          }
@@ -910,7 +914,7 @@ int TClingCallFunc::get_wrapper_code(std::string &wrapper_name, std::string &wra
       case FunctionDecl::TK_FunctionTemplate: {
          // This decl is actually a function template,
          // not a function at all.
-         ::Error("TClingCallFunc::make_wrapper", "Cannot make wrapper for a function template!");
+         ::CppyyLegacy::Error("TClingCallFunc::make_wrapper", "Cannot make wrapper for a function template!");
          return 0;
       } break;
       case FunctionDecl::TK_MemberSpecialization: {
@@ -918,11 +922,11 @@ int TClingCallFunc::get_wrapper_code(std::string &wrapper_name, std::string &wra
          // member function of a class template or of a member class
          // of a class template.
          if (Definition->isDeleted()) {
-            ::Error("TClingCallFunc::make_wrapper", "Cannot make wrapper for a deleted member function "
+            ::CppyyLegacy::Error("TClingCallFunc::make_wrapper", "Cannot make wrapper for a deleted member function "
                                                     "of a specialization!");
             return 0;
          } else if (Definition->isLateTemplateParsed()) {
-            ::Error("TClingCallFunc::make_wrapper", "Cannot make wrapper for a late template parsed "
+            ::CppyyLegacy::Error("TClingCallFunc::make_wrapper", "Cannot make wrapper for a late template parsed "
                                                     "member function of a specialization!");
             return 0;
          }
@@ -939,11 +943,11 @@ int TClingCallFunc::get_wrapper_code(std::string &wrapper_name, std::string &wra
          // function template.  Could be a namespace scope function or a
          // member function.
          if (Definition->isDeleted()) {
-            ::Error("TClingCallFunc::make_wrapper", "Cannot make wrapper for a deleted function "
+            ::CppyyLegacy::Error("TClingCallFunc::make_wrapper", "Cannot make wrapper for a deleted function "
                                                     "template specialization!");
             return 0;
          } else if (Definition->isLateTemplateParsed()) {
-            ::Error("TClingCallFunc::make_wrapper", "Cannot make wrapper for a late template parsed "
+            ::CppyyLegacy::Error("TClingCallFunc::make_wrapper", "Cannot make wrapper for a late template parsed "
                                                     "function template specialization!");
             return 0;
          }
@@ -963,11 +967,11 @@ int TClingCallFunc::get_wrapper_code(std::string &wrapper_name, std::string &wra
          // template where at least some part of the function is
          // dependent on a template argument.
          if (Definition->isDeleted()) {
-            ::Error("TClingCallFunc::make_wrapper", "Cannot make wrapper for a deleted dependent function "
+            ::CppyyLegacy::Error("TClingCallFunc::make_wrapper", "Cannot make wrapper for a deleted dependent function "
                                                     "template specialization!");
             return 0;
          } else if (Definition->isLateTemplateParsed()) {
-            ::Error("TClingCallFunc::make_wrapper", "Cannot make wrapper for a late template parsed "
+            ::CppyyLegacy::Error("TClingCallFunc::make_wrapper", "Cannot make wrapper for a late template parsed "
                                                     "dependent function template specialization!");
             return 0;
          }
@@ -981,7 +985,7 @@ int TClingCallFunc::get_wrapper_code(std::string &wrapper_name, std::string &wra
       default: {
          // Will only happen if clang implementation changes.
          // Protect ourselves in case that happens.
-         ::Error("TClingCallFunc::make_wrapper", "Unhandled template kind!");
+         ::CppyyLegacy::Error("TClingCallFunc::make_wrapper", "Unhandled template kind!");
          return 0;
       } break;
       }
@@ -1194,7 +1198,7 @@ tcling_callfunc_Wrapper_t TClingCallFunc::make_wrapper()
    if (F) {
       gWrapperStore.insert(make_pair(FD, F));
    } else {
-      ::Error("TClingCallFunc::make_wrapper",
+      ::CppyyLegacy::Error("TClingCallFunc::make_wrapper",
             "Failed to compile\n  ==== SOURCE BEGIN ====\n%s\n  ==== SOURCE END ====",
             wrapper.c_str());
    }
@@ -1253,7 +1257,7 @@ tcling_callfunc_ctor_Wrapper_t TClingCallFunc::make_ctor_wrapper(const TClingCla
    if (const TypeDecl *TD = dyn_cast<TypeDecl>(info->GetDecl())) {
       // This is a class, struct, or union member.
       QualType QT(TD->getTypeForDecl(), 0);
-      ROOT::TMetaUtils::GetNormalizedName(class_name, QT, *fInterp, fNormCtxt);
+      CppyyLegacy::TMetaUtils::GetNormalizedName(class_name, QT, *fInterp, fNormCtxt);
    } else if (const NamedDecl *ND = dyn_cast<NamedDecl>(info->GetDecl())) {
       // This is a namespace member.
       raw_string_ostream stream(class_name);
@@ -1359,7 +1363,7 @@ tcling_callfunc_ctor_Wrapper_t TClingCallFunc::make_ctor_wrapper(const TClingCla
    if (F) {
       gCtorWrapperStore.insert(make_pair(info->GetDecl(), F));
    } else {
-      ::Error("TClingCallFunc::make_ctor_wrapper",
+      ::CppyyLegacy::Error("TClingCallFunc::make_ctor_wrapper",
             "Failed to compile\n  ==== SOURCE BEGIN ====\n%s\n  ==== SOURCE END ====",
             wrapper.c_str());
    }
@@ -1407,7 +1411,7 @@ TClingCallFunc::make_dtor_wrapper(const TClingClassInfo *info)
    if (const TypeDecl *TD = dyn_cast<TypeDecl>(info->GetDecl())) {
       // This is a class, struct, or union member.
       QualType QT(TD->getTypeForDecl(), 0);
-      ROOT::TMetaUtils::GetNormalizedName(class_name, QT, *fInterp, fNormCtxt);
+      CppyyLegacy::TMetaUtils::GetNormalizedName(class_name, QT, *fInterp, fNormCtxt);
    } else if (const NamedDecl *ND = dyn_cast<NamedDecl>(info->GetDecl())) {
       // This is a namespace member.
       raw_string_ostream stream(class_name);
@@ -1523,7 +1527,7 @@ TClingCallFunc::make_dtor_wrapper(const TClingClassInfo *info)
    if (F) {
       gDtorWrapperStore.insert(make_pair(info->GetDecl(), F));
    } else {
-      ::Error("TClingCallFunc::make_dtor_wrapper",
+      ::CppyyLegacy::Error("TClingCallFunc::make_dtor_wrapper",
             "Failed to compile\n  ==== SOURCE BEGIN ====\n%s\n  ==== SOURCE END ====",
             wrapper.c_str());
    }
@@ -1578,7 +1582,7 @@ void TClingCallFunc::exec(void *address, void *ret)
       unsigned num_params = FD->getNumParams();
 
       if (num_args < GetMinRequiredArguments()) {
-         ::Error("TClingCallFunc::exec",
+         ::CppyyLegacy::Error("TClingCallFunc::exec",
                "Not enough arguments provided for %s (%d instead of the minimum %d)",
                fMethod->Name(),
                num_args, (int)GetMinRequiredArguments());
@@ -1587,7 +1591,7 @@ void TClingCallFunc::exec(void *address, void *ret)
       if (address == 0 && dyn_cast<CXXMethodDecl>(FD)
           && !(dyn_cast<CXXMethodDecl>(FD))->isStatic()
           && !dyn_cast<CXXConstructorDecl>(FD)) {
-         ::Error("TClingCallFunc::exec",
+         ::CppyyLegacy::Error("TClingCallFunc::exec",
                "The method %s is called without an object.",
                fMethod->Name());
          return;
@@ -1618,7 +1622,7 @@ void TClingCallFunc::exec(void *address, void *ret)
                   //
                case BuiltinType::Void: {
                      // void
-                     ::Error("TClingCallFunc::exec(void*)",
+                     ::CppyyLegacy::Error("TClingCallFunc::exec(void*)",
                            "Invalid type 'Void'!");
                      return;
                   }
@@ -1778,14 +1782,14 @@ void TClingCallFunc::exec(void *address, void *ret)
                   break;
                case BuiltinType::Int128: {
                      // __int128_t
-                     ::Error("TClingCallFunc::exec(void*)",
+                     ::CppyyLegacy::Error("TClingCallFunc::exec(void*)",
                            "Invalid type 'Int128'!");
                      return;
                   }
                   break;
                case BuiltinType::Half: {
                      // half in OpenCL, __fp16 in ARM NEON
-                     ::Error("TClingCallFunc::exec(void*)",
+                     ::CppyyLegacy::Error("TClingCallFunc::exec(void*)",
                            "Invalid type 'Half'!");
                      return;
                   }
@@ -1828,7 +1832,7 @@ void TClingCallFunc::exec(void *address, void *ret)
                default: {
                      // There should be no others.  This is here in case
                      // this changes in the future.
-                     ::Error("TClingCallFunc::exec(void*)",
+                     ::CppyyLegacy::Error("TClingCallFunc::exec(void*)",
                            "Unhandled builtin type!");
                      QT->dump();
                      return;
@@ -1863,7 +1867,7 @@ void TClingCallFunc::exec(void *address, void *ret)
             vh_ary.push_back(vh);
             vp_ary.push_back(&vh_ary.back());
          } else {
-            ::Error("TClingCallFunc::exec(void*)",
+            ::CppyyLegacy::Error("TClingCallFunc::exec(void*)",
                   "Invalid type (unrecognized)!");
             QT->dump();
             return;
@@ -1925,12 +1929,12 @@ TClingCallFunc::InitRetAndExecBuiltin(QualType QT, const clang::BuiltinType *BT,
          return InitRetAndExecIntegral<wchar_t>(QT, ret);
          break;
       case BuiltinType::Char16:
-         ::Error("TClingCallFunc::InitRetAndExecBuiltin",
+         ::CppyyLegacy::Error("TClingCallFunc::InitRetAndExecBuiltin",
                "Invalid type 'char16_t'!");
          return {};
          break;
       case BuiltinType::Char32:
-         ::Error("TClingCallFunc::InitRetAndExecBuiltin",
+         ::CppyyLegacy::Error("TClingCallFunc::InitRetAndExecBuiltin",
                "Invalid type 'char32_t'!");
          return {};
          break;
@@ -1947,7 +1951,7 @@ TClingCallFunc::InitRetAndExecBuiltin(QualType QT, const clang::BuiltinType *BT,
          return InitRetAndExecIntegral<unsigned long long>(QT, ret);
          break;
       case BuiltinType::UInt128: {
-            ::Error("TClingCallFunc::InitRetAndExecBuiltin",
+            ::CppyyLegacy::Error("TClingCallFunc::InitRetAndExecBuiltin",
                   "Invalid type '__uint128_t'!");
             return {};
          }
@@ -1979,13 +1983,13 @@ TClingCallFunc::InitRetAndExecBuiltin(QualType QT, const clang::BuiltinType *BT,
          return InitRetAndExecIntegral<long long>(QT, ret);
          break;
       case BuiltinType::Int128:
-         ::Error("TClingCallFunc::InitRetAndExecBuiltin",
+         ::CppyyLegacy::Error("TClingCallFunc::InitRetAndExecBuiltin",
                "Invalid type '__int128_t'!");
          return {};
          break;
       case BuiltinType::Half:
          // half in OpenCL, __fp16 in ARM NEON
-         ::Error("TClingCallFunc::InitRetAndExecBuiltin",
+         ::CppyyLegacy::Error("TClingCallFunc::InitRetAndExecBuiltin",
                "Invalid type 'Half'!");
          return {};
          break;
@@ -2009,7 +2013,7 @@ TClingCallFunc::InitRetAndExecBuiltin(QualType QT, const clang::BuiltinType *BT,
          //
       case BuiltinType::NullPtr:
          // C++11 nullptr
-         ::Error("TClingCallFunc::InitRetAndExecBuiltin",
+         ::CppyyLegacy::Error("TClingCallFunc::InitRetAndExecBuiltin",
                "Invalid type 'nullptr'!");
          return {};
          break;
@@ -2055,7 +2059,7 @@ TClingCallFunc::InitRetAndExecNoCtor(clang::QualType QT, cling::Value &ret) {
    } else if (const BuiltinType *BT = dyn_cast<BuiltinType>(&*QT)) {
       return InitRetAndExecBuiltin(QT, BT, ret);
    }
-   ::Error("TClingCallFunc::exec_with_valref_return",
+   ::CppyyLegacy::Error("TClingCallFunc::exec_with_valref_return",
          "Unrecognized return type!");
    QT->dump();
    return {};
@@ -2110,7 +2114,7 @@ void TClingCallFunc::EvaluateArgList(const string &ArgList)
       EvaluateExpr(*fInterp, *I, val);
       if (!val.isValid()) {
          // Bad expression, all done.
-         ::Error("TClingCallFunc::EvaluateArgList",
+         ::CppyyLegacy::Error("TClingCallFunc::EvaluateArgList",
                "Bad expression in parameter %d of '%s'!",
                (int)(I - exprs.begin()),
                ArgList.c_str());
@@ -2124,7 +2128,7 @@ void TClingCallFunc::Exec(void *address, TInterpreterValue *interpVal/*=0*/)
 {
    IFacePtr();
    if (!fWrapper) {
-      ::Error("TClingCallFunc::Exec(address, interpVal)",
+      ::CppyyLegacy::Error("TClingCallFunc::Exec(address, interpVal)",
             "Called with no wrapper, not implemented!");
       return;
    }
@@ -2141,7 +2145,7 @@ T TClingCallFunc::ExecT(void *address)
 {
    IFacePtr();
    if (!fWrapper) {
-      ::Error("TClingCallFunc::ExecT",
+      ::CppyyLegacy::Error("TClingCallFunc::ExecT",
             "Called with no wrapper, not implemented!");
       return 0;
    }
@@ -2177,7 +2181,7 @@ void TClingCallFunc::ExecWithArgsAndReturn(void *address, const void *args[] /*=
 {
    IFacePtr();
    if (!fWrapper) {
-      ::Error("TClingCallFunc::ExecWithArgsAndReturn(address, args, ret)",
+      ::CppyyLegacy::Error("TClingCallFunc::ExecWithArgsAndReturn(address, args, ret)",
             "Called with no wrapper, not implemented!");
       return;
    }
@@ -2188,7 +2192,7 @@ void TClingCallFunc::ExecWithReturn(void *address, void *ret/*= 0*/)
 {
    IFacePtr();
    if (!fWrapper) {
-      ::Error("TClingCallFunc::ExecWithReturn(address, ret)",
+      ::CppyyLegacy::Error("TClingCallFunc::ExecWithReturn(address, ret)",
             "Called with no wrapper, not implemented!");
       return;
    }
@@ -2199,7 +2203,7 @@ void *TClingCallFunc::ExecDefaultConstructor(const TClingClassInfo *info, void *
       unsigned long nary /*= 0UL*/)
 {
    if (!info->IsValid()) {
-      ::Error("TClingCallFunc::ExecDefaultConstructor", "Invalid class info!");
+      ::CppyyLegacy::Error("TClingCallFunc::ExecDefaultConstructor", "Invalid class info!");
       return 0;
    }
    tcling_callfunc_ctor_Wrapper_t wrapper = 0;
@@ -2209,7 +2213,7 @@ void *TClingCallFunc::ExecDefaultConstructor(const TClingClassInfo *info, void *
       //if (!info->HasDefaultConstructor()) {
       //   // FIXME: We might have a ROOT ioctor, we might
       //   //        have to check for that here.
-      //   ::Error("TClingCallFunc::ExecDefaultConstructor",
+      //   ::CppyyLegacy::Error("TClingCallFunc::ExecDefaultConstructor",
       //         "Class has no default constructor: %s",
       //         info->Name());
       //   return 0;
@@ -2222,7 +2226,7 @@ void *TClingCallFunc::ExecDefaultConstructor(const TClingClassInfo *info, void *
       }
    }
    if (!wrapper) {
-      ::Error("TClingCallFunc::ExecDefaultConstructor",
+      ::CppyyLegacy::Error("TClingCallFunc::ExecDefaultConstructor",
             "Called with no wrapper, not implemented!");
       return 0;
    }
@@ -2235,7 +2239,7 @@ void TClingCallFunc::ExecDestructor(const TClingClassInfo *info, void *address /
                                     unsigned long nary /*= 0UL*/, bool withFree /*= true*/)
 {
    if (!info->IsValid()) {
-      ::Error("TClingCallFunc::ExecDestructor", "Invalid class info!");
+      ::CppyyLegacy::Error("TClingCallFunc::ExecDestructor", "Invalid class info!");
       return;
    }
 
@@ -2251,7 +2255,7 @@ void TClingCallFunc::ExecDestructor(const TClingClassInfo *info, void *address /
       }
    }
    if (!wrapper) {
-      ::Error("TClingCallFunc::ExecDestructor",
+      ::CppyyLegacy::Error("TClingCallFunc::ExecDestructor",
             "Called with no wrapper, not implemented!");
       return;
    }
@@ -2315,7 +2319,7 @@ bool TClingCallFunc::IsValid() const
 TInterpreter::CallFuncIFacePtr_t TClingCallFunc::IFacePtr()
 {
    if (!IsValid()) {
-      ::Error("TClingCallFunc::IFacePtr(kind)",
+      ::CppyyLegacy::Error("TClingCallFunc::IFacePtr(kind)",
             "Attempt to get interface while invalid.");
       return TInterpreter::CallFuncIFacePtr_t();
    }
@@ -2412,7 +2416,7 @@ void TClingCallFunc::SetFunc(const TClingClassInfo *info, const char *method, co
    }
    ResetArg();
    if (!info->IsValid()) {
-      ::Error("TClingCallFunc::SetFunc", "Class info is invalid!");
+      ::CppyyLegacy::Error("TClingCallFunc::SetFunc", "Class info is invalid!");
       return;
    }
    if (!strcmp(arglist, ")")) {
@@ -2421,8 +2425,6 @@ void TClingCallFunc::SetFunc(const TClingClassInfo *info, const char *method, co
    }
    *fMethod = info->GetMethodWithArgs(method, arglist, objectIsConst, poffset);
    if (!fMethod->IsValid()) {
-      //::Error("TClingCallFunc::SetFunc", "Could not find method %s(%s)", method,
-      //      arglist);
       return;
    }
    // FIXME: The arglist was already parsed by the lookup, we should
@@ -2457,13 +2459,11 @@ void TClingCallFunc::SetFuncProto(const TClingClassInfo *info, const char *metho
    }
    ResetArg();
    if (!info->IsValid()) {
-      ::Error("TClingCallFunc::SetFuncProto", "Class info is invalid!");
+      ::CppyyLegacy::Error("TClingCallFunc::SetFuncProto", "Class info is invalid!");
       return;
    }
    *fMethod = info->GetMethod(method, proto, objectIsConst, poffset, mode);
    if (!fMethod->IsValid()) {
-      //::Error("TClingCallFunc::SetFuncProto", "Could not find method %s(%s)",
-      //      method, proto);
       return;
    }
 }
@@ -2486,14 +2486,13 @@ void TClingCallFunc::SetFuncProto(const TClingClassInfo *info, const char *metho
    }
    ResetArg();
    if (!info->IsValid()) {
-      ::Error("TClingCallFunc::SetFuncProto", "Class info is invalid!");
+      ::CppyyLegacy::Error("TClingCallFunc::SetFuncProto", "Class info is invalid!");
       return;
    }
    *fMethod = info->GetMethod(method, proto, objectIsConst, poffset, mode);
    if (!fMethod->IsValid()) {
-      //::Error("TClingCallFunc::SetFuncProto", "Could not find method %s(%s)",
-      //      method, proto);
       return;
    }
 }
 
+} // namespace CppyyLegacy

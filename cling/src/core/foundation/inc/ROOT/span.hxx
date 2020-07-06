@@ -32,7 +32,7 @@
 #include <type_traits>
 #include <initializer_list>
 
-namespace ROOT {
+namespace CppyyLegacy {
 namespace Detail {
 using std::size_t;
 
@@ -107,8 +107,8 @@ struct make_indices_impl<
    N,
    typename std::enable_if<(N > 1 && N % 2 == 0)>::type
 >
-   : ROOT::Detail::make_indices_next<
-      typename ROOT::Detail::make_indices_impl<First, Step, N / 2>::type,
+   : CppyyLegacy::Detail::make_indices_next<
+      typename CppyyLegacy::Detail::make_indices_impl<First, Step, N / 2>::type,
       First + N / 2 * Step
    >
 {};
@@ -120,8 +120,8 @@ struct make_indices_impl<
    N,
    typename std::enable_if<(N > 1 && N % 2 == 1)>::type
 >
-   : ROOT::Detail::make_indices_next2<
-      typename ROOT::Detail::make_indices_impl<First, Step, N / 2>::type,
+   : CppyyLegacy::Detail::make_indices_next2<
+      typename CppyyLegacy::Detail::make_indices_impl<First, Step, N / 2>::type,
       First + N / 2 * Step,
       First + (N - 1) * Step
    >
@@ -129,7 +129,7 @@ struct make_indices_impl<
 
 template<size_t First, size_t Last, size_t Step = 1>
 struct make_indices_
-   : ROOT::Detail::make_indices_impl<
+   : CppyyLegacy::Detail::make_indices_impl<
       First,
       Step,
       ((Last - First) + (Step - 1)) / Step
@@ -140,11 +140,11 @@ template < size_t Start, size_t Last, size_t Step = 1 >
 using make_indices = typename make_indices_< Start, Last, Step >::type;
 // }}}
 } // namespace Detail
-}
+} // namespace CppyyLegacy
 
 namespace std {
 
-inline namespace __ROOT {
+inline namespace __CppyyLegacy {
 
 // span {{{
 
@@ -421,11 +421,11 @@ public:
   auto to_array() const
   -> std::array<T, N>
   {
-    return to_array_impl(ROOT::Detail::make_indices<0, N>{});
+    return to_array_impl(CppyyLegacy::Detail::make_indices<0, N>{});
   }
 private:
   template<size_t... I>
-  auto to_array_impl(ROOT::Detail::indices<I...>) const
+  auto to_array_impl(CppyyLegacy::Detail::indices<I...>) const
   -> std::array<T, sizeof...(I)>
   {
     return {{(I < length_ ? *(data_ + I) : T{} )...}};
@@ -436,10 +436,10 @@ private:
   pointer data_;
 };
 // }}}
-} // inline namespace __ROOT
+} // inline namespace __CppyyLegacy
 } // namespace std
 
-namespace ROOT {
+namespace CppyyLegacy {
 // compare operators {{{
 namespace Detail {
 
@@ -462,36 +462,36 @@ bool operator_equal_impl(ArrayL const& lhs, size_t const lhs_size, ArrayR const&
   return true;
 }
 } // namespace Detail
-} // namespace ROOT
+} // namespace CppyyLegacy
 
 namespace std {
-inline namespace __ROOT {
+inline namespace __CppyyLegacy {
 
 template<class T1, class T2>
 inline constexpr
 bool operator==(span<T1> const& lhs, span<T2> const& rhs)
 {
-  return ROOT::Detail::operator_equal_impl(lhs, lhs.length(), rhs, rhs.length());
+  return CppyyLegacy::Detail::operator_equal_impl(lhs, lhs.length(), rhs, rhs.length());
 }
 
 template<
    class T,
    class Array,
    class = typename std::enable_if<
-      ROOT::Detail::is_array_class<Array>::value
+      CppyyLegacy::Detail::is_array_class<Array>::value
    >::type
 >
 inline constexpr
 bool operator==(span<T> const& lhs, Array const& rhs)
 {
-  return ROOT::Detail::operator_equal_impl(lhs, lhs.length(), rhs, rhs.size());
+  return CppyyLegacy::Detail::operator_equal_impl(lhs, lhs.length(), rhs, rhs.size());
 }
 
 template<class T1, class T2, size_t N>
 inline constexpr
 bool operator==(span<T1> const& lhs, T2 const (& rhs)[N])
 {
-  return ROOT::Detail::operator_equal_impl(lhs, lhs.length(), rhs, N);
+  return CppyyLegacy::Detail::operator_equal_impl(lhs, lhs.length(), rhs, N);
 }
 
 template<
@@ -539,7 +539,7 @@ bool operator!=(Array const& lhs, span<T> const& rhs)
 template<
    class Array,
    class = typename std::enable_if<
-      ROOT::Detail::is_array_class<Array>::value
+      CppyyLegacy::Detail::is_array_class<Array>::value
    >::type
 >
 inline constexpr
@@ -578,163 +578,7 @@ span<T> make_view(std::initializer_list<T> const& l)
 }
 // }}}
 
-} // inline namespace __ROOT
+} // inline namespace __CppyyLegacy
 } // namespace std
 
-
-
-
-
-#if 0
-// This stuff is too complex for our simple use case!
-
-#include <cstddef>
-#include <array>
-#include <type_traits>
-
-// See N3851
-
-namespace std {
-
-template<int Rank>
-class index;
-
-template<int Rank>
-class bounds {
-public:
-  static constexpr int rank = Rank;
-  using reference = ptrdiff_t &;
-  using const_reference = const ptrdiff_t &;
-  using size_type = size_t;
-  using value_type = ptrdiff_t;
-
-private:
-  std::array<value_type, Rank> m_B;
-
-public:
-  constexpr bounds() noexcept;
-
-  constexpr bounds(value_type b) noexcept: m_B{{b}} { };
-  //constexpr bounds(const initializer_list<value_type>&) noexcept;
-  //constexpr bounds(const bounds&) noexcept;
-  //bounds& operator=(const bounds&) noexcept;
-
-  reference operator[](size_type i) noexcept { return m_B[i]; }
-
-  constexpr const_reference operator[](
-     size_type i) const noexcept { return m_B[i]; };
-
-
-  bool operator==(const bounds &rhs) const noexcept;
-
-  bool operator!=(const bounds &rhs) const noexcept;
-
-  bounds operator+(const index<rank> &rhs) const noexcept;
-
-  bounds operator-(const index<rank> &rhs) const noexcept;
-
-  bounds &operator+=(const index<rank> &rhs) noexcept;
-
-  bounds &operator-=(const index<rank> &rhs) noexcept;
-
-  constexpr size_type size() const noexcept;
-
-  bool contains(const index<rank> &idx) const noexcept;
-  //bounds_iterator<rank> begin() const noexcept;
-  //bounds_iterator<rank> end() const noexcept;
-
-};
-
-//bounds operator+(const index<rank>& lhs, const bounds& rhs) noexcept;
-
-template<int Rank>
-class index {
-public:
-  static constexpr int rank = Rank;
-  using reference = ptrdiff_t &;
-  using const_reference = const ptrdiff_t &;
-  using size_type = size_t;
-  using value_type = ptrdiff_t;
-
-// For index<rank>:
-  constexpr index() noexcept;
-
-  constexpr index(value_type) noexcept;
-
-  constexpr index(const initializer_list<value_type> &) noexcept;
-
-  constexpr index(const index &) noexcept;
-
-  index &operator=(const index &) noexcept;
-
-  reference operator[](size_type component_idx) noexcept;
-
-  constexpr const_reference operator[](size_type component_idx) const noexcept;
-
-  bool operator==(const index &rhs) const noexcept;
-
-  bool operator!=(const index &rhs) const noexcept;
-
-  index operator+(const index &rhs) const noexcept;
-
-  index operator-(const index &rhs) const noexcept;
-
-  index &operator+=(const index &rhs) noexcept;
-
-  index &operator-=(const index &rhs) noexcept;
-
-  index &operator++() noexcept;
-
-  index operator++(int) noexcept;
-
-  index &operator--() noexcept;
-
-  index operator--(int) noexcept;
-
-  index operator+() const noexcept;
-
-  index operator-() const noexcept;
-};
-
-/// Mock-up of future atd::(experimental::)span.
-/// Supports only what we need for THist, e.g. Rank := 1.
-template<typename ValueType, int Rank = 1>
-class span {
-public:
-  static constexpr int rank = Rank;
-  using index_type = index<rank>;
-  using bounds_type = bounds<rank>;
-  using size_type = typename bounds_type::size_type;
-  using value_type = ValueType;
-  using pointer = typename std::add_pointer_t<value_type>;
-  using reference = typename std::add_lvalue_reference_t<value_type>;
-
-  constexpr span() noexcept;
-
-  constexpr explicit span(std::vector<ValueType> &cont) noexcept;
-
-  template<typename ArrayType>
-  constexpr explicit span(ArrayType &data) noexcept;
-
-  template<typename ViewValueType>
-  constexpr span(const span<ViewValueType, rank> &rhs) noexcept;
-
-  template<typename Container>
-  constexpr span(bounds_type bounds, Container &cont) noexcept;
-
-  constexpr span(bounds_type bounds, pointer data) noexcept;
-
-  template<typename ViewValueType>
-  span &operator=(const span<ViewValueType, rank> &rhs) noexcept;
-
-  constexpr bounds_type bounds() const noexcept;
-  constexpr size_type size() const noexcept;
-  constexpr index_type stride() const noexcept;
-
-  constexpr pointer data() const noexcept;
-  constexpr reference operator[](const index_type& idx) const noexcept;
-};
-
-}
-#endif // too complex!
 #endif

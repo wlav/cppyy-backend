@@ -116,6 +116,9 @@ using namespace std;
 // Mutex to protect CINT and META operations
 // (exported to be used for similar cases in related classes)
 
+
+namespace CppyyLegacy {
+
 TVirtualMutex* gInterpreterMutex = 0;
 
 namespace {
@@ -127,8 +130,8 @@ namespace {
       void *fSave;
    public:
       TMmallocDescTemp(void *value = 0) :
-         fSave(ROOT::Internal::gMmallocDesc) { ROOT::Internal::gMmallocDesc = value; }
-      ~TMmallocDescTemp() { ROOT::Internal::gMmallocDesc = fSave; }
+         fSave(Internal::gMmallocDesc) { Internal::gMmallocDesc = value; }
+      ~TMmallocDescTemp() { Internal::gMmallocDesc = fSave; }
    };
 }
 
@@ -171,7 +174,7 @@ void TClass::TDeclNameRegistry::AddQualifiedName(const char *name)
    std::string s(beginCharPtr, endCharPtr);
    if (fVerbLevel>1)
       printf("TDeclNameRegistry::AddQualifiedName Adding key %s for class/namespace %s\n", s.c_str(), name);
-   ROOT::Internal::TSpinLockGuard slg(fSpinLock);
+   Internal::TSpinLockGuard slg(fSpinLock);
    fClassNamesSet.insert(s);
 }
 
@@ -181,7 +184,7 @@ Bool_t TClass::TDeclNameRegistry::HasDeclName(const char *name) const
 {
    Bool_t found = false;
    {
-      ROOT::Internal::TSpinLockGuard slg(fSpinLock);
+      Internal::TSpinLockGuard slg(fSpinLock);
       found = fClassNamesSet.find(name) != fClassNamesSet.end();
    }
    return found;
@@ -309,7 +312,6 @@ static void MoveAddressInRepository(const char * /*where*/, void *oldadd, void *
 
 //______________________________________________________________________________
 //______________________________________________________________________________
-namespace ROOT {
 #define R__USE_STD_MAP
    class TMapTypeToTClass {
 #if defined R__USE_STD_MAP
@@ -353,15 +355,6 @@ namespace ROOT {
       TMap fMap;
 
    public:
-#ifdef R__COMPLETE_MEM_TERMINATION
-      TMapTypeToTClass() {
-         TIter next(&fMap);
-         TObjString *key;
-         while((key = (TObjString*)next())) {
-            delete key;
-         }
-      }
-#endif
       void Add(const char *key, TClass *&obj) {
          TObjString *realkey = new TObjString(key);
          fMap.Add(realkey, obj);
@@ -413,28 +406,15 @@ namespace ROOT {
          fMap.erase(key);
       }
    };
-}
 
 IdMap_t *TClass::GetIdMap() {
-
-#ifdef R__COMPLETE_MEM_TERMINATION
    static IdMap_t gIdMapObject;
    return &gIdMapObject;
-#else
-   static IdMap_t *gIdMap = new IdMap_t;
-   return gIdMap;
-#endif
 }
 
 DeclIdMap_t *TClass::GetDeclIdMap() {
-
-#ifdef R__COMPLETE_MEM_TERMINATION
    static DeclIdMap_t gDeclIdMapObject;
    return &gDeclIdMapObject;
-#else
-   static DeclIdMap_t *gDeclIdMap = new DeclIdMap_t;
-   return gDeclIdMap;
-#endif
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -492,7 +472,7 @@ void TClass::RemoveClassDeclId(TDictionary::DeclId_t id)
 /// Indirect call to the implementation of ShowMember allowing [forward]
 /// declaration with out a full definition of the TClass class.
 
-void ROOT::Class_ShowMembers(TClass *cl, const void *obj, TMemberInspector&insp)
+void Class_ShowMembers(TClass *cl, const void *obj, TMemberInspector&insp)
 {
    gInterpreter->InspectMembers(insp, obj, cl, kFALSE);
 }
@@ -848,7 +828,11 @@ void TBuildRealData::Inspect(TClass* cl, const char* pname, const char* mname, c
 //______________________________________________________________________________
 //______________________________________________________________________________
 
+} // namespace CppyyLegacy
+
 ClassImp(TClass);
+
+namespace CppyyLegacy {
 
 ////////////////////////////////////////////////////////////////////////////////
 
@@ -912,7 +896,7 @@ TClass::TClass(const char *name, Bool_t silent) :
    R__LOCKGUARD(gInterpreterMutex);
 
    if (!gROOT)
-      ::Fatal("TClass::TClass", "ROOT system not initialized");
+      ::CppyyLegacy::Fatal("TClass::TClass", "ROOT system not initialized");
 
    {
       TMmallocDescTemp setreset;
@@ -922,11 +906,11 @@ TClass::TClass(const char *name, Bool_t silent) :
 
    SetBit(kLoading);
    if (!gInterpreter)
-      ::Fatal("TClass::TClass", "gInterpreter not initialized");
+      ::CppyyLegacy::Fatal("TClass::TClass", "gInterpreter not initialized");
 
    gInterpreter->SetClassInfo(this);   // sets fClassInfo pointer
    if (!silent && !fClassInfo && fName.First('@')==kNPOS)
-      ::Warning("TClass::TClass", "no dictionary for class %s is available", name);
+      ::CppyyLegacy::Warning("TClass::TClass", "no dictionary for class %s is available", name);
    ResetBit(kLoading);
 
    if (fClassInfo) SetTitle(gCling->ClassInfo_Title(fClassInfo));
@@ -992,7 +976,7 @@ TClass::TClass(const char *name, Version_t cversion, EState theState, Bool_t sil
    }
 
    if (theState != kForwardDeclared && theState != kEmulated)
-      ::Fatal("TClass::TClass",
+      ::CppyyLegacy::Fatal("TClass::TClass",
               "A TClass entry cannot be initialized in a state different from kForwardDeclared or kEmulated.");
    Init(name, cversion, 0, 0, 0, 0, -1, -1, 0, silent);
 }
@@ -1030,13 +1014,13 @@ TClass::TClass(ClassInfo_t *classInfo, Version_t cversion,
    R__LOCKGUARD(gInterpreterMutex);
 
    if (!gROOT)
-      ::Fatal("TClass::TClass", "ROOT system not initialized");
+      ::CppyyLegacy::Fatal("TClass::TClass", "ROOT system not initialized");
 
    fDeclFileLine   = -2;    // -2 for standalone TClass (checked in dtor)
 
    SetBit(kLoading);
    if (!gInterpreter)
-      ::Fatal("TClass::TClass", "gInterpreter not initialized");
+      ::CppyyLegacy::Fatal("TClass::TClass", "gInterpreter not initialized");
 
    if (!classInfo || !gInterpreter->ClassInfo_IsValid(classInfo)) {
       MakeZombie();
@@ -1148,9 +1132,9 @@ void TClass::Init(const char *name, Version_t cversion,
                   Bool_t silent)
 {
    if (!gROOT)
-      ::Fatal("TClass::TClass", "ROOT system not initialized");
+      ::CppyyLegacy::Fatal("TClass::TClass", "ROOT system not initialized");
    if (!name || !name[0]) {
-      ::Error("TClass::Init", "The name parameter is invalid (null or empty)");
+      ::CppyyLegacy::Error("TClass::Init", "The name parameter is invalid (null or empty)");
       MakeZombie();
       return;
    }
@@ -1229,10 +1213,10 @@ void TClass::Init(const char *name, Version_t cversion,
    // Advertise ourself as the loading class for this class name
    TClass::AddClass(this);
 
-   Bool_t isStl = TClassEdit::IsSTLCont(fName);
+   Bool_t isStl = TClassEdit::IsSTLCont(fName.Data());
 
    if (!gInterpreter)
-      ::Fatal("TClass::Init", "gInterpreter not initialized");
+      ::CppyyLegacy::Fatal("TClass::Init", "gInterpreter not initialized");
 
    if (givenInfo) {
       bool invalid = !gInterpreter->ClassInfo_IsValid(givenInfo);
@@ -1306,14 +1290,14 @@ void TClass::Init(const char *name, Version_t cversion,
             // information. Since it is transient, it is more than likely that the lack
             // will be harmles.
          } else {
-            ::Error("TClass::Init", "no interpreter information for class %s is available even though it has a TClass "
+            ::CppyyLegacy::Error("TClass::Init", "no interpreter information for class %s is available even though it has a TClass "
                                     "initialization routine.",
                     fName.Data());
          }
       } else {
          // In this case we initialised this TClass instance starting from the fwd declared state
          // and we know we have no dictionary: no need to warn
-         ::Warning("TClass::Init", "no dictionary for class %s is available", fName.Data());
+         ::CppyyLegacy::Warning("TClass::Init", "no dictionary for class %s is available", fName.Data());
       }
    }
 
@@ -1587,7 +1571,7 @@ Int_t TClass::ReadRules()
       res = ReadRulesContent(f);
       fclose(f);
    } else {
-      //::Error("TClass::ReadRules()", "Cannot find rules file %s", sname.Data());
+      //::CppyyLegacy::Error("TClass::ReadRules()", "Cannot find rules file %s", sname.Data());
    }
    return res;
 }
@@ -1601,13 +1585,13 @@ Int_t TClass::ReadRules()
 Int_t TClass::ReadRules( const char *filename )
 {
    if (!filename || !filename[0]) {
-      ::Error("TClass::ReadRules", "no file name specified");
+      ::CppyyLegacy::Error("TClass::ReadRules", "no file name specified");
       return -1;
    }
 
    FILE * f = fopen(filename,"r");
    if (f == 0) {
-      ::Error("TClass::ReadRules","Failed to open %s\n",filename);
+      ::CppyyLegacy::Error("TClass::ReadRules","Failed to open %s\n",filename);
       return -1;
    }
    Int_t count = ReadRulesContent(f);
@@ -1646,7 +1630,7 @@ Int_t TClass::ReadRules( const char *filename )
 
 Bool_t TClass::AddRule( const char *rule )
 {
-   ROOT::TSchemaRule *ruleobj = new ROOT::TSchemaRule();
+   TSchemaRule *ruleobj = new TSchemaRule();
    if (! ruleobj->SetFromRule( rule ) ) {
       delete ruleobj;
       return kFALSE;
@@ -1659,11 +1643,11 @@ Bool_t TClass::AddRule( const char *rule )
       // Create an empty emulated class for now.
       cl = gInterpreter->GenerateTClass(ruleobj->GetTargetClass(), /* emulation = */ kTRUE, /*silent = */ kTRUE);
    }
-   ROOT::Detail::TSchemaRuleSet* rset = cl->GetSchemaRules( kTRUE );
+   Detail::TSchemaRuleSet* rset = cl->GetSchemaRules( kTRUE );
 
    TString errmsg;
-   if( !rset->AddRule( ruleobj, ROOT::Detail::TSchemaRuleSet::kCheckConflict, &errmsg ) ) {
-      ::Warning( "TClass::AddRule", "The rule for class: \"%s\": version, \"%s\" and data members: \"%s\" has been skipped because it conflicts with one of the other rules (%s).",
+   if( !rset->AddRule( ruleobj, Detail::TSchemaRuleSet::kCheckConflict, &errmsg ) ) {
+      ::CppyyLegacy::Warning( "TClass::AddRule", "The rule for class: \"%s\": version, \"%s\" and data members: \"%s\" has been skipped because it conflicts with one of the other rules (%s).",
                 ruleobj->GetTargetClass(), ruleobj->GetVersion(), ruleobj->GetTargetString(), errmsg.Data() );
       delete ruleobj;
       return kFALSE;
@@ -1674,7 +1658,7 @@ Bool_t TClass::AddRule( const char *rule )
 ////////////////////////////////////////////////////////////////////////////////
 /// Adopt a new set of Data Model Evolution rules.
 
-void TClass::AdoptSchemaRules( ROOT::Detail::TSchemaRuleSet *rules )
+void TClass::AdoptSchemaRules( Detail::TSchemaRuleSet *rules )
 {
    R__LOCKGUARD(gInterpreterMutex);
 
@@ -1686,7 +1670,7 @@ void TClass::AdoptSchemaRules( ROOT::Detail::TSchemaRuleSet *rules )
 ////////////////////////////////////////////////////////////////////////////////
 /// Return the set of the schema rules if any.
 
-const ROOT::Detail::TSchemaRuleSet* TClass::GetSchemaRules() const
+const Detail::TSchemaRuleSet* TClass::GetSchemaRules() const
 {
    return fSchemaRules;
 }
@@ -1695,10 +1679,10 @@ const ROOT::Detail::TSchemaRuleSet* TClass::GetSchemaRules() const
 /// Return the set of the schema rules if any.
 /// If create is true, create an empty set
 
-ROOT::Detail::TSchemaRuleSet* TClass::GetSchemaRules(Bool_t create)
+Detail::TSchemaRuleSet* TClass::GetSchemaRules(Bool_t create)
 {
    if (create && fSchemaRules == 0) {
-      fSchemaRules = new ROOT::Detail::TSchemaRuleSet();
+      fSchemaRules = new Detail::TSchemaRuleSet();
       fSchemaRules->SetClass( this );
    }
    return fSchemaRules;
@@ -1955,11 +1939,6 @@ Bool_t TClass::CanSplitBaseAllow()
    if (this == TClonesArray::Class()) { fCanSplit = 1; return kTRUE; }
    if (this == TCollection::Class()) { fCanSplit = 2; return kFALSE; }
 
-   // TTree is not always available (for example in rootcling), so we need
-   // to grab it silently.
-   auto refTreeClass( TClass::GetClass("TTree",kTRUE,kTRUE) );
-   if (this == refTreeClass) { fCanSplit = 2; return kFALSE; }
-
    if (!HasDataMemberInfo()) {
       TVirtualStreamerInfo *sinfo = ((TClass *)this)->GetCurrentStreamerInfo();
       if (sinfo==0) sinfo = GetStreamerInfo();
@@ -2023,7 +2002,7 @@ Bool_t TClass::CanSplit() const
    TClass *This = const_cast<TClass*>(this);
 
    if (this == TObject::Class())  { This->fCanSplit = 1; return kTRUE; }
-   if (fName == "TClonesArray")   { This->fCanSplit = 1; return kTRUE; }
+   if (fName == "CppyyLegacy::TClonesArray")   { This->fCanSplit = 1; return kTRUE; }
    if (fName.Contains("string"))      { This->fCanSplit = 0; return kFALSE; }
    if (fName.Contains("std::string")) { This->fCanSplit = 0; return kFALSE; }
 
@@ -2045,7 +2024,7 @@ Bool_t TClass::CanSplit() const
       if (valueClass->GetCollectionProxy() != 0) { This->fCanSplit = 0; return kFALSE; }
 
       Int_t stl = -TClassEdit::IsSTLCont(GetName(), 0);
-      if ((stl==ROOT::kSTLmap || stl==ROOT::kSTLmultimap)
+      if ((stl==kSTLmap || stl==kSTLmultimap)
           && !valueClass->HasDataMemberInfo())
       {
          This->fCanSplit = 0;
@@ -2285,7 +2264,7 @@ TClass *TClass::GetActualClass(const void *object) const
 {
    if (object==0) return (TClass*)this;
    if (fIsA) {
-      return (*fIsA)(object); // ROOT::IsA((ThisClass*)object);
+      return (*fIsA)(object); // CppyyLegacy::IsA((ThisClass*)object);
    } else if (fGlobalIsA) {
       return fGlobalIsA(this,object);
    } else {
@@ -2303,17 +2282,17 @@ TClass *TClass::GetActualClass(const void *object) const
 
          TVirtualIsAProxy *isa = 0;
          if (GetClassInfo() && gCling->ClassInfo_HasMethod(fClassInfo,"IsA")) {
-            isa = (TVirtualIsAProxy*)gInterpreter->ProcessLine(TString::Format("new ::TInstrumentedIsAProxy<%s>(0);",GetName()));
+            isa = (TVirtualIsAProxy*)gInterpreter->ProcessLine(TString::Format("new ::CppyyLegacy::TInstrumentedIsAProxy<%s>(0);",GetName()));
          }
          else if (!strstr(GetName(), "(anonymous)")) {
-            isa = (TVirtualIsAProxy*)gInterpreter->ProcessLine(TString::Format("new ::TIsAProxy(typeid(%s));",GetName()));
+            isa = (TVirtualIsAProxy*)gInterpreter->ProcessLine(TString::Format("new ::CppyyLegacy::TIsAProxy(typeid(%s));",GetName()));
          }
          if (isa) {
             R__LOCKGUARD(gInterpreterMutex);
             const_cast<TClass*>(this)->fIsA = isa;
          }
          if (fIsA) {
-            return (*fIsA)(object); // ROOT::IsA((ThisClass*)object);
+            return (*fIsA)(object); // CppyyLegacy::IsA((ThisClass*)object);
          }
       }
       TVirtualStreamerInfo* sinfo = GetStreamerInfo();
@@ -2536,7 +2515,7 @@ namespace {
       {
          // Return the thread storage for the TClass.
 
-         void **thread_ptr = (*gThreadTsd)(0,ROOT::kClassThreadSlot);
+         void **thread_ptr = (*gThreadTsd)(0,kClassThreadSlot);
          if (thread_ptr) {
             if (*thread_ptr==0) *thread_ptr = new TExMap();
             TExMap *lmap = (TExMap*)(*thread_ptr);
@@ -2557,13 +2536,13 @@ namespace {
 
 ////////////////////////////////////////////////////////////////////////////////
 /// Return the 'type' of the STL the TClass is representing.
-/// and return ROOT::kNotSTL if it is not representing an STL collection.
+/// and return kNotSTL if it is not representing an STL collection.
 
-ROOT::ESTLType TClass::GetCollectionType() const
+ESTLType TClass::GetCollectionType() const
 {
    auto proxy = GetCollectionProxy();
-   if (proxy) return (ROOT::ESTLType)proxy->GetCollectionType();
-   return ROOT::kNotSTL;
+   if (proxy) return (::CppyyLegacy::ESTLType)proxy->GetCollectionType();
+   return kNotSTL;
 }
 
 
@@ -2660,7 +2639,7 @@ TClass *TClass::GetClass(const char *name, Bool_t load, Bool_t silent)
    // long-ish normalization.
    if (cl && (cl->IsLoaded() || cl->TestBit(kUnloading))) return cl;
 
-   R__WRITE_LOCKGUARD(ROOT::gCoreMutex);
+   R__WRITE_LOCKGUARD(gCoreMutex);
 
    // Now that we got the write lock, another thread may have constructed the
    // TClass while we were waiting, so we need to do the checks again.
@@ -2745,7 +2724,7 @@ TClass *TClass::GetClass(const char *name, Bool_t load, Bool_t silent)
 //      TDataType* dataType = (TDataType*)gROOT->GetListOfTypes()->FindObject(name);
 //      TClass *altcl = dataType ? (TClass*)gROOT->GetListOfClasses()->FindObject(dataType->GetFullTypeName()) : 0;
 //      if (altcl && normalizedName != altcl->GetName())
-//         ::Fatal("TClass::GetClass","The existing name (%s) for %s is different from the normalized name: %s\n",
+//         ::CppyyLegacy::Fatal("TClass::GetClass","The existing name (%s) for %s is different from the normalized name: %s\n",
 //                 altcl->GetName(), name, normalizedName.c_str());
 //   }
 
@@ -2808,7 +2787,7 @@ TClass *TClass::GetClass(const char *name, Bool_t load, Bool_t silent)
 
       if (cci == TInterpreter::kWithClassDefInline) {
          auto ci = gInterpreter->ClassInfo_Factory(normalizedName.c_str());
-         auto funcDecl = gInterpreter->GetFunctionWithPrototype(ci, "Dictionary", "", false, ROOT::kExactMatch);
+         auto funcDecl = gInterpreter->GetFunctionWithPrototype(ci, "Dictionary", "", false, kExactMatch);
          auto method = gInterpreter->MethodInfo_Factory(funcDecl);
          typedef void (*tcling_callfunc_Wrapper_t)(void *, int, void **, void *);
          auto funcPtr = (tcling_callfunc_Wrapper_t)gInterpreter->MethodInfo_InterfaceMethod(method);
@@ -2863,13 +2842,13 @@ TClass *TClass::GetClass(const std::type_info& typeinfo, Bool_t load, Bool_t /* 
       return 0;
 
    //protect access to TROOT::GetIdMap
-   R__READ_LOCKGUARD(ROOT::gCoreMutex);
+   R__READ_LOCKGUARD(gCoreMutex);
 
    TClass* cl = GetIdMap()->Find(typeinfo.name());
 
    if (cl && cl->IsLoaded()) return cl;
 
-   R__WRITE_LOCKGUARD(ROOT::gCoreMutex);
+   R__WRITE_LOCKGUARD(gCoreMutex);
 
    // Now that we got the write lock, another thread may have constructed the
    // TClass while we were waiting, so we need to do the checks again.
@@ -2952,7 +2931,7 @@ TClass *TClass::GetClass(ClassInfo_t *info, Bool_t load, Bool_t silent)
    // and GenerateTClass but FindObject will take the read lock (and LoadClass will
    // take the write lock).  Since taking/releasing the lock is expensive, let just
    // take the write guard and keep it.
-   R__WRITE_LOCKGUARD(ROOT::gCoreMutex);
+   R__WRITE_LOCKGUARD(gCoreMutex);
 
    // Get the normalized name.
    TString name( gCling->ClassInfo_FullName(info) );
@@ -3976,7 +3955,7 @@ TMethod* TClass::FindClassOrBaseMethodWithId(DeclId_t declId) {
 
 TMethod *TClass::GetMethodWithPrototype(const char *method, const char *proto,
                                         Bool_t objectIsConst /* = kFALSE */,
-                                        ROOT::EFunctionMatchMode mode /* = ROOT::kConversionMatch */)
+                                        EFunctionMatchMode mode /* = kConversionMatch */)
 {
    if (fCanLoadClassInfo) LoadClassInfo();
    if (!fClassInfo) return 0;
@@ -4047,7 +4026,7 @@ TMethod *TClass::GetClassMethod(const char *name, const char* params,
 
 TMethod *TClass::GetClassMethodWithPrototype(const char *name, const char* proto,
                                              Bool_t objectIsConst /* = kFALSE */,
-                      ROOT::EFunctionMatchMode mode /* = ROOT::kConversionMatch */)
+                      EFunctionMatchMode mode /* = kConversionMatch */)
 {
    if (fCanLoadClassInfo) LoadClassInfo();
    if (!fClassInfo) return 0;
@@ -4134,7 +4113,7 @@ TVirtualStreamerInfo* TClass::GetStreamerInfo(Int_t version /* = 0 */) const
 
    // Note that the access to fClassVersion above is technically not thread-safe with a low probably of problems.
    // fClassVersion is not an atomic and is modified TClass::SetClassVersion (called from RootClassVersion via
-   // ROOT::ResetClassVersion) and is 'somewhat' protected by the atomic fVersionUsed.
+   // ResetClassVersion) and is 'somewhat' protected by the atomic fVersionUsed.
    // However, direct access to fClassVersion should be replaced by calls to GetClassVersion to set fVersionUsed.
    // Even with such a change the code here and in these functions need to be reviewed as a cursory look seem
    // to indicates they are not yet properly protection against mutli-thread access.
@@ -5039,7 +5018,7 @@ void TClass::SetCanSplit(Int_t splitmode)
 ////////////////////////////////////////////////////////////////////////////////
 /// Private function.  Set the class version for the 'class' represented by
 /// this TClass object.  See the public interface:
-///    ROOT::ResetClassVersion
+///    ResetClassVersion
 /// defined in TClassTable.cxx
 ///
 /// Note on class version numbers:
@@ -5060,7 +5039,7 @@ void TClass::SetClassVersion(Version_t version)
 TVirtualStreamerInfo* TClass::DetermineCurrentStreamerInfo()
 {
    if(!fCurrentInfo.load()) {
-      R__READ_LOCKGUARD(ROOT::gCoreMutex);
+      R__READ_LOCKGUARD(gCoreMutex);
       fCurrentInfo = (TVirtualStreamerInfo *)(fStreamerInfo->At(fClassVersion));
    }
    return fCurrentInfo;
@@ -5107,7 +5086,7 @@ TClass *TClass::Load(TBuffer &b)
 
    TClass *cl = TClass::GetClass(s, kTRUE);
    if (!cl)
-      ::Error("TClass::Load", "dictionary of class %s not found", s);
+      ::CppyyLegacy::Error("TClass::Load", "dictionary of class %s not found", s);
 
    delete [] s;
    return cl;
@@ -5220,7 +5199,7 @@ void TClass::LoadClassInfo() const
          // information. Since it is transient, it is more than likely that the lack
          // will be harmles.
       } else {
-         ::Error("TClass::LoadClassInfo", "no interpreter information for class %s is available"
+         ::CppyyLegacy::Error("TClass::LoadClassInfo", "no interpreter information for class %s is available"
                                           " even though it has a TClass initialization routine.",
                  fName.Data());
       }
@@ -5242,7 +5221,7 @@ void TClass::Store(TBuffer &b) const
 /// Global function called by a class' static Dictionary() method
 /// (see the ClassDef macro).
 
-TClass *ROOT::CreateClass(const char *cname, Version_t id,
+TClass *CreateClass(const char *cname, Version_t id,
                           const std::type_info &info, TVirtualIsAProxy *isa,
                           const char *dfil, const char *ifil,
                           Int_t dl, Int_t il)
@@ -5257,7 +5236,7 @@ TClass *ROOT::CreateClass(const char *cname, Version_t id,
 /// Global function called by a class' static Dictionary() method
 /// (see the ClassDef macro).
 
-TClass *ROOT::CreateClass(const char *cname, Version_t id,
+TClass *CreateClass(const char *cname, Version_t id,
                           const char *dfil, const char *ifil,
                           Int_t dl, Int_t il)
 {
@@ -5453,7 +5432,7 @@ Long_t TClass::Property() const
       // they return true if the routine is defined in the class or any of
       // its parent.  We explicitly want to know whether the function is
       // defined locally.
-      if (!const_cast<TClass*>(this)->GetClassMethodWithPrototype("Streamer","TBuffer&",kFALSE)) {
+      if (!const_cast<TClass*>(this)->GetClassMethodWithPrototype("Streamer","CppyyLegacy::TBuffer&",kFALSE)) {
 
          kl->SetBit(kIsForeign);
          kl->fStreamerType  = kForeign;
@@ -5530,7 +5509,7 @@ void TClass::SetRuntimeProperties()
 
    UChar_t properties = static_cast<UChar_t>(ERuntimeProperties::kSet);
 
-   if (ROOT::Internal::TCheckHashRecursiveRemoveConsistency::Check(*this))
+   if (Internal::TCheckHashRecursiveRemoveConsistency::Check(*this))
       properties |= static_cast<UChar_t>(ERuntimeProperties::kConsistentHash);
 
    const_cast<TClass *>(this)->fRuntimeProperties = properties;
@@ -5569,7 +5548,7 @@ void TClass::SetStreamerImpl()
 /// Create the collection proxy object (and the streamer object) from
 /// using the information in the TCollectionProxyInfo.
 
-void TClass::SetCollectionProxy(const ROOT::Detail::TCollectionProxyInfo &info)
+void TClass::SetCollectionProxy(const Detail::TCollectionProxyInfo &info)
 {
    R__LOCKGUARD(gInterpreterMutex);
 
@@ -5797,7 +5776,7 @@ UInt_t TClass::GetCheckSum(ECheckSum code, Bool_t &isvalid) const
       TBaseClass *tbc=0;
       while((tbc=(TBaseClass*)nextBase())) {
          name = tbc->GetName();
-         Bool_t isSTL = TClassEdit::IsSTLCont(name);
+         Bool_t isSTL = TClassEdit::IsSTLCont(name.Data());
          if (isSTL)
             name = TClassEdit::ShortType( name, TClassEdit::kDropStlDefault );
          il = name.Length();
@@ -6158,7 +6137,7 @@ void TClass::SetConvStreamerFunc(ClassConvStreamerFunc_t strm)
 ////////////////////////////////////////////////////////////////////////////////
 /// Install a new wrapper around 'new'.
 
-void TClass::SetNew(ROOT::NewFunc_t newFunc)
+void TClass::SetNew(NewFunc_t newFunc)
 {
    fNew = newFunc;
 }
@@ -6166,7 +6145,7 @@ void TClass::SetNew(ROOT::NewFunc_t newFunc)
 ////////////////////////////////////////////////////////////////////////////////
 /// Install a new wrapper around 'new []'.
 
-void TClass::SetNewArray(ROOT::NewArrFunc_t newArrayFunc)
+void TClass::SetNewArray(NewArrFunc_t newArrayFunc)
 {
    fNewArray = newArrayFunc;
 }
@@ -6174,7 +6153,7 @@ void TClass::SetNewArray(ROOT::NewArrFunc_t newArrayFunc)
 ////////////////////////////////////////////////////////////////////////////////
 /// Install a new wrapper around 'delete'.
 
-void TClass::SetDelete(ROOT::DelFunc_t deleteFunc)
+void TClass::SetDelete(DelFunc_t deleteFunc)
 {
    fDelete = deleteFunc;
 }
@@ -6182,7 +6161,7 @@ void TClass::SetDelete(ROOT::DelFunc_t deleteFunc)
 ////////////////////////////////////////////////////////////////////////////////
 /// Install a new wrapper around 'delete []'.
 
-void TClass::SetDeleteArray(ROOT::DelArrFunc_t deleteArrayFunc)
+void TClass::SetDeleteArray(DelArrFunc_t deleteArrayFunc)
 {
    fDeleteArray = deleteArrayFunc;
 }
@@ -6190,7 +6169,7 @@ void TClass::SetDeleteArray(ROOT::DelArrFunc_t deleteArrayFunc)
 ////////////////////////////////////////////////////////////////////////////////
 /// Install a new wrapper around the destructor.
 
-void TClass::SetDestructor(ROOT::DesFunc_t destructorFunc)
+void TClass::SetDestructor(DesFunc_t destructorFunc)
 {
    fDestructor = destructorFunc;
 }
@@ -6201,7 +6180,7 @@ void TClass::SetDestructor(ROOT::DesFunc_t destructorFunc)
 /// and should register 'obj' to the directory if dir is not null
 /// and unregister 'obj' from its current directory if dir is null
 
-void TClass::SetDirectoryAutoAdd(ROOT::DirAutoAdd_t autoAddFunc)
+void TClass::SetDirectoryAutoAdd(DirAutoAdd_t autoAddFunc)
 {
    fDirAutoAdd = autoAddFunc;
 }
@@ -6490,21 +6469,19 @@ void TClass::RemoveStreamerInfo(Int_t slot)
 ////////////////////////////////////////////////////////////////////////////////
 /// Return true is the Hash/RecursiveRemove setup is consistent, i.e. when all
 /// classes in the class hierarchy that overload TObject::Hash do call
-/// ROOT::CallRecursiveRemoveIfNeeded in their destructor.
+/// CallRecursiveRemoveIfNeeded in their destructor.
 /// i.e. it is safe to call the Hash virtual function during the RecursiveRemove operation.
 /// This routines is used for a small subset of the class for which we need
 /// the answer before gROOT is properly initialized.
 
-Bool_t ROOT::Internal::HasConsistentHashMember(const char *cname)
+Bool_t Internal::HasConsistentHashMember(const char *cname)
 {
    // Hand selection of correct classes, those classes should be
    // cross-checked in testHashRecursiveRemove.cxx
    static const char *handVerified[] = {
       "TEnvRec",    "TDataType",      "TObjArray",    "TList",   "THashList",
       "TClass",     "TCling",         "TInterpreter", "TMethod", "ROOT::Internal::TCheckHashRecursiveRemoveConsistency",
-      "TCheckHashRecursiveRemoveConsistency", "TGWindow",
-      "TDirectory", "TDirectoryFile", "TObject",      "TH1",
-      "TQClass", "TGlobal" };
+      "TCheckHashRecursiveRemoveConsistency", "TDirectory", "TDirectoryFile", "TObject",      "TGlobal" };
 
    if (cname && cname[0]) {
       for (auto cursor : handVerified) {
@@ -6518,10 +6495,10 @@ Bool_t ROOT::Internal::HasConsistentHashMember(const char *cname)
 ////////////////////////////////////////////////////////////////////////////////
 /// Return true is the Hash/RecursiveRemove setup is consistent, i.e. when all
 /// classes in the class hierarchy that overload TObject::Hash do call
-/// ROOT::CallRecursiveRemoveIfNeeded in their destructor.
+/// CallRecursiveRemoveIfNeeded in their destructor.
 /// i.e. it is safe to call the Hash virtual function during the RecursiveRemove operation.
 
-Bool_t ROOT::Internal::HasConsistentHashMember(TClass &clRef)
+Bool_t Internal::HasConsistentHashMember(TClass &clRef)
 {
    return clRef.HasConsistentHashMember();
 }
@@ -6580,7 +6557,7 @@ Bool_t TClass::HasLocalHashMember() const
 ////////////////////////////////////////////////////////////////////////////////
 /// Return the wrapper around new ThisClass().
 
-ROOT::NewFunc_t TClass::GetNew() const
+NewFunc_t TClass::GetNew() const
 {
    return fNew;
 }
@@ -6588,7 +6565,7 @@ ROOT::NewFunc_t TClass::GetNew() const
 ////////////////////////////////////////////////////////////////////////////////
 /// Return the wrapper around new ThisClass[].
 
-ROOT::NewArrFunc_t TClass::GetNewArray() const
+NewArrFunc_t TClass::GetNewArray() const
 {
    return fNewArray;
 }
@@ -6596,7 +6573,7 @@ ROOT::NewArrFunc_t TClass::GetNewArray() const
 ////////////////////////////////////////////////////////////////////////////////
 /// Return the wrapper around delete ThiObject.
 
-ROOT::DelFunc_t TClass::GetDelete() const
+DelFunc_t TClass::GetDelete() const
 {
    return fDelete;
 }
@@ -6604,7 +6581,7 @@ ROOT::DelFunc_t TClass::GetDelete() const
 ////////////////////////////////////////////////////////////////////////////////
 /// Return the wrapper around delete [] ThiObject.
 
-ROOT::DelArrFunc_t TClass::GetDeleteArray() const
+DelArrFunc_t TClass::GetDeleteArray() const
 {
    return fDeleteArray;
 }
@@ -6612,7 +6589,7 @@ ROOT::DelArrFunc_t TClass::GetDeleteArray() const
 ////////////////////////////////////////////////////////////////////////////////
 /// Return the wrapper around the destructor
 
-ROOT::DesFunc_t TClass::GetDestructor() const
+DesFunc_t TClass::GetDestructor() const
 {
    return fDestructor;
 }
@@ -6620,7 +6597,9 @@ ROOT::DesFunc_t TClass::GetDestructor() const
 ////////////////////////////////////////////////////////////////////////////////
 /// Return the wrapper around the directory auto add function.
 
-ROOT::DirAutoAdd_t TClass::GetDirectoryAutoAdd() const
+DirAutoAdd_t TClass::GetDirectoryAutoAdd() const
 {
    return fDirAutoAdd;
 }
+
+} // namespace CppyyLegacy

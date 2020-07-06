@@ -12,7 +12,6 @@
 #ifndef ROOT_TUnixSystem
 #define ROOT_TUnixSystem
 
-
 //////////////////////////////////////////////////////////////////////////
 //                                                                      //
 // TUnixSystem                                                          //
@@ -23,8 +22,10 @@
 
 #include "TSystem.h"
 
-typedef void (*SigHandler_t)(ESignals);
 
+namespace CppyyLegacy {
+
+typedef void (*SigHandler_t)(ESignals);
 
 class TUnixSystem : public TSystem {
 
@@ -201,4 +202,5 @@ public:
    ClassDef(TUnixSystem,0)  //Interface to Unix OS services
 };
 
+} // namespace CppyyLegacy
 #endif

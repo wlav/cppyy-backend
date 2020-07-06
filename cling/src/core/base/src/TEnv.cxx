@@ -77,10 +77,12 @@ into the local file by default.
 #include "TSystem.h"
 #include "THashList.h"
 #include "TError.h"
+
+
+namespace CppyyLegacy {
+
 #define Printf TStringPrintf
-
 TEnv *gEnv;  // main environment created in TROOT
-
 
 static struct BoolNameTable_t {
    const char *fName;
@@ -283,7 +285,7 @@ TEnvRec::TEnvRec(const char *n, const char *v, const char *t, EEnvLevel l)
 TEnvRec::~TEnvRec()
 {
    // Required since we overload TObject::Hash.
-   ROOT::CallRecursiveRemoveIfNeeded(*this);
+   CppyyLegacy::CallRecursiveRemoveIfNeeded(*this);
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -296,7 +298,7 @@ void TEnvRec::ChangeValue(const char *v, const char *, EEnvLevel l,
       // use global Warning() since interpreter might not yet be initialized
       // at this stage (called from TROOT ctor)
       if (fValue != v && !ignoredup)
-         ::Warning("TEnvRec::ChangeValue",
+         ::CppyyLegacy::Warning("TEnvRec::ChangeValue",
            "duplicate entry <%s=%s> for level %d; ignored", fName.Data(), v, l);
       return;
    }
@@ -384,7 +386,11 @@ TString TEnvRec::ExpandValue(const char *value)
    return val;
 }
 
+} // namespace CppyyLegacy
+
 ClassImp(TEnv);
+
+namespace CppyyLegacy {
 
 ////////////////////////////////////////////////////////////////////////////////
 /// Create a resource table and read the (possibly) three resource files, i.e
@@ -796,3 +802,5 @@ Bool_t TEnv::IgnoreDuplicates(Bool_t ignore)
    fIgnoreDup = ignore;
    return ret;
 }
+
+} // namespace CppyyLegacy

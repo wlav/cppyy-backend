@@ -12,10 +12,9 @@
 #ifndef ROOT_ESTLType
 #define ROOT_ESTLType
 
-
 //////////////////////////////////////////////////////////////////////////
 //                                                                      //
-// ROOT::ESTLType                                                       //
+// CppyyLegacy::ESTLType                                                //
 //                                                                      //
 // Enum describing STL collections and some std classes                 //
 // This is used in TClassEdit, TStreamerInfo, TClassEdit                //
@@ -23,7 +22,8 @@
 //                                                                      //
 //////////////////////////////////////////////////////////////////////////
 
-namespace ROOT {
+
+namespace CppyyLegacy {
 
    enum ESTLType {
       kNotSTL               = 0,
@@ -48,6 +48,6 @@ namespace ROOT {
       kSTLstring            = 365 /* TVirtualStreamerInfo::kSTLstring */
    };
 
-}
+} // namespace CppyyLegacy
 
 #endif

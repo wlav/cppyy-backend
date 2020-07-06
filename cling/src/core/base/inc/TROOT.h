@@ -33,6 +33,9 @@
 #include <string>
 #include <vector>
 
+
+namespace CppyyLegacy {
+
 class TClass;
 class TDataType;
 class TFile;
@@ -54,26 +57,23 @@ class TGlobalMappedFunction;
 
 R__EXTERN TVirtualMutex *gROOTMutex;
 
-namespace ROOT {
 namespace Internal {
    class TROOTAllocator;
 
    TROOT *GetROOT2();
 
-} } // End ROOT::Internal
+} // namespace Internal
 
-namespace ROOT {
-   // Enable support for multi-threading within the ROOT code,
-   // in particular, enables the global mutex to make ROOT thread safe/aware.
-   void EnableThreadSafety();
-   /// \brief Enable ROOT's implicit multi-threading for all objects and methods that provide an internal
-   /// parallelisation mechanism.
-}
+// Enable support for multi-threading within the ROOT code,
+// in particular, enables the global mutex to make ROOT thread safe/aware.
+void EnableThreadSafety();
+/// \brief Enable ROOT's implicit multi-threading for all objects and methods that provide an internal
+/// parallelisation mechanism.
 
 class TROOT : public TDirectory {
 
 friend class TCling;
-friend TROOT *ROOT::Internal::GetROOT2();
+friend TROOT *CppyyLegacy::Internal::GetROOT2();
 
 private:
    Int_t           fLineIsProcessing;     //To synchronize multi-threads
@@ -129,7 +129,7 @@ protected:
    void          *operator new(size_t l) { return TObject::operator new(l); }
    void          *operator new(size_t l, void *ptr) { return TObject::operator new(l,ptr); }
 
-   friend class ::ROOT::Internal::TROOTAllocator;
+   friend class CppyyLegacy::Internal::TROOTAllocator;
 
    TListOfFunctions*GetGlobalFunctions();
 
@@ -262,7 +262,6 @@ public:
 };
 
 
-namespace ROOT {
    TROOT *GetROOT();
    namespace Internal {
       R__EXTERN TROOT *gROOTLocal;
@@ -275,7 +274,7 @@ namespace ROOT {
       inline Bool_t RequiresCleanup(TObject &obj) {
          return obj.TestBit(kIsReferenced) && obj.GetUniqueID() == 0;
       }
-   }
+   } // namespace CppyyLegacy
 
    /// \brief call RecursiveRemove for obj if gROOT is valid
    /// and obj.TestBit(kMustCleanup) is true.
@@ -284,14 +283,16 @@ namespace ROOT {
    inline void CallRecursiveRemoveIfNeeded(TObject &obj)
    {
       if (obj.TestBit(kMustCleanup)) {
-         TROOT *root = ROOT::Internal::gROOTLocal;
+         TROOT *root = CppyyLegacy::Internal::gROOTLocal;
          if (root && root != &obj && (root->MustClean() || Internal::RequiresCleanup(obj))) {
             root->RecursiveRemove(&obj);
             obj.ResetBit(kMustCleanup);
          }
       }
    }
-}
-#define gROOT (ROOT::GetROOT())
+
+} // namespace CppyyLegacy
+
+#define gROOT (::CppyyLegacy::GetROOT())
 
 #endif

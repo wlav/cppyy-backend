@@ -36,6 +36,9 @@
 #include "TThreadSlots.h"
 #include "TRWMutexImp.h"
 
+
+namespace CppyyLegacy {
+
 TThreadImp     *TThread::fgThreadImp = 0;
 Long_t          TThread::fgMainId = 0;
 TThread        *TThread::fgMain = 0;
@@ -183,11 +186,12 @@ Int_t TJoinHelper::Join()
    return fRc;
 }
 
+} // namespace CppyyLegacy
 
 //------------------------------------------------------------------------------
+ClassImp(CppyyLegacy::TThread);
 
-ClassImp(TThread);
-
+namespace CppyyLegacy {
 
 ////////////////////////////////////////////////////////////////////////////////
 /// Create a thread. Specify the function or static class method
@@ -311,12 +315,12 @@ void TThread::Init()
 
 #if !defined (_REENTRANT) && !defined (WIN32)
    // Not having it means (See TVirtualMutext.h) that the LOCKGUARD macro are empty.
-   ::Fatal("Init","_REENTRANT must be #define-d for TThread to work properly.");
+   ::CppyyLegacy::Fatal("Init","_REENTRANT must be #define-d for TThread to work properly.");
 #endif
 
    // 'Insure' gROOT is created before initializing the Thread safe behavior
    // (to make sure we do not have two attempting to create it).
-   ROOT::GetROOT();
+   CppyyLegacy::GetROOT();
 
    fgThreadImp = gThreadFactory->CreateThreadImp();
    gMainInternalMutex = new TMutex(kTRUE);
@@ -333,15 +337,15 @@ void TThread::Init()
 
    // To avoid deadlocks, gInterpreterMutex and gROOTMutex need
    // to point at the same instance.
-   // Both are now deprecated in favor of ROOT::gCoreMutex
+   // Both are now deprecated in favor of CppyyLegacy::gCoreMutex
    {
      R__LOCKGUARD(gGlobalMutex);
-     if (!ROOT::gCoreMutex) {
+     if (!CppyyLegacy::gCoreMutex) {
         // To avoid dead locks, caused by shared library opening and/or static initialization
         // taking the same lock as 'tls_get_addr_tail', we can not use UniqueLockRecurseCount.
-        ROOT::gCoreMutex = new ROOT::TRWMutexImp<std::mutex, ROOT::Internal::RecurseCounts>();
+        CppyyLegacy::gCoreMutex = new CppyyLegacy::TRWMutexImp<std::mutex, CppyyLegacy::Internal::RecurseCounts>();
      }
-     gInterpreterMutex = ROOT::gCoreMutex;
+     gInterpreterMutex = CppyyLegacy::gCoreMutex;
      gROOTMutex = gInterpreterMutex;
    }
 }
@@ -524,7 +528,7 @@ Long_t TThread::Join(Long_t jid, void **ret)
    TThread *myTh = GetThread(jid);
 
    if (!myTh) {
-      ::Error("TThread::Join", "cannot find thread 0x%lx", jid);
+      ::CppyyLegacy::Error("TThread::Join", "cannot find thread 0x%lx", jid);
       return -1L;
    }
 
@@ -595,7 +599,7 @@ Int_t TThread::Kill(Long_t id)
       return fgThreadImp->Kill(th);
    } else  {
       if (gDebug)
-         ::Warning("TThread::Kill(Long_t)", "thread 0x%lx not found", id);
+         ::CppyyLegacy::Warning("TThread::Kill(Long_t)", "thread 0x%lx not found", id);
       return 13;
    }
 }
@@ -611,7 +615,7 @@ Int_t TThread::Kill(const char *name)
       return fgThreadImp->Kill(th);
    } else  {
       if (gDebug)
-         ::Warning("TThread::Kill(const char*)", "thread %s not found", name);
+         ::CppyyLegacy::Warning("TThread::Kill(const char*)", "thread %s not found", name);
       return 13;
    }
 }
@@ -716,7 +720,7 @@ void TThread::AfterCancel(TThread *th)
       if (gDebug)
          th->Info("TThread::AfterCancel", "thread is canceled");
    } else
-      ::Error("TThread::AfterCancel", "zero thread pointer passed");
+      ::CppyyLegacy::Error("TThread::AfterCancel", "zero thread pointer passed");
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -829,7 +833,7 @@ void TThread::Ps()
    int i;
 
    if (!fgMain) {
-      ::Info("TThread::Ps", "no threads have been created");
+      ::CppyyLegacy::Info("TThread::Ps", "no threads have been created");
       return;
    }
 
@@ -872,7 +876,7 @@ void TThread::Ps()
 /// of the calling thread.
 /// k should be between 0 and kMaxUserThreadSlot for user application.
 /// (and between kMaxUserThreadSlot and kMaxThreadSlot for ROOT libraries).
-/// See ROOT::EThreadSlotReservation
+/// See CppyyLegacy::EThreadSlotReservation
 
 void **TThread::Tsd(void *dflt, Int_t k)
 {
@@ -888,14 +892,14 @@ void **TThread::Tsd(void *dflt, Int_t k)
 /// reference to a given position in that array.
 
 void **TThread::GetTls(Int_t k) {
-   TTHREAD_TLS_ARRAY(void*, ROOT::kMaxThreadSlot, tls);
+   TTHREAD_TLS_ARRAY(void*, CppyyLegacy::kMaxThreadSlot, tls);
 
    // In order for the thread 'gDirectory' value to be properly
    // initialized we set it now (otherwise it defaults
    // to zero which is 'unexpected')
    // We initialize it to gROOT rather than gDirectory, since
    // TFile are currently expected to not be shared by two threads.
-   if (k == ROOT::kDirectoryThreadSlot && tls[k] == nullptr)
+   if (k == CppyyLegacy::kDirectoryThreadSlot && tls[k] == nullptr)
       tls[k] = gROOT;
 
    return &(tls[k]);
@@ -962,9 +966,9 @@ again:
       bp = buf;
 
    if (level != kFatal)
-      ::GetErrorHandler()(level, level >= gErrorAbortLevel, location, bp);
+      ::CppyyLegacy::GetErrorHandler()(level, level >= gErrorAbortLevel, location, bp);
    else
-      ::GetErrorHandler()(level, kTRUE, location, bp);
+      ::CppyyLegacy::GetErrorHandler()(level, kTRUE, location, bp);
 
    delete [] bp;
 }
@@ -1005,3 +1009,5 @@ TThreadCleaner::~TThreadCleaner()
 {
    TThread::CleanUp();
 }
+
+} // namespace CppyyLegacy

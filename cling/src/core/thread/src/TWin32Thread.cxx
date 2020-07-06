@@ -21,7 +21,10 @@
 #include <process.h>
 #include <errno.h>
 
-ClassImp(TWin32Thread);
+
+ClassImp(CppyyLegacy::TWin32Thread);
+
+namespace CppyyLegacy {
 
 ////////////////////////////////////////////////////////////////////////////////
 /// Win32 threads -- spawn new thread (like pthread_create).
@@ -178,3 +181,5 @@ TWin32ThreadCleanUp::TWin32ThreadCleanUp(void **main, void *routine, void *arg)
    fRoutine = routine; fArgument = arg;
    *main  = this;
 }
+
+} // namespace CppyyLegacy

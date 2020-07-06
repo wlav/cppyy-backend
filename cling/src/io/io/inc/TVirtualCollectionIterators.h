@@ -21,6 +21,9 @@ Small helper class to generically acquire and release iterators.
 #include "TVirtualCollectionProxy.h"
 #include "TError.h"
 
+
+namespace CppyyLegacy {
+
 class TVirtualCollectionIterators
 {
 private:
@@ -52,7 +55,7 @@ public:
          fCreateIterators = proxy->GetFunctionCreateIterators(read_from_file);
          fDeleteTwoIterators = proxy->GetFunctionDeleteTwoIterators(read_from_file);
       } else {
-         ::Fatal("TIterators::TIterators","Created with out a collection proxy!\n");
+         ::CppyyLegacy::Fatal("TIterators::TIterators","Created with out a collection proxy!\n");
       }
    }
 
@@ -179,7 +182,7 @@ public:
 
 inline TGenericCollectionIterator *TGenericCollectionIterator::New(void *collection, TVirtualCollectionProxy *proxy)
 {
-   if (proxy->GetCollectionType() == ROOT::kSTLvector) {
+   if (proxy->GetCollectionType() == CppyyLegacy::kSTLvector) {
       return new VectorIterator(collection, proxy, kFALSE);
    } else {
       return new RegularIterator(collection, proxy, kFALSE);
@@ -250,7 +253,7 @@ public:
          fEndBuffer.fNext = fBeginBuffer.fNext = proxy->GetFunctionNext();
          fEndBuffer.fDelete = fBeginBuffer.fDelete = proxy->GetFunctionDeleteIterator();
       } else {
-         ::Fatal("TIterators::TIterators","Created with out a collection proxy!\n");
+         ::CppyyLegacy::Fatal("TIterators::TIterators","Created with out a collection proxy!\n");
       }
    }
 
@@ -366,5 +369,5 @@ public:
    }
 };
 
+} // namespace CppyyLegacy
 #endif // ROOT_TVirtualCollectionIterators
-

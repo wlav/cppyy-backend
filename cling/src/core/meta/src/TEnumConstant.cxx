@@ -17,7 +17,9 @@ The TEnumConstant class implements the constants of the enum type.
 #include "TEnum.h"
 
 
-ClassImp(TEnumConstant);
+ClassImp(CppyyLegacy::TEnumConstant);
+
+namespace CppyyLegacy {
 
 ////////////////////////////////////////////////////////////////////////////////
 /// Constructor of the TEnumConstant.
@@ -38,3 +40,5 @@ TEnumConstant::TEnumConstant(DataMemberInfo_t *info, const char* name, Long64_t 
 TEnumConstant::~TEnumConstant()
 {
 }
+
+} // namespace CppyyLegacy

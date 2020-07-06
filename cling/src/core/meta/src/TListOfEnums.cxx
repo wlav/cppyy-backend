@@ -25,9 +25,12 @@ unloaded enum.
 #include "TInterpreter.h"
 #include "TVirtualMutex.h"
 
-const unsigned int listSize=3;
 
-ClassImp(TListOfEnums);
+ClassImp(CppyyLegacy::TListOfEnums);
+
+namespace CppyyLegacy {
+
+const unsigned int listSize=3;
 
 ////////////////////////////////////////////////////////////////////////////////
 /// Constructor.
@@ -412,3 +415,5 @@ void TListOfEnums::Unload(TEnum *e)
       fUnloaded->Add(e);
    }
 }
+
+} // namespace CppyyLegacy

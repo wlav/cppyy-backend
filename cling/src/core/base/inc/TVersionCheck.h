@@ -23,14 +23,17 @@
 
 #include "RVersion.h"
 
+namespace CppyyLegacy {
+
 class TVersionCheck {
 public:
    TVersionCheck(int versionCode);  // implemented in TSystem.cxx
 };
 
-namespace ROOT {
 namespace Internal {
 static TVersionCheck gVersionCheck(ROOT_VERSION_CODE);
 }
-}
+
+} // namespace CppyyLegacy
+
 #endif

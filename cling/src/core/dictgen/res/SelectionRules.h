@@ -24,13 +24,18 @@ namespace cling {
    class Interpreter;
 }
 
-namespace ROOT{
+
+namespace CppyyLegacy {
    namespace TMetaUtils {
       class TNormalizedCtxt;
    }
 }
+
 #include <iostream>
+
 namespace SelectionRulesUtils {
+
+   using namespace CppyyLegacy;
 
    template<class ASSOCIATIVECONTAINER>
    inline bool areEqualAttributes(const ASSOCIATIVECONTAINER& c1, const ASSOCIATIVECONTAINER& c2, bool moduloNameOrPattern){
@@ -85,6 +90,7 @@ namespace SelectionRulesUtils {
 }
 
 
+namespace CppyyLegacy {
 class SelectionRules {
 
 public:
@@ -96,7 +102,7 @@ public:
    };
 
    SelectionRules(cling::Interpreter &interp,
-                  ROOT::TMetaUtils::TNormalizedCtxt& normCtxt,
+                  TMetaUtils::TNormalizedCtxt& normCtxt,
                   const std::vector<std::pair<std::string,std::string>>& namesForExclusion):
       fSelectionFileType(kNumSelectionFileTypes),
       fHasFileNameRule(false),
@@ -236,9 +242,11 @@ private:
    bool fHasFileNameRule; ///< if we have a file name rule, this should be set to true
    long int fRulesCounter;
 
-   ROOT::TMetaUtils::TNormalizedCtxt& fNormCtxt;
+   TMetaUtils::TNormalizedCtxt& fNormCtxt;
    cling::Interpreter &fInterp;
 
 };
+
+}
 
 #endif

@@ -21,16 +21,19 @@ interpreter.
 #include "TGlobal.h"
 
 
-TInterpreter*   gCling = nullptr; // returns pointer to global TCling object
-static TInterpreter *gInterpreterLocal = nullptr; // The real holder of the pointer.
+ClassImp(CppyyLegacy::TInterpreter);
 
+CppyyLegacy::TInterpreter*   gCling = nullptr; // returns pointer to global TCling object
+static CppyyLegacy::TInterpreter *gInterpreterLocal = nullptr; // The real holder of the pointer.
+
+namespace CppyyLegacy {
 
 namespace {
 static struct AddPseudoGlobals {
 AddPseudoGlobals() {
 
    // use special functor to extract pointer on gInterpreterLocal variable
-   TGlobalMappedFunction::MakeFunctor("gInterpreter", "TInterpreter*", TInterpreter::Instance, [] {
+   TGlobalMappedFunction::MakeFunctor("gInterpreter", "CppyyLegacy::TInterpreter*", TInterpreter::Instance, [] {
       TInterpreter::Instance();
       return (void *) &gInterpreterLocal;
    });
@@ -38,9 +41,6 @@ AddPseudoGlobals() {
 }
 } gAddPseudoGlobals;
 }
-
-
-ClassImp(TInterpreter);
 
 ////////////////////////////////////////////////////////////////////////////////
 /// TInterpreter ctor only called by derived classes.
@@ -58,10 +58,12 @@ TInterpreter::TInterpreter(const char *name, const char *title)
 TInterpreter *TInterpreter::Instance()
 {
    if (gInterpreterLocal == 0) {
-      static TROOT *getROOT = ROOT::GetROOT(); // Make sure gInterpreterLocal is set
+      static TROOT *getROOT = GetROOT(); // Make sure gInterpreterLocal is set
       if (!getROOT) {
-         ::Fatal("TInterpreter::Instance","TROOT object is required before accessing a TInterpreter");
+         ::CppyyLegacy::Fatal("TInterpreter::Instance","TROOT object is required before accessing a TInterpreter");
       }
    }
    return gInterpreterLocal;
 }
+
+} // namespace CppyyLegacy

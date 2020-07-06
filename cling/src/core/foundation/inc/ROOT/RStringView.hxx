@@ -60,19 +60,19 @@ namespace std {
 #include <string>
 
 namespace std {
-inline namespace __ROOT {
+inline namespace __CppyyLegacy {
 
 inline std::string &operator+=(std::string &left, std::string_view right)
 {
    return left.append(right.data(), right.size());
 }
 
-} // namespace __ROOT
+} // namespace __CppyyLegacy
 } // namespace std
 
 #endif // ifndef R__HAS_OP_EQUAL_PLUS_STRING_VIEW
 
-namespace ROOT {
+namespace CppyyLegacy {
 namespace Internal {
     class TStringView {
        const char *fData{nullptr};
@@ -84,5 +84,5 @@ namespace Internal {
        operator std::string_view() const { return std::string_view(fData,fLength); }
     };
 } // namespace Internal
-} // namespace ROOT
+} // namespace CppyyLegacy
 #endif // RStringView_H

@@ -36,11 +36,14 @@ is separated from the TEmulatedProxy.
 #include "TStreamerInfo.h"
 #include "TError.h"
 
+
+namespace CppyyLegacy {
+
 TEmulatedMapProxy::TEmulatedMapProxy(const TEmulatedMapProxy& copy)
    : TEmulatedCollectionProxy(copy)
 {
    // copy constructor
-   if ( !(fSTL_type == ROOT::kSTLmap || fSTL_type == ROOT::kSTLmultimap) )  {
+   if ( !(fSTL_type == CppyyLegacy::kSTLmap || fSTL_type == CppyyLegacy::kSTLmultimap) )  {
       Fatal("TEmulatedMapProxy","Class %s is not a map-type!",fName.c_str());
    }
 }
@@ -49,7 +52,7 @@ TEmulatedMapProxy::TEmulatedMapProxy(const char* cl_name, Bool_t silent)
    : TEmulatedCollectionProxy(cl_name, silent)
 {
    // Build a Streamer for an emulated vector whose type is 'name'.
-   if ( !(fSTL_type == ROOT::kSTLmap || fSTL_type == ROOT::kSTLmultimap) )  {
+   if ( !(fSTL_type == CppyyLegacy::kSTLmap || fSTL_type == CppyyLegacy::kSTLmultimap) )  {
       Fatal("TEmulatedMapProxy","Class %s is not a map-type!",fName.c_str());
    }
 }
@@ -255,3 +258,5 @@ void TEmulatedMapProxy::Streamer(TBuffer &b)
       }
    }
 }
+
+} // namespace CppyyLegacy

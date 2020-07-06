@@ -40,6 +40,9 @@ the Clang C++ compiler, not CINT.
 
 #include <string>
 
+
+namespace CppyyLegacy {
+
 TClingMethodArgInfo::TClingMethodArgInfo(cling::Interpreter *interp, const TClingMethodInfo* mi) : TClingDeclInfo(mi->GetMethodDecl()), fInterp(interp), fIdx(-1) {}
 
 bool TClingMethodArgInfo::IsValid() const
@@ -180,3 +183,4 @@ const char *TClingMethodArgInfo::TypeName() const
    return Type()->Name();
 }
 
+} // namespace CppyyLegacy

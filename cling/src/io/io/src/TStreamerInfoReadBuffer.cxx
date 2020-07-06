@@ -24,6 +24,9 @@
 #include "TVirtualArray.h"
 #include "TVirtualObject.h"
 
+
+namespace CppyyLegacy {
+
 // GetCurrentElement.
 
 static TStreamerElement* &CurrentElement()
@@ -518,7 +521,7 @@ Int_t TStreamerInfo::ReadBufferArtificial(TBuffer &b, const T &arr,
                                           Int_t eoffset)
 {
    TStreamerArtificial *artElement = (TStreamerArtificial*)aElement;
-   ROOT::TSchemaRule::ReadRawFuncPtr_t rawfunc = artElement->GetReadRawFunc();
+   CppyyLegacy::TSchemaRule::ReadRawFuncPtr_t rawfunc = artElement->GetReadRawFunc();
 
    if (rawfunc) {
       for(Int_t k=0; k<narr; ++k) {
@@ -527,7 +530,7 @@ Int_t TStreamerInfo::ReadBufferArtificial(TBuffer &b, const T &arr,
       return 0;
    }
 
-   ROOT::TSchemaRule::ReadFuncPtr_t readfunc = artElement->GetReadFunc();
+   CppyyLegacy::TSchemaRule::ReadFuncPtr_t readfunc = artElement->GetReadFunc();
    // Process the result
    if (readfunc) {
       TVirtualObject obj(0);
@@ -1072,52 +1075,6 @@ Int_t TStreamerInfo::ReadBuffer(TBuffer &b, const T &arr,
             }
          }
          continue;
-
-//        case TStreamerInfo::kSTLvarp:           // Variable size array of STL containers.
-//             {
-//                TMemberStreamer *pstreamer = compinfo[i]->fStreamer;
-//                TClass *cl                 = compinfo[i]->fClass;
-//                ROOT::NewArrFunc_t arraynew = cl->GetNewArray();
-//                ROOT::DelArrFunc_t arraydel = cl->GetDeleteArray();
-//                UInt_t start,count;
-//                // Version_t v =
-//                b.ReadVersion(&start, &count, cle);
-//                if (pstreamer == 0) {
-//                   Int_t size = cl->Size();
-//                   Int_t imethod = compinfo[i]->fMethod+eoffset;
-//                   DOLOOP {
-//                      char **contp = (char**)(arr[k]+ioffset);
-//                      const Int_t *counter = (Int_t*)(arr[k]+imethod);
-//                      const Int_t sublen = (*counter);
-
-//                      for(int j=0;j<compinfo[i]->fLength;++j) {
-//                         if (arraydel) arraydel(contp[j]);
-//                         contp[j] = 0;
-//                         if (sublen<=0) continue;
-//                         if (arraynew) {
-//                            contp[j] = (char*)arraynew(sublen, 0);
-//                            char *cont = contp[j];
-//                            for(int k=0;k<sublen;++k) {
-//                               cl->Streamer( cont, b );
-//                               cont += size;
-//                            }
-//                         } else {
-//                            // Can't create an array of object
-//                            Error("ReadBuffer","The element %s::%s type %d (%s) can be read because of the class does not have access to new %s[..]\n",
-//                                  GetName(),aElement->GetFullName(),kase,aElement->GetTypeName(),GetName());
-//                            void *cont = cl->New();
-//                            for(int k=0;k<sublen;++k) {
-//                               cl->Streamer( cont, b );
-//                            }
-//                         }
-//                      }
-//                   }
-//                } else {
-//                   DOLOOP{(*pstreamer)(b,arr[k]+ioffset,compinfo[i]->fLength);}
-//                }
-//                b.CheckByteCount(start,count,aElement->GetFullName());
-//             }
-//             continue;
 
          case TStreamerInfo::kSTLp:            // Pointer to Container with no virtual table (stl) and no comment
          case TStreamerInfo::kSTLp + TStreamerInfo::kOffsetL: // array of pointers to Container with no virtual table (stl) and no comment
@@ -1738,3 +1695,5 @@ Int_t TStreamerInfo::ReadBufferClones(TBuffer &b, TClonesArray *clones,
    char **arr = (char **)clones->GetObjectRef(0);
    return ReadBuffer(b,arr,fCompFull,first==-1?0:first,first==-1?fNfulldata:first+1,nc,eoffset,1);
 }
+
+} // namespace CppyyLegacy

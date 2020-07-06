@@ -37,10 +37,12 @@ only [a-zA-Z], [^ntf] and so on.
 #include "TError.h"
 #include "ThreadLocalStorage.h"
 
+
+ClassImp(CppyyLegacy::TRegexp);
+
+namespace CppyyLegacy {
+
 const unsigned TRegexp::fgMaxpat = 2048;
-
-
-ClassImp(TRegexp);
 
 ////////////////////////////////////////////////////////////////////////////////
 /// Create a regular expression from the input string. If wildcard is
@@ -118,7 +120,7 @@ TRegexp& TRegexp::operator=(const TString &str)
 void TRegexp::GenPattern(const char *str)
 {
    fPattern = new Pattern_t[fgMaxpat];
-   int error = ::Makepat(str, fPattern, fgMaxpat);
+   int error = ::CppyyLegacy::Makepat(str, fPattern, fgMaxpat);
    fStat = (error < 3) ? (EStatVal) error : kToolong;
 }
 
@@ -215,7 +217,7 @@ Ssiz_t TRegexp::Index(const TString& string, Ssiz_t* len, Ssiz_t i) const
    const char* s = string.Data();
    Ssiz_t slen = string.Length();
    if (slen < i) return kNPOS;
-   const char* endp = ::Matchs(s+i, slen-i, fPattern, &startp);
+   const char* endp = ::CppyyLegacy::Matchs(s+i, slen-i, fPattern, &startp);
    if (endp) {
       *len = endp - startp;
       return startp - s;
@@ -345,3 +347,5 @@ Bool_t TString::Tokenize(TString &tok, Ssiz_t &from, const char *delim) const
    // Done
    return found;
 }
+
+} // namespace CppyyLegacy

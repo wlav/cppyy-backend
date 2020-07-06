@@ -12,7 +12,6 @@
 #ifndef ROOT_TDirectory
 #define ROOT_TDirectory
 
-
 //////////////////////////////////////////////////////////////////////////
 //                                                                      //
 // TDirectory                                                           //
@@ -26,6 +25,9 @@
 #include "TList.h"
 #include "TDatime.h"
 #include "TUUID.h"
+
+
+namespace CppyyLegacy {
 
 class TKey;
 class TFile;
@@ -214,12 +216,14 @@ public:
    ClassDefOverride(TDirectory,5)  //Describe directory structure in memory
 };
 
+} // namespace CppyyLegacy
+
 #ifndef __CINT__
-#define gDirectory (TDirectory::CurrentDirectory())
+#define gDirectory (::CppyyLegacy::TDirectory::CurrentDirectory())
 
 #elif defined(__MAKECINT__)
 // To properly handle the use of gDirectory in header files (in static declarations)
-R__EXTERN TDirectory *gDirectory;
+R__EXTERN ::CppyyLegacy::TDirectory *gDirectory;
 #endif
 
 #endif

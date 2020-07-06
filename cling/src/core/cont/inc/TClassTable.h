@@ -12,7 +12,6 @@
 #ifndef ROOT_TClassTable
 #define ROOT_TClassTable
 
-
 //////////////////////////////////////////////////////////////////////////
 //                                                                      //
 // TClassTable                                                          //
@@ -25,25 +24,26 @@
 #include "TObject.h"
 #include "TString.h"
 
+
+namespace CppyyLegacy {
+
 class TProtoClass;
 
-namespace ROOT {
-   class TClassAlt;
-   class TClassRec;
-   class TMapTypeToClassRec;
-}
+class TClassAlt;
+class TClassRec;
+class TMapTypeToClassRec;
 
 class TClassTable : public TObject {
 
-friend  void ROOT::ResetClassVersion(TClass*, const char*, Short_t);
+friend  void CppyyLegacy::ResetClassVersion(TClass*, const char*, Short_t);
 friend  class TROOT;
 
 private:
-   typedef ROOT::TMapTypeToClassRec IdMap_t;
+   typedef CppyyLegacy::TMapTypeToClassRec IdMap_t;
 
-   static ROOT::TClassAlt **fgAlternate;
-   static ROOT::TClassRec **fgTable;
-   static ROOT::TClassRec **fgSortedTable;
+   static CppyyLegacy::TClassAlt **fgAlternate;
+   static CppyyLegacy::TClassRec **fgTable;
+   static CppyyLegacy::TClassRec **fgSortedTable;
    static IdMap_t     *fgIdMap;
    static UInt_t       fgSize;
    static UInt_t       fgTally;
@@ -52,8 +52,8 @@ private:
 
    TClassTable();
 
-   static ROOT::TClassRec   *FindElementImpl(const char *cname, Bool_t insert);
-   static ROOT::TClassRec   *FindElement(const char *cname, Bool_t insert=kFALSE);
+   static CppyyLegacy::TClassRec   *FindElementImpl(const char *cname, Bool_t insert);
+   static CppyyLegacy::TClassRec   *FindElement(const char *cname, Bool_t insert=kFALSE);
    static void         SortTable();
 
    static Bool_t CheckClassTableInit();
@@ -94,10 +94,10 @@ public:
 
 R__EXTERN TClassTable *gClassTable;
 
-namespace ROOT {
-   extern void AddClass(const char *cname, Version_t id, DictFuncPtr_t dict,
-                        Int_t pragmabits);
-   extern void RemoveClass(const char *cname);
-}
+extern void AddClass(const char *cname, Version_t id, DictFuncPtr_t dict,
+                     Int_t pragmabits);
+extern void RemoveClass(const char *cname);
+
+} // namespace CppyyLegacy
 
 #endif

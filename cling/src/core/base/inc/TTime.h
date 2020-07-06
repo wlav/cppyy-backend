@@ -24,6 +24,8 @@
 #include "Rtypes.h"
 
 
+namespace CppyyLegacy {
+
 class TTime {
 
 private:
@@ -99,5 +101,7 @@ inline Bool_t operator> (const TTime &t1, const TTime &t2)
    { return t1.fMilliSec > t2.fMilliSec; }
 inline Bool_t operator>= (const TTime &t1, const TTime &t2)
    { return t1.fMilliSec >= t2.fMilliSec; }
+
+} // namespace CppyyLegacy
 
 #endif

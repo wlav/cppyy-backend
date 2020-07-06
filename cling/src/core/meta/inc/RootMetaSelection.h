@@ -1,7 +1,8 @@
 #ifndef ROOT_Meta_Selection
 #define ROOT_Meta_Selection
 
-namespace ROOT {
+namespace CppyyLegacy {
+
    namespace Meta {
       namespace Selection {
 
@@ -39,7 +40,7 @@ namespace ROOT {
 
       }
    }
-}
+
+} // namespace CppyyLegacy
 
 #endif
-

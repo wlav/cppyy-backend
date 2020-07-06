@@ -34,6 +34,9 @@ the class TEmulatedMapProxy.
 #include "TVirtualMutex.h" // For R__LOCKGUARD
 #include "TInterpreter.h"  // For gInterpreterMutex
 
+
+namespace CppyyLegacy {
+
 //
 // Utility function to allow the creation of a TClass for a std::pair without
 // a dictionary (See end of file for implementation
@@ -141,8 +144,8 @@ TGenCollectionProxy *TEmulatedCollectionProxy::InitializeEx(Bool_t silent)
             return in + (kSizeOfPtr - in%kSizeOfPtr)%kSizeOfPtr;
          };
          switch ( fSTL_type )  {
-            case ROOT::kSTLmap:
-            case ROOT::kSTLmultimap:
+            case CppyyLegacy::kSTLmap:
+            case CppyyLegacy::kSTLmultimap:
                nam = "std::pair<"+inside[1]+","+inside[2];
                nam += (nam[nam.length()-1]=='>') ? " >" : ">";
                if (0==TClass::GetClass(nam.c_str())) {
@@ -171,7 +174,7 @@ TGenCollectionProxy *TEmulatedCollectionProxy::InitializeEx(Bool_t silent)
                   }
                }
                break;
-            case ROOT::kSTLbitset:
+            case CppyyLegacy::kSTLbitset:
                inside[1] = "bool";
                // Intentional fall through
             default:
@@ -238,8 +241,8 @@ void TEmulatedCollectionProxy::Shrink(UInt_t nCurr, UInt_t left, Bool_t force )
    size_t i;
 
    switch ( fSTL_type )  {
-      case ROOT::kSTLmap:
-      case ROOT::kSTLmultimap:
+      case CppyyLegacy::kSTLmap:
+      case CppyyLegacy::kSTLmultimap:
          addr = ((char*)fEnv->fStart) + fValDiff*left;
          switch(fKey->fCase)  {
             case kIsFundamental:  // Only handle primitives this way
@@ -344,8 +347,8 @@ void TEmulatedCollectionProxy::Expand(UInt_t nCurr, UInt_t left)
 
    char* addr = ((char*)fEnv->fStart) + fValDiff*nCurr;
    switch ( fSTL_type )  {
-      case ROOT::kSTLmap:
-      case ROOT::kSTLmultimap:
+      case CppyyLegacy::kSTLmap:
+      case CppyyLegacy::kSTLmultimap:
          switch(fKey->fCase)  {
             case kIsFundamental:  // Only handle primitives this way
             case kIsEnum:
@@ -640,10 +643,10 @@ static TStreamerElement* R__CreateEmulatedElement(const char *dmName, const char
       if (strcmp(dmType,"string") == 0 || strcmp(dmType,"std::string") == 0 || strcmp(dmType,full_string_name)==0 ) {
          return new TStreamerSTLstring(dmName,dmTitle,offset,dmFull,dmIsPtr);
       }
-      if (TClassEdit::IsSTLCont(dmType)) {
+      if (TClassEdit::IsSTLCont(dmType.Data())) {
          return new TStreamerSTL(dmName,dmTitle,offset,dmFull,dmFull,dmIsPtr);
       }
-      TClass *clm = TClass::GetClass(dmType);
+      TClass *clm = TClass::GetClass(dmType.Data());
       if (!clm) {
          // either we have an Emulated enum or a really unknown class!
          // let's just claim its an enum :(
@@ -710,3 +713,5 @@ static TStreamerInfo *R__GenerateTClassForPair(const std::string &fname, const s
    i->BuildOld();
    return i;
 }
+
+} // namespace CppyyLegacy

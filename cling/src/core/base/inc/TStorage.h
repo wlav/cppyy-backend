@@ -24,6 +24,9 @@
 #include "RConfigure.h"
 #include "Rtypes.h"
 
+
+namespace CppyyLegacy {
+
 typedef void (*FreeHookFun_t)(void*, void *addr, size_t);
 typedef void *(*ReAllocFun_t)(void*, size_t);
 typedef void *(*ReAllocCFun_t)(void*, size_t, size_t);
@@ -72,14 +75,10 @@ public:
 #endif
    static void           ObjectDealloc(void *vp, void *ptr);
 
-   static void EnterStat(size_t size, void *p);
-   static void RemoveStat(void *p);
-   static void PrintStatistics();
    static void SetMaxBlockSize(size_t size);
    static void SetFreeHook(FreeHookFun_t func, void *data);
    static void SetReAllocHooks(ReAllocFun_t func1, ReAllocCFun_t func2);
    static void SetCustomNewDelete();
-   static void EnableStatistics(int size= -1, int ix= -1);
 
    static Bool_t HasCustomNewDelete();
 
@@ -142,12 +141,12 @@ inline void TStorage::SetMaxBlockSize(size_t size) { fgMaxBlockSize = size; }
 
 inline FreeHookFun_t TStorage::GetFreeHook() { return fgFreeHook; }
 
-namespace ROOT {
 namespace Internal {
 using FreeIfTMapFile_t = bool(void*);
 R__EXTERN FreeIfTMapFile_t *gFreeIfTMapFile;
 R__EXTERN void *gMmallocDesc;
 }
-}
+
+} // namespace CppyyLegacy
 
 #endif

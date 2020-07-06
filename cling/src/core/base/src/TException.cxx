@@ -24,7 +24,10 @@ exception handling functionality.
 #define R__DLLEXPORT
 #endif
 
-R__DLLEXPORT ExceptionContext_t *gException;
+
+R__DLLEXPORT CppyyLegacy::ExceptionContext_t *gException;
+
+namespace CppyyLegacy {
 
 ////////////////////////////////////////////////////////////////////////////////
 /// If an exception context has been set (using the TRY and RETRY macros)
@@ -41,3 +44,5 @@ R__DLLEXPORT void Throw(int code)
 }
 
 R__DLLEXPORT TExceptionHandler* gExceptionHandler = nullptr;
+
+} // namespace CppyyLegacy

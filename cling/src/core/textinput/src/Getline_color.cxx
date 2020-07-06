@@ -114,7 +114,7 @@ namespace {
 } // unnamed namespace
 
 
-ROOT::TextInputColorizer::TextInputColorizer():
+CppyyLegacy::TextInputColorizer::TextInputColorizer():
    fColorIsDefault(), fPrevBracketColor(kColorNone) {
    // Set the default colors.
    // fColors[kColorNone] stays default initialized.
@@ -126,12 +126,12 @@ ROOT::TextInputColorizer::TextInputColorizer():
    fColorIsDefault[kColorPrompt] = true;
 }
 
-ROOT::TextInputColorizer::~TextInputColorizer() {
+CppyyLegacy::TextInputColorizer::~TextInputColorizer() {
    // pin vtable
 }
 
 
-void ROOT::TextInputColorizer::ExtendRangeAndSetColor(Text& input,
+void CppyyLegacy::TextInputColorizer::ExtendRangeAndSetColor(Text& input,
                                                       size_t idx, char col,
                                                       Range& disp) {
    // Utility function that updates the display modification range if the
@@ -147,7 +147,7 @@ void ROOT::TextInputColorizer::ExtendRangeAndSetColor(Text& input,
    }
 }
 
-bool ROOT::TextInputColorizer::GetColor(char type, Color& col) {
+bool CppyyLegacy::TextInputColorizer::GetColor(char type, Color& col) {
    // Set the Color corresponding to an entry in EColorTypes.
    // Returns false if the type index is out of range.
 
@@ -159,7 +159,7 @@ bool ROOT::TextInputColorizer::GetColor(char type, Color& col) {
    return false;
 }
 
-void ROOT::TextInputColorizer::SetColors(const char* colorType,
+void CppyyLegacy::TextInputColorizer::SetColors(const char* colorType,
                                          const char* colorTabComp,
                                          const char* colorBracket,
                                          const char* colorBadBracket,
@@ -181,7 +181,7 @@ void ROOT::TextInputColorizer::SetColors(const char* colorType,
    fColorIsDefault[kColorPrompt] = (fColors[kColorPrompt] == Color());
 }
 
-void ROOT::TextInputColorizer::ProcessTextChange(EditorRange& Modification,
+void CppyyLegacy::TextInputColorizer::ProcessTextChange(EditorRange& Modification,
                                                  Text& input) {
    // The text has changed; look for word that are types.
 
@@ -265,7 +265,7 @@ void ROOT::TextInputColorizer::ProcessTextChange(EditorRange& Modification,
    }
 }
 
-void ROOT::TextInputColorizer::ProcessPromptChange(Text& prompt) {
+void CppyyLegacy::TextInputColorizer::ProcessPromptChange(Text& prompt) {
    int idx = kColorPrompt;
    if (fColorIsDefault[kColorPrompt]) {
       idx = 0;
@@ -273,7 +273,7 @@ void ROOT::TextInputColorizer::ProcessPromptChange(Text& prompt) {
    prompt.SetColor(Range::AllText(), idx);
 }
 
-void ROOT::TextInputColorizer::ProcessCursorChange(size_t Cursor,
+void CppyyLegacy::TextInputColorizer::ProcessCursorChange(size_t Cursor,
                                                    Text& input,
                                                    Range& DisplayR) {
    // Check each char to see if it is an opening bracket,

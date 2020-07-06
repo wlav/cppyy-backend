@@ -12,7 +12,6 @@
 #ifndef ROOT_TWin32Thread
 #define ROOT_TWin32Thread
 
-
 //////////////////////////////////////////////////////////////////////////
 //                                                                      //
 // TWin32Thread                                                         //
@@ -22,8 +21,10 @@
 //////////////////////////////////////////////////////////////////////////
 
 #include "TThreadImp.h"
-
 #include "Windows4Root.h"
+
+
+namespace CppyyLegacy {
 
 class TWin32ThreadCleanUp;
 
@@ -69,4 +70,5 @@ public:
    ~TWin32ThreadCleanUp() { }
 };
 
+} // namespace CppyyLegacy
 #endif

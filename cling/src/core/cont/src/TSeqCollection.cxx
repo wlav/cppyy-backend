@@ -20,7 +20,10 @@ an ordering relation, i.e. there is a first and last element.
 #include "TVirtualMutex.h"
 #include "TClass.h"
 
-ClassImp(TSeqCollection);
+
+ClassImp(CppyyLegacy::TSeqCollection);
+
+namespace CppyyLegacy {
 
 ////////////////////////////////////////////////////////////////////////////////
 /// Return index of object in collection. Returns -1 when object not found.
@@ -210,7 +213,7 @@ Long64_t TSeqCollection::Merge(TCollection *list)
       if (mergeable) {
          // Current object mergeable - get corresponding objects in input lists
          templist = (TSeqCollection*)IsA()->New();
-         // Make sure original objects are not deleted; some containers, e.g. TSelectorList, maybe owners
+         // Make sure original objects are not deleted
          templist->SetOwner(kFALSE);
       } else {
          templist = 0;
@@ -272,3 +275,5 @@ Long64_t TSeqCollection::Merge(TCollection *list)
 
    return nmerged;
 }
+
+} // namespace CppyyLegacy

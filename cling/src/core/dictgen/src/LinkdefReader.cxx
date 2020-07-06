@@ -43,6 +43,9 @@
 #include "cling/Interpreter/CIFactory.h"
 #include "cling/Interpreter/Interpreter.h"
 
+
+namespace CppyyLegacy {
+
 std::map<std::string, LinkdefReader::EPragmaNames> LinkdefReader::fgMapPragmaNames;
 std::map<std::string, LinkdefReader::ECppNames> LinkdefReader::fgMapCppNames;
 
@@ -99,7 +102,7 @@ void LinkdefReader::PopulateCppMap()
 }
 
 LinkdefReader::LinkdefReader(cling::Interpreter &interp,
-                             ROOT::TMetaUtils::RConstructorTypes &IOConstructorTypes):
+                             CppyyLegacy::TMetaUtils::RConstructorTypes &IOConstructorTypes):
    fLine(1), fCount(0), fSelectionRules(nullptr), fIOConstructorTypesPtr(&IOConstructorTypes), fInterp(interp)
 {
    PopulatePragmaMap();
@@ -132,7 +135,7 @@ bool LinkdefReader::AddRule(const std::string& ruletype,
 {
 
    EPragmaNames name = kUnknown;
-   ROOT::TMetaUtils::Info("LinkdefReader::AddRule", "Ruletype is %s with the identifier %s\n", ruletype.c_str(), identifier.c_str());
+   CppyyLegacy::TMetaUtils::Info("LinkdefReader::AddRule", "Ruletype is %s with the identifier %s\n", ruletype.c_str(), identifier.c_str());
    auto it = fgMapPragmaNames.find(ruletype);
    if (it != fgMapPragmaNames.end()) {
       name = it->second;
@@ -221,7 +224,7 @@ bool LinkdefReader::AddRule(const std::string& ruletype,
          } else if (identifier == "typedefs" || identifier == "typedef") {
             // Silently ignore
          } else {
-            ROOT::TMetaUtils::Warning("Unimplemented pragma statement: %s\n",identifier.c_str());
+            CppyyLegacy::TMetaUtils::Warning("Unimplemented pragma statement: %s\n",identifier.c_str());
             return false;
          }
 
@@ -297,19 +300,19 @@ bool LinkdefReader::AddRule(const std::string& ruletype,
                if (pos > -1) fsr.SetAttributeValue("proto_pattern", localIdentifier);
                else {
                   // No multiline
-                  ROOT::TMetaUtils::ReplaceAll(localIdentifier, "\\\n", "", true);
+                  CppyyLegacy::TMetaUtils::ReplaceAll(localIdentifier, "\\\n", "", true);
                   // Types: We do not do IO of functions, so it is safe to
                   // put in some heuristics
-                  ROOT::TMetaUtils::ReplaceAll(localIdentifier, "ULong_t", "unsigned long");
-                  ROOT::TMetaUtils::ReplaceAll(localIdentifier, "Long_t", "long");
-                  ROOT::TMetaUtils::ReplaceAll(localIdentifier, "Int_t", "int");
+                  CppyyLegacy::TMetaUtils::ReplaceAll(localIdentifier, "ULong_t", "unsigned long");
+                  CppyyLegacy::TMetaUtils::ReplaceAll(localIdentifier, "Long_t", "long");
+                  CppyyLegacy::TMetaUtils::ReplaceAll(localIdentifier, "Int_t", "int");
                   // Remove space after/before the commas if any
-                  ROOT::TMetaUtils::ReplaceAll(localIdentifier, ", ", ",", true);
-                  ROOT::TMetaUtils::ReplaceAll(localIdentifier, " ,", ",", true);
+                  CppyyLegacy::TMetaUtils::ReplaceAll(localIdentifier, ", ", ",", true);
+                  CppyyLegacy::TMetaUtils::ReplaceAll(localIdentifier, " ,", ",", true);
                   // Remove any space before/after the ( as well
-                  ROOT::TMetaUtils::ReplaceAll(localIdentifier, " (", "(", true);
-                  ROOT::TMetaUtils::ReplaceAll(localIdentifier, "( ", "(", true);
-                  ROOT::TMetaUtils::ReplaceAll(localIdentifier, " )", ")", true);
+                  CppyyLegacy::TMetaUtils::ReplaceAll(localIdentifier, " (", "(", true);
+                  CppyyLegacy::TMetaUtils::ReplaceAll(localIdentifier, "( ", "(", true);
+                  CppyyLegacy::TMetaUtils::ReplaceAll(localIdentifier, " )", ")", true);
                   fsr.SetAttributeValue("proto_name", localIdentifier);
                }
             }
@@ -479,14 +482,14 @@ bool LinkdefReader::AddRule(const std::string& ruletype,
          break;
       case kIOCtorType:
          // #pragma link C++ IOCtorType typename;
-         fIOConstructorTypesPtr->push_back(ROOT::TMetaUtils::RConstructorType(identifier.c_str(), fInterp));
+         fIOConstructorTypesPtr->push_back(CppyyLegacy::TMetaUtils::RConstructorType(identifier.c_str(), fInterp));
          break;
       case kIgnore:
          // All the pragma that were supported in CINT but are currently not relevant for CLING
          // (mostly because we do not yet filter the dictionary/pcm).
          break;
       case kUnknown:
-         ROOT::TMetaUtils::Warning("Unimplemented pragma statement - it has no effect: %s\n", identifier.c_str());
+         CppyyLegacy::TMetaUtils::Warning("Unimplemented pragma statement - it has no effect: %s\n", identifier.c_str());
          return false;
          break;
    }
@@ -821,7 +824,7 @@ public:
          llvm::StringRef rule_text(start, fSourceManager.getCharacterData(end.getLocation()) - start + end.getLength());
 
          std::string error_string;
-         ROOT::ProcessReadPragma(rule_text.str().c_str(), error_string);
+         CppyyLegacy::ProcessReadPragma(rule_text.str().c_str(), error_string);
          if (!error_string.empty())
             std::cerr << error_string;
          //std::cerr << "Warning: #pragma read not yet handled: " << include.str() << "\n";
@@ -1041,3 +1044,5 @@ bool LinkdefReader::Parse(SelectionRules &sr, llvm::StringRef code, const std::v
    fSelectionRules = 0;
    return 0 == DClient.getNumErrors();
 }
+
+} // namespace CppyyLegacy

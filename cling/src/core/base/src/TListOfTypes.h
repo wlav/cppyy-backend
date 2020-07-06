@@ -22,8 +22,10 @@
 //                                                                      //
 //////////////////////////////////////////////////////////////////////////
 
-
 #include "THashTable.h"
+
+
+namespace CppyyLegacy {
 
 class TDataType;
 
@@ -38,6 +40,6 @@ public:
    TDataType *FindType(const char *name) const;
 };
 
+} // namespace CppyyLegacy
 
 #endif
-

@@ -12,7 +12,6 @@
 #ifndef ROOT_TFile
 #define ROOT_TFile
 
-
 //////////////////////////////////////////////////////////////////////////
 //                                                                      //
 // TFile                                                                //
@@ -29,13 +28,14 @@
 #include "TUrl.h"
 
 
+namespace CppyyLegacy {
+
 class TFree;
 class TArrayC;
 class TFileOpenHandle;
 class TProcessID;
 
-
-namespace ROOT { namespace Internal {
+namespace Internal {
    class HashValue {
    private:
       ULong64_t fDigest[4] = {0, 0, 0, 0};
@@ -45,7 +45,7 @@ namespace ROOT { namespace Internal {
       HashValue(const char *data, int len);
       ULong64_t const *Get() const { return fDigest; }
    };
-} }
+}
 
 class TFile : public TDirectoryFile {
   friend class TDirectoryFile;
@@ -115,7 +115,7 @@ protected:
    struct InfoListRet {
       TList *fList;
       Int_t  fReturnCode;
-      ROOT::Internal::HashValue fHash;
+      CppyyLegacy::Internal::HashValue fHash;
    };
 
    virtual InfoListRet GetStreamerInfoListImpl(bool lookupSICache);
@@ -156,7 +156,7 @@ public:
    enum EFileType { kDefault = 0, kLocal = 1, kNet = 2, kWeb = 3, kFile = 4, kMerge = 5 };
 
    TFile();
-   TFile(const char *fname, Option_t *option="", const char *ftitle="", Int_t compress = ROOT::RCompressionSetting::EDefaults::kUseCompiledDefault);
+   TFile(const char *fname, Option_t *option="", const char *ftitle="", Int_t compress = CppyyLegacy::RCompressionSetting::EDefaults::kUseCompiledDefault);
    virtual ~TFile();
 
            void        Close(Option_t *option="") override; // *MENU*
@@ -225,9 +225,9 @@ public:
    virtual Int_t       Recover();
    virtual Int_t       ReOpen(Option_t *mode);
    virtual void        Seek(Long64_t offset, ERelativeTo pos = kBeg);
-   virtual void        SetCompressionAlgorithm(Int_t algorithm = ROOT::RCompressionSetting::EAlgorithm::kUseGlobal);
-   virtual void        SetCompressionLevel(Int_t level = ROOT::RCompressionSetting::ELevel::kUseMin);
-   virtual void        SetCompressionSettings(Int_t settings = ROOT::RCompressionSetting::EDefaults::kUseCompiledDefault);
+   virtual void        SetCompressionAlgorithm(Int_t algorithm = CppyyLegacy::RCompressionSetting::EAlgorithm::kUseGlobal);
+   virtual void        SetCompressionLevel(Int_t level = CppyyLegacy::RCompressionSetting::ELevel::kUseMin);
+   virtual void        SetCompressionSettings(Int_t settings = CppyyLegacy::RCompressionSetting::EDefaults::kUseCompiledDefault);
    virtual void        SetEND(Long64_t last) { fEND = last; }
    virtual void        SetOffset(Long64_t offset, ERelativeTo pos = kBeg);
    virtual void        SetOption(Option_t *option=">") { fOption = option; }
@@ -245,10 +245,10 @@ public:
 
    static TFileOpenHandle
                       *AsyncOpen(const char *name, Option_t *option = "",
-                                 const char *ftitle = "", Int_t compress = ROOT::RCompressionSetting::EDefaults::kUseCompiledDefault,
+                                 const char *ftitle = "", Int_t compress = CppyyLegacy::RCompressionSetting::EDefaults::kUseCompiledDefault,
                                  Int_t netopt = 0);
    static TFile       *Open(const char *name, Option_t *option = "",
-                            const char *ftitle = "", Int_t compress = ROOT::RCompressionSetting::EDefaults::kUseCompiledDefault,
+                            const char *ftitle = "", Int_t compress = CppyyLegacy::RCompressionSetting::EDefaults::kUseCompiledDefault,
                             Int_t netopt = 0);
    static TFile       *Open(TFileOpenHandle *handle);
 
@@ -306,7 +306,7 @@ private:
    Int_t    fNetOpt{0};      ///< Network options
    TFile   *fFile{nullptr};  ///< TFile instance of the file being opened
 
-   TFileOpenHandle(TFile *f) : TNamed("",""), fOpt(""), fCompress(ROOT::RCompressionSetting::EDefaults::kUseCompiledDefault),
+   TFileOpenHandle(TFile *f) : TNamed("",""), fOpt(""), fCompress(CppyyLegacy::RCompressionSetting::EDefaults::kUseCompiledDefault),
                                fNetOpt(0), fFile(f) { }
    TFileOpenHandle(const char *n, const char *o, const char *t, Int_t cmp,
                    Int_t no) : TNamed(n,t), fOpt(o), fCompress(cmp),
@@ -344,4 +344,5 @@ inline Int_t TFile::GetCompressionSettings() const
    return (fCompress < 0) ? -1 : fCompress;
 }
 
+} // namespace CppyyLegacy
 #endif

@@ -34,7 +34,8 @@
    #define TYPENAME typename
 #endif
 
-namespace ROOT {
+
+namespace CppyyLegacy {
 
 namespace Internal {
 template <typename T> class TStdBitsetHelper {
@@ -56,7 +57,7 @@ namespace Detail {
       // Same value as TVirtualCollectionProxy.
       static const UInt_t fgIteratorArenaSize = 16; // greater than sizeof(void*) + sizeof(UInt_t)
 
-   /** @class ROOT::Detail::TCollectionProxyInfo::IteratorValue
+   /** @class CppyyLegacy::Detail::TCollectionProxyInfo::IteratorValue
     *
     * Small helper to encapsulate whether to return the value
     * pointed to by the iterator or its address.
@@ -75,7 +76,7 @@ namespace Detail {
          }
       };
 
-   /** @class ROOT::Detail::TCollectionProxyInfo::Iterators
+   /** @class CppyyLegacy::Detail::TCollectionProxyInfo::Iterators
     *
     * Small helper to implement the function to create,access and destroy
     * iterators.
@@ -203,7 +204,7 @@ namespace Detail {
          }
       };
 
-  /** @class ROOT::Detail::TCollectionProxyInfo::Environ
+  /** @class CppyyLegacy::Detail::TCollectionProxyInfo::Environ
     *
     * Small helper to save proxy environment in the event of
     * recursive calls.
@@ -273,7 +274,7 @@ namespace Detail {
       static size_t GetContainerSize(const std::forward_list<T,ALLOCATOR>& c) {return std::distance(c.begin(),c.end());}
    };
 
-   /** @class ROOT::Detail::TCollectionProxyInfo::Type
+   /** @class CppyyLegacy::Detail::TCollectionProxyInfo::Type
     *
     * Small helper to encapsulate basic data accesses for
     * all STL continers.
@@ -353,7 +354,7 @@ namespace Detail {
 
    };
 
-   /** @class ROOT::Detail::TCollectionProxyInfo::Pushback
+   /** @class CppyyLegacy::Detail::TCollectionProxyInfo::Pushback
     *
     * Small helper to encapsulate all necessary data accesses for
     * containers like vector, list, deque
@@ -386,7 +387,7 @@ namespace Detail {
       }
    };
 
-   /** @class ROOT::Detail::TCollectionProxyInfo::Pushfront
+   /** @class CppyyLegacy::Detail::TCollectionProxyInfo::Pushfront
     *
     * Small helper to encapsulate all necessary data accesses for
     * containers like forward_list
@@ -422,7 +423,7 @@ namespace Detail {
       }
    };
 
-   /** @class ROOT::Detail::TCollectionProxyInfo::Insert
+   /** @class CppyyLegacy::Detail::TCollectionProxyInfo::Insert
     *
     * Small helper to encapsulate all necessary data accesses for
     * containers like set, multiset etc.
@@ -454,7 +455,7 @@ namespace Detail {
       }
    };
 
-   /** @class ROOT::Detail::TCollectionProxyInfo::MapInsert
+   /** @class CppyyLegacy::Detail::TCollectionProxyInfo::MapInsert
     *
     * Small helper to encapsulate all necessary data accesses for
     * containers like set, multiset etc.
@@ -562,7 +563,7 @@ namespace Detail {
          // Generate a TCollectionProxyInfo given a TCollectionProxyInfo::Type
          // template (used to described the behavior of the stl collection.
          // Typical use looks like:
-         //      ::ROOT::Detail::TCollectionProxyInfo::Generate(TCollectionProxyInfo::Pushback< std::vector<string> >()));
+         //      ::CppyyLegacy::Detail::TCollectionProxyInfo::Generate(TCollectionProxyInfo::Pushback< std::vector<string> >()));
 
          PairHolder<TYPENAME T::Value_t, TYPENAME T::Value_t>* p =
             (PairHolder<TYPENAME T::Value_t, TYPENAME T::Value_t>*)0x1000;
@@ -592,7 +593,7 @@ namespace Detail {
          // Generate a TCollectionProxyInfo given a TCollectionProxyInfo::Type
          // template (used to described the behavior of the stl collection.
          // Typical use looks like:
-         //      ::ROOT::Detail::TCollectionProxyInfo::Get(TCollectionProxyInfo::Pushback< std::vector<string> >()));
+         //      ::CppyyLegacy::Detail::TCollectionProxyInfo::Get(TCollectionProxyInfo::Pushback< std::vector<string> >()));
 
          PairHolder<TYPENAME T::Value_t, TYPENAME T::Value_t>* p =
             (PairHolder<TYPENAME T::Value_t, TYPENAME T::Value_t>*)0x1000;
@@ -882,6 +883,7 @@ namespace Detail {
 
 // For (reasonable) backward compatibility:
 using namespace Detail;
-} // namespace ROOT
+
+} // namespace CppyyLegacy
 
 #endif

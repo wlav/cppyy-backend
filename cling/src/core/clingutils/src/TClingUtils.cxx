@@ -11,7 +11,7 @@
 
 //______________________________________________________________________________
 //                                                                      //
-// ROOT::TMetaUtils provides utility wrappers around                    //
+// CppyyLegacy::TMetaUtils provides utility wrappers around                    //
 // cling, the LLVM-based interpreter. It's an internal set of tools     //
 // used by TCling and rootcling.                                        //
 //                                                                      //
@@ -66,7 +66,8 @@
 #include <unistd.h>
 #endif // _WIN32
 
-namespace ROOT {
+
+namespace CppyyLegacy {
 namespace TMetaUtils {
 
 std::string GetRealPath(const std::string &path)
@@ -78,7 +79,6 @@ std::string GetRealPath(const std::string &path)
 
 
 ////////////////////////////////////////////////////////////////////////////////
-
 class TNormalizedCtxtImpl {
    using DeclsCont_t = TNormalizedCtxt::Config_t::SkipCollection;
    using Config_t = TNormalizedCtxt::Config_t;
@@ -96,11 +96,10 @@ public:
    void AddTemplAndNargsToKeep(const clang::ClassTemplateDecl* templ, unsigned int i);
    int GetNargsToKeep(const clang::ClassTemplateDecl* templ) const;
    const TemplPtrIntMap_t GetTemplNargsToKeepMap() const { return fTemplatePtrArgsToKeepMap; }
-   void keepTypedef(const cling::LookupHelper &lh, const char* name,
-                    bool replace = false);
 };
-}
-}
+
+} // namespace TMetaUtils
+} // namespace CppyyLegacy
 
 namespace {
 
@@ -110,7 +109,7 @@ namespace {
 static clang::NestedNameSpecifier* AddDefaultParametersNNS(const clang::ASTContext& Ctx,
                                                            clang::NestedNameSpecifier* scope,
                                                            const cling::Interpreter &interpreter,
-                                                           const ROOT::TMetaUtils::TNormalizedCtxt &normCtxt) {
+                                                           const CppyyLegacy::TMetaUtils::TNormalizedCtxt &normCtxt) {
    if (!scope) return 0;
 
    const clang::Type* scope_type = scope->getAsType();
@@ -122,7 +121,7 @@ static clang::NestedNameSpecifier* AddDefaultParametersNNS(const clang::ASTConte
       }
 
       clang::QualType addDefault =
-         ROOT::TMetaUtils::AddDefaultParameters(clang::QualType(scope_type,0), interpreter, normCtxt );
+         CppyyLegacy::TMetaUtils::AddDefaultParameters(clang::QualType(scope_type,0), interpreter, normCtxt );
       // NOTE: Should check whether the type has changed or not.
       if (addDefault.getTypePtr() != scope_type)
          return clang::NestedNameSpecifier::Create(Ctx,outer_scope,
@@ -138,11 +137,11 @@ static bool CheckDefinition(const clang::CXXRecordDecl *cl, const clang::CXXReco
 {
    if (!cl->hasDefinition()) {
       if (context) {
-         ROOT::TMetaUtils::Error("CheckDefinition",
+         CppyyLegacy::TMetaUtils::Error("CheckDefinition",
                                  "Missing definition for class %s, please #include its header in the header of %s\n",
                                  cl->getName().str().c_str(), context->getName().str().c_str());
       } else {
-         ROOT::TMetaUtils::Error("CheckDefinition",
+         CppyyLegacy::TMetaUtils::Error("CheckDefinition",
                                  "Missing definition for class %s\n",
                                  cl->getName().str().c_str());
       }
@@ -169,7 +168,7 @@ static clang::NestedNameSpecifier* ReSubstTemplateArgNNS(const clang::ASTContext
          outer_scope = ReSubstTemplateArgNNS(Ctxt, outer_scope, instance);
       }
       clang::QualType substScope =
-         ROOT::TMetaUtils::ReSubstTemplateArg(clang::QualType(scope_type,0), instance);
+         CppyyLegacy::TMetaUtils::ReSubstTemplateArg(clang::QualType(scope_type,0), instance);
       // NOTE: Should check whether the type has changed or not.
       scope = clang::NestedNameSpecifier::Create(Ctxt,outer_scope,
                                                  false /* template keyword wanted */,
@@ -283,7 +282,7 @@ cling::LookupHelper::DiagSetting ToLHDS(bool wantDiags) {
 } // end of anonymous namespace
 
 
-namespace ROOT {
+namespace CppyyLegacy {
 namespace TMetaUtils {
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -314,11 +313,11 @@ void TNormalizedCtxtImpl::AddTemplAndNargsToKeep(const clang::ClassTemplateDecl*
 
    fTemplatePtrArgsToKeepMap[canTempl]=i;
 }
+
 ////////////////////////////////////////////////////////////////////////////////
 /// Get from the map the number of arguments to keep.
 /// It uses the canonical decl of the template as key.
 /// If not present, returns -1.
-
 int TNormalizedCtxtImpl::GetNargsToKeep(const clang::ClassTemplateDecl* templ) const{
    const clang::ClassTemplateDecl* constTempl = templ->getCanonicalDecl();
    auto thePairPtr = fTemplatePtrArgsToKeepMap.find(constTempl);
@@ -357,12 +356,6 @@ int TNormalizedCtxt::GetNargsToKeep(const clang::ClassTemplateDecl* templ) const
 const TNormalizedCtxt::TemplPtrIntMap_t TNormalizedCtxt::GetTemplNargsToKeepMap() const {
    return fImpl->GetTemplNargsToKeepMap();
 }
-void TNormalizedCtxt::keepTypedef(const cling::LookupHelper &lh, const char* name,
-                                  bool replace /*= false*/)
-{
-   return fImpl->keepTypedef(lh, name, replace);
-}
-
 
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -387,7 +380,6 @@ AnnotatedRecordDecl::AnnotatedRecordDecl(long index,
 
 ////////////////////////////////////////////////////////////////////////////////
 /// Normalize the requested type name.
-
 AnnotatedRecordDecl::AnnotatedRecordDecl(long index,
                                          const clang::Type *requestedType,
                                          const clang::RecordDecl *decl,
@@ -409,14 +401,14 @@ AnnotatedRecordDecl::AnnotatedRecordDecl(long index,
 
    TMetaUtils::GetNormalizedName( fNormalizedName, clang::QualType(requestedType,0), interpreter, normCtxt);
    if ( 0!=TMetaUtils::RemoveTemplateArgsFromName( fNormalizedName, nTemplateArgsToSkip) ){
-      ROOT::TMetaUtils::Warning("AnnotatedRecordDecl",
+      CppyyLegacy::TMetaUtils::Warning("AnnotatedRecordDecl",
                                 "Could not remove the requested template arguments.\n");
    }
 
 }
+
 ////////////////////////////////////////////////////////////////////////////////
 /// Normalize the requested type name.
-
 AnnotatedRecordDecl::AnnotatedRecordDecl(long index,
                                          const clang::Type *requestedType,
                                          const clang::RecordDecl *decl,
@@ -438,9 +430,9 @@ AnnotatedRecordDecl::AnnotatedRecordDecl(long index,
    TMetaUtils::GetNormalizedName( fNormalizedName, clang::QualType(requestedType,0), interpreter, normCtxt);
 
 }
+
 ////////////////////////////////////////////////////////////////////////////////
 /// Normalize the requested name.
-
 AnnotatedRecordDecl::AnnotatedRecordDecl(long index,
                                          const clang::RecordDecl *decl,
                                          const char *requestName,
@@ -473,7 +465,6 @@ AnnotatedRecordDecl::AnnotatedRecordDecl(long index,
 }
 
 ////////////////////////////////////////////////////////////////////////////////
-
 TClingLookupHelper::TClingLookupHelper(cling::Interpreter &interpreter,
                                        TNormalizedCtxt &normCtxt,
                                        ExistingTypeCheck_t existingTypeCheck,
@@ -502,7 +493,6 @@ bool TClingLookupHelper::ExistingTypeCheck(const std::string &tname,
 }
 
 ////////////////////////////////////////////////////////////////////////////////
-
 void TClingLookupHelper::GetPartiallyDesugaredName(std::string &nameLong)
 {
    const cling::LookupHelper& lh = fInterpreter->getLookupHelper();
@@ -518,7 +508,6 @@ void TClingLookupHelper::GetPartiallyDesugaredName(std::string &nameLong)
 }
 
 ////////////////////////////////////////////////////////////////////////////////
-
 bool TClingLookupHelper::IsAlreadyPartiallyDesugaredName(const std::string &nondef,
                                                          const std::string &nameLong)
 {
@@ -534,7 +523,6 @@ bool TClingLookupHelper::IsAlreadyPartiallyDesugaredName(const std::string &nond
 }
 
 ////////////////////////////////////////////////////////////////////////////////
-
 bool TClingLookupHelper::IsDeclaredScope(const std::string &base, bool &isInlined)
 {
    const cling::LookupHelper& lh = fInterpreter->getLookupHelper();
@@ -553,7 +541,6 @@ bool TClingLookupHelper::IsDeclaredScope(const std::string &base, bool &isInline
 ////////////////////////////////////////////////////////////////////////////////
 /// We assume that we have a simple type:
 /// [const] typename[*&][const]
-
 bool TClingLookupHelper::GetPartiallyDesugaredNameWithScopeHandling(const std::string &tname,
                                                                     std::string &result)
 {
@@ -609,10 +596,6 @@ bool TClingLookupHelper::GetPartiallyDesugaredNameWithScopeHandling(const std::s
             }
          }
 
-//         std::string alt;
-//         TMetaUtils::GetNormalizedName(alt, dest, *fInterpreter, *fNormalizedCtxt);
-//         if (alt != result) fprintf(stderr,"norm: %s vs result=%s\n",alt.c_str(),result.c_str());
-
          return true;
       }
    }
@@ -628,45 +611,17 @@ void TClingLookupHelper::ShuttingDownSignal()
       *fInterpreterIsShuttingDownPtr = true;
 }
 
-   } // end namespace ROOT
-} // end namespace TMetaUtils
+} // namespace TMetaUtils
+} // namespace CppyyLegacy
 
-
-////////////////////////////////////////////////////////////////////////////////
-/// Insert the type with name into the collection of typedefs to keep.
-/// if replace, replace occurrences of the canonical type by name.
-
-void ROOT::TMetaUtils::TNormalizedCtxtImpl::keepTypedef(const cling::LookupHelper &lh,
-                                                    const char* name,
-                                                    bool replace /*=false*/) {
-   clang::QualType toSkip = lh.findType(name, cling::LookupHelper::WithDiagnostics);
-   if (const clang::Type* T = toSkip.getTypePtr()) {
-      const clang::TypedefType *tt = llvm::dyn_cast<clang::TypedefType>(T);
-      if (!tt) return;
-      clang::Decl* D = tt->getDecl();
-      fConfig.m_toSkip.insert(D);
-      if (replace) {
-         clang::QualType canon = toSkip->getCanonicalTypeInternal();
-         fConfig.m_toReplace.insert(std::make_pair(canon.getTypePtr(),T));
-      } else {
-         fTypeWithAlternative.insert(T);
-      }
-   }
-}
 
 ////////////////////////////////////////////////////////////////////////////////
 /// Initialize the list of typedef to keep (i.e. make them opaque for normalization)
 /// and the list of typedef whose semantic is different from their underlying type
 /// (Double32_t and Float16_t).
 /// This might be specific to an interpreter.
-
-ROOT::TMetaUtils::TNormalizedCtxtImpl::TNormalizedCtxtImpl(const cling::LookupHelper &lh)
+CppyyLegacy::TMetaUtils::TNormalizedCtxtImpl::TNormalizedCtxtImpl(const cling::LookupHelper &lh)
 {
-   keepTypedef(lh, "Double32_t");
-   keepTypedef(lh, "Float16_t");
-   keepTypedef(lh, "Long64_t", true);
-   keepTypedef(lh, "ULong64_t", true);
-
    clang::QualType toSkip = lh.findType("std::string", cling::LookupHelper::WithDiagnostics);
    if (const clang::TypedefType* TT
        = llvm::dyn_cast_or_null<clang::TypedefType>(toSkip.getTypePtr()))
@@ -683,7 +638,7 @@ ROOT::TMetaUtils::TNormalizedCtxtImpl::TNormalizedCtxtImpl(const cling::LookupHe
    }
 }
 
-using TNCtxtFullQual = ROOT::TMetaUtils::TNormalizedCtxtImpl;
+using TNCtxtFullQual = CppyyLegacy::TMetaUtils::TNormalizedCtxtImpl;
 TNCtxtFullQual::TemplPtrIntMap_t TNCtxtFullQual::fTemplatePtrArgsToKeepMap=TNCtxtFullQual::TemplPtrIntMap_t{};
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -697,7 +652,7 @@ inline bool IsTemplate(const clang::Decl &cl)
 
 ////////////////////////////////////////////////////////////////////////////////
 
-const clang::FunctionDecl* ROOT::TMetaUtils::ClassInfo__HasMethod(const clang::DeclContext *cl, const char* name,
+const clang::FunctionDecl* CppyyLegacy::TMetaUtils::ClassInfo__HasMethod(const clang::DeclContext *cl, const char* name,
                                                             const cling::Interpreter& interp)
 {
    clang::Sema* S = &interp.getSema();
@@ -711,7 +666,7 @@ const clang::FunctionDecl* ROOT::TMetaUtils::ClassInfo__HasMethod(const clang::D
 /// Return the scope corresponding to 'name' or std::'name'
 
 const clang::CXXRecordDecl *
-ROOT::TMetaUtils::ScopeSearch(const char *name, const cling::Interpreter &interp,
+CppyyLegacy::TMetaUtils::ScopeSearch(const char *name, const cling::Interpreter &interp,
                               bool /*diagnose*/, const clang::Type** resultType)
 {
    const cling::LookupHelper& lh = interp.getLookupHelper();
@@ -726,7 +681,7 @@ ROOT::TMetaUtils::ScopeSearch(const char *name, const cling::Interpreter &interp
 
 ////////////////////////////////////////////////////////////////////////////////
 
-bool ROOT::TMetaUtils::RequireCompleteType(const cling::Interpreter &interp, const clang::CXXRecordDecl *cl)
+bool CppyyLegacy::TMetaUtils::RequireCompleteType(const cling::Interpreter &interp, const clang::CXXRecordDecl *cl)
 {
    clang::QualType qType(cl->getTypeForDecl(),0);
    return RequireCompleteType(interp,cl->getLocation(),qType);
@@ -734,7 +689,7 @@ bool ROOT::TMetaUtils::RequireCompleteType(const cling::Interpreter &interp, con
 
 ////////////////////////////////////////////////////////////////////////////////
 
-bool ROOT::TMetaUtils::RequireCompleteType(const cling::Interpreter &interp, clang::SourceLocation Loc, clang::QualType Type)
+bool CppyyLegacy::TMetaUtils::RequireCompleteType(const cling::Interpreter &interp, clang::SourceLocation Loc, clang::QualType Type)
 {
    clang::Sema& S = interp.getCI()->getSema();
    // Here we might not have an active transaction to handle
@@ -745,7 +700,7 @@ bool ROOT::TMetaUtils::RequireCompleteType(const cling::Interpreter &interp, cla
 
 ////////////////////////////////////////////////////////////////////////////////
 
-bool ROOT::TMetaUtils::IsBase(const clang::CXXRecordDecl *cl, const clang::CXXRecordDecl *base,
+bool CppyyLegacy::TMetaUtils::IsBase(const clang::CXXRecordDecl *cl, const clang::CXXRecordDecl *base,
                               const clang::CXXRecordDecl *context, const cling::Interpreter &interp)
 {
    if (!cl || !base) {
@@ -761,7 +716,7 @@ bool ROOT::TMetaUtils::IsBase(const clang::CXXRecordDecl *cl, const clang::CXXRe
    }
 
    if (!base->hasDefinition()) {
-      ROOT::TMetaUtils::Error("IsBase", "Missing definition for class %s\n", base->getName().str().c_str());
+      CppyyLegacy::TMetaUtils::Error("IsBase", "Missing definition for class %s\n", base->getName().str().c_str());
       return false;
    }
    return cl->isDerivedFrom(base);
@@ -769,9 +724,9 @@ bool ROOT::TMetaUtils::IsBase(const clang::CXXRecordDecl *cl, const clang::CXXRe
 
 ////////////////////////////////////////////////////////////////////////////////
 
-bool ROOT::TMetaUtils::IsBase(const clang::FieldDecl &m, const char* basename, const cling::Interpreter &interp)
+bool CppyyLegacy::TMetaUtils::IsBase(const clang::FieldDecl &m, const char* basename, const cling::Interpreter &interp)
 {
-   const clang::CXXRecordDecl* CRD = llvm::dyn_cast<clang::CXXRecordDecl>(ROOT::TMetaUtils::GetUnderlyingRecordDecl(m.getType()));
+   const clang::CXXRecordDecl* CRD = llvm::dyn_cast<clang::CXXRecordDecl>(CppyyLegacy::TMetaUtils::GetUnderlyingRecordDecl(m.getType()));
    if (!CRD) {
       return false;
    }
@@ -788,7 +743,7 @@ bool ROOT::TMetaUtils::IsBase(const clang::FieldDecl &m, const char* basename, c
 
 ////////////////////////////////////////////////////////////////////////////////
 
-int ROOT::TMetaUtils::ElementStreamer(std::ostream& finalString,
+int CppyyLegacy::TMetaUtils::ElementStreamer(std::ostream& finalString,
                                       const clang::NamedDecl &forcontext,
                                       const clang::QualType &qti,
                                       const char *R__t,int rwmode,
@@ -796,7 +751,7 @@ int ROOT::TMetaUtils::ElementStreamer(std::ostream& finalString,
                                       const char *tcl)
 {
    static const clang::CXXRecordDecl *TObject_decl
-      = ROOT::TMetaUtils::ScopeSearch("TObject", interp, true /*diag*/, 0);
+      = CppyyLegacy::TMetaUtils::ScopeSearch("CppyyLegacy::TObject", interp, true /*diag*/, 0);
    enum {
       kBIT_ISTOBJECT     = 0x10000000,
       kBIT_HASSTREAMER   = 0x20000000,
@@ -809,17 +764,17 @@ int ROOT::TMetaUtils::ElementStreamer(std::ostream& finalString,
 
    const clang::Type &ti( * qti.getTypePtr() );
    std::string tiName;
-   ROOT::TMetaUtils::GetQualifiedName(tiName, clang::QualType(&ti,0), forcontext);
+   CppyyLegacy::TMetaUtils::GetQualifiedName(tiName, clang::QualType(&ti,0), forcontext);
 
-   std::string objType(ROOT::TMetaUtils::ShortTypeName(tiName.c_str()));
+   std::string objType(CppyyLegacy::TMetaUtils::ShortTypeName(tiName.c_str()));
 
-   const clang::Type *rawtype = ROOT::TMetaUtils::GetUnderlyingType(clang::QualType(&ti,0));
+   const clang::Type *rawtype = CppyyLegacy::TMetaUtils::GetUnderlyingType(clang::QualType(&ti,0));
    std::string rawname;
-   ROOT::TMetaUtils::GetQualifiedName(rawname, clang::QualType(rawtype,0), forcontext);
+   CppyyLegacy::TMetaUtils::GetQualifiedName(rawname, clang::QualType(rawtype,0), forcontext);
 
    clang::CXXRecordDecl *cxxtype = rawtype->getAsCXXRecordDecl() ;
-   int isStre = cxxtype && ROOT::TMetaUtils::ClassInfo__HasMethod(cxxtype,"Streamer",interp);
-   int isTObj = cxxtype && (IsBase(cxxtype,TObject_decl,nullptr,interp) || rawname == "TObject");
+   int isStre = cxxtype && CppyyLegacy::TMetaUtils::ClassInfo__HasMethod(cxxtype,"Streamer",interp);
+   int isTObj = cxxtype && (IsBase(cxxtype,TObject_decl,nullptr,interp) || rawname == "CppyyLegacy::TObject");
 
    long kase = 0;
 
@@ -966,7 +921,7 @@ int ROOT::TMetaUtils::ElementStreamer(std::ostream& finalString,
 
 ////////////////////////////////////////////////////////////////////////////////
 
-ROOT::TMetaUtils::EIOCtorCategory ROOT::TMetaUtils::CheckConstructor(const clang::CXXRecordDecl *cl,
+CppyyLegacy::TMetaUtils::EIOCtorCategory CppyyLegacy::TMetaUtils::CheckConstructor(const clang::CXXRecordDecl *cl,
                                                                      const RConstructorType &ioctortype,
                                                                      const cling::Interpreter& interpreter)
 {
@@ -1051,7 +1006,7 @@ const clang::CXXMethodDecl *GetMethodWithProto(const clang::Decl* cinfo,
 
 ////////////////////////////////////////////////////////////////////////////////
 
-namespace ROOT {
+namespace CppyyLegacy {
    namespace TMetaUtils {
       RConstructorType::RConstructorType(const char *type_of_arg, const cling::Interpreter &interp) : fArgTypeName(type_of_arg),fArgType(0)
       {
@@ -1064,14 +1019,14 @@ namespace ROOT {
       }
       const char *RConstructorType::GetName() const { return fArgTypeName.c_str(); }
       const clang::CXXRecordDecl *RConstructorType::GetType() const { return fArgType; }
-   }
-}
+   } // namespace TMetaUtils
+} // namespace CppyyLegacy
 
 ////////////////////////////////////////////////////////////////////////////////
 /// return true if we can find an constructor calleable without any arguments
 /// or with one the IOCtor special types.
 
-bool ROOT::TMetaUtils::HasIOConstructor(const clang::CXXRecordDecl *cl,
+bool CppyyLegacy::TMetaUtils::HasIOConstructor(const clang::CXXRecordDecl *cl,
                                         std::string& arg,
                                         const RConstructorTypes& ctorTypes,
                                         const cling::Interpreter &interp)
@@ -1081,7 +1036,7 @@ bool ROOT::TMetaUtils::HasIOConstructor(const clang::CXXRecordDecl *cl,
    for (RConstructorTypes::const_iterator ctorTypeIt = ctorTypes.begin();
         ctorTypeIt!=ctorTypes.end(); ++ctorTypeIt) {
 
-      auto ioCtorCat = ROOT::TMetaUtils::CheckConstructor(cl, *ctorTypeIt, interp);
+      auto ioCtorCat = CppyyLegacy::TMetaUtils::CheckConstructor(cl, *ctorTypeIt, interp);
 
       if (EIOCtorCategory::kAbsent == ioCtorCat)
          continue;
@@ -1118,7 +1073,7 @@ bool ROOT::TMetaUtils::HasIOConstructor(const clang::CXXRecordDecl *cl,
 
 ////////////////////////////////////////////////////////////////////////////////
 
-bool ROOT::TMetaUtils::NeedDestructor(const clang::CXXRecordDecl *cl,
+bool CppyyLegacy::TMetaUtils::NeedDestructor(const clang::CXXRecordDecl *cl,
                                       const cling::Interpreter& interp)
 {
    if (!cl) return false;
@@ -1139,7 +1094,7 @@ bool ROOT::TMetaUtils::NeedDestructor(const clang::CXXRecordDecl *cl,
 ////////////////////////////////////////////////////////////////////////////////
 /// Return true, if the function (defined by the name and prototype) exists and is public
 
-bool ROOT::TMetaUtils::CheckPublicFuncWithProto(const clang::CXXRecordDecl *cl,
+bool CppyyLegacy::TMetaUtils::CheckPublicFuncWithProto(const clang::CXXRecordDecl *cl,
                                                 const char *methodname,
                                                 const char *proto,
                                                 const cling::Interpreter &interp,
@@ -1155,12 +1110,12 @@ bool ROOT::TMetaUtils::CheckPublicFuncWithProto(const clang::CXXRecordDecl *cl,
 ////////////////////////////////////////////////////////////////////////////////
 /// Return true if the class has a custom member function streamer.
 
-bool ROOT::TMetaUtils::HasCustomStreamerMemberFunction(const AnnotatedRecordDecl &cl,
+bool CppyyLegacy::TMetaUtils::HasCustomStreamerMemberFunction(const AnnotatedRecordDecl &cl,
                                                        const clang::CXXRecordDecl* clxx,
                                                        const cling::Interpreter &interp,
                                                        const TNormalizedCtxt &normCtxt)
 {
-   static const char *proto = "TBuffer&";
+   static const char *proto = "::CppyyLegacy::TBuffer&";
 
    const clang::CXXMethodDecl *method
       = GetMethodWithProto(clxx,"Streamer",proto, interp,
@@ -1174,12 +1129,12 @@ bool ROOT::TMetaUtils::HasCustomStreamerMemberFunction(const AnnotatedRecordDecl
 ////////////////////////////////////////////////////////////////////////////////
 /// Return true if the class has a custom member function streamer.
 
-bool ROOT::TMetaUtils::HasCustomConvStreamerMemberFunction(const AnnotatedRecordDecl &cl,
+bool CppyyLegacy::TMetaUtils::HasCustomConvStreamerMemberFunction(const AnnotatedRecordDecl &cl,
                                                            const clang::CXXRecordDecl* clxx,
                                                            const cling::Interpreter &interp,
                                                            const TNormalizedCtxt &normCtxt)
 {
-   static const char *proto = "TBuffer&,TClass*";
+   static const char *proto = "::CppyyLegacy::TBuffer&,::CppyyLegacy::TClass*";
 
    const clang::CXXMethodDecl *method
       = GetMethodWithProto(clxx,"Streamer",proto, interp,
@@ -1196,16 +1151,16 @@ bool ROOT::TMetaUtils::HasCustomConvStreamerMemberFunction(const AnnotatedRecord
 /// All other GetQualifiedName functions leverage this one except the
 /// one for namespaces.
 
-void ROOT::TMetaUtils::GetQualifiedName(std::string &qual_name, const clang::QualType &type, const clang::NamedDecl &forcontext)
+void CppyyLegacy::TMetaUtils::GetQualifiedName(std::string &qual_name, const clang::QualType &type, const clang::NamedDecl &forcontext)
 {
-   ROOT::TMetaUtils::GetFullyQualifiedTypeName(qual_name, type, forcontext.getASTContext());
+   CppyyLegacy::TMetaUtils::GetFullyQualifiedTypeName(qual_name, type, forcontext.getASTContext());
 }
 
 //----
-std::string ROOT::TMetaUtils::GetQualifiedName(const clang::QualType &type, const clang::NamedDecl &forcontext)
+std::string CppyyLegacy::TMetaUtils::GetQualifiedName(const clang::QualType &type, const clang::NamedDecl &forcontext)
 {
    std::string result;
-   ROOT::TMetaUtils::GetQualifiedName(result,
+   CppyyLegacy::TMetaUtils::GetQualifiedName(result,
                                       type,
                                       forcontext);
    return result;
@@ -1214,39 +1169,39 @@ std::string ROOT::TMetaUtils::GetQualifiedName(const clang::QualType &type, cons
 
 ////////////////////////////////////////////////////////////////////////////////
 
-void  ROOT::TMetaUtils::GetQualifiedName(std::string& qual_type, const clang::Type &type, const clang::NamedDecl &forcontext)
+void  CppyyLegacy::TMetaUtils::GetQualifiedName(std::string& qual_type, const clang::Type &type, const clang::NamedDecl &forcontext)
 {
    clang::QualType qualType(&type,0);
-   ROOT::TMetaUtils::GetQualifiedName(qual_type,
+   CppyyLegacy::TMetaUtils::GetQualifiedName(qual_type,
                                       qualType,
                                       forcontext);
 }
 
 //---
-std::string ROOT::TMetaUtils::GetQualifiedName(const clang::Type &type, const clang::NamedDecl &forcontext)
+std::string CppyyLegacy::TMetaUtils::GetQualifiedName(const clang::Type &type, const clang::NamedDecl &forcontext)
 {
    std::string result;
-   ROOT::TMetaUtils::GetQualifiedName(result,
+   CppyyLegacy::TMetaUtils::GetQualifiedName(result,
                                       type,
                                       forcontext);
    return result;
 }
 
 // //______________________________________________________________________________
-// void ROOT::TMetaUtils::GetQualifiedName(std::string &qual_name, const clang::NamespaceDecl &cl)
+// void CppyyLegacy::TMetaUtils::GetQualifiedName(std::string &qual_name, const clang::NamespaceDecl &cl)
 // {
 //    GetQualifiedName(qual_name,cl);
 // }
 //
 // //----
-// std::string ROOT::TMetaUtils::GetQualifiedName(const clang::NamespaceDecl &cl){
+// std::string CppyyLegacy::TMetaUtils::GetQualifiedName(const clang::NamespaceDecl &cl){
 //    return GetQualifiedName(cl);
 // }
 
 ////////////////////////////////////////////////////////////////////////////////
 /// This implementation does not rely on GetFullyQualifiedTypeName
 
-void ROOT::TMetaUtils::GetQualifiedName(std::string &qual_name, const clang::NamedDecl &cl)
+void CppyyLegacy::TMetaUtils::GetQualifiedName(std::string &qual_name, const clang::NamedDecl &cl)
 {
    llvm::raw_string_ostream stream(qual_name);
    clang::PrintingPolicy policy( cl.getASTContext().getPrintingPolicy() );
@@ -1263,51 +1218,51 @@ void ROOT::TMetaUtils::GetQualifiedName(std::string &qual_name, const clang::Nam
 }
 
 //----
-std::string ROOT::TMetaUtils::GetQualifiedName(const clang::NamedDecl &cl){
+std::string CppyyLegacy::TMetaUtils::GetQualifiedName(const clang::NamedDecl &cl){
    std::string result;
-   ROOT::TMetaUtils::GetQualifiedName(result, cl);
+   CppyyLegacy::TMetaUtils::GetQualifiedName(result, cl);
    return result;
 }
 
 
 ////////////////////////////////////////////////////////////////////////////////
 
-void ROOT::TMetaUtils::GetQualifiedName(std::string &qual_name, const clang::RecordDecl &recordDecl)
+void CppyyLegacy::TMetaUtils::GetQualifiedName(std::string &qual_name, const clang::RecordDecl &recordDecl)
 {
    const clang::Type* declType ( recordDecl.getTypeForDecl() );
    clang::QualType qualType(declType,0);
-   ROOT::TMetaUtils::GetQualifiedName(qual_name,
+   CppyyLegacy::TMetaUtils::GetQualifiedName(qual_name,
                                       qualType,
                                       recordDecl);
 }
 
 //----
-std::string ROOT::TMetaUtils::GetQualifiedName(const clang::RecordDecl &recordDecl)
+std::string CppyyLegacy::TMetaUtils::GetQualifiedName(const clang::RecordDecl &recordDecl)
 {
    std::string result;
-   ROOT::TMetaUtils::GetQualifiedName(result,recordDecl);
+   CppyyLegacy::TMetaUtils::GetQualifiedName(result,recordDecl);
    return result;
 }
 
 ////////////////////////////////////////////////////////////////////////////////
 
-void ROOT::TMetaUtils::GetQualifiedName(std::string &qual_name, const ROOT::TMetaUtils::AnnotatedRecordDecl &annotated)
+void CppyyLegacy::TMetaUtils::GetQualifiedName(std::string &qual_name, const CppyyLegacy::TMetaUtils::AnnotatedRecordDecl &annotated)
 {
-   ROOT::TMetaUtils::GetQualifiedName(qual_name, *annotated.GetRecordDecl());
+   CppyyLegacy::TMetaUtils::GetQualifiedName(qual_name, *annotated.GetRecordDecl());
 }
 
 //----
-std::string ROOT::TMetaUtils::GetQualifiedName(const AnnotatedRecordDecl &annotated)
+std::string CppyyLegacy::TMetaUtils::GetQualifiedName(const AnnotatedRecordDecl &annotated)
 {
    std::string result;
-   ROOT::TMetaUtils::GetQualifiedName(result, annotated);
+   CppyyLegacy::TMetaUtils::GetQualifiedName(result, annotated);
    return result;
 }
 
 ////////////////////////////////////////////////////////////////////////////////
 /// Create the data member name-type map for given class
 
-void ROOT::TMetaUtils::CreateNameTypeMap(const clang::CXXRecordDecl &cl, ROOT::MembersTypeMap_t& nameType)
+void CppyyLegacy::TMetaUtils::CreateNameTypeMap(const clang::CXXRecordDecl &cl, CppyyLegacy::MembersTypeMap_t& nameType)
 {
    std::stringstream dims;
    std::string typenameStr;
@@ -1338,7 +1293,7 @@ void ROOT::TMetaUtils::CreateNameTypeMap(const clang::CXXRecordDecl &cl, ROOT::M
       }
 
       GetFullyQualifiedTypeName(typenameStr, fieldType, astContext);
-      nameType[field_iter->getName().str()] = ROOT::Internal::TSchemaType(typenameStr.c_str(),dims.str().c_str());
+      nameType[field_iter->getName().str()] = CppyyLegacy::Internal::TSchemaType(typenameStr.c_str(),dims.str().c_str());
    }
 
    // And now the base classes
@@ -1347,13 +1302,13 @@ void ROOT::TMetaUtils::CreateNameTypeMap(const clang::CXXRecordDecl &cl, ROOT::M
        iter != end;
        ++iter){
       std::string basename( iter->getType()->getAsCXXRecordDecl()->getNameAsString() ); // Intentionally using only the unqualified name.
-      nameType[basename] = ROOT::Internal::TSchemaType(basename.c_str(),"");
+      nameType[basename] = CppyyLegacy::Internal::TSchemaType(basename.c_str(),"");
    }
 }
 
 ////////////////////////////////////////////////////////////////////////////////
 
-const clang::FunctionDecl *ROOT::TMetaUtils::GetFuncWithProto(const clang::Decl* cinfo,
+const clang::FunctionDecl *CppyyLegacy::TMetaUtils::GetFuncWithProto(const clang::Decl* cinfo,
                                                               const char *method,
                                                               const char *proto,
                                                               const cling::Interpreter &interp,
@@ -1393,7 +1348,7 @@ const clang::FunctionDecl *ROOT::TMetaUtils::GetFuncWithProto(const clang::Decl*
 ///    }
 /// }
 
-long ROOT::TMetaUtils::GetLineNumber(const clang::Decl *decl)
+long CppyyLegacy::TMetaUtils::GetLineNumber(const clang::Decl *decl)
 {
    clang::SourceLocation sourceLocation = decl->getLocation();
    clang::SourceManager& sourceManager = decl->getASTContext().getSourceManager();
@@ -1418,7 +1373,7 @@ long ROOT::TMetaUtils::GetLineNumber(const clang::Decl *decl)
 /// Return true if the type is a Double32_t or Float16_t or
 /// is a instance template that depends on Double32_t or Float16_t.
 
-bool ROOT::TMetaUtils::hasOpaqueTypedef(clang::QualType instanceType, const ROOT::TMetaUtils::TNormalizedCtxt &normCtxt)
+bool CppyyLegacy::TMetaUtils::hasOpaqueTypedef(clang::QualType instanceType, const CppyyLegacy::TMetaUtils::TNormalizedCtxt &normCtxt)
 {
    while (llvm::isa<clang::PointerType>(instanceType.getTypePtr())
        || llvm::isa<clang::ReferenceType>(instanceType.getTypePtr()))
@@ -1461,7 +1416,7 @@ bool ROOT::TMetaUtils::hasOpaqueTypedef(clang::QualType instanceType, const ROOT
    //            std::string arg;
    //            arg = GetQualifiedName( I->getAsType(), *clxx );
    //            fprintf(stderr,"DEBUG: looking at %s\n", arg.c_str());
-            result |= ROOT::TMetaUtils::hasOpaqueTypedef(I->getAsType(), normCtxt);
+            result |= CppyyLegacy::TMetaUtils::hasOpaqueTypedef(I->getAsType(), normCtxt);
          }
       }
    }
@@ -1471,7 +1426,7 @@ bool ROOT::TMetaUtils::hasOpaqueTypedef(clang::QualType instanceType, const ROOT
 ////////////////////////////////////////////////////////////////////////////////
 /// Return true if any of the argument is or contains a double32.
 
-bool ROOT::TMetaUtils::hasOpaqueTypedef(const AnnotatedRecordDecl &cl,
+bool CppyyLegacy::TMetaUtils::hasOpaqueTypedef(const AnnotatedRecordDecl &cl,
                                         const cling::Interpreter &interp,
                                         const TNormalizedCtxt &normCtxt)
 {
@@ -1485,13 +1440,13 @@ bool ROOT::TMetaUtils::hasOpaqueTypedef(const AnnotatedRecordDecl &cl,
       return false;
    }
 
-   return ROOT::TMetaUtils::hasOpaqueTypedef(instanceType, normCtxt);
+   return CppyyLegacy::TMetaUtils::hasOpaqueTypedef(instanceType, normCtxt);
 }
 
 ////////////////////////////////////////////////////////////////////////////////
 /// Extract attr string
 
-int ROOT::TMetaUtils::extractAttrString(clang::Attr* attribute, std::string& attrString)
+int CppyyLegacy::TMetaUtils::extractAttrString(clang::Attr* attribute, std::string& attrString)
 {
    clang::AnnotateAttr* annAttr = clang::dyn_cast<clang::AnnotateAttr>(attribute);
    if (!annAttr) {
@@ -1504,12 +1459,12 @@ int ROOT::TMetaUtils::extractAttrString(clang::Attr* attribute, std::string& att
 
 ////////////////////////////////////////////////////////////////////////////////
 
-int ROOT::TMetaUtils::extractPropertyNameValFromString(const std::string attributeStr,std::string& attrName, std::string& attrValue)
+int CppyyLegacy::TMetaUtils::extractPropertyNameValFromString(const std::string attributeStr,std::string& attrName, std::string& attrValue)
 {
    // if separator found, extract name and value
    size_t substrFound (attributeStr.find(propNames::separator));
    if (substrFound==std::string::npos) {
-      //TMetaUtils::Error(0,"Could not find property name-value separator (%s)\n",ROOT::TMetaUtils::PropertyNameValSeparator.c_str());
+      //TMetaUtils::Error(0,"Could not find property name-value separator (%s)\n",CppyyLegacy::TMetaUtils::PropertyNameValSeparator.c_str());
       return 1;
    }
    size_t EndPart1 = attributeStr.find_first_of(propNames::separator)  ;
@@ -1521,7 +1476,7 @@ int ROOT::TMetaUtils::extractPropertyNameValFromString(const std::string attribu
 
 ////////////////////////////////////////////////////////////////////////////////
 
-int ROOT::TMetaUtils::extractPropertyNameVal(clang::Attr* attribute, std::string& attrName, std::string& attrValue)
+int CppyyLegacy::TMetaUtils::extractPropertyNameVal(clang::Attr* attribute, std::string& attrName, std::string& attrValue)
 {
    std::string attrString;
    int ret = extractAttrString(attribute, attrString);
@@ -1532,7 +1487,7 @@ int ROOT::TMetaUtils::extractPropertyNameVal(clang::Attr* attribute, std::string
 ////////////////////////////////////////////////////////////////////////////////
 /// This routine counts on the "propName<separator>propValue" format
 
-bool ROOT::TMetaUtils::ExtractAttrPropertyFromName(const clang::Decl& decl,
+bool CppyyLegacy::TMetaUtils::ExtractAttrPropertyFromName(const clang::Decl& decl,
                                                    const std::string& propName,
                                                    std::string& propValue)
 {
@@ -1555,7 +1510,7 @@ bool ROOT::TMetaUtils::ExtractAttrPropertyFromName(const clang::Decl& decl,
 ////////////////////////////////////////////////////////////////////////////////
 /// This routine counts on the "propName<separator>propValue" format
 
-bool ROOT::TMetaUtils::ExtractAttrIntPropertyFromName(const clang::Decl& decl,
+bool CppyyLegacy::TMetaUtils::ExtractAttrIntPropertyFromName(const clang::Decl& decl,
                                                       const std::string& propName,
                                                       int& propValue)
 {
@@ -1577,7 +1532,7 @@ bool ROOT::TMetaUtils::ExtractAttrIntPropertyFromName(const clang::Decl& decl,
 ////////////////////////////////////////////////////////////////////////////////
 /// FIXME: a function of ~300 lines!
 
-void ROOT::TMetaUtils::WriteClassInit(std::ostream& finalString,
+void CppyyLegacy::TMetaUtils::WriteClassInit(std::ostream& finalString,
                                       const AnnotatedRecordDecl &cl,
                                       const clang::CXXRecordDecl *decl,
                                       const cling::Interpreter &interp,
@@ -1588,7 +1543,7 @@ void ROOT::TMetaUtils::WriteClassInit(std::ostream& finalString,
    std::string classname = TClassEdit::GetLong64_Name(cl.GetNormalizedName());
 
    std::string mappedname;
-   ROOT::TMetaUtils::GetCppName(mappedname,classname.c_str());
+   CppyyLegacy::TMetaUtils::GetCppName(mappedname,classname.c_str());
    std::string csymbol = classname;
    std::string args;
 
@@ -1596,7 +1551,7 @@ void ROOT::TMetaUtils::WriteClassInit(std::ostream& finalString,
 
       // Prefix the full class name with '::' except for the STL
       // containers and std::string.  This is to request the
-      // real class instead of the class in the namespace ROOT::Shadow
+      // real class instead of the class in the namespace CppyyLegacy::Shadow
       csymbol.insert(0,"::");
    }
 
@@ -1609,7 +1564,7 @@ void ROOT::TMetaUtils::WriteClassInit(std::ostream& finalString,
 
    bool isStdNotString = isStd && !isString;
 
-   finalString << "namespace ROOT {" << "\n";
+   finalString << "namespace CppyyLegacy {" << "\n";
 
    if (!ClassInfo__HasMethod(decl,"Dictionary",interp) || IsTemplate(*decl))
    {
@@ -1645,20 +1600,20 @@ void ROOT::TMetaUtils::WriteClassInit(std::ostream& finalString,
    // Check if we have any schema evolution rules for this class
    /////////////////////////////////////////////////////////////////////////////
 
-   ROOT::SchemaRuleClassMap_t::iterator rulesIt1 = ROOT::gReadRules.find( classname.c_str() );
-   ROOT::SchemaRuleClassMap_t::iterator rulesIt2 = ROOT::gReadRawRules.find( classname.c_str() );
+   CppyyLegacy::SchemaRuleClassMap_t::iterator rulesIt1 = CppyyLegacy::gReadRules.find( classname.c_str() );
+   CppyyLegacy::SchemaRuleClassMap_t::iterator rulesIt2 = CppyyLegacy::gReadRawRules.find( classname.c_str() );
 
-   ROOT::MembersTypeMap_t nameTypeMap;
+   CppyyLegacy::MembersTypeMap_t nameTypeMap;
    CreateNameTypeMap( *decl, nameTypeMap ); // here types for schema evo are written
 
    //--------------------------------------------------------------------------
    // Process the read rules
    /////////////////////////////////////////////////////////////////////////////
 
-   if( rulesIt1 != ROOT::gReadRules.end() ) {
+   if( rulesIt1 != CppyyLegacy::gReadRules.end() ) {
       int i = 0;
       finalString << "\n   // Schema evolution read functions\n";
-      std::list<ROOT::SchemaRuleMap_t>::iterator rIt = rulesIt1->second.begin();
+      std::list<CppyyLegacy::SchemaRuleMap_t>::iterator rIt = rulesIt1->second.begin();
       while( rIt != rulesIt1->second.end() ) {
 
          //--------------------------------------------------------------------
@@ -1684,16 +1639,14 @@ void ROOT::TMetaUtils::WriteClassInit(std::ostream& finalString,
    }
 
 
-
-
    //--------------------------------------------------------------------------
    // Process the read raw rules
    /////////////////////////////////////////////////////////////////////////////
 
-   if( rulesIt2 != ROOT::gReadRawRules.end() ) {
+   if( rulesIt2 != CppyyLegacy::gReadRawRules.end() ) {
       int i = 0;
       finalString << "\n   // Schema evolution read raw functions\n";
-      std::list<ROOT::SchemaRuleMap_t>::iterator rIt = rulesIt2->second.begin();
+      std::list<CppyyLegacy::SchemaRuleMap_t>::iterator rIt = rulesIt2->second.begin();
       while( rIt != rulesIt2->second.end() ) {
 
          //--------------------------------------------------------------------
@@ -1725,14 +1678,14 @@ void ROOT::TMetaUtils::WriteClassInit(std::ostream& finalString,
 
    finalString << "      " << csymbol << " *ptr = 0;" << "\n";
 
-   //fprintf(fp, "      static ::ROOT::ClassInfo< %s > \n",classname.c_str());
+   //fprintf(fp, "      static ::CppyyLegacy::ClassInfo< %s > \n",classname.c_str());
    if (ClassInfo__HasMethod(decl,"IsA",interp) ) {
-      finalString << "      static ::TVirtualIsAProxy* isa_proxy = new ::TInstrumentedIsAProxy< "  << csymbol << " >(0);" << "\n";
+      finalString << "      static ::CppyyLegacy::TVirtualIsAProxy* isa_proxy = new ::CppyyLegacy::TInstrumentedIsAProxy< "  << csymbol << " >(0);" << "\n";
    }
    else {
-      finalString << "      static ::TVirtualIsAProxy* isa_proxy = new ::TIsAProxy(typeid(" << csymbol << "));" << "\n";
+      finalString << "      static ::CppyyLegacy::TVirtualIsAProxy* isa_proxy = new ::CppyyLegacy::TIsAProxy(typeid(" << csymbol << "));" << "\n";
    }
-   finalString << "      static ::ROOT::TGenericClassInfo " << "\n" << "         instance(\"" << classname.c_str() << "\", ";
+   finalString << "      static ::CppyyLegacy::TGenericClassInfo " << "\n" << "         instance(\"" << classname.c_str() << "\", ";
 
    if (ClassInfo__HasMethod(decl,"Class_Version",interp)) {
       finalString << csymbol << "::Class_Version(), ";
@@ -1752,12 +1705,12 @@ void ROOT::TMetaUtils::WriteClassInit(std::ostream& finalString,
       std::string proto = classname + "*";
       const clang::Decl* ctxt = llvm::dyn_cast<clang::Decl>((*cl).getDeclContext());
       const clang::FunctionDecl *methodinfo
-         = ROOT::TMetaUtils::GetFuncWithProto(ctxt, versionFunc, proto.c_str(),
+         = CppyyLegacy::TMetaUtils::GetFuncWithProto(ctxt, versionFunc, proto.c_str(),
                                               interp, cling::LookupHelper::NoDiagnostics);
       //      delete [] funcname;
 
       if (methodinfo &&
-          ROOT::TMetaUtils::GetFileName(*methodinfo, interp).find("Rtypes.h") == llvm::StringRef::npos) {
+          CppyyLegacy::TMetaUtils::GetFileName(*methodinfo, interp).find("Rtypes.h") == llvm::StringRef::npos) {
 
          // GetClassVersion was defined in the header file.
          //fprintf(fp, "GetClassVersion((%s *)0x0), ",classname.c_str());
@@ -1770,15 +1723,15 @@ void ROOT::TMetaUtils::WriteClassInit(std::ostream& finalString,
       //fprintf(stderr,"DEBUG: %s has value %d\n",classname.c_str(),(int)G__int(G__calc(temporary)));
    }
 
-   std::string filename = ROOT::TMetaUtils::GetFileName(*cl, interp);
+   std::string filename = CppyyLegacy::TMetaUtils::GetFileName(*cl, interp);
    if (filename.length() > 0) {
       for (unsigned int i=0; i<filename.length(); i++) {
          if (filename[i]=='\\') filename[i]='/';
       }
    }
-   finalString << "\"" << filename << "\", " << ROOT::TMetaUtils::GetLineNumber(cl)
+   finalString << "\"" << filename << "\", " << CppyyLegacy::TMetaUtils::GetLineNumber(cl)
       << "," << "\n" << "                  typeid(" << csymbol
-      << "), ::ROOT::Internal::DefineBehavior(ptr, ptr)," << "\n" << "                  ";
+      << "), ::CppyyLegacy::Internal::DefineBehavior(ptr, ptr)," << "\n" << "                  ";
 
    if (ClassInfo__HasMethod(decl,"Dictionary",interp) && !IsTemplate(*decl)) {
       finalString << "&" << csymbol << "::Dictionary, ";
@@ -1816,30 +1769,30 @@ void ROOT::TMetaUtils::WriteClassInit(std::ostream& finalString,
 
       needCollectionProxy = true;
    } else if (stl != 0 &&
-              ((stl > 0 && stl<ROOT::kSTLend) || (stl < 0 && stl>-ROOT::kSTLend)) && // is an stl container
-              (stl != ROOT::kSTLbitset && stl !=-ROOT::kSTLbitset) ){     // is no bitset
+              ((stl > 0 && stl<CppyyLegacy::kSTLend) || (stl < 0 && stl>-CppyyLegacy::kSTLend)) && // is an stl container
+              (stl != CppyyLegacy::kSTLbitset && stl !=-CppyyLegacy::kSTLbitset) ){     // is no bitset
       int idx = classname.find("<");
       int stlType = (idx!=(int)std::string::npos) ? TClassEdit::STLKind(classname.substr(0,idx)) : 0;
       const char* methodTCP=0;
       switch(stlType)  {
-         case ROOT::kSTLvector:
-         case ROOT::kSTLlist:
-         case ROOT::kSTLdeque:
+         case CppyyLegacy::kSTLvector:
+         case CppyyLegacy::kSTLlist:
+         case CppyyLegacy::kSTLdeque:
             methodTCP="Pushback";
             break;
-         case ROOT::kSTLforwardlist:
+         case CppyyLegacy::kSTLforwardlist:
             methodTCP="Pushfront";
             break;
-         case ROOT::kSTLmap:
-         case ROOT::kSTLmultimap:
-         case ROOT::kSTLunorderedmap:
-         case ROOT::kSTLunorderedmultimap:
+         case CppyyLegacy::kSTLmap:
+         case CppyyLegacy::kSTLmultimap:
+         case CppyyLegacy::kSTLunorderedmap:
+         case CppyyLegacy::kSTLunorderedmultimap:
             methodTCP="MapInsert";
             break;
-         case ROOT::kSTLset:
-         case ROOT::kSTLmultiset:
-         case ROOT::kSTLunorderedset:
-         case ROOT::kSTLunorderedmultiset:
+         case CppyyLegacy::kSTLset:
+         case CppyyLegacy::kSTLmultiset:
+         case CppyyLegacy::kSTLunorderedset:
+         case CppyyLegacy::kSTLunorderedmultiset:
             methodTCP="Insert";
             break;
       }
@@ -1856,7 +1809,7 @@ void ROOT::TMetaUtils::WriteClassInit(std::ostream& finalString,
    /////////////////////////////////////////////////////////////////////////////
 
    if (cl.GetRequestedName()[0] && classname != cl.GetRequestedName()) {
-      finalString << "\n" << "      ::ROOT::AddClassAlternate(\""
+      finalString << "\n" << "      ::CppyyLegacy::AddClassAlternate(\""
                   << classname << "\",\"" << cl.GetRequestedName() << "\");\n";
    }
 
@@ -1864,25 +1817,25 @@ void ROOT::TMetaUtils::WriteClassInit(std::ostream& finalString,
    // Pass the schema evolution rules to TGenericClassInfo
    /////////////////////////////////////////////////////////////////////////////
 
-   if( (rulesIt1 != ROOT::gReadRules.end() && rulesIt1->second.size()>0) || (rulesIt2 != ROOT::gReadRawRules.end()  && rulesIt2->second.size()>0) ) {
-      finalString << "\n" << "      ROOT::Internal::TSchemaHelper* rule;" << "\n";
+   if( (rulesIt1 != CppyyLegacy::gReadRules.end() && rulesIt1->second.size()>0) || (rulesIt2 != CppyyLegacy::gReadRawRules.end()  && rulesIt2->second.size()>0) ) {
+      finalString << "\n" << "      ::CppyyLegacy::Internal::TSchemaHelper* rule;" << "\n";
    }
 
-   if( rulesIt1 != ROOT::gReadRules.end() ) {
-      finalString << "\n" << "      // the io read rules" << "\n" << "      std::vector<ROOT::Internal::TSchemaHelper> readrules(" << rulesIt1->second.size() << ");" << "\n";
-      ROOT::WriteSchemaList( rulesIt1->second, "readrules", finalString );
+   if( rulesIt1 != CppyyLegacy::gReadRules.end() ) {
+      finalString << "\n" << "      // the io read rules" << "\n" << "      std::vector<::CppyyLegacy::Internal::TSchemaHelper> readrules(" << rulesIt1->second.size() << ");" << "\n";
+      CppyyLegacy::WriteSchemaList( rulesIt1->second, "readrules", finalString );
       finalString << "      instance.SetReadRules( readrules );" << "\n";
    }
 
-   if( rulesIt2 != ROOT::gReadRawRules.end() ) {
-      finalString << "\n" << "      // the io read raw rules" << "\n" << "      std::vector<ROOT::Internal::TSchemaHelper> readrawrules(" << rulesIt2->second.size() << ");" << "\n";
-      ROOT::WriteSchemaList( rulesIt2->second, "readrawrules", finalString );
+   if( rulesIt2 != CppyyLegacy::gReadRawRules.end() ) {
+      finalString << "\n" << "      // the io read raw rules" << "\n" << "      std::vector<::CppyyLegacy::Internal::TSchemaHelper> readrawrules(" << rulesIt2->second.size() << ");" << "\n";
+      CppyyLegacy::WriteSchemaList( rulesIt2->second, "readrawrules", finalString );
       finalString << "      instance.SetReadRawRules( readrawrules );" << "\n";
    }
 
    finalString << "      return &instance;" << "\n" << "   }" << "\n";
 
-   if (!isStdNotString && !ROOT::TMetaUtils::hasOpaqueTypedef(cl, interp, normCtxt)) {
+   if (!isStdNotString && !CppyyLegacy::TMetaUtils::hasOpaqueTypedef(cl, interp, normCtxt)) {
       // The GenerateInitInstance for STL are not unique and should not be externally accessible
       finalString << "   TGenericClassInfo *GenerateInitInstance(const " << csymbol << "*)" << "\n" << "   {\n      return GenerateInitInstanceLocal((" << csymbol << "*)0);\n   }" << "\n";
    }
@@ -1891,13 +1844,13 @@ void ROOT::TMetaUtils::WriteClassInit(std::ostream& finalString,
    // must be one long line otherwise UseDummy does not work
 
 
-   finalString << "   static ::ROOT::TGenericClassInfo *_R__UNIQUE_DICT_(Init) = GenerateInitInstanceLocal((const " << csymbol << "*)0x0); R__UseDummy(_R__UNIQUE_DICT_(Init));" << "\n";
+   finalString << "   static ::CppyyLegacy::TGenericClassInfo *_R__UNIQUE_DICT_(Init) = GenerateInitInstanceLocal((const " << csymbol << "*)0x0); R__UseDummy(_R__UNIQUE_DICT_(Init));" << "\n";
 
    if (!ClassInfo__HasMethod(decl,"Dictionary",interp) || IsTemplate(*decl)) {
       finalString <<  "\n" << "   // Dictionary for non-ClassDef classes" << "\n"
-                  << "   static TClass *" << mappedname << "_Dictionary() {\n"
-                  << "      TClass* theClass ="
-                  << "::ROOT::GenerateInitInstanceLocal((const " << csymbol << "*)0x0)->GetClass();\n"
+                  << "   static ::CppyyLegacy::TClass *" << mappedname << "_Dictionary() {\n"
+                  << "      ::CppyyLegacy::TClass* theClass ="
+                  << "::CppyyLegacy::GenerateInitInstanceLocal((const " << csymbol << "*)0x0)->GetClass();\n"
                   << "      " << mappedname << "_TClassManip(theClass);\n";
       finalString << "   return theClass;\n";
       finalString << "   }\n\n";
@@ -1913,10 +1866,10 @@ void ROOT::TMetaUtils::WriteClassInit(std::ostream& finalString,
          // Loop on the attributes
          for (clang::Decl::attr_iterator attrIt = decl->attr_begin();
               attrIt!=decl->attr_end();++attrIt){
-            if ( 0!=ROOT::TMetaUtils::extractAttrString(*attrIt,attribute_s)){
+            if ( 0!=CppyyLegacy::TMetaUtils::extractAttrString(*attrIt,attribute_s)){
                continue;
             }
-            if (0!=ROOT::TMetaUtils::extractPropertyNameValFromString(attribute_s, attrName, attrValue)){
+            if (0!=CppyyLegacy::TMetaUtils::extractPropertyNameValFromString(attribute_s, attrName, attrValue)){
                continue;
             }
             if (attrName == "name" ||
@@ -1954,7 +1907,7 @@ void ROOT::TMetaUtils::WriteClassInit(std::ostream& finalString,
               attrIt!=internalDeclIt->attr_end();++attrIt){
 
             // Get the attribute as string
-            if ( 0!=ROOT::TMetaUtils::extractAttrString(*attrIt,attribute_s)){
+            if ( 0!=CppyyLegacy::TMetaUtils::extractAttrString(*attrIt,attribute_s)){
                continue;
             }
 
@@ -1972,7 +1925,7 @@ void ROOT::TMetaUtils::WriteClassInit(std::ostream& finalString,
 
             // Let's now attack regular properties
 
-            if (0!=ROOT::TMetaUtils::extractPropertyNameValFromString(attribute_s, attrName, attrValue)){
+            if (0!=CppyyLegacy::TMetaUtils::extractPropertyNameValFromString(attribute_s, attrName, attrValue)){
                continue;
             }
 
@@ -2004,7 +1957,7 @@ void ROOT::TMetaUtils::WriteClassInit(std::ostream& finalString,
                   << "   }\n\n";
    } // End of !ClassInfo__HasMethod(decl,"Dictionary") || IsTemplate(*decl))
 
-   finalString << "} // end of namespace ROOT" << "\n" << "\n";
+   finalString << "} // end of namespace CppyyLegacy" << "\n" << "\n";
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -2013,7 +1966,7 @@ void ROOT::TMetaUtils::WriteClassInit(std::ostream& finalString,
 /// clsname to the name within a namespace
 /// and nsname to the namespace fully qualified name.
 
-bool ROOT::TMetaUtils::GetNameWithinNamespace(std::string &fullname,
+bool CppyyLegacy::TMetaUtils::GetNameWithinNamespace(std::string &fullname,
                                                  std::string &clsname,
                                                  std::string &nsname,
                                                  const clang::CXXRecordDecl *cl)
@@ -2021,7 +1974,7 @@ bool ROOT::TMetaUtils::GetNameWithinNamespace(std::string &fullname,
    fullname.clear();
    nsname.clear();
 
-   ROOT::TMetaUtils::GetQualifiedName(fullname,*cl);
+   CppyyLegacy::TMetaUtils::GetQualifiedName(fullname,*cl);
    clsname = fullname;
 
    // Inline namespace are stripped from the normalized name, we need to
@@ -2035,7 +1988,7 @@ bool ROOT::TMetaUtils::GetNameWithinNamespace(std::string &fullname,
       if (namedCtxt && namedCtxt!=cl) {
          const clang::NamespaceDecl *nsdecl = llvm::dyn_cast<clang::NamespaceDecl>(namedCtxt);
          if (nsdecl != 0 && !nsdecl->isAnonymousNamespace()) {
-            ROOT::TMetaUtils::GetQualifiedName(nsname,*nsdecl);
+            CppyyLegacy::TMetaUtils::GetQualifiedName(nsname,*nsdecl);
             clsname.erase (0, nsname.size() + 2);
             return true;
          }
@@ -2062,7 +2015,7 @@ const clang::DeclContext *GetEnclosingSpace(const clang::RecordDecl &cl)
 /// we write: namespace Space1 { namespace Space2 {
 /// and return 2.
 
-int ROOT::TMetaUtils::WriteNamespaceHeader(std::ostream &out, const clang::DeclContext *ctxt)
+int CppyyLegacy::TMetaUtils::WriteNamespaceHeader(std::ostream &out, const clang::DeclContext *ctxt)
 {
    int closing_brackets = 0;
 
@@ -2085,14 +2038,14 @@ int ROOT::TMetaUtils::WriteNamespaceHeader(std::ostream &out, const clang::DeclC
 
 ////////////////////////////////////////////////////////////////////////////////
 
-int ROOT::TMetaUtils::WriteNamespaceHeader(std::ostream &out, const clang::RecordDecl *cl)
+int CppyyLegacy::TMetaUtils::WriteNamespaceHeader(std::ostream &out, const clang::RecordDecl *cl)
 {
    return WriteNamespaceHeader(out, GetEnclosingSpace(*cl));
 }
 
 ////////////////////////////////////////////////////////////////////////////////
 
-bool ROOT::TMetaUtils::NeedTemplateKeyword(const clang::CXXRecordDecl *cl)
+bool CppyyLegacy::TMetaUtils::NeedTemplateKeyword(const clang::CXXRecordDecl *cl)
 {
    clang::TemplateSpecializationKind kind = cl->getTemplateSpecializationKind();
    if (kind == clang::TSK_Undeclared ) {
@@ -2110,7 +2063,7 @@ bool ROOT::TMetaUtils::NeedTemplateKeyword(const clang::CXXRecordDecl *cl)
 ////////////////////////////////////////////////////////////////////////////////
 /// return true if we can find a custom operator new with placement
 
-bool ROOT::TMetaUtils::HasCustomOperatorNewPlacement(const char *which, const clang::RecordDecl &cl, const cling::Interpreter &interp)
+bool CppyyLegacy::TMetaUtils::HasCustomOperatorNewPlacement(const char *which, const clang::RecordDecl &cl, const cling::Interpreter &interp)
 {
    const char *name = which;
    const char *proto = "size_t";
@@ -2118,11 +2071,11 @@ bool ROOT::TMetaUtils::HasCustomOperatorNewPlacement(const char *which, const cl
 
    // First search in the enclosing namespaces
    const clang::FunctionDecl *operatornew
-      = ROOT::TMetaUtils::GetFuncWithProto(llvm::dyn_cast<clang::Decl>(cl.getDeclContext()),
+      = CppyyLegacy::TMetaUtils::GetFuncWithProto(llvm::dyn_cast<clang::Decl>(cl.getDeclContext()),
                                            name, proto, interp,
                                            cling::LookupHelper::NoDiagnostics);
    const clang::FunctionDecl *operatornewPlacement
-      = ROOT::TMetaUtils::GetFuncWithProto(llvm::dyn_cast<clang::Decl>(cl.getDeclContext()),
+      = CppyyLegacy::TMetaUtils::GetFuncWithProto(llvm::dyn_cast<clang::Decl>(cl.getDeclContext()),
                                            name, protoPlacement, interp,
                                            cling::LookupHelper::NoDiagnostics);
 
@@ -2137,10 +2090,10 @@ bool ROOT::TMetaUtils::HasCustomOperatorNewPlacement(const char *which, const cl
    }
 
    // Then in the class and base classes
-   operatornew = ROOT::TMetaUtils::GetFuncWithProto(&cl, name, proto, interp,
+   operatornew = CppyyLegacy::TMetaUtils::GetFuncWithProto(&cl, name, proto, interp,
                                                     false /*diags*/);
    operatornewPlacement
-      = ROOT::TMetaUtils::GetFuncWithProto(&cl, name, protoPlacement, interp,
+      = CppyyLegacy::TMetaUtils::GetFuncWithProto(&cl, name, protoPlacement, interp,
                                            false /*diags*/);
 
    if (operatornew) {
@@ -2190,7 +2143,7 @@ bool ROOT::TMetaUtils::HasCustomOperatorNewPlacement(const char *which, const cl
 ////////////////////////////////////////////////////////////////////////////////
 /// return true if we can find a custom operator new with placement
 
-bool ROOT::TMetaUtils::HasCustomOperatorNewPlacement(const clang::RecordDecl &cl, const cling::Interpreter &interp)
+bool CppyyLegacy::TMetaUtils::HasCustomOperatorNewPlacement(const clang::RecordDecl &cl, const cling::Interpreter &interp)
 {
    return HasCustomOperatorNewPlacement("operator new",cl, interp);
 }
@@ -2198,7 +2151,7 @@ bool ROOT::TMetaUtils::HasCustomOperatorNewPlacement(const clang::RecordDecl &cl
 ////////////////////////////////////////////////////////////////////////////////
 /// return true if we can find a custom operator new with placement
 
-bool ROOT::TMetaUtils::HasCustomOperatorNewArrayPlacement(const clang::RecordDecl &cl, const cling::Interpreter &interp)
+bool CppyyLegacy::TMetaUtils::HasCustomOperatorNewArrayPlacement(const clang::RecordDecl &cl, const cling::Interpreter &interp)
 {
    return HasCustomOperatorNewPlacement("operator new[]",cl, interp);
 }
@@ -2207,7 +2160,7 @@ bool ROOT::TMetaUtils::HasCustomOperatorNewArrayPlacement(const clang::RecordDec
 /// std::string NormalizedName;
 /// GetNormalizedName(NormalizedName, decl->getASTContext().getTypeDeclType(decl), interp, normCtxt);
 
-void ROOT::TMetaUtils::WriteAuxFunctions(std::ostream& finalString,
+void CppyyLegacy::TMetaUtils::WriteAuxFunctions(std::ostream& finalString,
                                          const AnnotatedRecordDecl &cl,
                                          const clang::CXXRecordDecl *decl,
                                          const cling::Interpreter &interp,
@@ -2217,7 +2170,7 @@ void ROOT::TMetaUtils::WriteAuxFunctions(std::ostream& finalString,
    std::string classname = TClassEdit::GetLong64_Name(cl.GetNormalizedName());
 
    std::string mappedname;
-   ROOT::TMetaUtils::GetCppName(mappedname,classname.c_str());
+   CppyyLegacy::TMetaUtils::GetCppName(mappedname,classname.c_str());
 
    // Write the functions that are need for the TGenericClassInfo.
    // This includes
@@ -2227,17 +2180,17 @@ void ROOT::TMetaUtils::WriteAuxFunctions(std::ostream& finalString,
    //    operator delete
    //    operator delete[]
 
-   ROOT::TMetaUtils::GetCppName(mappedname,classname.c_str());
+   CppyyLegacy::TMetaUtils::GetCppName(mappedname,classname.c_str());
 
    if ( ! TClassEdit::IsStdClass( classname.c_str() ) ) {
 
       // Prefix the full class name with '::' except for the STL
       // containers and std::string.  This is to request the
-      // real class instead of the class in the namespace ROOT::Shadow
+      // real class instead of the class in the namespace CppyyLegacy::Shadow
       classname.insert(0,"::");
    }
 
-   finalString << "namespace ROOT {" << "\n";
+   finalString << "namespace CppyyLegacy {" << "\n";
 
    std::string args;
    if (HasIOConstructor(decl, args, ctorTypes, interp)) {
@@ -2250,7 +2203,7 @@ void ROOT::TMetaUtils::WriteAuxFunctions(std::ostream& finalString,
          finalString << args;
          finalString << " : ";
       } else {
-         finalString << "::new((::ROOT::Internal::TOperatorNewHelper*)p) ";
+         finalString << "::new((::CppyyLegacy::Internal::TOperatorNewHelper*)p) ";
          finalString << classname.c_str();
          finalString << args;
          finalString << " : ";
@@ -2270,7 +2223,7 @@ void ROOT::TMetaUtils::WriteAuxFunctions(std::ostream& finalString,
             finalString << classname.c_str();
             finalString << "[nElements] : ";
          } else {
-            finalString << "::new((::ROOT::Internal::TOperatorNewHelper*)p) ";
+            finalString << "::new((::CppyyLegacy::Internal::TOperatorNewHelper*)p) ";
             finalString << classname.c_str();
             finalString << "[nElements] : ";
          }
@@ -2292,23 +2245,23 @@ void ROOT::TMetaUtils::WriteAuxFunctions(std::ostream& finalString,
    }
 
    if (HasCustomConvStreamerMemberFunction(cl, decl, interp, normCtxt)) {
-      finalString << "   // Wrapper around a custom streamer member function." << "\n" << "   static void conv_streamer_" << mappedname.c_str() << "(TBuffer &buf, void *obj, const TClass *onfile_class) {" << "\n" << "      ((" << classname.c_str() << "*)obj)->" << classname.c_str() << "::Streamer(buf,onfile_class);" << "\n" << "   }" << "\n";
+      finalString << "   // Wrapper around a custom streamer member function." << "\n" << "   static void conv_streamer_" << mappedname.c_str() << "(TBuffer &buf, void *obj, const ::CppyyLegacy::TClass *onfile_class) {" << "\n" << "      ((" << classname.c_str() << "*)obj)->" << classname.c_str() << "::Streamer(buf,onfile_class);" << "\n" << "   }" << "\n";
    }
 
-   finalString << "} // end of namespace ROOT for class " << classname.c_str() << "\n" << "\n";
+   finalString << "} // end of namespace CppyyLegacy for class " << classname.c_str() << "\n" << "\n";
 }
 
 ////////////////////////////////////////////////////////////////////////////////
 /// Write interface function for STL members
 
-void ROOT::TMetaUtils::WritePointersSTL(const AnnotatedRecordDecl &cl,
+void CppyyLegacy::TMetaUtils::WritePointersSTL(const AnnotatedRecordDecl &cl,
                                         const cling::Interpreter &interp,
                                         const TNormalizedCtxt &normCtxt)
 {
    std::string a;
    std::string clName;
-   TMetaUtils::GetCppName(clName, ROOT::TMetaUtils::GetFileName(*cl.GetRecordDecl(), interp).str().c_str());
-   int version = ROOT::TMetaUtils::GetClassVersion(cl.GetRecordDecl(),interp);
+   TMetaUtils::GetCppName(clName, CppyyLegacy::TMetaUtils::GetFileName(*cl.GetRecordDecl(), interp).str().c_str());
+   int version = CppyyLegacy::TMetaUtils::GetClassVersion(cl.GetRecordDecl(),interp);
    if (version == 0) return;
    if (version < 0 && !(cl.RequestStreamerInfo()) ) return;
 
@@ -2321,7 +2274,7 @@ void ROOT::TMetaUtils::WritePointersSTL(const AnnotatedRecordDecl &cl,
        iter != end;
        ++iter)
    {
-      int k = ROOT::TMetaUtils::IsSTLContainer(*iter);
+      int k = CppyyLegacy::TMetaUtils::IsSTLContainer(*iter);
       if (k!=0) {
          Internal::RStl::Instance().GenerateTClassFor( iter->getType(), interp, normCtxt);
       }
@@ -2333,23 +2286,23 @@ void ROOT::TMetaUtils::WritePointersSTL(const AnnotatedRecordDecl &cl,
        ++field_iter)
    {
       std::string mTypename;
-      ROOT::TMetaUtils::GetQualifiedName(mTypename, field_iter->getType(), *clxx);
+      CppyyLegacy::TMetaUtils::GetQualifiedName(mTypename, field_iter->getType(), *clxx);
 
       //member is a string
       {
-         const char*shortTypeName = ROOT::TMetaUtils::ShortTypeName(mTypename.c_str());
+         const char*shortTypeName = CppyyLegacy::TMetaUtils::ShortTypeName(mTypename.c_str());
          if (!strcmp(shortTypeName, "std::string")) {
             continue;
          }
       }
 
-      if (!ROOT::TMetaUtils::IsStreamableObject(**field_iter, interp)) continue;
+      if (!CppyyLegacy::TMetaUtils::IsStreamableObject(**field_iter, interp)) continue;
 
-      int k = ROOT::TMetaUtils::IsSTLContainer( **field_iter );
+      int k = CppyyLegacy::TMetaUtils::IsSTLContainer( **field_iter );
       if (k!=0) {
          //          fprintf(stderr,"Add %s which is also",m.Type()->Name());
          //          fprintf(stderr," %s\n",R__TrueName(**field_iter) );
-         clang::QualType utype(ROOT::TMetaUtils::GetUnderlyingType(field_iter->getType()),0);
+         clang::QualType utype(CppyyLegacy::TMetaUtils::GetUnderlyingType(field_iter->getType()),0);
          Internal::RStl::Instance().GenerateTClassFor(utype, interp, normCtxt);
       }
    }
@@ -2358,7 +2311,7 @@ void ROOT::TMetaUtils::WritePointersSTL(const AnnotatedRecordDecl &cl,
 ////////////////////////////////////////////////////////////////////////////////
 /// TrueName strips the typedefs and array dimensions.
 
-std::string ROOT::TMetaUtils::TrueName(const clang::FieldDecl &m)
+std::string CppyyLegacy::TMetaUtils::TrueName(const clang::FieldDecl &m)
 {
    const clang::Type *rawtype = m.getType()->getCanonicalTypeInternal().getTypePtr();
    if (rawtype->isArrayType()) {
@@ -2366,7 +2319,7 @@ std::string ROOT::TMetaUtils::TrueName(const clang::FieldDecl &m)
    }
 
    std::string result;
-   ROOT::TMetaUtils::GetQualifiedName(result, clang::QualType(rawtype,0), m);
+   CppyyLegacy::TMetaUtils::GetQualifiedName(result, clang::QualType(rawtype,0), m);
    return result;
 }
 
@@ -2374,7 +2327,7 @@ std::string ROOT::TMetaUtils::TrueName(const clang::FieldDecl &m)
 /// Return the version number of the class or -1
 /// if the function Class_Version does not exist.
 
-int ROOT::TMetaUtils::GetClassVersion(const clang::RecordDecl *cl, const cling::Interpreter& interp)
+int CppyyLegacy::TMetaUtils::GetClassVersion(const clang::RecordDecl *cl, const cling::Interpreter& interp)
 {
    const clang::CXXRecordDecl* CRD = llvm::dyn_cast<clang::CXXRecordDecl>(cl);
    if (!CRD) {
@@ -2382,7 +2335,7 @@ int ROOT::TMetaUtils::GetClassVersion(const clang::RecordDecl *cl, const cling::
       // FIXME: Make it work for a namespace!
       return -1;
    }
-   const clang::FunctionDecl* funcCV = ROOT::TMetaUtils::ClassInfo__HasMethod(CRD,"Class_Version",interp);
+   const clang::FunctionDecl* funcCV = CppyyLegacy::TMetaUtils::ClassInfo__HasMethod(CRD,"Class_Version",interp);
 
    // if we have no Class_Info() return -1.
    if (!funcCV) return -1;
@@ -2401,7 +2354,7 @@ int ROOT::TMetaUtils::GetClassVersion(const clang::RecordDecl *cl, const cling::
 /// The second element contains the value (or -1 is case of failure)
 
 std::pair<bool, int>
-ROOT::TMetaUtils::GetTrivialIntegralReturnValue(const clang::FunctionDecl *funcCV, const cling::Interpreter &interp)
+CppyyLegacy::TMetaUtils::GetTrivialIntegralReturnValue(const clang::FunctionDecl *funcCV, const cling::Interpreter &interp)
 {
    using res_t = std::pair<bool, int>;
 
@@ -2438,7 +2391,7 @@ ROOT::TMetaUtils::GetTrivialIntegralReturnValue(const clang::FunctionDecl *funcC
 ////////////////////////////////////////////////////////////////////////////////
 /// Is this an STL container.
 
-int ROOT::TMetaUtils::IsSTLContainer(const ROOT::TMetaUtils::AnnotatedRecordDecl &annotated)
+int CppyyLegacy::TMetaUtils::IsSTLContainer(const CppyyLegacy::TMetaUtils::AnnotatedRecordDecl &annotated)
 {
    return TMetaUtils::IsSTLCont(*annotated.GetRecordDecl());
 }
@@ -2446,25 +2399,25 @@ int ROOT::TMetaUtils::IsSTLContainer(const ROOT::TMetaUtils::AnnotatedRecordDecl
 ////////////////////////////////////////////////////////////////////////////////
 /// Is this an STL container?
 
-ROOT::ESTLType ROOT::TMetaUtils::IsSTLContainer(const clang::FieldDecl &m)
+CppyyLegacy::ESTLType CppyyLegacy::TMetaUtils::IsSTLContainer(const clang::FieldDecl &m)
 {
    clang::QualType type = m.getType();
-   clang::RecordDecl *decl = ROOT::TMetaUtils::GetUnderlyingRecordDecl(type);
+   clang::RecordDecl *decl = CppyyLegacy::TMetaUtils::GetUnderlyingRecordDecl(type);
 
    if (decl) return TMetaUtils::IsSTLCont(*decl);
-   else return ROOT::kNotSTL;
+   else return CppyyLegacy::kNotSTL;
 }
 
 ////////////////////////////////////////////////////////////////////////////////
 /// Is this an STL container?
 
-int ROOT::TMetaUtils::IsSTLContainer(const clang::CXXBaseSpecifier &base)
+int CppyyLegacy::TMetaUtils::IsSTLContainer(const clang::CXXBaseSpecifier &base)
 {
    clang::QualType type = base.getType();
-   clang::RecordDecl *decl = ROOT::TMetaUtils::GetUnderlyingRecordDecl(type);
+   clang::RecordDecl *decl = CppyyLegacy::TMetaUtils::GetUnderlyingRecordDecl(type);
 
    if (decl) return TMetaUtils::IsSTLCont(*decl);
-   else return ROOT::kNotSTL;
+   else return CppyyLegacy::kNotSTL;
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -2472,7 +2425,7 @@ int ROOT::TMetaUtils::IsSTLContainer(const clang::CXXBaseSpecifier &base)
 /// includeDirectlyUsedModules designates if the foreach should also loop over
 /// the headers in all modules that are directly used via a `use` declaration
 /// in the modulemap.
-void ROOT::TMetaUtils::foreachHeaderInModule(const clang::Module &module,
+void CppyyLegacy::TMetaUtils::foreachHeaderInModule(const clang::Module &module,
                                              const std::function<void(const clang::Module::Header &)> &closure,
                                              bool includeDirectlyUsedModules)
 {
@@ -2523,7 +2476,7 @@ void ROOT::TMetaUtils::foreachHeaderInModule(const clang::Module &module,
 /// we remove * and const keywords. (we do not want to remove & ).
 /// You need to use the result immediately before it is being overwritten.
 
-const char *ROOT::TMetaUtils::ShortTypeName(const char *typeDesc)
+const char *CppyyLegacy::TMetaUtils::ShortTypeName(const char *typeDesc)
 {
    static char t[4096];
    static const char* constwd = "const ";
@@ -2555,10 +2508,10 @@ const char *ROOT::TMetaUtils::ShortTypeName(const char *typeDesc)
    return t;
 }
 
-bool ROOT::TMetaUtils::IsStreamableObject(const clang::FieldDecl &m,
+bool CppyyLegacy::TMetaUtils::IsStreamableObject(const clang::FieldDecl &m,
                                           const cling::Interpreter& interp)
 {
-   const char *comment = ROOT::TMetaUtils::GetComment( m ).data();
+   const char *comment = CppyyLegacy::TMetaUtils::GetComment( m ).data();
 
    // Transient
    if (comment[0] == '!') return false;
@@ -2578,7 +2531,7 @@ bool ROOT::TMetaUtils::IsStreamableObject(const clang::FieldDecl &m,
       return true;
    }
 
-   if (ROOT::TMetaUtils::IsSTLContainer(m)) {
+   if (CppyyLegacy::TMetaUtils::IsSTLContainer(m)) {
       return true;
    }
 
@@ -2599,9 +2552,9 @@ bool ROOT::TMetaUtils::IsStreamableObject(const clang::FieldDecl &m,
    }
 
    const clang::CXXRecordDecl *cxxdecl = rawtype->getAsCXXRecordDecl();
-   if (cxxdecl && ROOT::TMetaUtils::ClassInfo__HasMethod(cxxdecl,"Streamer", interp)) {
-      if (!(ROOT::TMetaUtils::ClassInfo__HasMethod(cxxdecl,"Class_Version", interp))) return true;
-      int version = ROOT::TMetaUtils::GetClassVersion(cxxdecl,interp);
+   if (cxxdecl && CppyyLegacy::TMetaUtils::ClassInfo__HasMethod(cxxdecl,"Streamer", interp)) {
+      if (!(CppyyLegacy::TMetaUtils::ClassInfo__HasMethod(cxxdecl,"Class_Version", interp))) return true;
+      int version = CppyyLegacy::TMetaUtils::GetClassVersion(cxxdecl,interp);
       if (version > 0) return true;
    }
    return false;
@@ -2613,7 +2566,7 @@ bool ROOT::TMetaUtils::IsStreamableObject(const clang::FieldDecl &m,
 /// we remove * and const keywords. (we do not want to remove & ).
 /// You need to use the result immediately before it is being overwritten.
 
-std::string ROOT::TMetaUtils::ShortTypeName(const clang::FieldDecl &m)
+std::string CppyyLegacy::TMetaUtils::ShortTypeName(const clang::FieldDecl &m)
 {
    const clang::Type *rawtype = m.getType().getTypePtr();
 
@@ -2625,15 +2578,15 @@ std::string ROOT::TMetaUtils::ShortTypeName(const clang::FieldDecl &m)
    }
 
    std::string result;
-   ROOT::TMetaUtils::GetQualifiedName(result, clang::QualType(rawtype,0), m);
+   CppyyLegacy::TMetaUtils::GetQualifiedName(result, clang::QualType(rawtype,0), m);
    return result;
 }
 
 ////////////////////////////////////////////////////////////////////////////////
 
-clang::RecordDecl *ROOT::TMetaUtils::GetUnderlyingRecordDecl(clang::QualType type)
+clang::RecordDecl *CppyyLegacy::TMetaUtils::GetUnderlyingRecordDecl(clang::QualType type)
 {
-   const clang::Type *rawtype = ROOT::TMetaUtils::GetUnderlyingType(type);
+   const clang::Type *rawtype = CppyyLegacy::TMetaUtils::GetUnderlyingType(type);
 
    if (rawtype->isFundamentalType() || rawtype->isEnumeralType()) {
       // not an object.
@@ -2646,7 +2599,7 @@ clang::RecordDecl *ROOT::TMetaUtils::GetUnderlyingRecordDecl(clang::QualType typ
 /// Generate the code of the class
 /// If the requestor is genreflex, request the new streamer format
 
-void ROOT::TMetaUtils::WriteClassCode(CallWriteStreamer_t WriteStreamerFunc,
+void CppyyLegacy::TMetaUtils::WriteClassCode(CallWriteStreamer_t WriteStreamerFunc,
                                       const AnnotatedRecordDecl &cl,
                                       const cling::Interpreter &interp,
                                       const TNormalizedCtxt &normCtxt,
@@ -2661,27 +2614,27 @@ void ROOT::TMetaUtils::WriteClassCode(CallWriteStreamer_t WriteStreamerFunc,
    }
 
    std::string fullname;
-   ROOT::TMetaUtils::GetQualifiedName(fullname,cl);
+   CppyyLegacy::TMetaUtils::GetQualifiedName(fullname,cl);
    if (TClassEdit::IsSTLCont(fullname) ) {
       Internal::RStl::Instance().GenerateTClassFor(cl.GetNormalizedName(), llvm::dyn_cast<clang::CXXRecordDecl>(cl.GetRecordDecl()), interp, normCtxt);
       return;
    }
 
-   if (ROOT::TMetaUtils::ClassInfo__HasMethod(cl,"Streamer",interp)) {
+   if (CppyyLegacy::TMetaUtils::ClassInfo__HasMethod(cl,"Streamer",interp)) {
       // The !genreflex is there to prevent genreflex to select collections which are data members
       // This is to maintain the behaviour of ROOT5 and ROOT6 up to 6.07 included.
-      if (cl.RootFlag() && !isGenreflex) ROOT::TMetaUtils::WritePointersSTL(cl, interp, normCtxt); // In particular this detect if the class has a version number.
+      if (cl.RootFlag() && !isGenreflex) CppyyLegacy::TMetaUtils::WritePointersSTL(cl, interp, normCtxt); // In particular this detect if the class has a version number.
       if (!(cl.RequestNoStreamer())) {
          (*WriteStreamerFunc)(cl, interp, normCtxt, dictStream, isGenreflex || cl.RequestStreamerInfo());
       } else
-         ROOT::TMetaUtils::Info(0, "Class %s: Do not generate Streamer() [*** custom streamer ***]\n",fullname.c_str());
+         CppyyLegacy::TMetaUtils::Info(0, "Class %s: Do not generate Streamer() [*** custom streamer ***]\n",fullname.c_str());
    } else {
-      ROOT::TMetaUtils::Info(0, "Class %s: Streamer() not declared\n", fullname.c_str());
+      CppyyLegacy::TMetaUtils::Info(0, "Class %s: Streamer() not declared\n", fullname.c_str());
 
       // See comment above about the !isGenreflex
-      if (cl.RequestStreamerInfo() && !isGenreflex) ROOT::TMetaUtils::WritePointersSTL(cl, interp, normCtxt);
+      if (cl.RequestStreamerInfo() && !isGenreflex) CppyyLegacy::TMetaUtils::WritePointersSTL(cl, interp, normCtxt);
    }
-   ROOT::TMetaUtils::WriteAuxFunctions(dictStream, cl, decl, interp, ctorTypes, normCtxt);
+   CppyyLegacy::TMetaUtils::WriteAuxFunctions(dictStream, cl, decl, interp, ctorTypes, normCtxt);
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -2695,9 +2648,9 @@ void ROOT::TMetaUtils::WriteClassCode(CallWriteStreamer_t WriteStreamerFunc,
 /// Whether it is or not depend on the I/O on whether the default template argument might change or not
 /// and whether they (should) affect the on disk layout (for STL containers, we do know they do not).
 
-clang::QualType ROOT::TMetaUtils::AddDefaultParameters(clang::QualType instanceType,
+clang::QualType CppyyLegacy::TMetaUtils::AddDefaultParameters(clang::QualType instanceType,
                                                        const cling::Interpreter &interpreter,
-                                                       const ROOT::TMetaUtils::TNormalizedCtxt &normCtxt)
+                                                       const CppyyLegacy::TMetaUtils::TNormalizedCtxt &normCtxt)
 {
    const clang::ASTContext& Ctx = interpreter.getCI()->getASTContext();
 
@@ -2870,7 +2823,7 @@ clang::QualType ROOT::TMetaUtils::AddDefaultParameters(clang::QualType instanceT
                // error printed on the screen.
                if (ArgType.getArgument().isNull()
                    || ArgType.getArgument().getKind() != clang::TemplateArgument::Type) {
-                  ROOT::TMetaUtils::Error("ROOT::TMetaUtils::AddDefaultParameters",
+                  CppyyLegacy::TMetaUtils::Error("CppyyLegacy::TMetaUtils::AddDefaultParameters",
                                           "Template parameter substitution failed for %s around %s\n",
                                           instanceType.getAsString().c_str(), SubTy.getAsString().c_str());
                   break;
@@ -2918,7 +2871,7 @@ clang::QualType ROOT::TMetaUtils::AddDefaultParameters(clang::QualType instanceT
 /// If errstr is not null, *errstr is updated with the address of a static
 ///   string containing the part of the index with is invalid.
 
-llvm::StringRef ROOT::TMetaUtils::DataMemberInfo__ValidArrayIndex(const clang::DeclaratorDecl &m, int *errnum, llvm::StringRef *errstr)
+llvm::StringRef CppyyLegacy::TMetaUtils::DataMemberInfo__ValidArrayIndex(const clang::DeclaratorDecl &m, int *errnum, llvm::StringRef *errstr)
 {
    llvm::StringRef title;
 
@@ -2927,7 +2880,7 @@ llvm::StringRef ROOT::TMetaUtils::DataMemberInfo__ValidArrayIndex(const clang::D
       title = A->getAnnotation();
    else
       // Try to get the comment from the header file if present
-      title = ROOT::TMetaUtils::GetComment( m );
+      title = CppyyLegacy::TMetaUtils::GetComment( m );
 
    // Let's see if the user provided us with some information
    // with the format: //[dimension] this is the dim of the array
@@ -3067,7 +3020,7 @@ llvm::StringRef ROOT::TMetaUtils::DataMemberInfo__ValidArrayIndex(const clang::D
 /// Return (in the argument 'output') a mangled version of the C++ symbol/type (pass as 'input')
 /// that can be used in C++ as a variable name.
 
-void ROOT::TMetaUtils::GetCppName(std::string &out, const char *in)
+void CppyyLegacy::TMetaUtils::GetCppName(std::string &out, const char *in)
 {
    out.resize(strlen(in)*2);
    unsigned int i=0,j=0,c;
@@ -3128,7 +3081,7 @@ getFinalSpellingLoc(clang::SourceManager& sourceManager,
 ////////////////////////////////////////////////////////////////////////////////
 /// Return the header file to be included to declare the Decl.
 
-llvm::StringRef ROOT::TMetaUtils::GetFileName(const clang::Decl& decl,
+llvm::StringRef CppyyLegacy::TMetaUtils::GetFileName(const clang::Decl& decl,
                                               const cling::Interpreter& interp)
 {
    // It looks like the template specialization decl actually contains _less_ information
@@ -3278,7 +3231,7 @@ llvm::StringRef ROOT::TMetaUtils::GetFileName(const clang::Decl& decl,
 
 ////////////////////////////////////////////////////////////////////////////////
 
-void ROOT::TMetaUtils::GetFullyQualifiedTypeName(std::string &typenamestr,
+void CppyyLegacy::TMetaUtils::GetFullyQualifiedTypeName(std::string &typenamestr,
                                                  const clang::QualType &qtype,
                                                  const clang::ASTContext &astContext)
 {
@@ -3290,7 +3243,7 @@ void ROOT::TMetaUtils::GetFullyQualifiedTypeName(std::string &typenamestr,
 
 ////////////////////////////////////////////////////////////////////////////////
 
-void ROOT::TMetaUtils::GetFullyQualifiedTypeName(std::string &typenamestr,
+void CppyyLegacy::TMetaUtils::GetFullyQualifiedTypeName(std::string &typenamestr,
                                                  const clang::QualType &qtype,
                                                  const cling::Interpreter &interpreter)
 {
@@ -3308,7 +3261,7 @@ void ROOT::TMetaUtils::GetFullyQualifiedTypeName(std::string &typenamestr,
 /// Get the template specialisation decl and template decl behind the qualtype
 /// Returns true if successfully found, false otherwise
 
-bool ROOT::TMetaUtils::QualType2Template(const clang::QualType& qt,
+bool CppyyLegacy::TMetaUtils::QualType2Template(const clang::QualType& qt,
                                          clang::ClassTemplateDecl*& ctd,
                                          clang::ClassTemplateSpecializationDecl*& ctsd)
 {
@@ -3352,7 +3305,7 @@ bool ROOT::TMetaUtils::QualType2Template(const clang::QualType& qt,
 /// Extract from a qualtype the class template if this makes sense.
 /// Retuns the ClassTemplateDecl or nullptr otherwise.
 
-clang::ClassTemplateDecl* ROOT::TMetaUtils::QualType2ClassTemplateDecl(const clang::QualType& qt)
+clang::ClassTemplateDecl* CppyyLegacy::TMetaUtils::QualType2ClassTemplateDecl(const clang::QualType& qt)
 {
    using namespace clang;
    ClassTemplateSpecializationDecl* ctsd;
@@ -3368,7 +3321,7 @@ clang::ClassTemplateDecl* ROOT::TMetaUtils::QualType2ClassTemplateDecl(const cla
 /// We may need therefore to step into the "Decl dimension" to then get back
 /// to the "type dimension".
 
-clang::TemplateName ROOT::TMetaUtils::ExtractTemplateNameFromQualType(const clang::QualType& qt)
+clang::TemplateName CppyyLegacy::TMetaUtils::ExtractTemplateNameFromQualType(const clang::QualType& qt)
 {
    using namespace clang;
    TemplateName theTemplateName;
@@ -3391,9 +3344,9 @@ static bool areEqualTypes(const clang::TemplateArgument& tArg,
                    llvm::SmallVectorImpl<clang::TemplateArgument>& preceedingTArgs,
                    const clang::NamedDecl& tPar,
                    const cling::Interpreter& interp,
-                   const ROOT::TMetaUtils::TNormalizedCtxt& normCtxt)
+                   const CppyyLegacy::TMetaUtils::TNormalizedCtxt& normCtxt)
 {
-   using namespace ROOT::TMetaUtils;
+   using namespace CppyyLegacy::TMetaUtils;
    using namespace clang;
 
    // Check if this is a type for security
@@ -3468,7 +3421,7 @@ static bool areEqualTypes(const clang::TemplateArgument& tArg,
       newArg = defTArgLoc.getArgument();
       if (newArg.isNull() ||
           newArg.getKind() != clang::TemplateArgument::Type) {
-         ROOT::TMetaUtils::Error("areEqualTypes",
+         CppyyLegacy::TMetaUtils::Error("areEqualTypes",
                                  "Template parameter substitution failed!");
       }
 
@@ -3532,16 +3485,16 @@ static bool isTypeWithDefault(const clang::NamedDecl* nDecl)
 static void KeepNParams(clang::QualType& normalizedType,
                         const clang::QualType& vanillaType,
                         const cling::Interpreter& interp,
-                        const ROOT::TMetaUtils::TNormalizedCtxt& normCtxt);
+                        const CppyyLegacy::TMetaUtils::TNormalizedCtxt& normCtxt);
 
 // Returns true if normTArg might have changed.
 static bool RecurseKeepNParams(clang::TemplateArgument &normTArg,
                                const clang::TemplateArgument &tArg,
                                const cling::Interpreter& interp,
-                               const ROOT::TMetaUtils::TNormalizedCtxt& normCtxt,
+                               const CppyyLegacy::TMetaUtils::TNormalizedCtxt& normCtxt,
                                const clang::ASTContext& astCtxt)
 {
-   using namespace ROOT::TMetaUtils;
+   using namespace CppyyLegacy::TMetaUtils;
    using namespace clang;
 
    // Once we know there is no more default parameter, we can run through to the end
@@ -3588,9 +3541,9 @@ static bool RecurseKeepNParams(clang::TemplateArgument &normTArg,
 static void KeepNParams(clang::QualType& normalizedType,
                         const clang::QualType& vanillaType,
                         const cling::Interpreter& interp,
-                        const ROOT::TMetaUtils::TNormalizedCtxt& normCtxt)
+                        const CppyyLegacy::TMetaUtils::TNormalizedCtxt& normCtxt)
 {
-   using namespace ROOT::TMetaUtils;
+   using namespace CppyyLegacy::TMetaUtils;
    using namespace clang;
 
    // If this type has no template specialisation behind, we don't need to do
@@ -3799,7 +3752,7 @@ static void KeepNParams(clang::QualType& normalizedType,
 /// requested to be drop by the user.
 /// Default template for STL collections are not yet removed by this routine.
 
-clang::QualType ROOT::TMetaUtils::GetNormalizedType(const clang::QualType &type, const cling::Interpreter &interpreter, const TNormalizedCtxt &normCtxt)
+clang::QualType CppyyLegacy::TMetaUtils::GetNormalizedType(const clang::QualType &type, const cling::Interpreter &interpreter, const TNormalizedCtxt &normCtxt)
 {
    clang::ASTContext &ctxt = interpreter.getCI()->getASTContext();
 
@@ -3808,7 +3761,7 @@ clang::QualType ROOT::TMetaUtils::GetNormalizedType(const clang::QualType &type,
    clang::QualType normalizedType = cling::utils::Transform::GetPartiallyDesugaredType(ctxt, type, normCtxt.GetConfig(), true /* fully qualify */);
 
    // Readd missing default template parameters
-   normalizedType = ROOT::TMetaUtils::AddDefaultParameters(normalizedType, interpreter, normCtxt);
+   normalizedType = CppyyLegacy::TMetaUtils::AddDefaultParameters(normalizedType, interpreter, normCtxt);
 
    // Get the number of arguments to keep in case they are not default.
    KeepNParams(normalizedType,type,interpreter,normCtxt);
@@ -3835,7 +3788,7 @@ static inline clang::QualType CanonicalIfPublic(clang::QualType usetype)
    return usetype.getCanonicalType();
 }
 
-void ROOT::TMetaUtils::GetNormalizedName(std::string &norm_name, const clang::QualType &type, const cling::Interpreter &interpreter, const TNormalizedCtxt &normCtxt)
+void CppyyLegacy::TMetaUtils::GetNormalizedName(std::string &norm_name, const clang::QualType &type, const cling::Interpreter &interpreter, const TNormalizedCtxt &normCtxt)
 {
    if (type.isNull()) {
       norm_name = "";
@@ -3883,16 +3836,16 @@ void ROOT::TMetaUtils::GetNormalizedName(std::string &norm_name, const clang::Qu
 
 ////////////////////////////////////////////////////////////////////////////////
 
-void ROOT::TMetaUtils::GetNormalizedName(std::string &norm_name,
+void CppyyLegacy::TMetaUtils::GetNormalizedName(std::string &norm_name,
                                          const clang::TypeDecl* typeDecl,
                                          const cling::Interpreter &interpreter)
 {
-   ROOT::TMetaUtils::TNormalizedCtxt tNormCtxt(interpreter.getLookupHelper());
+   CppyyLegacy::TMetaUtils::TNormalizedCtxt tNormCtxt(interpreter.getLookupHelper());
    const clang::Sema &sema = interpreter.getSema();
    clang::ASTContext& astCtxt = sema.getASTContext();
    clang::QualType qualType = astCtxt.getTypeDeclType(typeDecl);
 
-   ROOT::TMetaUtils::GetNormalizedName(norm_name,
+   CppyyLegacy::TMetaUtils::GetNormalizedName(norm_name,
                                        qualType,
                                        interpreter,
                                        tNormCtxt);
@@ -3900,7 +3853,7 @@ void ROOT::TMetaUtils::GetNormalizedName(std::string &norm_name,
 
 ////////////////////////////////////////////////////////////////////////////////
 std::pair<std::string,clang::QualType>
-ROOT::TMetaUtils::GetNameTypeForIO(const clang::QualType& thisType,
+CppyyLegacy::TMetaUtils::GetNameTypeForIO(const clang::QualType& thisType,
                                    const cling::Interpreter &interpreter,
                                    const TNormalizedCtxt &normCtxt,
                                    TClassEdit::EModType mode)
@@ -3911,8 +3864,8 @@ ROOT::TMetaUtils::GetNameTypeForIO(const clang::QualType& thisType,
    auto thisTypeNameForIO = TClassEdit::GetNameForIO(thisTypeName, mode, &hasChanged);
    if (!hasChanged) return std::make_pair(thisTypeName,thisType);
 
-   if (hasChanged && ROOT::TMetaUtils::GetErrorIgnoreLevel() <= ROOT::TMetaUtils::kNote) {
-      ROOT::TMetaUtils::Info("ROOT::TMetaUtils::GetTypeForIO",
+   if (hasChanged && CppyyLegacy::TMetaUtils::GetErrorIgnoreLevel() <= CppyyLegacy::TMetaUtils::kNote) {
+      CppyyLegacy::TMetaUtils::Info("CppyyLegacy::TMetaUtils::GetTypeForIO",
         "Name changed from %s to %s\n", thisTypeName.c_str(), thisTypeNameForIO.c_str());
    }
 
@@ -3925,7 +3878,7 @@ ROOT::TMetaUtils::GetNameTypeForIO(const clang::QualType& thisType,
 
    // This should never happen
    if (!typePtrForIO) {
-      ROOT::TMetaUtils::Fatal("ROOT::TMetaUtils::GetTypeForIO",
+      CppyyLegacy::TMetaUtils::Fatal("CppyyLegacy::TMetaUtils::GetTypeForIO",
                               "Type not found: %s.",thisTypeNameForIO.c_str());
    }
 
@@ -3938,7 +3891,7 @@ ROOT::TMetaUtils::GetNameTypeForIO(const clang::QualType& thisType,
 
    auto thisDeclForIO = typeForIO->getAsCXXRecordDecl();
    if (!thisDeclForIO) {
-      ROOT::TMetaUtils::Error("ROOT::TMetaUtils::GetTypeForIO",
+      CppyyLegacy::TMetaUtils::Error("CppyyLegacy::TMetaUtils::GetTypeForIO",
        "The type for IO corresponding to %s is %s and it could not be found in the AST as class.\n", thisTypeName.c_str(), thisTypeNameForIO.c_str());
       return std::make_pair(thisTypeName,thisType);
    }
@@ -3948,7 +3901,7 @@ ROOT::TMetaUtils::GetNameTypeForIO(const clang::QualType& thisType,
 
 ////////////////////////////////////////////////////////////////////////////////
 
-clang::QualType ROOT::TMetaUtils::GetTypeForIO(const clang::QualType& thisType,
+clang::QualType CppyyLegacy::TMetaUtils::GetTypeForIO(const clang::QualType& thisType,
                                                const cling::Interpreter &interpreter,
                                                const TNormalizedCtxt &normCtxt,
                                                TClassEdit::EModType mode)
@@ -3959,7 +3912,7 @@ clang::QualType ROOT::TMetaUtils::GetTypeForIO(const clang::QualType& thisType,
 ////////////////////////////////////////////////////////////////////////////////
 /// Return the dictionary file name for a module
 
-std::string ROOT::TMetaUtils::GetModuleFileName(const char* moduleName)
+std::string CppyyLegacy::TMetaUtils::GetModuleFileName(const char* moduleName)
 {
    std::string dictFileName(moduleName);
    dictFileName += "_rdict.pcm";
@@ -3991,7 +3944,7 @@ int dumpDeclForAssert(const clang::Decl& D, const char* commentStart) {
 /// ClassDef(MyClass, 1) // comment4
 ///
 
-llvm::StringRef ROOT::TMetaUtils::GetComment(const clang::Decl &decl, clang::SourceLocation *loc)
+llvm::StringRef CppyyLegacy::TMetaUtils::GetComment(const clang::Decl &decl, clang::SourceLocation *loc)
 {
    clang::SourceManager& sourceManager = decl.getASTContext().getSourceManager();
    clang::SourceLocation sourceLocation = decl.getLocEnd();
@@ -4124,7 +4077,7 @@ llvm::StringRef ROOT::TMetaUtils::GetComment(const clang::Decl &decl, clang::Sou
 /// ClassDef(MyClass, 1) // class comment
 ///
 
-llvm::StringRef ROOT::TMetaUtils::GetClassComment(const clang::CXXRecordDecl &decl,
+llvm::StringRef CppyyLegacy::TMetaUtils::GetClassComment(const clang::CXXRecordDecl &decl,
                                                   clang::SourceLocation *loc,
                                                   const cling::Interpreter &interpreter)
 {
@@ -4143,7 +4096,7 @@ llvm::StringRef ROOT::TMetaUtils::GetClassComment(const clang::CXXRecordDecl &de
    SourceLocation maybeMacroLoc = DeclFileLineDecl->getLocation();
    bool isClassDefMacro = maybeMacroLoc.isMacroID() && sema.findMacroSpelling(maybeMacroLoc, "ClassDef");
    if (isClassDefMacro) {
-      comment = ROOT::TMetaUtils::GetComment(*DeclFileLineDecl, &commentSLoc);
+      comment = CppyyLegacy::TMetaUtils::GetComment(*DeclFileLineDecl, &commentSLoc);
       if (comment.size()) {
          if (loc){
             *loc = commentSLoc;
@@ -4158,7 +4111,7 @@ llvm::StringRef ROOT::TMetaUtils::GetClassComment(const clang::CXXRecordDecl &de
 /// Return the base/underlying type of a chain of array or pointers type.
 /// Does not yet support the array and pointer part being intermixed.
 
-const clang::Type *ROOT::TMetaUtils::GetUnderlyingType(clang::QualType type)
+const clang::Type *CppyyLegacy::TMetaUtils::GetUnderlyingType(clang::QualType type)
 {
    const clang::Type *rawtype = type.getTypePtr();
 
@@ -4193,7 +4146,7 @@ const clang::Type *ROOT::TMetaUtils::GetUnderlyingType(clang::QualType type)
 ////////////////////////////////////////////////////////////////////////////////
 /// Return true, if the decl is part of the std namespace.
 
-bool ROOT::TMetaUtils::IsStdClass(const clang::RecordDecl &cl)
+bool CppyyLegacy::TMetaUtils::IsStdClass(const clang::RecordDecl &cl)
 {
   return cling::utils::Analyze::IsStdClass(cl);
 }
@@ -4202,7 +4155,7 @@ bool ROOT::TMetaUtils::IsStdClass(const clang::RecordDecl &cl)
 /// Return true, if the decl is part of the std namespace and we want
 /// its default parameter dropped.
 
-bool ROOT::TMetaUtils::IsStdDropDefaultClass(const clang::RecordDecl &cl)
+bool CppyyLegacy::TMetaUtils::IsStdDropDefaultClass(const clang::RecordDecl &cl)
 {
    // Might need to reduce it to shared_ptr and STL collection.s
    if (cling::utils::Analyze::IsStdClass(cl)) {
@@ -4220,7 +4173,7 @@ bool ROOT::TMetaUtils::IsStdDropDefaultClass(const clang::RecordDecl &cl)
 ////////////////////////////////////////////////////////////////////////////////
 /// This is a recursive function
 
-bool ROOT::TMetaUtils::MatchWithDeclOrAnyOfPrevious(const clang::CXXRecordDecl &cl,
+bool CppyyLegacy::TMetaUtils::MatchWithDeclOrAnyOfPrevious(const clang::CXXRecordDecl &cl,
                                                     const clang::CXXRecordDecl &currentCl)
 {
    // We found it: let's return true
@@ -4234,13 +4187,13 @@ bool ROOT::TMetaUtils::MatchWithDeclOrAnyOfPrevious(const clang::CXXRecordDecl &
    }
 
    // We try to find it in the previous
-   return ROOT::TMetaUtils::MatchWithDeclOrAnyOfPrevious(cl, *previous);
+   return CppyyLegacy::TMetaUtils::MatchWithDeclOrAnyOfPrevious(cl, *previous);
 
 }
 
 //______________________________________________________________________________
 
-bool ROOT::TMetaUtils::IsOfType(const clang::CXXRecordDecl &cl, const std::string& typ, const cling::LookupHelper& lh)
+bool CppyyLegacy::TMetaUtils::IsOfType(const clang::CXXRecordDecl &cl, const std::string& typ, const cling::LookupHelper& lh)
 {
    // Return true if the decl is of type.
    // A proper hashtable for caching results would be the ideal solution
@@ -4270,7 +4223,7 @@ bool ROOT::TMetaUtils::IsOfType(const clang::CXXRecordDecl &cl, const std::strin
 ///             abs(result): code of container 1=vector,2=list,3=deque,4=map
 ///                           5=multimap,6=set,7=multiset
 
-ROOT::ESTLType ROOT::TMetaUtils::IsSTLCont(const clang::RecordDecl &cl)
+CppyyLegacy::ESTLType CppyyLegacy::TMetaUtils::IsSTLCont(const clang::RecordDecl &cl)
 {
    // This routine could be enhanced to also support:
    //
@@ -4284,7 +4237,7 @@ ROOT::ESTLType ROOT::TMetaUtils::IsSTLCont(const clang::RecordDecl &cl)
    //                           For example: vector<deque<int>> has answer -1
 
    if (!IsStdClass(cl)) {
-      return ROOT::kNotSTL;
+      return CppyyLegacy::kNotSTL;
    }
 
    return STLKind(cl.getName());
@@ -4348,7 +4301,7 @@ static bool hasSomeTypedefSomewhere(const clang::Type* T) {
 /// instantiating the class template instance and replace it with the
 /// partially sugared types we have from 'instance'.
 
-clang::QualType ROOT::TMetaUtils::ReSubstTemplateArg(clang::QualType input, const clang::Type *instance)
+clang::QualType CppyyLegacy::TMetaUtils::ReSubstTemplateArg(clang::QualType input, const clang::Type *instance)
 {
    if (!instance) return input;
    // if there is no typedef in instance then there is nothing guiding any
@@ -4538,7 +4491,7 @@ clang::QualType ROOT::TMetaUtils::ReSubstTemplateArg(clang::QualType input, cons
          llvm::raw_string_ostream ostream(astDump);
          instance->dump(ostream);
          ostream.flush();
-         ROOT::TMetaUtils::Warning("ReSubstTemplateArg","Unexpected type of declaration context for template parameter: %s.\n\tThe responsible class is:\n\t%s\n",
+         CppyyLegacy::TMetaUtils::Warning("ReSubstTemplateArg","Unexpected type of declaration context for template parameter: %s.\n\tThe responsible class is:\n\t%s\n",
                                    replacedDeclCtxt->getDeclKindName(), astDump.c_str());
          replacedCtxt = nullptr;
       }
@@ -4603,7 +4556,7 @@ clang::QualType ROOT::TMetaUtils::ReSubstTemplateArg(clang::QualType input, cons
 ////////////////////////////////////////////////////////////////////////////////
 /// Remove the last n template arguments from the name
 
-int ROOT::TMetaUtils::RemoveTemplateArgsFromName(std::string& name, unsigned int nArgsToRemove)
+int CppyyLegacy::TMetaUtils::RemoveTemplateArgsFromName(std::string& name, unsigned int nArgsToRemove)
 {
    if ( nArgsToRemove == 0 || name == "")
       return 0;
@@ -4631,30 +4584,30 @@ int ROOT::TMetaUtils::RemoveTemplateArgsFromName(std::string& name, unsigned int
 ////////////////////////////////////////////////////////////////////////////////
 /// Converts STL container name to number. vector -> 1, etc..
 
-ROOT::ESTLType ROOT::TMetaUtils::STLKind(const llvm::StringRef type)
+CppyyLegacy::ESTLType CppyyLegacy::TMetaUtils::STLKind(const llvm::StringRef type)
 {
    static const char *stls[] =                  //container names
       {"any","vector","list", "deque","map","multimap","set","multiset","bitset",
          "forward_list","unordered_set","unordered_multiset","unordered_map","unordered_multimap",0};
-   static const ROOT::ESTLType values[] =
-      {ROOT::kNotSTL, ROOT::kSTLvector,
-       ROOT::kSTLlist, ROOT::kSTLdeque,
-       ROOT::kSTLmap, ROOT::kSTLmultimap,
-       ROOT::kSTLset, ROOT::kSTLmultiset,
-       ROOT::kSTLbitset,
-       ROOT::kSTLforwardlist,
-       ROOT::kSTLunorderedset, ROOT::kSTLunorderedmultiset,
-       ROOT::kSTLunorderedmap, ROOT::kSTLunorderedmultimap,
-       ROOT::kNotSTL
+   static const CppyyLegacy::ESTLType values[] =
+      {CppyyLegacy::kNotSTL, CppyyLegacy::kSTLvector,
+       CppyyLegacy::kSTLlist, CppyyLegacy::kSTLdeque,
+       CppyyLegacy::kSTLmap, CppyyLegacy::kSTLmultimap,
+       CppyyLegacy::kSTLset, CppyyLegacy::kSTLmultiset,
+       CppyyLegacy::kSTLbitset,
+       CppyyLegacy::kSTLforwardlist,
+       CppyyLegacy::kSTLunorderedset, CppyyLegacy::kSTLunorderedmultiset,
+       CppyyLegacy::kSTLunorderedmap, CppyyLegacy::kSTLunorderedmultimap,
+       CppyyLegacy::kNotSTL
       };
    //              kind of stl container
    for(int k=1;stls[k];k++) {if (type.equals(stls[k])) return values[k];}
-   return ROOT::kNotSTL;
+   return CppyyLegacy::kNotSTL;
 }
 
 ////////////////////////////////////////////////////////////////////////////////
 
-const clang::TypedefNameDecl* ROOT::TMetaUtils::GetAnnotatedRedeclarable(const clang::TypedefNameDecl* TND)
+const clang::TypedefNameDecl* CppyyLegacy::TMetaUtils::GetAnnotatedRedeclarable(const clang::TypedefNameDecl* TND)
 {
    if (!TND)
       return 0;
@@ -4668,7 +4621,7 @@ const clang::TypedefNameDecl* ROOT::TMetaUtils::GetAnnotatedRedeclarable(const c
 
 ////////////////////////////////////////////////////////////////////////////////
 
-const clang::TagDecl* ROOT::TMetaUtils::GetAnnotatedRedeclarable(const clang::TagDecl* TD)
+const clang::TagDecl* CppyyLegacy::TMetaUtils::GetAnnotatedRedeclarable(const clang::TagDecl* TD)
 {
    if (!TD)
       return 0;
@@ -4683,7 +4636,7 @@ const clang::TagDecl* ROOT::TMetaUtils::GetAnnotatedRedeclarable(const clang::Ta
 ////////////////////////////////////////////////////////////////////////////////
 /// Extract the immediately outer namespace and then launch the recursion
 
-void ROOT::TMetaUtils::ExtractEnclosingNameSpaces(const clang::Decl& decl,
+void CppyyLegacy::TMetaUtils::ExtractEnclosingNameSpaces(const clang::Decl& decl,
                                                   std::list<std::pair<std::string,bool> >& enclosingNamespaces)
 {
    const clang::DeclContext* enclosingNamespaceDeclCtxt = decl.getDeclContext();
@@ -4703,7 +4656,7 @@ void ROOT::TMetaUtils::ExtractEnclosingNameSpaces(const clang::Decl& decl,
 ////////////////////////////////////////////////////////////////////////////////
 /// Extract enclosing namespaces recursively
 
-void ROOT::TMetaUtils::ExtractCtxtEnclosingNameSpaces(const clang::DeclContext& ctxt,
+void CppyyLegacy::TMetaUtils::ExtractCtxtEnclosingNameSpaces(const clang::DeclContext& ctxt,
                                                       std::list<std::pair<std::string,bool> >& enclosingNamespaces)
 {
    const clang::DeclContext* enclosingNamespaceDeclCtxt = ctxt.getParent ();
@@ -4730,7 +4683,7 @@ void ROOT::TMetaUtils::ExtractCtxtEnclosingNameSpaces(const clang::DeclContext& 
 /// Extract the names and types of containing scopes.
 /// Stop if a class is met and return its pointer.
 
-const clang::RecordDecl* ROOT::TMetaUtils::ExtractEnclosingScopes(const clang::Decl& decl,
+const clang::RecordDecl* CppyyLegacy::TMetaUtils::ExtractEnclosingScopes(const clang::Decl& decl,
                                                                   std::list<std::pair<std::string,unsigned int> >& enclosingSc)
 {
    const clang::DeclContext* enclosingDeclCtxt = decl.getDeclContext();
@@ -4771,7 +4724,7 @@ static void replaceEnvVars(const char* varname, std::string& txt)
          endVarName = txt.find(')', beginVarName);
          ++beginVarName;
          if (endVarName == std::string::npos) {
-            ROOT::TMetaUtils::Error(0, "Missing ')' for '$(' in $%s at %s\n",
+            CppyyLegacy::TMetaUtils::Error(0, "Missing ')' for '$(' in $%s at %s\n",
                                     varname, txt.c_str() + beginVar);
             return;
          }
@@ -4805,7 +4758,7 @@ static void replaceEnvVars(const char* varname, std::string& txt)
 /// FIXME: enables relocatability for experiments' framework headers until PCMs
 /// are available.
 
-void ROOT::TMetaUtils::SetPathsForRelocatability(std::vector<std::string>& clingArgs )
+void CppyyLegacy::TMetaUtils::SetPathsForRelocatability(std::vector<std::string>& clingArgs )
 {
    const char* envInclPath = getenv("ROOT_INCLUDE_PATH");
 
@@ -4825,7 +4778,7 @@ void ROOT::TMetaUtils::SetPathsForRelocatability(std::vector<std::string>& cling
 
 ////////////////////////////////////////////////////////////////////////////////
 
-void ROOT::TMetaUtils::ReplaceAll(std::string& str, const std::string& from, const std::string& to,bool recurse)
+void CppyyLegacy::TMetaUtils::ReplaceAll(std::string& str, const std::string& from, const std::string& to,bool recurse)
 {
    if(from.empty())
       return;
@@ -4844,14 +4797,14 @@ void ROOT::TMetaUtils::ReplaceAll(std::string& str, const std::string& from, con
 
 ////////////////////////////////////////////////////////////////////////////////
 /// Return the separator suitable for this platform.
-const std::string& ROOT::TMetaUtils::GetPathSeparator()
+const std::string& CppyyLegacy::TMetaUtils::GetPathSeparator()
 {
-   return ROOT::FoundationUtils::GetPathSeparator();
+   return CppyyLegacy::FoundationUtils::GetPathSeparator();
 }
 
 ////////////////////////////////////////////////////////////////////////////////
 
-bool ROOT::TMetaUtils::EndsWith(const std::string &theString, const std::string &theSubstring)
+bool CppyyLegacy::TMetaUtils::EndsWith(const std::string &theString, const std::string &theSubstring)
 {
    if (theString.size() < theSubstring.size()) return false;
    const unsigned int theSubstringSize = theSubstring.size();
@@ -4862,7 +4815,7 @@ bool ROOT::TMetaUtils::EndsWith(const std::string &theString, const std::string 
 
 ////////////////////////////////////////////////////////////////////////////////
 
-bool ROOT::TMetaUtils::BeginsWith(const std::string &theString, const std::string &theSubstring)
+bool CppyyLegacy::TMetaUtils::BeginsWith(const std::string &theString, const std::string &theSubstring)
 {
    if (theString.size() < theSubstring.size()) return false;
    const unsigned int theSubstringSize = theSubstring.size();
@@ -4875,7 +4828,7 @@ bool ROOT::TMetaUtils::BeginsWith(const std::string &theString, const std::strin
 
 ////////////////////////////////////////////////////////////////////////////////
 
-bool ROOT::TMetaUtils::IsLinkdefFile(const char *filename)
+bool CppyyLegacy::TMetaUtils::IsLinkdefFile(const char *filename)
 {
    // Note, should change this into take llvm::StringRef.
 
@@ -4900,7 +4853,7 @@ bool ROOT::TMetaUtils::IsLinkdefFile(const char *filename)
 
 ////////////////////////////////////////////////////////////////////////////////
 
-bool ROOT::TMetaUtils::IsHeaderName(const std::string &filename)
+bool CppyyLegacy::TMetaUtils::IsHeaderName(const std::string &filename)
 {
    return llvm::sys::path::extension(filename) == ".h" ||
           llvm::sys::path::extension(filename) == ".hh" ||
@@ -4914,7 +4867,7 @@ bool ROOT::TMetaUtils::IsHeaderName(const std::string &filename)
 
 ////////////////////////////////////////////////////////////////////////////////
 
-const std::string ROOT::TMetaUtils::AST2SourceTools::Decls2FwdDecls(const std::vector<const clang::Decl *> &decls, cling::Interpreter::IgnoreFilesFunc_t ignoreFiles, const cling::Interpreter &interp)
+const std::string CppyyLegacy::TMetaUtils::AST2SourceTools::Decls2FwdDecls(const std::vector<const clang::Decl *> &decls, cling::Interpreter::IgnoreFilesFunc_t ignoreFiles, const cling::Interpreter &interp)
 {
    clang::Sema &sema = interp.getSema();
    cling::Transaction theTransaction(sema);
@@ -4938,7 +4891,7 @@ const std::string ROOT::TMetaUtils::AST2SourceTools::Decls2FwdDecls(const std::v
 /// the namespaces ns1 and ns2, one would get:
 /// namespace ns2{ namespace ns1 { class myClass; } }
 
-int ROOT::TMetaUtils::AST2SourceTools::EncloseInNamespaces(const clang::Decl& decl,
+int CppyyLegacy::TMetaUtils::AST2SourceTools::EncloseInNamespaces(const clang::Decl& decl,
                                                            std::string& defString)
 {
    auto rcd = EncloseInScopes(decl, defString);
@@ -4950,11 +4903,11 @@ int ROOT::TMetaUtils::AST2SourceTools::EncloseInNamespaces(const clang::Decl& de
 /// definition string.
 /// If a class is encountered, bail out.
 
-const clang::RecordDecl* ROOT::TMetaUtils::AST2SourceTools::EncloseInScopes(const clang::Decl& decl,
+const clang::RecordDecl* CppyyLegacy::TMetaUtils::AST2SourceTools::EncloseInScopes(const clang::Decl& decl,
                                                                             std::string& defString)
 {
    std::list<std::pair<std::string,unsigned int> > enclosingNamespaces;
-   auto rcdPtr = ROOT::TMetaUtils::ExtractEnclosingScopes(decl,enclosingNamespaces);
+   auto rcdPtr = CppyyLegacy::TMetaUtils::ExtractEnclosingScopes(decl,enclosingNamespaces);
 
    if (rcdPtr) return rcdPtr;
 
@@ -4989,7 +4942,7 @@ const clang::RecordDecl* ROOT::TMetaUtils::AST2SourceTools::EncloseInScopes(cons
 /// Case 3: a TemplateTemplate argument
 ///   E.g. template <template <typename> class T> class container { };
 
-int ROOT::TMetaUtils::AST2SourceTools::PrepareArgsForFwdDecl(std::string& templateArgs,
+int CppyyLegacy::TMetaUtils::AST2SourceTools::PrepareArgsForFwdDecl(std::string& templateArgs,
                           const clang::TemplateParameterList& tmplParamList,
                           const cling::Interpreter& interpreter)
 {
@@ -5020,10 +4973,10 @@ int ROOT::TMetaUtils::AST2SourceTools::PrepareArgsForFwdDecl(std::string& templa
             llvm::raw_string_ostream ostream(astDump);
             nttpd->dump(ostream);
             ostream.flush();
-            ROOT::TMetaUtils::Warning(0,"Forward declarations of templates with enums as template parameters. The responsible class is: %s\n", astDump.c_str());
+            CppyyLegacy::TMetaUtils::Warning(0,"Forward declarations of templates with enums as template parameters. The responsible class is: %s\n", astDump.c_str());
             return 1;
          } else {
-            ROOT::TMetaUtils::GetFullyQualifiedTypeName(typeName,
+            CppyyLegacy::TMetaUtils::GetFullyQualifiedTypeName(typeName,
                                                         theType,
                                                         interpreter);
          }
@@ -5036,7 +4989,7 @@ int ROOT::TMetaUtils::AST2SourceTools::PrepareArgsForFwdDecl(std::string& templa
             llvm::raw_string_ostream ostream(astDump);
             ttpd->dump(ostream);
             ostream.flush();
-            ROOT::TMetaUtils::Error(0,"Cannot reconstruct template template parameter forward declaration for %s\n", astDump.c_str());
+            CppyyLegacy::TMetaUtils::Error(0,"Cannot reconstruct template template parameter forward declaration for %s\n", astDump.c_str());
             return 1;
          }
       }
@@ -5051,7 +5004,7 @@ int ROOT::TMetaUtils::AST2SourceTools::PrepareArgsForFwdDecl(std::string& templa
 ////////////////////////////////////////////////////////////////////////////////
 /// Convert a tmplt decl to its fwd decl
 
-int ROOT::TMetaUtils::AST2SourceTools::FwdDeclFromTmplDecl(const clang::TemplateDecl& templDecl,
+int CppyyLegacy::TMetaUtils::AST2SourceTools::FwdDeclFromTmplDecl(const clang::TemplateDecl& templDecl,
                                                            const cling::Interpreter& interpreter,
                                                            std::string& defString)
 {
@@ -5095,7 +5048,7 @@ static int TreatSingleTemplateArg(const clang::TemplateArgument& arg,
                                   const  cling::Interpreter& interpreter,
                                   bool acceptStl=false)
 {
-   using namespace ROOT::TMetaUtils::AST2SourceTools;
+   using namespace CppyyLegacy::TMetaUtils::AST2SourceTools;
 
    // We do nothing in presence of ints, bools, templates.
    // We should probably in presence of templates though...
@@ -5140,13 +5093,13 @@ static int TreatSingleTemplateArg(const clang::TemplateArgument& arg,
 /// If this is a template specialisation, treat in the proper way.
 /// If it is contained in a class, just fwd declare the class.
 
-int ROOT::TMetaUtils::AST2SourceTools::FwdDeclFromRcdDecl(const clang::RecordDecl& recordDecl,
+int CppyyLegacy::TMetaUtils::AST2SourceTools::FwdDeclFromRcdDecl(const clang::RecordDecl& recordDecl,
                                                           const cling::Interpreter& interpreter,
                                                           std::string& defString,
                                                           bool acceptStl)
 {
    // Do not fwd declare the templates in the stl.
-   if (ROOT::TMetaUtils::IsStdClass(recordDecl) && !acceptStl)
+   if (CppyyLegacy::TMetaUtils::IsStdClass(recordDecl) && !acceptStl)
       return 0;
 
    // Do not fwd declare unnamed decls.
@@ -5158,12 +5111,12 @@ int ROOT::TMetaUtils::AST2SourceTools::FwdDeclFromRcdDecl(const clang::RecordDec
 
    if (auto tmplSpecDeclPtr = llvm::dyn_cast<clang::ClassTemplateSpecializationDecl>(&recordDecl)){
       std::string argFwdDecl;
-      if (GetErrorIgnoreLevel() == ROOT::TMetaUtils::kInfo)
+      if (GetErrorIgnoreLevel() == CppyyLegacy::TMetaUtils::kInfo)
          std::cout << "Class " << recordDecl.getNameAsString()
                    << " is a template specialisation. Treating its arguments.\n";
       for(auto arg : tmplSpecDeclPtr->getTemplateArgs().asArray()){
          int retCode = TreatSingleTemplateArg(arg, argFwdDecl, interpreter, acceptStl);
-         if (GetErrorIgnoreLevel() == ROOT::TMetaUtils::kInfo){
+         if (GetErrorIgnoreLevel() == CppyyLegacy::TMetaUtils::kInfo){
             std::cout << " o Template argument ";
             if (retCode==0){
                std::cout << "successfully treated. Arg fwd decl: " << argFwdDecl << std::endl;
@@ -5198,9 +5151,7 @@ int ROOT::TMetaUtils::AST2SourceTools::FwdDeclFromRcdDecl(const clang::RecordDec
    if (rcd){
       FwdDeclFromRcdDecl(*rcd, interpreter,defString);
    }
-   // Add a \n here to avoid long lines which contain duplications, for example (from MathCore):
-   // namespace ROOT { namespace Math { class IBaseFunctionMultiDim; } }namespace ROOT { namespace Fit { template <typename FunType> class Chi2FCN; } }
-   // namespace ROOT { namespace Math { class IGradientFunctionMultiDim; } }namespace ROOT { namespace Fit { template <typename FunType> class Chi2FCN; } }
+   // Add a \n here to avoid long lines which contain duplications
    defString = argsFwdDecl + "\n" + defString;
 
    return 0;
@@ -5211,7 +5162,7 @@ int ROOT::TMetaUtils::AST2SourceTools::FwdDeclFromRcdDecl(const clang::RecordDec
 /// If the typedef is contained in a class, just fwd declare the class.
 /// If not, fwd declare the typedef and all the dependent typedefs and types if necessary.
 
-int ROOT::TMetaUtils::AST2SourceTools::FwdDeclFromTypeDefNameDecl(const clang::TypedefNameDecl& tdnDecl,
+int CppyyLegacy::TMetaUtils::AST2SourceTools::FwdDeclFromTypeDefNameDecl(const clang::TypedefNameDecl& tdnDecl,
                                                                   const cling::Interpreter& interpreter,
                                                                   std::string& fwdDeclString,
                                                                   std::unordered_set<std::string>* fwdDeclSetPtr)
@@ -5230,7 +5181,7 @@ int ROOT::TMetaUtils::AST2SourceTools::FwdDeclFromTypeDefNameDecl(const clang::T
    }
 
    TNormalizedCtxt nCtxt(interpreter.getLookupHelper());
-   ROOT::TMetaUtils::GetNormalizedName(underlyingName,
+   CppyyLegacy::TMetaUtils::GetNormalizedName(underlyingName,
                                        underlyingType,
                                        interpreter,
                                        nCtxt);
@@ -5265,7 +5216,7 @@ int ROOT::TMetaUtils::AST2SourceTools::FwdDeclFromTypeDefNameDecl(const clang::T
          fwdDeclString+=tdnFwdDecl;
    } else if (auto CXXRcdDeclPtr = immediatelyUnderlyingType->getAsCXXRecordDecl()){
       std::string classFwdDecl;
-      if (GetErrorIgnoreLevel() == ROOT::TMetaUtils::kInfo)
+      if (GetErrorIgnoreLevel() == CppyyLegacy::TMetaUtils::kInfo)
          std::cout << "Typedef " << tdnDecl.getNameAsString() << " hides a class: "
                    << CXXRcdDeclPtr->getNameAsString() << std::endl;
       int retCode = FwdDeclFromRcdDecl(*CXXRcdDeclPtr,
@@ -5291,7 +5242,7 @@ int ROOT::TMetaUtils::AST2SourceTools::FwdDeclFromTypeDefNameDecl(const clang::T
 /// - Integers
 /// - Booleans
 
-int ROOT::TMetaUtils::AST2SourceTools::GetDefArg(const clang::ParmVarDecl& par,
+int CppyyLegacy::TMetaUtils::AST2SourceTools::GetDefArg(const clang::ParmVarDecl& par,
                                                  std::string& valAsString,
                                                  const clang::PrintingPolicy& ppolicy)
 {
@@ -5331,10 +5282,9 @@ int ROOT::TMetaUtils::AST2SourceTools::GetDefArg(const clang::ParmVarDecl& par,
    defArgExprPtr->printPretty(rso,nullptr,ppolicy);
    valAsString = rso.str();
    // We can be in presence of a string. Let's escape the characters properly.
-   ROOT::TMetaUtils::ReplaceAll(valAsString,"\\\"","__TEMP__VAL__");
-   ROOT::TMetaUtils::ReplaceAll(valAsString,"\"","\\\"");
-   ROOT::TMetaUtils::ReplaceAll(valAsString,"__TEMP__VAL__","\\\"");
+   CppyyLegacy::TMetaUtils::ReplaceAll(valAsString,"\\\"","__TEMP__VAL__");
+   CppyyLegacy::TMetaUtils::ReplaceAll(valAsString,"\"","\\\"");
+   CppyyLegacy::TMetaUtils::ReplaceAll(valAsString,"__TEMP__VAL__","\\\"");
 
    return 0;
 }
-

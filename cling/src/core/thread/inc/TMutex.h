@@ -27,6 +27,8 @@
 #include "TMutexImp.h"
 
 
+namespace CppyyLegacy {
+
 class TMutex : public TVirtualMutex {
 
 friend class TCondition;
@@ -56,4 +58,5 @@ public:
    ClassDef(TMutex,0)  // Mutex lock class
 };
 
+} // namespace CppyyLegacy
 #endif

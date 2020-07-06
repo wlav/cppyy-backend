@@ -14,13 +14,14 @@
 #include <iostream>
 #include <sstream>
 
-namespace ROOT {
+
+namespace CppyyLegacy {
 namespace Internal {
 
 ////////////////////////////////////////////////////////////////////////////////
 
 DictSelectionReader::DictSelectionReader(cling::Interpreter &interp, SelectionRules &selectionRules,
-                                         const clang::ASTContext &C, ROOT::TMetaUtils::TNormalizedCtxt &normCtxt)
+                                         const clang::ASTContext &C, CppyyLegacy::TMetaUtils::TNormalizedCtxt &normCtxt)
    : fSelectionRules(selectionRules), fIsFirstPass(true), fNormCtxt(normCtxt)
 {
    clang::TranslationUnitDecl *translUnitDecl = C.getTranslationUnitDecl();
@@ -52,7 +53,7 @@ DictSelectionReader::DictSelectionReader(cling::Interpreter &interp, SelectionRu
 /// If it's not contained by 2 namespaces, drop it.
 
 /**
- * Check that the recordDecl is enclosed in the ROOT::Meta::Selection namespace,
+ * Check that the recordDecl is enclosed in the CppyyLegacy::Meta::Selection namespace,
  * excluding the portion dedicated the definition of the syntax, which is part
  * of ROOT, not of the user code.
  * If performance is needed, an alternative approach to string comparisons
@@ -64,7 +65,7 @@ DictSelectionReader::InSelectionNamespace(const clang::RecordDecl &recordDecl,
       const std::string &className)
 {
    std::list<std::pair<std::string, bool> > enclosingNamespaces;
-   ROOT::TMetaUtils::ExtractEnclosingNameSpaces(recordDecl,
+   CppyyLegacy::TMetaUtils::ExtractEnclosingNameSpaces(recordDecl,
          enclosingNamespaces);
 
    const unsigned int nNs = enclosingNamespaces.size();
@@ -122,7 +123,7 @@ DictSelectionReader::ExtractTemplateArgValue(const T &myClass,
       const std::string &pattern)
 {
    const clang::RecordDecl *rcrdDecl =
-      ROOT::TMetaUtils::GetUnderlyingRecordDecl(myClass.getType());
+      CppyyLegacy::TMetaUtils::GetUnderlyingRecordDecl(myClass.getType());
    const clang::CXXRecordDecl *cxxRcrdDecl =
       llvm::dyn_cast<clang::CXXRecordDecl>(rcrdDecl);
 
@@ -161,35 +162,35 @@ void DictSelectionReader::ManageFields(const clang::RecordDecl &recordDecl,
       unsigned int attrCode =
          ExtractTemplateArgValue(*fieldPtr, "MemberAttributes");
 
-      if (attrCode == ROOT::Meta::Selection::kMemberNullProperty) continue;
+      if (attrCode == CppyyLegacy::Meta::Selection::kMemberNullProperty) continue;
 
       const char *fieldName = fieldPtr->getName().data();
 
-      if (attrCode & ROOT::Meta::Selection::kNonSplittable) {
+      if (attrCode & CppyyLegacy::Meta::Selection::kNonSplittable) {
          if (!autoselect) {
             fTemplateInfoMap[pattern].fUnsplittableMembers.insert(fieldName);
          } else {
             VariableSelectionRule vsr(BaseSelectionRule::kYes);
-            vsr.SetAttributeValue(ROOT::TMetaUtils::propNames::name, fieldName);
-            vsr.SetAttributeValue(ROOT::TMetaUtils::propNames::comment, "||");
+            vsr.SetAttributeValue(CppyyLegacy::TMetaUtils::propNames::name, fieldName);
+            vsr.SetAttributeValue(CppyyLegacy::TMetaUtils::propNames::comment, "||");
             csr.AddFieldSelectionRule(vsr);
          }
       }
 
-      if (attrCode & ROOT::Meta::Selection::kTransient) {
+      if (attrCode & CppyyLegacy::Meta::Selection::kTransient) {
          if (!autoselect) {
             fTemplateInfoMap[pattern].fTransientMembers.insert(fieldName);
          } else {
             VariableSelectionRule vsr(BaseSelectionRule::kYes);
-            vsr.SetAttributeValue(ROOT::TMetaUtils::propNames::name, fieldName);
-            vsr.SetAttributeValue(ROOT::TMetaUtils::propNames::comment, "!");
+            vsr.SetAttributeValue(CppyyLegacy::TMetaUtils::propNames::name, fieldName);
+            vsr.SetAttributeValue(CppyyLegacy::TMetaUtils::propNames::comment, "!");
             csr.AddFieldSelectionRule(vsr);
          }
       }
 
-      if (attrCode & ROOT::Meta::Selection::kAutoSelected)
+      if (attrCode & CppyyLegacy::Meta::Selection::kAutoSelected)
          fAutoSelectedClassFieldNames[className].insert(fieldName);
-      else if (attrCode & ROOT::Meta::Selection::kNoAutoSelected)
+      else if (attrCode & CppyyLegacy::Meta::Selection::kNoAutoSelected)
          fNoAutoSelectedClassFieldNames[className].insert(fieldName);
 
    } // end loop on fields
@@ -233,8 +234,8 @@ DictSelectionReader::ManageBaseClasses(const clang::CXXRecordDecl &cxxRcrdDecl,
       // at most one string comparison...
       if (autoselect) {
          auto qt = base.getType();
-         ROOT::TMetaUtils::GetFullyQualifiedTypeName(baseName, qt, C);
-         if (baseName == "ROOT::Meta::Selection::SelectNoInstance") autoselect = false;
+         CppyyLegacy::TMetaUtils::GetFullyQualifiedTypeName(baseName, qt, C);
+         if (baseName == "CppyyLegacy::Meta::Selection::SelectNoInstance") autoselect = false;
       }
 
    } // end loop on base classes
@@ -250,10 +251,10 @@ DictSelectionReader::ManageBaseClasses(const clang::CXXRecordDecl &cxxRcrdDecl,
 bool DictSelectionReader::FirstPass(const clang::RecordDecl &recordDecl)
 {
    std::string className;
-   ROOT::TMetaUtils::GetQualifiedName(
+   CppyyLegacy::TMetaUtils::GetQualifiedName(
       className, *recordDecl.getTypeForDecl(), recordDecl);
 
-   // Strip ROOT::Meta::Selection
+   // Strip CppyyLegacy::Meta::Selection
    className.replace(0, 23, "");
 
    if (!InSelectionNamespace(recordDecl, className)) return true;
@@ -271,10 +272,10 @@ bool DictSelectionReader::FirstPass(const clang::RecordDecl &recordDecl)
    if (lWedgePos != std::string::npos &&
          llvm::isa<clang::ClassTemplateSpecializationDecl>(recordDecl)) {
       patternName = PatternifyName(className);
-      csr.SetAttributeValue(ROOT::TMetaUtils::propNames::pattern, patternName);
+      csr.SetAttributeValue(CppyyLegacy::TMetaUtils::propNames::pattern, patternName);
 
    } else {
-      csr.SetAttributeValue(ROOT::TMetaUtils::propNames::name, className);
+      csr.SetAttributeValue(CppyyLegacy::TMetaUtils::propNames::name, className);
    }
 
    ManageFields(recordDecl, className, csr, autoselect);
@@ -306,7 +307,7 @@ bool DictSelectionReader::FirstPass(const clang::RecordDecl &recordDecl)
  **/
 bool DictSelectionReader::SecondPass(const clang::RecordDecl &recordDecl)
 {
-   using namespace ROOT::TMetaUtils;
+   using namespace CppyyLegacy::TMetaUtils;
 
    // No interest if we are in the selection namespace
    if (InSelectionNamespace(recordDecl)) return true;
@@ -415,6 +416,5 @@ inline void DictSelectionReader::GetPointeeType(std::string &typeName)
       typeName = typeName.substr(0, typeName.size() - 1);
    }
 }
-
 }
-}
+} // namespace CppyyLegacy

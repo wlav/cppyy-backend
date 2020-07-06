@@ -24,7 +24,10 @@ unloaded function.
 #include "TInterpreter.h"
 #include "TVirtualMutex.h"
 
-ClassImp(TListOfFunctionTemplates);
+
+ClassImp(CppyyLegacy::TListOfFunctionTemplates);
+
+namespace CppyyLegacy {
 
 ////////////////////////////////////////////////////////////////////////////////
 /// Constructor.
@@ -407,3 +410,5 @@ void TListOfFunctionTemplates::Unload(TFunctionTemplate *func)
       fUnloaded->Add(func);
    }
 }
+
+} // namespace CppyyLegacy

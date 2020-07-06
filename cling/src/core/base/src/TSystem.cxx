@@ -52,17 +52,21 @@ allows a simple partial implementation for new OS'es.
 #include <io.h>
 #endif
 #define Printf TStringPrintf
+
+CppyyLegacy::TSystem* gSystem   = 0;
+
+
+ClassImp(CppyyLegacy::TSystem);
+
+namespace CppyyLegacy {
+
 const char *gRootDir;
 const char *gProgName;
 const char *gProgPath;
 
-TSystem      *gSystem   = 0;
-
 static Int_t *gLibraryVersion    = 0;   // Set in TVersionCheck, used in Load()
 static Int_t  gLibraryVersionIdx = 0;   // Set in TVersionCheck, used in Load()
 static Int_t  gLibraryVersionMax = 256;
-
-ClassImp(TSystem);
 
 TVirtualMutex* gSystemMutex = 0;
 
@@ -612,10 +616,10 @@ TSystem *TSystem::FindHelper(const char *path, void *dirptr)
 {
    TSystem *helper = nullptr;
    {
-      R__READ_LOCKGUARD(ROOT::gCoreMutex);
+      R__READ_LOCKGUARD(gCoreMutex);
 
       if (!fHelpers) {
-         R__WRITE_LOCKGUARD(ROOT::gCoreMutex);
+         R__WRITE_LOCKGUARD(gCoreMutex);
          fHelpers = new TOrdCollection;
       }
 
@@ -1083,7 +1087,7 @@ again:
    delete[] buff;
 
    if (ier || ncopy != lx) {
-      ::Error("TSystem::ExpandFileName", "input: %s, output: %s", fname, xname);
+      ::CppyyLegacy::Error("TSystem::ExpandFileName", "input: %s, output: %s", fname, xname);
       return kTRUE;
    }
 
@@ -2521,9 +2525,9 @@ static void R__WriteDependencyFile(const TString & build_loc, const TString &dep
    addversiondep += libname + version_var_prefix + " \"" + ROOT_RELEASE + "\" >> \""+depfilename+"\"";
 
    if (gDebug > 4)  {
-      ::Info("ACLiC", "%s", touch.Data());
-      ::Info("ACLiC", "%s", builddep.Data());
-      ::Info("ACLiC", "%s", adddictdep.Data());
+      ::CppyyLegacy::Info("ACLiC", "%s", touch.Data());
+      ::CppyyLegacy::Info("ACLiC", "%s", builddep.Data());
+      ::CppyyLegacy::Info("ACLiC", "%s", adddictdep.Data());
    }
 
    Int_t depbuilt = !gSystem->Exec(touch);
@@ -2532,7 +2536,7 @@ static void R__WriteDependencyFile(const TString & build_loc, const TString &dep
    if (depbuilt) depbuilt = !gSystem->Exec(addversiondep);
 
    if (!depbuilt) {
-      ::Warning("ACLiC","Failed to generate the dependency file for %s",
+      ::CppyyLegacy::Warning("ACLiC","Failed to generate the dependency file for %s",
                 library.Data());
    } else {
 #ifdef WIN32
@@ -2751,12 +2755,12 @@ int TSystem::CompileMacro(const char *filename, Option_t *opt,
          library = whichlibrary;
          delete [] whichlibrary;
       } else {
-         ::Error("ACLiC","The file %s can not be found in the include path: %s",filename,incPath.Data());
+         ::CppyyLegacy::Error("ACLiC","The file %s can not be found in the include path: %s",filename,incPath.Data());
          return kFALSE;
       }
    } else {
       if (gSystem->AccessPathName(library)) {
-         ::Error("ACLiC","The file %s can not be found.",filename);
+         ::CppyyLegacy::Error("ACLiC","The file %s can not be found.",filename);
          return kFALSE;
       }
    }
@@ -2868,8 +2872,8 @@ int TSystem::CompileMacro(const char *filename, Option_t *opt,
       // Let's warn the user and unload it.
 
       if (withInfo) {
-         ::Info("ACLiC","script has already been loaded in interpreted mode");
-         ::Info("ACLiC","unloading %s and compiling it", filename);
+         ::CppyyLegacy::Info("ACLiC","script has already been loaded in interpreted mode");
+         ::CppyyLegacy::Info("ACLiC","unloading %s and compiling it", filename);
       }
 
       if ( gInterpreter->UnloadFile( expFileName ) != 0 ) {
@@ -3084,7 +3088,7 @@ int TSystem::CompileMacro(const char *filename, Option_t *opt,
       if ( !recompile && reload ) {
 
          if (withInfo) {
-            ::Info("ACLiC","%s has been modified and will be reloaded",
+            ::CppyyLegacy::Info("ACLiC","%s has been modified and will be reloaded",
                    libname.Data());
          }
          if ( gInterpreter->UnloadFile( library.Data() ) != 0 ) {
@@ -3107,7 +3111,7 @@ int TSystem::CompileMacro(const char *filename, Option_t *opt,
       }
 
       if (withInfo) {
-         ::Info("ACLiC","%s script has already been compiled and loaded",
+         ::CppyyLegacy::Info("ACLiC","%s script has already been compiled and loaded",
                 modified ? "modified" : "unmodified");
       }
 
@@ -3115,7 +3119,7 @@ int TSystem::CompileMacro(const char *filename, Option_t *opt,
          return kTRUE;
       } else {
          if (withInfo) {
-            ::Info("ACLiC","it will be regenerated and reloaded!");
+            ::CppyyLegacy::Info("ACLiC","it will be regenerated and reloaded!");
          }
          if ( gInterpreter->UnloadFile( library.Data() ) != 0 ) {
             // The library is being used. We can not unload it.
@@ -3204,17 +3208,17 @@ int TSystem::CompileMacro(const char *filename, Option_t *opt,
    if (!canWrite && recompile) {
 
       if (mkdirFailed) {
-         ::Warning("ACLiC","Could not create the directory: %s",
+         ::CppyyLegacy::Warning("ACLiC","Could not create the directory: %s",
                 build_loc.Data());
       } else {
-         ::Warning("ACLiC","%s is not writable!",
+         ::CppyyLegacy::Warning("ACLiC","%s is not writable!",
                    build_loc.Data());
       }
       if (emergency_loc == build_dir ) {
-         ::Error("ACLiC","%s is the last resort location (i.e. temp location)",build_loc.Data());
+         ::CppyyLegacy::Error("ACLiC","%s is the last resort location (i.e. temp location)",build_loc.Data());
          return kFALSE;
       }
-      ::Warning("ACLiC","Output will be written to %s",
+      ::CppyyLegacy::Warning("ACLiC","Output will be written to %s",
                 emergency_loc.Data());
       return CompileMacro(expFileName, opt, library_specified, emergency_loc, dirmode);
    }
@@ -3372,10 +3376,10 @@ int TSystem::CompileMacro(const char *filename, Option_t *opt,
       TString moduleMapFullPath = build_loc + "/" + moduleMapName;
       // A modulemap may exist from previous runs, overwrite it.
       if (verboseLevel > 3 && !AccessPathName(moduleMapFullPath))
-         ::Info("ACLiC", "File %s already exists!", moduleMapFullPath.Data());
+         ::CppyyLegacy::Info("ACLiC", "File %s already exists!", moduleMapFullPath.Data());
 
-      std::string curDir = ROOT::FoundationUtils::GetCurrentDir();
-      std::string relative_path = ROOT::FoundationUtils::MakePathRelative(filename_fullpath.Data(), curDir);
+      std::string curDir = FoundationUtils::GetCurrentDir();
+      std::string relative_path = FoundationUtils::MakePathRelative(filename_fullpath.Data(), curDir);
       std::ofstream moduleMapFile(moduleMapFullPath, std::ios::out);
       moduleMapFile << "module \"" << moduleName << "\" {" << std::endl;
       moduleMapFile << "  header \"" << relative_path << "\"" << std::endl;
@@ -3393,15 +3397,15 @@ int TSystem::CompileMacro(const char *filename, Option_t *opt,
    // ======= Run rootcling
    if (withInfo) {
       if (verboseLevel>3) {
-         ::Info("ACLiC","creating the dictionary files");
-         if (verboseLevel>4)  ::Info("ACLiC", "%s", rcling.Data());
+         ::CppyyLegacy::Info("ACLiC","creating the dictionary files");
+         if (verboseLevel>4)  ::CppyyLegacy::Info("ACLiC", "%s", rcling.Data());
       }
    }
 
    Int_t dictResult = gSystem->Exec(rcling);
    if (dictResult) {
-      if (dictResult==139) ::Error("ACLiC","Dictionary generation failed with a core dump!");
-      else ::Error("ACLiC","Dictionary generation failed!");
+      if (dictResult==139) ::CppyyLegacy::Error("ACLiC","Dictionary generation failed with a core dump!");
+      else ::CppyyLegacy::Error("ACLiC","Dictionary generation failed!");
    }
 
    Bool_t result = !dictResult;
@@ -3569,13 +3573,13 @@ int TSystem::CompileMacro(const char *filename, Option_t *opt,
    // ======= Build the library
    if (result) {
       if (verboseLevel>3 && withInfo) {
-         ::Info("ACLiC","compiling the dictionary and script files");
-         if (verboseLevel>4)  ::Info("ACLiC", "%s", cmd.Data());
+         ::CppyyLegacy::Info("ACLiC","compiling the dictionary and script files");
+         if (verboseLevel>4)  ::CppyyLegacy::Info("ACLiC", "%s", cmd.Data());
       }
       Int_t compilationResult = gSystem->Exec( cmd );
       if (compilationResult) {
-         if (compilationResult==139) ::Error("ACLiC","Compilation failed with a core dump!");
-         else ::Error("ACLiC","Compilation failed!");
+         if (compilationResult==139) ::CppyyLegacy::Error("ACLiC","Compilation failed with a core dump!");
+         else ::CppyyLegacy::Error("ACLiC","Compilation failed!");
          if (produceRootmap) {
             gSystem->Unlink(libmapfilename);
          }
@@ -3595,7 +3599,7 @@ int TSystem::CompileMacro(const char *filename, Option_t *opt,
       if (needLoadMap) {
           gInterpreter->LoadLibraryMap(libmapfilename);
       }
-      if (verboseLevel>3 && withInfo)  ::Info("ACLiC","loading the shared library");
+      if (verboseLevel>3 && withInfo)  ::CppyyLegacy::Info("ACLiC","loading the shared library");
       if (loadLib)
          result = LoadLibrary(library);
       else
@@ -3603,8 +3607,8 @@ int TSystem::CompileMacro(const char *filename, Option_t *opt,
 
       if ( !result ) {
          if (verboseLevel>3 && withInfo) {
-            ::Info("ACLiC","testing for missing symbols:");
-            if (verboseLevel>4)  ::Info("ACLiC", "%s", testcmd.Data());
+            ::CppyyLegacy::Info("ACLiC","testing for missing symbols:");
+            if (verboseLevel>4)  ::CppyyLegacy::Info("ACLiC", "%s", testcmd.Data());
          }
          gSystem->Exec(testcmd);
          gSystem->Unlink( exec );
@@ -4140,3 +4144,5 @@ TVersionCheck::TVersionCheck(int versionCode)
    if (versionCode != TROOT::RootVersionCode() && gLibraryVersion)
       gLibraryVersion[gLibraryVersionIdx] = versionCode;
 }
+
+} // namespace CppyyLegacy

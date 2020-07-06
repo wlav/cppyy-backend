@@ -29,6 +29,8 @@
 
 namespace {
 
+   using namespace CppyyLegacy;
+
    class RPredicateIsSameNamespace
    {
    private:
@@ -54,7 +56,7 @@ inline static bool IsElementPresent(const std::vector<const T*> &v, T *el){
 
 }
 
-using namespace ROOT;
+using namespace CppyyLegacy;
 using namespace clang;
 
 extern cling::Interpreter *gInterp;
@@ -73,10 +75,12 @@ std::map <clang::Decl*, std::string> RScanner::fgAnonymousEnumMap;
 /// Regular constructor setting up the scanner to search for entities
 /// matching the 'rules'.
 
+namespace CppyyLegacy {
+
 RScanner::RScanner (SelectionRules &rules,
                     EScanType stype,
                     const cling::Interpreter &interpret,
-                    ROOT::TMetaUtils::TNormalizedCtxt &normCtxt,
+                    TMetaUtils::TNormalizedCtxt &normCtxt,
                     unsigned int verbose /* = 0 */) :
   fVerboseLevel(verbose),
   fSourceManager(0),
@@ -542,13 +546,13 @@ int RScanner::AddAnnotatedRecordDecl(const ClassSelectionRule* selected,
    bool has_attr_name = selected->HasAttributeName();
 
    if (recordDecl->isUnion() &&
-       0 != ROOT::TMetaUtils::GetClassVersion(recordDecl,fInterpreter)) {
+       0 != TMetaUtils::GetClassVersion(recordDecl,fInterpreter)) {
       std::string normName;
       TMetaUtils::GetNormalizedName(normName,
                                     recordDecl->getASTContext().getTypeDeclType(recordDecl),
                                     fInterpreter,
                                     fNormCtxt);
-      ROOT::TMetaUtils::Error(0,"Union %s has been selected for I/O. This is not supported. Interactive usage of unions is supported, as all C++ entities, without the need of dictionaries.\n",normName.c_str());
+      TMetaUtils::Error(0,"Union %s has been selected for I/O. This is not supported. Interactive usage of unions is supported, as all C++ entities, without the need of dictionaries.\n",normName.c_str());
       return 1;
    }
 
@@ -622,12 +626,12 @@ bool RScanner::TreatRecordDeclOrTypedefNameDecl(clang::TypeDecl* typeDecl)
 
    // If typeDecl is not a RecordDecl, try to fetch the RecordDecl behind the TypedefDecl
    if (!recordDecl && typedefNameDecl) {
-      recordDecl = ROOT::TMetaUtils::GetUnderlyingRecordDecl(typedefNameDecl->getUnderlyingType());
+      recordDecl = TMetaUtils::GetUnderlyingRecordDecl(typedefNameDecl->getUnderlyingType());
    }
 
    // If at this point recordDecl is still NULL, we have a problem
    if (!recordDecl) {
-      ROOT::TMetaUtils::Warning("RScanner::TreatRecordDeclOrTypeNameDecl",
+      TMetaUtils::Warning("RScanner::TreatRecordDeclOrTypeNameDecl",
        "Could not cast typeDecl either to RecordDecl or could not get RecordDecl underneath typedef.\n");
       return true;
    }
@@ -640,7 +644,7 @@ bool RScanner::TreatRecordDeclOrTypedefNameDecl(clang::TypeDecl* typeDecl)
    if (recordDecl->isDependentType())
       return true;
 
-   if (fScanType == EScanType::kOnePCM && ROOT::TMetaUtils::IsStdClass(*recordDecl))
+   if (fScanType == EScanType::kOnePCM && TMetaUtils::IsStdClass(*recordDecl))
       return true;
 
 
@@ -709,7 +713,7 @@ bool RScanner::TreatRecordDeclOrTypedefNameDecl(clang::TypeDecl* typeDecl)
    }
 
    if (typedefNameDecl)
-      ROOT::TMetaUtils::Info("RScanner::TreatRecordDeclOrTypedefNameDecl",
+      TMetaUtils::Info("RScanner::TreatRecordDeclOrTypedefNameDecl",
                               "Typedef is selected %s.\n", typedefNameDecl->getNameAsString().c_str());
 
    // For the case kNo, we could (but don't) remove the node from the pcm
@@ -721,7 +725,7 @@ bool RScanner::TreatRecordDeclOrTypedefNameDecl(clang::TypeDecl* typeDecl)
    if (recordDecl->getName() == "std::pair") {
       const clang::NamespaceDecl *nsDecl = llvm::dyn_cast<clang::NamespaceDecl>(recordDecl->getDeclContext());
       if (!nsDecl){
-         ROOT::TMetaUtils::Error("RScanner::TreatRecordDeclOrTypedefNameDecl",
+         TMetaUtils::Error("RScanner::TreatRecordDeclOrTypedefNameDecl",
                                  "Cannot convert context of RecordDecl called pair into a namespace.\n");
          return true;
       }
@@ -762,7 +766,7 @@ bool RScanner::TreatRecordDeclOrTypedefNameDecl(clang::TypeDecl* typeDecl)
             selected->Print(message);
             message << "Conflicting rule already matched:\n";
             previouslyMatchingRule->Print(message);
-            ROOT::TMetaUtils::Warning(0,"%s\n", message.str().c_str());
+            TMetaUtils::Warning(0,"%s\n", message.str().c_str());
          }
       }
    }
@@ -790,7 +794,7 @@ bool RScanner::TreatRecordDeclOrTypedefNameDecl(clang::TypeDecl* typeDecl)
          auto msg = "Class or struct %s was selected but its dictionary cannot be generated: "
                   "this is a private or protected class and this is not supported. No direct "
                   "I/O operation of %s instances will be possible.\n";
-         ROOT::TMetaUtils::Warning(0,msg,normName.c_str(),normName.c_str());
+         TMetaUtils::Warning(0,msg,normName.c_str(),normName.c_str());
       }
       return true;
    }
@@ -822,7 +826,7 @@ void RScanner::AddDelayedAnnotatedRecordDecls()
       if (!thisType)
          thisType = info.fDecl->getTypeForDecl();
       const clang::CXXRecordDecl *recordDecl = info.fDecl;
-      auto nameTypeForIO = ROOT::TMetaUtils::GetNameTypeForIO(clang::QualType(thisType, 0), fInterpreter, fNormCtxt);
+      auto nameTypeForIO = TMetaUtils::GetNameTypeForIO(clang::QualType(thisType, 0), fInterpreter, fNormCtxt);
       auto typeForIO = nameTypeForIO.second;
       // It could be that we have in hands a type which is not a class, e.g.
       // in presence of unique_ptr<T> we got a T with T=double.
@@ -865,7 +869,7 @@ bool RScanner::VisitTypedefNameDecl(clang::TypedefNameDecl* D)
       isInStd = parent && 0 == parent->getQualifiedNameAsString().compare(0,5,"std::");
       }
 
-   if (ROOT::TMetaUtils::GetUnderlyingRecordDecl(D->getUnderlyingType()) &&
+   if (TMetaUtils::GetUnderlyingRecordDecl(D->getUnderlyingType()) &&
        !isInStd){
       TreatRecordDeclOrTypedefNameDecl(D);
    }
@@ -1089,3 +1093,5 @@ RScanner::DeclCallback RScanner::SetRecordDeclCallback(RScanner::DeclCallback ca
    fRecordDeclCallback = callback;
    return old;
 }
+
+} // namespace CppyyLegacy

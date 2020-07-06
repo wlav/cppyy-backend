@@ -24,7 +24,9 @@ collection since no copying needs to be done.
 #include "TError.h"
 
 
-ClassImp(TOrdCollection);
+ClassImp(CppyyLegacy::TOrdCollection);
+
+namespace CppyyLegacy {
 
 ////////////////////////////////////////////////////////////////////////////////
 /// Create an ordered collection.
@@ -440,11 +442,15 @@ Int_t TOrdCollection::BinarySearch(TObject *obj)
    return -1;
 }
 
+} // namespace CppyyLegacy
+
 /** \class TOrdCollectionIter
 Iterator of ordered collection.
 */
 
 ClassImp(TOrdCollectionIter);
+
+namespace CppyyLegacy {
 
 ////////////////////////////////////////////////////////////////////////////////
 /// Create collection iterator. By default the iteration direction
@@ -553,3 +559,5 @@ TObject *TOrdCollectionIter::operator*() const
    return (((fCurCursor >= 0) && (fCurCursor < fCol->GetSize())) ?
            fCol->At(fCurCursor) : nullptr);
 }
+
+} // namespace CppyyLegacy

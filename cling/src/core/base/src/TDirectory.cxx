@@ -26,6 +26,12 @@
 #include "TMethod.h"
 
 #include "TSpinLockGuard.h"
+
+
+ClassImp(CppyyLegacy::TDirectory);
+
+namespace CppyyLegacy {
+
 #define Printf TStringPrintf
 Bool_t TDirectory::fgAddDirectory = kTRUE;
 
@@ -36,8 +42,6 @@ const Int_t  kMaxLen = 2048;
 
 Describe directory structure in memory.
 */
-
-ClassImp(TDirectory);
 
 ////////////////////////////////////////////////////////////////////////////////
 /// Directory default constructor.
@@ -70,12 +74,12 @@ TDirectory::TDirectory(const char *name, const char *title, Option_t * /*classna
    if (!initMotherDir) initMotherDir = gDirectory;
 
    if (strchr(name,'/')) {
-      ::Error("TDirectory::TDirectory","directory name (%s) cannot contain a slash", name);
+      ::CppyyLegacy::Error("TDirectory::TDirectory","directory name (%s) cannot contain a slash", name);
       gDirectory = nullptr;
       return;
    }
    if (strlen(GetName()) == 0) {
-      ::Error("TDirectory::TDirectory","directory name cannot be \"\"");
+      ::CppyyLegacy::Error("TDirectory::TDirectory","directory name cannot be \"\"");
       gDirectory = nullptr;
       return;
    }
@@ -195,7 +199,7 @@ void TDirectory::Append(TObject *obj, Bool_t replace /* = kFALSE */)
       while (nullptr != (old = GetList()->FindObject(obj->GetName()))) {
          Warning("Append","Replacing existing %s: %s (Potential memory leak).",
                  obj->IsA()->GetName(),obj->GetName());
-         ROOT::DirAutoAdd_t func = old->IsA()->GetDirectoryAutoAdd();
+         DirAutoAdd_t func = old->IsA()->GetDirectoryAutoAdd();
          if (func) {
             func(old,nullptr);
          } else {
@@ -235,7 +239,7 @@ void TDirectory::CleanTargets()
    std::vector<TContext*> extraWait;
 
    {
-      ROOT::Internal::TSpinLockGuard slg(fSpinLock);
+      Internal::TSpinLockGuard slg(fSpinLock);
 
       while (fContext) {
          const auto next = fContext->fNext;
@@ -284,8 +288,8 @@ static TBuffer* R__CreateBuffer()
    static tcling_callfunc_Wrapper_t creator = nullptr;
    if (!creator) {
       R__LOCKGUARD(gROOTMutex);
-      TClass *c = TClass::GetClass("TBufferFile");
-      TMethod *m = c->GetMethodWithPrototype("TBufferFile","TBuffer::EMode,Int_t",kFALSE,ROOT::kExactMatch);
+      TClass *c = TClass::GetClass("CppyyLegacy::TBufferFile");
+      TMethod *m = c->GetMethodWithPrototype("CppyyLegacy::TBufferFile","CppyyLegacy::TBuffer::EMode,Int_t",kFALSE,kExactMatch);
       creator = (tcling_callfunc_Wrapper_t)( m->InterfaceMethod() );
    }
    TBuffer::EMode mode = TBuffer::kWrite;
@@ -347,7 +351,7 @@ TObject *TDirectory::CloneObject(const TObject *obj, Bool_t autoadd /* = kTRUE *
 
    delete buffer;
    if (autoadd) {
-      ROOT::DirAutoAdd_t func = obj->IsA()->GetDirectoryAutoAdd();
+      DirAutoAdd_t func = obj->IsA()->GetDirectoryAutoAdd();
       if (func) {
          func(newobj,this);
       }
@@ -364,7 +368,7 @@ TDirectory *&TDirectory::CurrentDirectory()
    if (!gThreadTsd)
       return currentDirectory;
    else
-      return *(TDirectory**)(*gThreadTsd)(&currentDirectory,ROOT::kDirectoryThreadSlot);
+      return *(TDirectory**)(*gThreadTsd)(&currentDirectory,kDirectoryThreadSlot);
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -1162,7 +1166,7 @@ Int_t TDirectory::SaveObjectAs(const TObject *obj, const char *filename, Option_
       fname.Form("%s.root",obj->GetName());
    }
    TString cmd;
-   cmd.Form("TFile::Open(\"%s\",\"recreate\");",fname.Data());
+   cmd.Form("::CppyyLegacy::TFile::Open(\"%s\",\"recreate\");",fname.Data());
    TContext ctxt; // The TFile::Open will change the current directory.
    TDirectory *local = (TDirectory*)gInterpreter->ProcessLine(cmd);
    if (!local) return 0;
@@ -1224,7 +1228,7 @@ void TDirectory::DecodeNameCycle(const char *buffer, char *name, Short_t &cycle,
    if (namesize) {
       if (len > namesize-1ul) len = namesize-1;  // accommodate string terminator
    } else {
-      ::Warning("TDirectory::DecodeNameCycle",
+      ::CppyyLegacy::Warning("TDirectory::DecodeNameCycle",
          "Using unsafe version: invoke this metod by specifying the buffer size");
    }
 
@@ -1247,7 +1251,7 @@ void TDirectory::DecodeNameCycle(const char *buffer, char *name, Short_t &cycle,
 /// Register a TContext pointing to this TDirectory object
 
 void TDirectory::RegisterContext(TContext *ctxt) {
-   ROOT::Internal::TSpinLockGuard slg(fSpinLock);
+   Internal::TSpinLockGuard slg(fSpinLock);
 
    if (fContext) {
       TContext *current = fContext;
@@ -1278,7 +1282,7 @@ Int_t TDirectory::WriteTObject(const TObject *obj, const char *name, Option_t * 
 
 void TDirectory::UnregisterContext(TContext *ctxt) {
 
-   ROOT::Internal::TSpinLockGuard slg(fSpinLock);
+   Internal::TSpinLockGuard slg(fSpinLock);
 
    // Another thread already unregistered the TContext.
    if (ctxt->fDirectory == nullptr)
@@ -1320,3 +1324,5 @@ void TDirectory::Streamer(TBuffer &R__b)
       R__b.SetByteCount(R__c, kTRUE);
    }
 }
+
+} // namespace CppyyLegacy

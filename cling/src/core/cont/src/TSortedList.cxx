@@ -18,7 +18,9 @@ TObject can be inserted in a TSortedList.
 #include "TSortedList.h"
 
 
-ClassImp(TSortedList);
+ClassImp(CppyyLegacy::TSortedList);
+
+namespace CppyyLegacy {
 
 ////////////////////////////////////////////////////////////////////////////////
 /// Add object in sorted list. Uses object Compare() member to find right
@@ -94,3 +96,5 @@ void TSortedList::Add(TObject *obj, Option_t *opt)
    }
    TList::Add(obj, opt);
 }
+
+} // namespace CppyyLegacy

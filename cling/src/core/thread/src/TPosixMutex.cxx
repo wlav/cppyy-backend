@@ -21,7 +21,10 @@
 #include "TPosixMutex.h"
 #include "PosixThreadInc.h"
 
-ClassImp(TPosixMutex);
+
+ClassImp(CppyyLegacy::TPosixMutex);
+
+namespace CppyyLegacy {
 
 ////////////////////////////////////////////////////////////////////////////////
 /// Create a posix mutex lock.
@@ -91,3 +94,5 @@ Int_t TPosixMutex::UnLock(void)
 {
    return pthread_mutex_unlock(&fMutex);
 }
+
+} // namespace CppyyLegacy

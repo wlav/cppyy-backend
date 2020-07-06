@@ -12,7 +12,6 @@
 #ifndef ROOT_TStreamerElement
 #define ROOT_TStreamerElement
 
-
 //////////////////////////////////////////////////////////////////////////
 //                                                                      //
 // TStreamerElement                                                     //
@@ -22,8 +21,10 @@
 //////////////////////////////////////////////////////////////////////////
 
 #include "TNamed.h"
-
 #include "ESTLType.h"
+
+
+namespace CppyyLegacy {
 
 class TClass;
 class TStreamerBasicType;
@@ -55,21 +56,21 @@ protected:
 public:
 
    enum ESTLtype {
-      kSTL                  = ROOT::kSTLany,
-      kSTLstring            = ROOT::kSTLstring,
-      kSTLvector            = ROOT::kSTLvector,
-      kSTLlist              = ROOT::kSTLlist,
-      kSTLforwardlist       = ROOT::kSTLforwardlist,
-      kSTLdeque             = ROOT::kSTLdeque,
-      kSTLmap               = ROOT::kSTLmap,
-      kSTLmultimap          = ROOT::kSTLmultimap,
-      kSTLset               = ROOT::kSTLset,
-      kSTLmultiset          = ROOT::kSTLmultiset,
-      kSTLunorderedset      = ROOT::kSTLunorderedset,
-      kSTLunorderedmultiset = ROOT::kSTLunorderedmultiset,
-      kSTLunorderedmap      = ROOT::kSTLunorderedmap,
-      kSTLunorderedmultimap = ROOT::kSTLunorderedmultimap,
-      kSTLbitset            = ROOT::kSTLbitset
+      kSTL                  = CppyyLegacy::kSTLany,
+      kSTLstring            = CppyyLegacy::kSTLstring,
+      kSTLvector            = CppyyLegacy::kSTLvector,
+      kSTLlist              = CppyyLegacy::kSTLlist,
+      kSTLforwardlist       = CppyyLegacy::kSTLforwardlist,
+      kSTLdeque             = CppyyLegacy::kSTLdeque,
+      kSTLmap               = CppyyLegacy::kSTLmap,
+      kSTLmultimap          = CppyyLegacy::kSTLmultimap,
+      kSTLset               = CppyyLegacy::kSTLset,
+      kSTLmultiset          = CppyyLegacy::kSTLmultiset,
+      kSTLunorderedset      = CppyyLegacy::kSTLunorderedset,
+      kSTLunorderedmultiset = CppyyLegacy::kSTLunorderedmultiset,
+      kSTLunorderedmap      = CppyyLegacy::kSTLunorderedmap,
+      kSTLunorderedmultimap = CppyyLegacy::kSTLunorderedmultimap,
+      kSTLbitset            = CppyyLegacy::kSTLbitset
    };
    // TStreamerElement status bits
    enum EStatusBits {
@@ -441,7 +442,11 @@ public:
 class TVirtualObject;
 class TBuffer;
 
+} // namespace CppyyLegacy
+
 #include "TSchemaRule.h"
+
+namespace CppyyLegacy {
 
 //________________________________________________________________________
 class TStreamerArtificial : public TStreamerElement {
@@ -450,8 +455,8 @@ private:
    TStreamerArtificial&operator=(const TStreamerArtificial&); // Not implemented
 
 protected:
-   ROOT::TSchemaRule::ReadFuncPtr_t     fReadFunc;    //!
-   ROOT::TSchemaRule::ReadRawFuncPtr_t  fReadRawFunc; //!
+   CppyyLegacy::TSchemaRule::ReadFuncPtr_t     fReadFunc;    //!
+   CppyyLegacy::TSchemaRule::ReadRawFuncPtr_t  fReadRawFunc; //!
 
 public:
 
@@ -459,13 +464,14 @@ public:
 
    TStreamerArtificial(const char *name, const char *title, Int_t offset, Int_t dtype, const char *typeName) : TStreamerElement(name,title,offset,dtype,typeName), fReadFunc(0), fReadRawFunc(0) {}
 
-   void SetReadFunc( ROOT::TSchemaRule::ReadFuncPtr_t val ) { fReadFunc = val; };
-   void SetReadRawFunc( ROOT::TSchemaRule::ReadRawFuncPtr_t val ) { fReadRawFunc = val; };
+   void SetReadFunc( CppyyLegacy::TSchemaRule::ReadFuncPtr_t val ) { fReadFunc = val; };
+   void SetReadRawFunc( CppyyLegacy::TSchemaRule::ReadRawFuncPtr_t val ) { fReadRawFunc = val; };
 
-   ROOT::TSchemaRule::ReadFuncPtr_t     GetReadFunc();
-   ROOT::TSchemaRule::ReadRawFuncPtr_t  GetReadRawFunc();
+   CppyyLegacy::TSchemaRule::ReadFuncPtr_t     GetReadFunc();
+   CppyyLegacy::TSchemaRule::ReadRawFuncPtr_t  GetReadRawFunc();
 
    ClassDef(TStreamerArtificial, 0); // StreamerElement injected by a TSchemaRule. Transient only to preverse forward compatibility.
 };
 
+} // namespace CppyyLegacy
 #endif

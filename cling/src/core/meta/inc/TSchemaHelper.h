@@ -13,10 +13,11 @@
 #define ROOT_TSchemaHelper
 
 #include "RtypesCore.h"
-
 #include <string>
 
-namespace ROOT {
+
+namespace CppyyLegacy {
+
 namespace Internal {
    struct TSchemaHelper
    {
@@ -44,6 +45,7 @@ namespace Internal {
       TSchemaHelper& operator=(const TSchemaHelper &) {return *this;} // Not implemented
    };
 }
-}
+
+} // namespace CppyyLegacy
 
 #endif // ROOT_TSchemaHelper

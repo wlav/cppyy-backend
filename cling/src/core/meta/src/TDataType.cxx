@@ -25,7 +25,10 @@ defined types (accessible via TROOT::GetListOfTypes()).
 #include <typeinfo>
 #endif
 
-ClassImp(TDataType);
+
+ClassImp(CppyyLegacy::TDataType);
+
+namespace CppyyLegacy {
 
 TDataType* TDataType::fgBuiltins[kNumDataTypes] = {0};
 
@@ -113,30 +116,30 @@ TDataType::~TDataType()
 const char *TDataType::GetTypeName(EDataType type)
 {
    switch (type) {
-      case  1: return "Char_t";
-      case  2: return "Short_t";
-      case  3: return "Int_t";
-      case  4: return "Long_t";
-      case  5: return "Float_t";
-      case  6: return "Int_t";
+      case  1: return "CppyyLegacy::Char_t";
+      case  2: return "CppyyLegacy::Short_t";
+      case  3: return "CppyyLegacy::Int_t";
+      case  4: return "CppyyLegacy::Long_t";
+      case  5: return "CppyyLegacy::Float_t";
+      case  6: return "CppyyLegacy::Int_t";
       case  7: return "char*";
-      case  8: return "Double_t";
-      case  9: return "Double32_t";
-      case 11: return "UChar_t";
-      case 12: return "UShort_t";
-      case 13: return "UInt_t";
-      case 14: return "ULong_t";
-      case 15: return "UInt_t";
-      case 16: return "Long64_t";
-      case 17: return "ULong64_t";
-      case 18: return "Bool_t";
-      case 19: return "Float16_t";
+      case  8: return "CppyyLegacy::Double_t";
+      case  9: return "CppyyLegacy::Double32_t";
+      case 11: return "CppyyLegacy::UChar_t";
+      case 12: return "CppyyLegacy::UShort_t";
+      case 13: return "CppyyLegacy::UInt_t";
+      case 14: return "CppyyLegacy::ULong_t";
+      case 15: return "CppyyLegacy::UInt_t";
+      case 16: return "long long";
+      case 17: return "CppyyLegacy::ULong64_t";
+      case 18: return "CppyyLegacy::Bool_t";
+      case 19: return "CppyyLegacy::Float16_t";
       case kVoid_t: return "void";
-      case kDataTypeAliasUnsigned_t: return "UInt_t";
-      case kDataTypeAliasSignedChar_t: return "SignedChar_t";
+      case kDataTypeAliasUnsigned_t: return "CppyyLegacy::UInt_t";
+      case kDataTypeAliasSignedChar_t: return "CppyyLegacy::SignedChar_t";
       case kOther_t:  return "";
       case kNoType_t: return "";
-      case kchar:     return "Char_t";
+      case kchar:     return "CppyyLegacy::Char_t";
       default: return "";
    }
    return ""; // to silence compilers
@@ -257,11 +260,11 @@ const char *TDataType::AsString(void *buf) const
       line.Form( "%ld", *(Long_t *)buf);
    else if (!strcmp("unsigned long long", name))
       line.Form( "%llu", *(ULong64_t *)buf);
-   else if (!strcmp("ULong64_t", name))
+   else if (!strcmp("CppyyLegacy::ULong64_t", name))
       line.Form( "%llu", *(ULong64_t *)buf);
    else if (!strcmp("long long", name))
       line.Form( "%lld", *(Long64_t *)buf);
-   else if (!strcmp("Long64_t", name))
+   else if (!strcmp("CppyyLegacy::Long64_t", name))
       line.Form( "%lld", *(Long64_t *)buf);
    else if (!strcmp("unsigned short", name))
       line.Form( "%hu", *(unsigned short *)buf);
@@ -316,10 +319,10 @@ void TDataType::SetType(const char *name)
    } else if (!strcmp("long", name)) {
       fType = kLong_t;
       fSize = sizeof(Long_t);
-   } else if (!strcmp("unsigned long long", name) || !strcmp("ULong64_t",name)) {
+   } else if (!strcmp("unsigned long long", name) || !strcmp("CppyyLegacy::ULong64_t",name)) {
       fType = kULong64_t;
       fSize = sizeof(ULong64_t);
-   } else if (!strcmp("long long", name) || !strcmp("Long64_t",name)) {
+   } else if (!strcmp("long long", name) || !strcmp("CppyyLegacy::Long64_t",name)) {
       fType = kLong64_t;
       fSize = sizeof(Long64_t);
    } else if (!strcmp("unsigned short", name)) {
@@ -348,10 +351,10 @@ void TDataType::SetType(const char *name)
       fSize = sizeof(Char_t);
    }
 
-   if (!strcmp("Float16_t", fName.Data())) {
+   if (!strcmp("CppyyLegacy::Float16_t", fName.Data())) {
       fType = kFloat16_t;
    }
-   if (!strcmp("Double32_t", fName.Data())) {
+   if (!strcmp("CppyyLegacy::Double32_t", fName.Data())) {
       fType = kDouble32_t;
    }
    if (!strcmp("char*",fName.Data())) {
@@ -442,3 +445,5 @@ TDataType* TDataType::GetDataType(EDataType type)
    if (type == kOther_t) return 0;
    return fgBuiltins[(int)type];
 }
+
+} // namespace CppyyLegacy

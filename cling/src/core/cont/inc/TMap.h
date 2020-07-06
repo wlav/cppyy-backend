@@ -12,7 +12,6 @@
 #ifndef ROOT_TMap
 #define ROOT_TMap
 
-
 //////////////////////////////////////////////////////////////////////////
 //                                                                      //
 // TMap                                                                 //
@@ -31,10 +30,11 @@
 #include <iterator>
 
 
+namespace CppyyLegacy {
+
 class THashTableIter;
 class TMapIter;
 class TPair;
-
 
 class TMap : public TCollection {
 
@@ -167,6 +167,8 @@ public:
 
    ClassDef(TMapIter,0)  //Map iterator
 };
+
+} // namespace CppyyLegacy
 
 #if (__GNUC__ * 10000 + __GNUC_MINOR__ * 100 + __GNUC_PATCHLEVEL__) >= 40600
 #pragma GCC diagnostic pop

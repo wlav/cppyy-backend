@@ -49,8 +49,10 @@ NOTE: the use of time_t (and its default implementation as a 32 int)
 #endif
 #include "TVirtualMutex.h"
 
-ClassImp(TTimeStamp);
 
+ClassImp(CppyyLegacy::TTimeStamp);
+
+namespace CppyyLegacy {
 
 TVirtualMutex *gTimeMutex = 0; // local mutex
 
@@ -924,3 +926,5 @@ void TTimeStamp::DumpTMStruct(const tm_t &tmstruct)
 #endif
    printf(" }\n");
 }
+
+} // namespace CppyyLegacy

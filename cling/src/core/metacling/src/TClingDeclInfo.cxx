@@ -14,12 +14,17 @@
  * For the list of contributors see $ROOTSYS/README/CREDITS.             *
  *************************************************************************/
 
+namespace CppyyLegacy {}; using namespace CppyyLegacy;
+
 #include "TClingDeclInfo.h"
 
 #include "clang/AST/ASTContext.h"
 #include "clang/AST/Decl.h"
 
+
 using namespace clang;
+
+namespace CppyyLegacy {
 
 // pin the vtable here.
 TClingDeclInfo::~TClingDeclInfo() {}
@@ -43,3 +48,5 @@ const char* TClingDeclInfo::Name()
    stream.flush();
    return fNameCache.c_str();
 }
+
+} // namespace CppyyLegacy

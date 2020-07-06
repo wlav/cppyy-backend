@@ -12,7 +12,6 @@
 #ifndef ROOT_TThread
 #define ROOT_TThread
 
-
 //////////////////////////////////////////////////////////////////////////
 //                                                                      //
 // TThread                                                              //
@@ -29,9 +28,11 @@
 #include "TSystem.h"
 #include "Varargs.h"
 
+
+namespace CppyyLegacy {
+
 class TMutex;
 class TThreadImp;
-
 
 class TThread : public TNamed {
 
@@ -180,4 +181,5 @@ public:
    ~TThreadCleaner();
 };
 
+} // namespace CppyyLegacy
 #endif

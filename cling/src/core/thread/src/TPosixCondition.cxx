@@ -25,7 +25,9 @@
 #include <errno.h>
 
 
-ClassImp(TPosixCondition);
+ClassImp(CppyyLegacy::TPosixCondition);
+
+namespace CppyyLegacy {
 
 ////////////////////////////////////////////////////////////////////////////////
 /// Create Condition variable. Ctor must be given a pointer to an
@@ -100,3 +102,5 @@ Int_t TPosixCondition::Broadcast()
 {
    return pthread_cond_broadcast(&fCond);
 }
+
+} // namespace CppyyLegacy

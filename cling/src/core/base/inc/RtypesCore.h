@@ -19,12 +19,13 @@
 //                                                                      //
 //////////////////////////////////////////////////////////////////////////
 
-
 #include <ROOT/RConfig.hxx>
-
 #include <stddef.h> // size_t, NULL
 
+
 //---- types -------------------------------------------------------------------
+
+namespace CppyyLegacy {
 
 typedef char           Char_t;      //Signed Character 1 byte (char)
 typedef unsigned char  UChar_t;     //Unsigned Character 1 byte (unsigned char)
@@ -105,5 +106,7 @@ const Long64_t  kMinLong64   = -kMaxLong64 - 1;
 
 const size_t    kBitsPerByte = 8;
 const Ssiz_t    kNPOS        = ~(Ssiz_t)0;
+
+} // namespace CppyyLegacy
 
 #endif

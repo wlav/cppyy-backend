@@ -12,8 +12,6 @@
 #ifndef ROOT_TVirtualArray
 #define ROOT_TVirtualArray
 
-
-
 /**
 \class TVirtualArray
 \ingroup IO
@@ -22,6 +20,9 @@ even if the object is not of a class in the Cint/Reflex dictionary.
 */
 
 #include "TClassRef.h"
+
+
+namespace CppyyLegacy {
 
 class TVirtualArray {
 public:
@@ -47,8 +48,7 @@ public:
          fCapacity = fSize;
       }
    }
-
-
 };
 
+} // namespace CppyyLegacy
 #endif // ROOT_TVirtualArray

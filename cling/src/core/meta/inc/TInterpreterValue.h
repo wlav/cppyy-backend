@@ -25,8 +25,10 @@
 #define ROOT_TInterpreterValue
 
 #include "Rtypes.h"
-
 #include <string>
+
+
+namespace CppyyLegacy {
 
 class TInterpreterValue {
 private:
@@ -48,4 +50,5 @@ public:
    virtual std::string ToString() const = 0;
 };
 
+} // namespace CppyyLegacy
 #endif // ROOT_TInterpreterValue

@@ -25,7 +25,9 @@
 #include "TThreadFactory.h"
 
 
-ClassImp(TCondition);
+ClassImp(CppyyLegacy::TCondition);
+
+namespace CppyyLegacy {
 
 ////////////////////////////////////////////////////////////////////////////////
 /// Create a condition variable. The actual condition implementation
@@ -128,3 +130,5 @@ Int_t TCondition::TimedWaitRelative(ULong_t ms)
 
    return TimedWait(absSec, absNanoSec);
 }
+
+} // namespace CppyyLegacy

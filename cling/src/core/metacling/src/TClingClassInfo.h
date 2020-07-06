@@ -34,6 +34,7 @@
 #include <string>
 #include "llvm/ADT/DenseMap.h"
 
+
 namespace cling {
    class Interpreter;
 }
@@ -44,13 +45,15 @@ namespace clang {
    class ValueDecl;
 }
 
-namespace ROOT {
+namespace CppyyLegacy {
    namespace TMetaUtils {
       class TNormalizedCtxt;
    }
 }
 
 extern "C" typedef ptrdiff_t (*OffsetPtrFunc_t)(void*, bool);
+
+namespace CppyyLegacy {
 
 class TClingClassInfo final : public TClingDeclInfo {
 
@@ -86,9 +89,9 @@ public:
    void                 AddBaseOffsetFunction(const clang::Decl* decl, OffsetPtrFunc_t func) { fOffsetCache[decl] = std::make_pair(0L, func); }
    void                 AddBaseOffsetValue(const clang::Decl* decl, ptrdiff_t offset);
    long                 ClassProperty() const;
-   void                 Delete(void *arena, const ROOT::TMetaUtils::TNormalizedCtxt &normCtxt) const;
-   void                 DeleteArray(void *arena, bool dtorOnly, const ROOT::TMetaUtils::TNormalizedCtxt &normCtxt) const;
-   void                 Destruct(void *arena, const ROOT::TMetaUtils::TNormalizedCtxt &normCtxt) const;
+   void                 Delete(void *arena, const CppyyLegacy::TMetaUtils::TNormalizedCtxt &normCtxt) const;
+   void                 DeleteArray(void *arena, bool dtorOnly, const CppyyLegacy::TMetaUtils::TNormalizedCtxt &normCtxt) const;
+   void                 Destruct(void *arena, const CppyyLegacy::TMetaUtils::TNormalizedCtxt &normCtxt) const;
    const clang::ValueDecl *GetDataMember(const char *name) const;
    void SetDecl(const clang::Decl* D) {
      // FIXME: We should track down all sets and potentially avoid them.
@@ -103,24 +106,24 @@ public:
    const clang::FunctionTemplateDecl *GetFunctionTemplate(const char *fname) const;
    TClingMethodInfo     GetMethod(const char *fname) const;
    TClingMethodInfo     GetMethod(const char *fname, const char *proto,
-                                  intptr_t *poffset, ROOT::EFunctionMatchMode mode = ROOT::kConversionMatch,
+                                  intptr_t *poffset, CppyyLegacy::EFunctionMatchMode mode = CppyyLegacy::kConversionMatch,
                                   EInheritanceMode imode = kWithInheritance) const;
    TClingMethodInfo     GetMethodWithArgs(const char *fname, const char *arglist,
-                                  intptr_t *poffset, ROOT::EFunctionMatchMode mode = ROOT::kConversionMatch,
+                                  intptr_t *poffset, CppyyLegacy::EFunctionMatchMode mode = CppyyLegacy::kConversionMatch,
                                   EInheritanceMode imode = kWithInheritance) const;
    TClingMethodInfo     GetMethod(const char *fname, const char *proto, bool objectIsConst,
-                                  intptr_t *poffset, ROOT::EFunctionMatchMode mode = ROOT::kConversionMatch,
+                                  intptr_t *poffset, CppyyLegacy::EFunctionMatchMode mode = CppyyLegacy::kConversionMatch,
                                   EInheritanceMode imode = kWithInheritance) const;
    TClingMethodInfo     GetMethodWithArgs(const char *fname, const char *arglist, bool objectIsConst,
-                                  intptr_t *poffset, ROOT::EFunctionMatchMode mode = ROOT::kConversionMatch,
+                                  intptr_t *poffset, CppyyLegacy::EFunctionMatchMode mode = CppyyLegacy::kConversionMatch,
                                   EInheritanceMode imode = kWithInheritance) const;
    TClingMethodInfo     GetMethod(const char *fname, const llvm::SmallVectorImpl<clang::QualType> &proto,
-                                  intptr_t *poffset, ROOT::EFunctionMatchMode mode = ROOT::kConversionMatch,
+                                  intptr_t *poffset, CppyyLegacy::EFunctionMatchMode mode = CppyyLegacy::kConversionMatch,
                                   EInheritanceMode imode = kWithInheritance) const;
    TClingMethodInfo     GetMethod(const char *fname, const llvm::SmallVectorImpl<clang::QualType> &proto, bool objectIsConst,
-                                  intptr_t *poffset, ROOT::EFunctionMatchMode mode = ROOT::kConversionMatch,
+                                  intptr_t *poffset, CppyyLegacy::EFunctionMatchMode mode = CppyyLegacy::kConversionMatch,
                                   EInheritanceMode imode = kWithInheritance) const;
-   int                  GetMethodNArg(const char *method, const char *proto, Bool_t objectIsConst, ROOT::EFunctionMatchMode mode = ROOT::kConversionMatch) const;
+   int                  GetMethodNArg(const char *method, const char *proto, Bool_t objectIsConst, CppyyLegacy::EFunctionMatchMode mode = CppyyLegacy::kConversionMatch) const;
    ptrdiff_t            GetOffset(const clang::CXXMethodDecl* md) const;
    ptrdiff_t            GetBaseOffset(TClingClassInfo* toBase, void* address, bool isDerivedObject);
    const clang::Type   *GetType() const { return fType; } // Underlying representation with Double32_t
@@ -136,22 +139,24 @@ public:
    bool                 IsScopedEnum() const;
    EDataType            GetUnderlyingType() const;
    bool                 IsLoaded() const;
-   bool                 IsValidMethod(const char *method, const char *proto, Bool_t objectIsConst, intptr_t *offset, ROOT::EFunctionMatchMode mode = ROOT::kConversionMatch) const;
+   bool                 IsValidMethod(const char *method, const char *proto, Bool_t objectIsConst, intptr_t *offset, CppyyLegacy::EFunctionMatchMode mode = CppyyLegacy::kConversionMatch) const;
    int                  InternalNext();
    int                  Next();
-   void                *New(const ROOT::TMetaUtils::TNormalizedCtxt &normCtxt) const;
-   void                *New(int n, const ROOT::TMetaUtils::TNormalizedCtxt &normCtxt) const;
-   void                *New(int n, void *arena, const ROOT::TMetaUtils::TNormalizedCtxt &normCtxt) const;
-   void                *New(void *arena, const ROOT::TMetaUtils::TNormalizedCtxt &normCtxt) const;
+   void                *New(const CppyyLegacy::TMetaUtils::TNormalizedCtxt &normCtxt) const;
+   void                *New(int n, const CppyyLegacy::TMetaUtils::TNormalizedCtxt &normCtxt) const;
+   void                *New(int n, void *arena, const CppyyLegacy::TMetaUtils::TNormalizedCtxt &normCtxt) const;
+   void                *New(void *arena, const CppyyLegacy::TMetaUtils::TNormalizedCtxt &normCtxt) const;
    long                 Property() const;
    int                  RootFlag() const;
    int                  Size() const;
    long                 Tagnum() const;
    const char          *FileName();
-   void                 FullName(std::string &output, const ROOT::TMetaUtils::TNormalizedCtxt &normCtxt) const;
+   void                 FullName(std::string &output, const CppyyLegacy::TMetaUtils::TNormalizedCtxt &normCtxt) const;
    const char          *Title();
    const char          *TmpltName() const;
 
 };
+
+} // namespace CppyyLegacy
 
 #endif // ROOT_TClingClassInfo

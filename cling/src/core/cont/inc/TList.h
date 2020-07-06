@@ -12,7 +12,6 @@
 #ifndef ROOT_TList
 #define ROOT_TList
 
-
 //////////////////////////////////////////////////////////////////////////
 //                                                                      //
 // TList                                                                //
@@ -33,6 +32,9 @@
 // TListIter from std::iterator.
 #pragma GCC system_header
 #endif
+
+
+namespace CppyyLegacy {
 
 const Bool_t kSortAscending  = kTRUE;
 const Bool_t kSortDescending = !kSortAscending;
@@ -245,6 +247,7 @@ inline TList::TObjLinkPtr_t  TList::NewOptLink(TObject *obj, Option_t *opt,  TOb
    return NewOptLink(obj, opt, prev ? prev->shared_from_this() : nullptr);
 }
 
+} // namespace CppyyLegacy
 
 #if (__GNUC__ * 10000 + __GNUC_MINOR__ * 100 + __GNUC_PATCHLEVEL__) >= 40600
 #pragma GCC diagnostic pop

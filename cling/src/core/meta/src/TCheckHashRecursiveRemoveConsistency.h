@@ -33,7 +33,8 @@
 //                                                                      //
 //////////////////////////////////////////////////////////////////////////
 
-namespace ROOT {
+
+namespace CppyyLegacy {
 namespace Internal {
 
 class TCheckHashRecursiveRemoveConsistency : public TObject {
@@ -130,7 +131,7 @@ public:
          // as needing a clean up anyway, so we can not actually test it.
          return kInconclusive;
       }
-      ROOT::Internal::SetRequireCleanup(*obj);
+      CppyyLegacy::Internal::SetRequireCleanup(*obj);
       Add(obj);
       delete obj;
 
@@ -153,7 +154,7 @@ public:
          return &classRef;
       }
 
-      for (auto base : ROOT::Detail::TRangeStaticCast<TBaseClass>(classRef.GetListOfBases())) {
+      for (auto base : CppyyLegacy::Detail::TRangeStaticCast<TBaseClass>(classRef.GetListOfBases())) {
          TClass *baseCl = base->GetClassPointer();
          TClass *res = FindMissingRecursiveRemove(*baseCl);
          if (res)
@@ -183,7 +184,7 @@ public:
          return CheckRecursiveRemove(classRef);
 
       EResult baseResult = kConsistent;
-      for (auto base : ROOT::Detail::TRangeStaticCast<TBaseClass>(classRef.GetListOfBases())) {
+      for (auto base : CppyyLegacy::Detail::TRangeStaticCast<TBaseClass>(classRef.GetListOfBases())) {
          TClass *baseCl = base->GetClassPointer();
 
          if (baseCl->HasLocalHashMember() &&
@@ -221,13 +222,13 @@ public:
 
          // Because ClassDefInline does not yet support class template on all platforms,
          // we have no ClassDef and thus can not get a good message from TObject::Error.
-         constexpr const char *funcName = "ROOT::Internal::TCheckHashRecursiveRemoveConsistency::CheckRecursiveRemove";
+         constexpr const char *funcName = "CppyyLegacy::Internal::TCheckHashRecursiveRemoveConsistency::CheckRecursiveRemove";
          if (failing) {
-            ::Error(funcName,
+            ::CppyyLegacy::Error(funcName,
                     "The class %s overrides TObject::Hash but does not call TROOT::RecursiveRemove in its destructor (seen while checking %s).",
                     failing->GetName(),classRef.GetName());
          } else {
-            ::Error(funcName, "The class %s "
+            ::CppyyLegacy::Error(funcName, "The class %s "
                               "or one of its base classes override TObject::Hash but does not call "
                               "TROOT::CallRecursiveRemoveIfNeeded in its destructor.\n",
                     classRef.GetName());
@@ -247,6 +248,6 @@ public:
 };
 
 } // namespace Internal
-} // namespace ROOT
+} // namespace CppyyLegacy
 
 #endif // ROOT__TCheckHashRecursiveRemoveConsistency

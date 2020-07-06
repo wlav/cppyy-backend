@@ -24,6 +24,9 @@
 
 #include "TListOfEnums.h"
 
+
+namespace CppyyLegacy {
+
 class TExMap;
 class TEnum;
 
@@ -100,4 +103,5 @@ class TListOfEnumsWithLockIter : public TListIter
    ClassDef(TListOfEnumsWithLockIter,0)
 };
 
+} // namespace CppyyLegacy
 #endif // ROOT_TListOfEnumsWithLock

@@ -30,7 +30,8 @@ namespace clang {
    class SourceManager;
 }
 
-namespace ROOT {
+
+namespace CppyyLegacy {
 
 //______________________________________________________________________________
    class TModuleGenerator {
@@ -170,6 +171,6 @@ namespace ROOT {
       mutable int fErrorCount;
    };
 
-} // namespace ROOT
+} // namespace CppyyLegacy
 
 #endif // ROOT_TModuleGenerator

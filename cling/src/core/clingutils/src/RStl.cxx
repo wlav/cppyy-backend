@@ -15,7 +15,7 @@
 #include "RStl.h"
 #include "TClassEdit.h"
 #include "TClingUtils.h"
-using namespace TClassEdit;
+using namespace CppyyLegacy::TClassEdit;
 
 #include <stdio.h>
 
@@ -33,21 +33,23 @@ using namespace TClassEdit;
 #include "Varargs.h"
 
 //
-// ROOT::Internal::RStl is the rootcint STL handling class.
+// CppyyLegacy::Internal::RStl is the rootcint STL handling class.
 //
+
+namespace CppyyLegacy {
 
 static int fgCount = 0;
 
-ROOT::Internal::RStl& ROOT::Internal::RStl::Instance()
+Internal::RStl& Internal::RStl::Instance()
 {
-   // Return the singleton ROOT::Internal::RStl.
+   // Return the singleton Internal::RStl.
 
-   static ROOT::Internal::RStl instance;
+   static Internal::RStl instance;
    return instance;
 
 }
 
-void ROOT::Internal::RStl::GenerateTClassFor(const clang::QualType &type, const cling::Interpreter &interp, const ROOT::TMetaUtils::TNormalizedCtxt &normCtxt)
+void Internal::RStl::GenerateTClassFor(const clang::QualType &type, const cling::Interpreter &interp, const TMetaUtils::TNormalizedCtxt &normCtxt)
 {
    // Force the generation of the TClass for the given class.
 
@@ -60,7 +62,7 @@ void ROOT::Internal::RStl::GenerateTClassFor(const clang::QualType &type, const 
    }
 
    // Transform the type to the corresponding one for IO
-   auto typeForIO = ROOT::TMetaUtils::GetTypeForIO(thisType, interp, normCtxt);
+   auto typeForIO = TMetaUtils::GetTypeForIO(thisType, interp, normCtxt);
    if (typeForIO.getTypePtr() != typePtr)
       stlclass = typeForIO->getAsCXXRecordDecl();
    if (!stlclass) {
@@ -71,11 +73,11 @@ void ROOT::Internal::RStl::GenerateTClassFor(const clang::QualType &type, const 
    const clang::ClassTemplateSpecializationDecl *templateCl = llvm::dyn_cast<clang::ClassTemplateSpecializationDecl>(stlclass);
 
    if (!templateCl) {
-      ROOT::TMetaUtils::Error("RStl::GenerateTClassFor","%s not in a template",
-            ROOT::TMetaUtils::GetQualifiedName(*stlclass).c_str());
+      TMetaUtils::Error("RStl::GenerateTClassFor","%s not in a template",
+            TMetaUtils::GetQualifiedName(*stlclass).c_str());
    }
 
-   if ( TClassEdit::STLKind( stlclass->getName().str() )  == ROOT::kSTLvector ) {
+   if ( TClassEdit::STLKind( stlclass->getName().str() )  == kSTLvector ) {
       const clang::TemplateArgument &arg( templateCl->getTemplateArgs().get(0) );
       if (arg.getKind() == clang::TemplateArgument::Type) {
          const clang::NamedDecl *decl = arg.getAsType().getTypePtr()->getAsCXXRecordDecl();
@@ -83,13 +85,13 @@ void ROOT::Internal::RStl::GenerateTClassFor(const clang::QualType &type, const 
             // NOTE: we should just compare the decl to the bool builtin!
             llvm::StringRef argname = decl->getName();
             if ( (argname.str() == "bool") || (argname.str() == "Bool_t") ) {
-               ROOT::TMetaUtils::Warning("std::vector<bool>", " is not fully supported yet!\nUse std::vector<char> or std::deque<bool> instead.\n");
+               TMetaUtils::Warning("std::vector<bool>", " is not fully supported yet!\nUse std::vector<char> or std::deque<bool> instead.\n");
             }
          }
       }
    }
 
-   fList.insert( ROOT::TMetaUtils::AnnotatedRecordDecl(++fgCount,
+   fList.insert( TMetaUtils::AnnotatedRecordDecl(++fgCount,
                                                        thisType.getTypePtr(),
                                                        stlclass,
                                                        "",
@@ -113,7 +115,7 @@ void ROOT::Internal::RStl::GenerateTClassFor(const clang::QualType &type, const 
                const clang::CXXRecordDecl *clxx = llvm::dyn_cast<clang::CXXRecordDecl>(decl);
                if (clxx) {
                   if (!clxx->isCompleteDefinition()) {
-                     /* bool result = */ ROOT::TMetaUtils::RequireCompleteType(interp, clxx->getLocation(), arg.getAsType());
+                     /* bool result = */ TMetaUtils::RequireCompleteType(interp, clxx->getLocation(), arg.getAsType());
                   }
                   // Do we need to strip the qualifier?
                   GenerateTClassFor(arg.getAsType(),interp,normCtxt);
@@ -123,18 +125,18 @@ void ROOT::Internal::RStl::GenerateTClassFor(const clang::QualType &type, const 
    }
 }
 
-void ROOT::Internal::RStl::GenerateTClassFor(const char *requestedName, const clang::CXXRecordDecl *stlclass, const cling::Interpreter &interp, const ROOT::TMetaUtils::TNormalizedCtxt &normCtxt)
+void Internal::RStl::GenerateTClassFor(const char *requestedName, const clang::CXXRecordDecl *stlclass, const cling::Interpreter &interp, const TMetaUtils::TNormalizedCtxt &normCtxt)
 {
    // Force the generation of the TClass for the given class.
    const clang::ClassTemplateSpecializationDecl *templateCl = llvm::dyn_cast<clang::ClassTemplateSpecializationDecl>(stlclass);
 
    if (templateCl == 0) {
-      ROOT::TMetaUtils::Error("RStl::GenerateTClassFor","%s not in a template",
-            ROOT::TMetaUtils::GetQualifiedName(*stlclass).c_str());
+      TMetaUtils::Error("RStl::GenerateTClassFor","%s not in a template",
+            TMetaUtils::GetQualifiedName(*stlclass).c_str());
    }
 
 
-   if ( TClassEdit::STLKind( stlclass->getName().str() )  == ROOT::kSTLvector ) {
+   if ( TClassEdit::STLKind( stlclass->getName().str() )  == kSTLvector ) {
       const clang::TemplateArgument &arg( templateCl->getTemplateArgs().get(0) );
       if (arg.getKind() == clang::TemplateArgument::Type) {
          const clang::NamedDecl *decl = arg.getAsType().getTypePtr()->getAsCXXRecordDecl();
@@ -142,13 +144,13 @@ void ROOT::Internal::RStl::GenerateTClassFor(const char *requestedName, const cl
             // NOTE: we should just compare the decl to the bool builtin!
             llvm::StringRef argname = decl->getName();
             if ( (argname.str() == "bool") || (argname.str() == "Bool_t") ) {
-               ROOT::TMetaUtils::Warning("std::vector<bool>", " is not fully supported yet!\nUse std::vector<char> or std::deque<bool> instead.\n");
+               TMetaUtils::Warning("std::vector<bool>", " is not fully supported yet!\nUse std::vector<char> or std::deque<bool> instead.\n");
             }
          }
       }
    }
 
-   fList.insert( ROOT::TMetaUtils::AnnotatedRecordDecl(++fgCount,stlclass,requestedName,true,false,false,false,-1, interp,normCtxt) );
+   fList.insert( TMetaUtils::AnnotatedRecordDecl(++fgCount,stlclass,requestedName,true,false,false,false,-1, interp,normCtxt) );
 
    TClassEdit::TSplitType splitType( requestedName );
    for(unsigned int i=0; i <  templateCl->getTemplateArgs().size(); ++i) {
@@ -161,7 +163,7 @@ void ROOT::Internal::RStl::GenerateTClassFor(const char *requestedName, const cl
                const clang::CXXRecordDecl *clxx = llvm::dyn_cast<clang::CXXRecordDecl>(decl);
                if (clxx) {
                   if (!clxx->isCompleteDefinition()) {
-                     /* bool result = */ ROOT::TMetaUtils::RequireCompleteType(interp, clxx->getLocation (), arg.getAsType());
+                     /* bool result = */ TMetaUtils::RequireCompleteType(interp, clxx->getLocation (), arg.getAsType());
                      clxx = arg.getAsType().getTypePtr()->getAsCXXRecordDecl();
                   }
                   if (!splitType.fElements.empty()) {
@@ -176,20 +178,20 @@ void ROOT::Internal::RStl::GenerateTClassFor(const char *requestedName, const cl
 
 }
 
-void ROOT::Internal::RStl::Print()
+void Internal::RStl::Print()
 {
    // Print the content of the object
-   fprintf(stderr,"ROOT::Internal::RStl singleton\n");
+   fprintf(stderr,"Internal::RStl singleton\n");
    list_t::iterator iter;
    for(iter = fList.begin(); iter != fList.end(); ++iter) {
-      fprintf(stderr, "need TClass for %s\n", ROOT::TMetaUtils::GetQualifiedName(*(*iter)).c_str());
+      fprintf(stderr, "need TClass for %s\n", TMetaUtils::GetQualifiedName(*(*iter)).c_str());
    }
 }
 
-void ROOT::Internal::RStl::WriteClassInit(std::ostream &ostr,
+void Internal::RStl::WriteClassInit(std::ostream &ostr,
                                 const cling::Interpreter &interp,
-                                const ROOT::TMetaUtils::TNormalizedCtxt &normCtxt,
-                                const ROOT::TMetaUtils::RConstructorTypes& ctorTypes,
+                                const TMetaUtils::TNormalizedCtxt &normCtxt,
+                                const TMetaUtils::RConstructorTypes& ctorTypes,
                                 bool &needCollectionProxy,
                                 void (*emitStreamerInfo)(const char*) )
 {
@@ -221,9 +223,11 @@ void ROOT::Internal::RStl::WriteClassInit(std::ostream &ostr,
          result = llvm::dyn_cast<clang::CXXRecordDecl>(iter->GetRecordDecl());
       }
 
-      ROOT::TMetaUtils::WriteClassInit(ostr, *iter, result, interp, normCtxt, ctorTypes, needCollectionProxy);
-      ROOT::TMetaUtils::WriteAuxFunctions(ostr, *iter, result, interp, ctorTypes, normCtxt);
+      TMetaUtils::WriteClassInit(ostr, *iter, result, interp, normCtxt, ctorTypes, needCollectionProxy);
+      TMetaUtils::WriteAuxFunctions(ostr, *iter, result, interp, ctorTypes, normCtxt);
 
       if (emitStreamerInfo) emitStreamerInfo(iter->GetNormalizedName());
    }
 }
+
+} // namespace CppyyLegacy

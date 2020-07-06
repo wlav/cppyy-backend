@@ -231,7 +231,8 @@ Bugs Fixed 8-7-12:
 #ifndef OPTIONPARSER_H_
 #define OPTIONPARSER_H_
 
-namespace ROOT {
+namespace CppyyLegacy {
+
 /** @brief The namespace of The Lean Mean C++ Option Parser. */
 namespace option
 {
@@ -2880,10 +2881,7 @@ struct FullArg: public Arg
    }
 };
 
-
-}
-// namespace option
-}
-// namespace ROOT
+} // namespace option
+} // namespace CppyyLegacy
 
 #endif /* OPTIONPARSER_H_ */

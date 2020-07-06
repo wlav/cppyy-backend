@@ -22,6 +22,9 @@
 #include "BaseSelectionRule.h"
 #include <string>
 
+
+namespace CppyyLegacy {
+
 class VariableSelectionRule final : public BaseSelectionRule
 {
 public:
@@ -35,5 +38,7 @@ public:
 
 typedef VariableSelectionRule FunctionSelectionRule; // Function selection rules are the same as Variable selection rules
 typedef VariableSelectionRule EnumSelectionRule;     // Enum selection rules are the same as Variable selection rules
+
+} // namespace CppyyLegacy
 
 #endif

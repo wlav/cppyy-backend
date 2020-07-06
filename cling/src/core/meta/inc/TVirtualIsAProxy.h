@@ -12,8 +12,6 @@
 #ifndef ROOT_TVirtualIsAProxy
 #define ROOT_TVirtualIsAProxy
 
-class TClass;
-
 //////////////////////////////////////////////////////////////////////////
 //                                                                      //
 // TClass                                                               //
@@ -21,6 +19,8 @@ class TClass;
 // Virtual IsAProxy base class.                                         //
 //                                                                      //
 //////////////////////////////////////////////////////////////////////////
+
+namespace CppyyLegacy {
 
 class TClass;
 
@@ -31,4 +31,5 @@ public:
    virtual TClass* operator()(const void *obj) = 0;
 };
 
+} // namespace CppyyLegacy
 #endif // ROOT_TVirtualIsAProxy

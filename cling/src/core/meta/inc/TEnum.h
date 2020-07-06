@@ -26,6 +26,9 @@
 
 #include <string>
 
+
+namespace CppyyLegacy  {
+
 class ClassInfo_t;
 class TClass;
 class TEnumConstant;
@@ -71,4 +74,5 @@ public:
    ClassDef(TEnum, 2) //Enum type class
 };
 
+} // namespace CppyyLegacy
 #endif

@@ -20,8 +20,9 @@
 #include "TPosixThread.h"
 
 
-ClassImp(TPosixThread);
+ClassImp(CppyyLegacy::TPosixThread);
 
+namespace CppyyLegacy {
 
 ////////////////////////////////////////////////////////////////////////////////
 /// Create a pthread. Returns 0 on success, otherwise an error number will
@@ -196,3 +197,5 @@ TPosixThreadCleanUp::TPosixThreadCleanUp(void **main, void *routine, void *arg)
    fRoutine = routine; fArgument = arg;
    *main  = this;
 }
+
+} // namespace CppyyLegacy

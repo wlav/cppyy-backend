@@ -23,8 +23,10 @@
 
 #include "TString.h"
 
-class TGWin32Command;
 
+namespace CppyyLegacy {
+
+class TGWin32Command;
 
 class TApplicationImp {
 
@@ -54,4 +56,5 @@ inline TApplicationImp::TApplicationImp(const char *appClassName, int *, char **
   : fApplicationName(appClassName) { }
 inline Int_t TApplicationImp::ExecCommand(TGWin32Command *, Bool_t) { return 0; }
 
+} // namespace CppyyLegacy
 #endif

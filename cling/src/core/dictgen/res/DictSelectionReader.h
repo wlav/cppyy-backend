@@ -21,13 +21,13 @@
 #include <string>
 #include <unordered_map>
 
+namespace CppyyLegacy { 
 class SelectionRules;
 class ClassSelectionRule;
-namespace ROOT {
-   namespace TMetaUtils {
-      class TNormalizedCtxt;
-   }
+namespace TMetaUtils {
+   class TNormalizedCtxt;
 }
+} // namespace CppyyLegacy
 namespace cling {
 class Interpreter;
 }
@@ -58,10 +58,10 @@ namespace clang {
  *
  * The simplest case is for the case of a non-template class @c C.
  * By default, the Name of the selection class is then
- * @c ROOT::Meta::Selection::C.  If you have such a class, it will be found
+ * @c CppyyLegacy::Meta::Selection::C.  If you have such a class, it will be found
  * automatically.  If @c C is in a namespace, @c NS::C, then
  * the selection class should be in the same namespace: @c
-ROOT::Selection::NS::C.
+CppyyLegacy::Selection::NS::C.
  * Examples:
  *
 
@@ -69,7 +69,7 @@ ROOT::Selection::NS::C.
 
 /**
  * The DictSelectionReader is used to create selection rules starting from
- * C++ the constructs of the @c ROOT::Meta::Selection namespace. All rules
+ * C++ the constructs of the @c CppyyLegacy::Meta::Selection namespace. All rules
  * are matching by name.
  * A brief description of the operations that lead to class selection:
  *    1. If a class declaration is present in the selection namespace, a class
@@ -83,7 +83,7 @@ ROOT::Selection::NS::C.
  * class classVanilla{};
  * template <class A> class classTemplateVanilla {};
  * classTemplateVanilla<char> t0;
- * namespace ROOT{
+ * namespace CppyyLegacy {
  *    namespace Meta {
  *       namespace Selection{
  *          class classVanilla{};
@@ -97,13 +97,13 @@ ROOT::Selection::NS::C.
  * @c classTemplateVanilla<char>.
  *
  * A brief description of the properties that can be assigned to classes
- * with the @c ROOT::Meta::Selection::ClassAttributes class.
+ * with the @c CppyyLegacy::Meta::Selection::ClassAttributes class.
  *    1. @c kNonSplittable : Makes the class non splittable
  * The class properties can be assigned via a traits mechanism. For example:
  * @code
  * [...]
  * class classWithAttributes{};
- * namespace ROOT{
+ * namespace CppyyLegacy {
  *    namespace Meta {
  *       namespace Selection{
  *          class classWithAttributes : ClassAttributes <kNonSplittable> {};
@@ -116,7 +116,7 @@ ROOT::Selection::NS::C.
  * properties can be assigned to a single class with this syntax:
  * @code
  * [...]
- * namespace ROOT{
+ * namespace CppyyLegacy {
  *    namespace Meta {
  *       namespace Selection{
  *          class classWithAttributes :
@@ -127,7 +127,7 @@ ROOT::Selection::NS::C.
  * @endcode
  *
  *
- * The @c ROOT::Meta::Selection syntax allows to alter the number of template
+ * The @c CppyyLegacy::Meta::Selection syntax allows to alter the number of template
  * parameters of a certain template class within the ROOT type system, TClass.
  * Technically it allows to alter the way in which the "normalized name" (in
  * other words, the "ROOT name") of the class is created. The key is the usage
@@ -144,7 +144,7 @@ ROOT::Selection::NS::C.
  * myVector<float> v1;
  * myVector<A<char>> v2;
  *
- * namespace ROOT{
+ * namespace CppyyLegacy {
  *    namespace Meta {
  *       namespace Selection{
  *          template <class T, class U=int, int V=3> class A
@@ -183,7 +183,7 @@ ROOT::Selection::NS::C.
  * @c myVector<A<char>> &rarr @c myVector<float,myAllocator<float>>
  *
  * A brief description of the properties that can be assigned to data members
- * with the @c ROOT::Meta::Selection MemberAttributes class:
+ * with the @c CppyyLegacy::Meta::Selection MemberAttributes class:
  *    1. @c kTransient : the data member is transient, not persistified by the
  * ROOT I/O.
  *    2. @c kAutoSelected : the type of the data member is selected without the
@@ -201,7 +201,7 @@ ROOT::Selection::NS::C.
  *    classAutoselected autoselected;
  * };
  *
- * namespace ROOT{
+ * namespace CppyyLegacy {
  *    namespace Meta {
  *       namespace Selection{
  *          class classTestAutoselect{
@@ -217,7 +217,7 @@ ROOT::Selection::NS::C.
  * specifying that @c transientMember is transient, @c classTestAutoselect and
  * @c classAutoselected.
  *
- * Another trait class present in the @c ROOT::Meta::Selection is
+ * Another trait class present in the @c CppyyLegacy::Meta::Selection is
  * @c SelectNoInstance. If a template in the selection namespace inherits from
  * this class, none of its instantiations will be automatically selected but
  * all of the properties specified otherwise, like transient members or
@@ -234,7 +234,8 @@ ROOT::Selection::NS::C.
  * [...]
  *
  **/
-namespace ROOT {
+
+namespace CppyyLegacy {
 namespace Internal {
 
 class DictSelectionReader : public clang::RecursiveASTVisitor<DictSelectionReader> {
@@ -242,7 +243,7 @@ public:
    /// Take the selection rules as input (for consistency w/ other selector
    /// interfaces)
    DictSelectionReader(cling::Interpreter &interp, SelectionRules &, const clang::ASTContext &,
-                       ROOT::TMetaUtils::TNormalizedCtxt &);
+                       CppyyLegacy::TMetaUtils::TNormalizedCtxt &);
 
    /// Visit the entities that needs to be selected
    bool VisitRecordDecl(clang::RecordDecl *);
@@ -265,7 +266,7 @@ private:
    inline bool
    InSelectionNamespace(const clang::RecordDecl &,
                         const std::string &str =
-                           ""); ///< Check if in the ROOT::Selection namespace
+                           ""); ///< Check if in the CppyyLegacy::Selection namespace
    inline bool FirstPass(const clang::RecordDecl &); ///< First pass on the AST
    inline bool SecondPass(const clang::RecordDecl &); ///< Second pass on the
    ///AST, using the
@@ -302,9 +303,10 @@ private:
    llvm::StringMap<ClassSelectionRule>
    fClassNameSelectionRuleMap; /// < Map of the already built sel rules
    bool fIsFirstPass; ///< Keep trance of the number of passes through the AST
-   ROOT::TMetaUtils::TNormalizedCtxt &fNormCtxt; /// < The reference to the normalized context
+   CppyyLegacy::TMetaUtils::TNormalizedCtxt &fNormCtxt; /// < The reference to the normalized context
 };
-}
-}
+
+} // namespace Internal
+} // namespace CppyyLegacy
 
 #endif

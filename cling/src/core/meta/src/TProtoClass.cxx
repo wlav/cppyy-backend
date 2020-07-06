@@ -29,6 +29,9 @@ Persistent version of a TClass.
 
 #include <cassert>
 
+
+namespace CppyyLegacy {
+
 ////////////////////////////////////////////////////////////////////////////////
 /// Initialize a TProtoClass from a TClass.
 
@@ -211,7 +214,7 @@ Bool_t TProtoClass::FillTClass(TClass* cl) {
    if (cl->fRealData || cl->fBase.load() || cl->fData || cl->fEnums.load() || cl->fSizeof != -1 || cl->fCanSplit >= 0 ||
        cl->fProperty != (-1)) {
 
-      if (cl->GetCollectionType() != ROOT::kNotSTL) {
+      if (cl->GetCollectionType() != CppyyLegacy::kNotSTL) {
          // We are in the case of collection, duplicate dictionary are allowed
          // (and even somewhat excepted since they can be auto asked for).
          // They do not always have a TProtoClass for them.  In particular
@@ -445,7 +448,7 @@ TRealData* TProtoClass::TProtoRealData::CreateRealData(TClass* dmClass,
    TDataMember* dm = TProtoClass::FindDataMember(dmClass, fDMIndex);
 
    if (!dm && dmClass->GetState()!=TClass::kForwardDeclared) {
-      ::Error("CreateRealData",
+      ::CppyyLegacy::Error("CreateRealData",
               "Cannot find data member # %d of class %s for parent %s!", fDMIndex, dmClass->GetName(),
               parent->GetName());
       return nullptr;
@@ -522,7 +525,7 @@ Int_t TProtoClass::DataMemberIndex(TClass * cl, const char * name)
          return index;
       index++;
    }
-   ::Error("TProtoClass::DataMemberIndex","data member %s is not found in class %s",name, cl->GetName());
+   ::CppyyLegacy::Error("TProtoClass::DataMemberIndex","data member %s is not found in class %s",name, cl->GetName());
    dmList->ls();
    return -1;
 }
@@ -543,6 +546,8 @@ TDataMember * TProtoClass::FindDataMember(TClass * cl, Int_t index)
       i++;
    }
    if (cl->GetState()!=TClass::kForwardDeclared)
-      ::Error("TProtoClass::FindDataMember","data member with index %d is not found in class %s",index,cl->GetName());
+      ::CppyyLegacy::Error("TProtoClass::FindDataMember","data member with index %d is not found in class %s",index,cl->GetName());
    return nullptr;
 }
+
+} // namespace CppyyLegacy

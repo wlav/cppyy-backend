@@ -24,6 +24,11 @@ the writing of class browsers and inspectors.
 #include "TClass.h"
 #include "TError.h"
 
+
+ClassImp(CppyyLegacy::TMemberInspector);
+
+namespace CppyyLegacy {
+
 class TMemberInspector::TParentBuf {
 private:
    std::vector<char> fBuf;
@@ -56,8 +61,6 @@ void TMemberInspector::TParentBuf::Remove(Ssiz_t startingAt)
    fLen = startingAt;
    fBuf[startingAt] = 0;
 }
-
-ClassImp(TMemberInspector);
 
 TMemberInspector::TMemberInspector():
    fObjectPointerState(kUnset)
@@ -156,3 +159,5 @@ void TMemberInspector::InspectMember(TClass* cl, const void* pobj, const char* n
    cl->CallShowMembers(pobj, *this, isTransient);
    fParent->Remove(len);
 }
+
+} // namespace CppyyLegacy

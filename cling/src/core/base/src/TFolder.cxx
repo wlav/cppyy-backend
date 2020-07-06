@@ -89,13 +89,16 @@ if this pointer is used frequently or inside loops.
 #include "TError.h"
 #include "TRegexp.h"
 
+
+ClassImp(CppyyLegacy::TFolder);
+
+namespace CppyyLegacy {
+
 static const char *gFolderD[64];
 static Int_t gFolderLevel = -1;
 static char  gFolderPath[512];
 
 enum { kOwnFolderList = BIT(15) };
-
-ClassImp(TFolder);
 
 ////////////////////////////////////////////////////////////////////////////////
 /// Default constructor used by the Input functions.
@@ -184,11 +187,11 @@ void TFolder::Add(TObject *obj)
 TFolder *TFolder::AddFolder(const char *name, const char *title, TCollection *collection)
 {
    if (strchr(name,'/')) {
-      ::Error("TFolder::TFolder","folder name cannot contain a slash: %s", name);
+      ::CppyyLegacy::Error("TFolder::TFolder","folder name cannot contain a slash: %s", name);
       return 0;
    }
    if (strlen(GetName()) == 0) {
-      ::Error("TFolder::TFolder","folder name cannot be \"\"");
+      ::CppyyLegacy::Error("TFolder::TFolder","folder name cannot be \"\"");
       return 0;
    }
    TFolder *folder = new TFolder();
@@ -484,3 +487,5 @@ void TFolder::SetOwner(Bool_t owner)
    if (!fFolders) fFolders = new TList();
    fFolders->SetOwner(owner);
 }
+
+} // namespace CppyyLegacy

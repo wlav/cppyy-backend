@@ -24,6 +24,9 @@
 #include "TObject.h"
 #include <string.h>
 
+
+namespace CppyyLegacy {
+
 class TBits : public TObject {
 
 protected:
@@ -180,10 +183,14 @@ inline TBits operator^(const TBits& lhs, const TBits& rhs)
    return result;
 }
 
-inline std::ostream &operator<<(std::ostream& os, const TBits& rhs)
+} // namespace CppyyLegacy
+
+inline std::ostream &operator<<(std::ostream& os, const CppyyLegacy::TBits& rhs)
 {
    rhs.Output(os); return os;
 }
+
+namespace CppyyLegacy {
 
 // inline functions...
 
@@ -269,6 +276,5 @@ inline TBits::TReference::operator Bool_t() const
    return fBits.TestBitNumber(fPos);
 }
 
+} // namespace CppyyLegacy
 #endif
-
-

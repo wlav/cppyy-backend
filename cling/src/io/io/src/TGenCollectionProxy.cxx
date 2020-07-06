@@ -26,6 +26,7 @@
 
 #include "TInterpreter.h" // For gInterpreterMutex
 
+
 #define MESSAGE(which,text)
 
 /**
@@ -37,6 +38,8 @@ Collection proxies get copied. On copy we switch the type of the
 proxy to the concrete STL type. The concrete types are optimized
 for element access.
 */
+
+namespace CppyyLegacy {
 
 class TGenVectorProxy : public TGenCollectionProxy {
 public:
@@ -163,7 +166,7 @@ public:
                fEnv->fIdx = idx;
                break;
          }
-         typedef ROOT::TCollectionProxyInfo::Environ<std::pair<size_t,Bool_t> > EnvType_t;
+         typedef CppyyLegacy::TCollectionProxyInfo::Environ<std::pair<size_t,Bool_t> > EnvType_t;
          EnvType_t *e = (EnvType_t*)fEnv;
          return &(e->fIterator.second);
       }
@@ -618,7 +621,7 @@ TGenCollectionProxy::TGenCollectionProxy(Info_t info, size_t iter_size)
    fValDiff         = 0;
    fPointers        = false;
    fOnFileClass     = 0;
-   fSTL_type        = ROOT::kNotSTL;
+   fSTL_type        = CppyyLegacy::kNotSTL;
    Env_t e;
    if ( iter_size > sizeof(e.fIterator) ) {
       Fatal("TGenCollectionProxy",
@@ -641,7 +644,7 @@ TGenCollectionProxy::TGenCollectionProxy(Info_t info, size_t iter_size)
 ////////////////////////////////////////////////////////////////////////////////
 /// Build a proxy for a collection whose type is described by 'collectionClass'.
 
-TGenCollectionProxy::TGenCollectionProxy(const ROOT::TCollectionProxyInfo &info, TClass *cl)
+TGenCollectionProxy::TGenCollectionProxy(const CppyyLegacy::TCollectionProxyInfo &info, TClass *cl)
    : TVirtualCollectionProxy(cl),
      fTypeinfo(info.fInfo), fOnFileClass(0)
 {
@@ -668,7 +671,7 @@ TGenCollectionProxy::TGenCollectionProxy(const ROOT::TCollectionProxyInfo &info,
    fKey             = 0;
    fVal             = 0;
    fPointers        = false;
-   fSTL_type        = ROOT::kNotSTL;
+   fSTL_type        = CppyyLegacy::kNotSTL;
 
    Env_t e;
    if ( info.fIterSize > sizeof(e.fIterator) ) {
@@ -741,28 +744,28 @@ TVirtualCollectionProxy* TGenCollectionProxy::Generate() const
       return new TGenCollectionProxy(*this);
 
    switch(fSTL_type) {
-      case ROOT::kSTLbitset: {
+      case CppyyLegacy::kSTLbitset: {
          return new TGenBitsetProxy(*this);
       }
-      case ROOT::kSTLvector: {
+      case CppyyLegacy::kSTLvector: {
          if ((*fValue).fKind == kBool_t) {
             return new TGenVectorBoolProxy(*this);
          } else {
             return new TGenVectorProxy(*this);
          }
       }
-      case ROOT::kSTLlist:
-      case ROOT::kSTLforwardlist:
+      case CppyyLegacy::kSTLlist:
+      case CppyyLegacy::kSTLforwardlist:
          return new TGenListProxy(*this);
-      case ROOT::kSTLmap:
-      case ROOT::kSTLunorderedmap:
-      case ROOT::kSTLmultimap:
-      case ROOT::kSTLunorderedmultimap:
+      case CppyyLegacy::kSTLmap:
+      case CppyyLegacy::kSTLunorderedmap:
+      case CppyyLegacy::kSTLmultimap:
+      case CppyyLegacy::kSTLunorderedmultimap:
          return new TGenMapProxy(*this);
-      case ROOT::kSTLset:
-      case ROOT::kSTLunorderedset:
-      case ROOT::kSTLmultiset:
-      case ROOT::kSTLunorderedmultiset:
+      case CppyyLegacy::kSTLset:
+      case CppyyLegacy::kSTLunorderedset:
+      case CppyyLegacy::kSTLmultiset:
+      case CppyyLegacy::kSTLunorderedmultiset:
          return new TGenSetProxy(*this);
       default:
          return new TGenCollectionProxy(*this);
@@ -853,15 +856,15 @@ TGenCollectionProxy *TGenCollectionProxy::InitializeEx(Bool_t silent)
             inside[0].replace(0,16,"std::");
          fSTL_type = TClassEdit::STLKind(inside[0]);
          switch ( fSTL_type ) {
-            case ROOT::kSTLmap:
-            case ROOT::kSTLunorderedmap:
-            case ROOT::kSTLmultimap:
-            case ROOT::kSTLunorderedmultimap:
-            case ROOT::kSTLset:
-            case ROOT::kSTLunorderedset:
-            case ROOT::kSTLmultiset:
-            case ROOT::kSTLunorderedmultiset:
-            case ROOT::kSTLbitset: // not really an associate container but it has no real iterator.
+            case CppyyLegacy::kSTLmap:
+            case CppyyLegacy::kSTLunorderedmap:
+            case CppyyLegacy::kSTLmultimap:
+            case CppyyLegacy::kSTLunorderedmultimap:
+            case CppyyLegacy::kSTLset:
+            case CppyyLegacy::kSTLunorderedset:
+            case CppyyLegacy::kSTLmultiset:
+            case CppyyLegacy::kSTLunorderedmultiset:
+            case CppyyLegacy::kSTLbitset: // not really an associate container but it has no real iterator.
                fProperties |= kIsAssociative;
                if (num > 3 && !inside[3].empty()) {
                   if (! TClassEdit::IsDefAlloc(inside[3].c_str(),inside[0].c_str())) {
@@ -873,10 +876,10 @@ TGenCollectionProxy *TGenCollectionProxy::InitializeEx(Bool_t silent)
 
          int slong = sizeof(void*);
          switch ( fSTL_type ) {
-            case ROOT::kSTLmap:
-            case ROOT::kSTLunorderedmap:
-            case ROOT::kSTLmultimap:
-            case ROOT::kSTLunorderedmultimap:
+            case CppyyLegacy::kSTLmap:
+            case CppyyLegacy::kSTLunorderedmap:
+            case CppyyLegacy::kSTLmultimap:
+            case CppyyLegacy::kSTLunorderedmultimap:
                nam = "std::pair<"+inside[1]+","+inside[2];
                nam += (nam[nam.length()-1]=='>') ? " >" : ">";
                newfValue = R__CreateValue(nam, silent);
@@ -897,7 +900,7 @@ TGenCollectionProxy *TGenCollectionProxy::InitializeEx(Bool_t silent)
                   fValOffset += (slong - fKey->fSize%slong)%slong;
                }
                break;
-            case ROOT::kSTLbitset:
+            case CppyyLegacy::kSTLbitset:
                inside[1] = "bool";
                // Intentional fall through
             default:
@@ -980,8 +983,8 @@ Bool_t TGenCollectionProxy::HasPointers() const
    // The content of a map and multimap is always a 'pair' and hence
    // fPointers means "Flag to indicate if containee has pointers (key or value)"
    // so we need to ignore its value for map and multimap;
-   return fPointers && !(fSTL_type == ROOT::kSTLmap || fSTL_type == ROOT::kSTLmultimap ||
-                         fSTL_type == ROOT::kSTLunorderedmap || fSTL_type == ROOT::kSTLunorderedmultimap);
+   return fPointers && !(fSTL_type == CppyyLegacy::kSTLmap || fSTL_type == CppyyLegacy::kSTLmultimap ||
+                         fSTL_type == CppyyLegacy::kSTLunorderedmap || fSTL_type == CppyyLegacy::kSTLunorderedmultimap);
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -1024,7 +1027,7 @@ void* TGenCollectionProxy::At(UInt_t idx)
 {
    if ( fEnv && fEnv->fObject ) {
       switch (fSTL_type) {
-      case ROOT::kSTLvector:
+      case CppyyLegacy::kSTLvector:
          if ((*fValue).fKind == kBool_t) {
             auto vec = (std::vector<bool> *)(fEnv->fObject);
             fEnv->fLastValueVecBool = (*vec)[idx];
@@ -1039,7 +1042,7 @@ void* TGenCollectionProxy::At(UInt_t idx)
             if (! fEnv->fStart ) fEnv->fStart = fFirst.invoke(fEnv);
             return ((char*)fEnv->fStart) + fValDiff*idx;
          }
-      case ROOT::kSTLbitset: {
+      case CppyyLegacy::kSTLbitset: {
          switch (idx) {
          case 0:
             fEnv->fStart = fFirst.invoke(fEnv);
@@ -1052,18 +1055,18 @@ void* TGenCollectionProxy::At(UInt_t idx)
             fEnv->fIdx = idx;
             break;
          }
-         typedef ROOT::TCollectionProxyInfo::Environ <std::pair<size_t, Bool_t>> EnvType_t;
+         typedef CppyyLegacy::TCollectionProxyInfo::Environ <std::pair<size_t, Bool_t>> EnvType_t;
          EnvType_t *e = (EnvType_t *) fEnv;
          return &(e->fIterator.second);
       }
-      case ROOT::kSTLset:
-      case ROOT::kSTLunorderedset:
-      case ROOT::kSTLmultiset:
-      case ROOT::kSTLunorderedmultiset:
-      case ROOT::kSTLmap:
-      case ROOT::kSTLunorderedmap:
-      case ROOT::kSTLmultimap:
-      case ROOT::kSTLunorderedmultimap:
+      case CppyyLegacy::kSTLset:
+      case CppyyLegacy::kSTLunorderedset:
+      case CppyyLegacy::kSTLmultiset:
+      case CppyyLegacy::kSTLunorderedmultiset:
+      case CppyyLegacy::kSTLmap:
+      case CppyyLegacy::kSTLunorderedmap:
+      case CppyyLegacy::kSTLmultimap:
+      case CppyyLegacy::kSTLunorderedmultimap:
          if ( fEnv->fUseTemp ) {
             return (((char*)fEnv->fTemp)+idx*fValDiff);
          }
@@ -1150,14 +1153,14 @@ void* TGenCollectionProxy::Allocate(UInt_t n, Bool_t /* forceDelete */ )
 {
    if ( fEnv && fEnv->fObject ) {
       switch ( fSTL_type ) {
-         case ROOT::kSTLset:
-         case ROOT::kSTLunorderedset:
-         case ROOT::kSTLmultiset:
-         case ROOT::kSTLunorderedmultiset:
-         case ROOT::kSTLmap:
-         case ROOT::kSTLunorderedmap:
-         case ROOT::kSTLmultimap:
-         case ROOT::kSTLunorderedmultimap:{
+         case CppyyLegacy::kSTLset:
+         case CppyyLegacy::kSTLunorderedset:
+         case CppyyLegacy::kSTLmultiset:
+         case CppyyLegacy::kSTLunorderedmultiset:
+         case CppyyLegacy::kSTLmap:
+         case CppyyLegacy::kSTLunorderedmap:
+         case CppyyLegacy::kSTLmultimap:
+         case CppyyLegacy::kSTLunorderedmultimap:{
             if ( (fProperties & kNeedDelete) )
                Clear("force");
             else
@@ -1185,10 +1188,10 @@ void* TGenCollectionProxy::Allocate(UInt_t n, Bool_t /* forceDelete */ )
 
             return s;
          }
-         case ROOT::kSTLvector:
-         case ROOT::kSTLlist:
-         case ROOT::kSTLforwardlist:
-         case ROOT::kSTLdeque:
+         case CppyyLegacy::kSTLvector:
+         case CppyyLegacy::kSTLlist:
+         case CppyyLegacy::kSTLforwardlist:
+         case CppyyLegacy::kSTLdeque:
             if( (fProperties & kNeedDelete) ) {
                Clear("force");
             }
@@ -1196,7 +1199,7 @@ void* TGenCollectionProxy::Allocate(UInt_t n, Bool_t /* forceDelete */ )
             fResize(fEnv->fObject,n);
             return fEnv->fObject;
 
-        case ROOT::kSTLbitset: {
+        case CppyyLegacy::kSTLbitset: {
             TStaging *s;
             if (fStaged.empty()) {
                s = new TStaging(n,fValDiff);
@@ -1233,10 +1236,10 @@ void TGenCollectionProxy::Insert(const void *data, void *container, size_t size)
 void TGenCollectionProxy::Commit(void* from)
 {
    if (fProperties & kIsAssociative) {
-//      case ROOT::kSTLmap:
-//      case ROOT::kSTLmultimap:
-//      case ROOT::kSTLset:
-//      case ROOT::kSTLmultiset:
+//      case CppyyLegacy::kSTLmap:
+//      case CppyyLegacy::kSTLmultimap:
+//      case CppyyLegacy::kSTLset:
+//      case CppyyLegacy::kSTLmultiset:
       if ( from ) {
          TStaging *s = (TStaging*) from;
          if ( s->GetTarget() ) {
@@ -1307,10 +1310,10 @@ void TGenCollectionProxy::DeleteItem(Bool_t force, void* ptr) const
 {
    if ( force && ptr ) {
       switch (fSTL_type) {
-         case ROOT::kSTLmap:
-         case ROOT::kSTLunorderedmap:
-         case ROOT::kSTLmultimap:
-         case ROOT::kSTLunorderedmultimap:{
+         case CppyyLegacy::kSTLmap:
+         case CppyyLegacy::kSTLunorderedmap:
+         case CppyyLegacy::kSTLmultimap:
+         case CppyyLegacy::kSTLunorderedmultimap:{
             if ( fKey->fCase&kIsPointer ) {
                if (fKey->fProperties&kNeedDelete) {
                   TVirtualCollectionProxy *proxy = fKey->fType->GetCollectionProxy();
@@ -1573,14 +1576,14 @@ TVirtualCollectionProxy::CreateIterators_t TGenCollectionProxy::GetFunctionCreat
    if ( !fValue.load() ) InitializeEx(kFALSE);
 
 //   fprintf(stderr,"GetFunctinCreateIterator for %s will give: ",fClass.GetClassName());
-//   if (fSTL_type==ROOT::kSTLvector || (fProperties & kIsEmulated))
+//   if (fSTL_type==CppyyLegacy::kSTLvector || (fProperties & kIsEmulated))
 //      fprintf(stderr,"vector/emulated iterator\n");
 //   else if ( (fProperties & kIsAssociative) && read)
 //      fprintf(stderr,"an associative read iterator\n");
 //   else
 //      fprintf(stderr,"a generic iterator\n");
 
-   if (fSTL_type==ROOT::kSTLvector || (fProperties & kIsEmulated))
+   if (fSTL_type==CppyyLegacy::kSTLvector || (fProperties & kIsEmulated))
       return fFunctionCreateIterators = TGenCollectionProxy__VectorCreateIterators;
    else if ( (fProperties & kIsAssociative) && read)
       return TGenCollectionProxy__StagingCreateIterators;
@@ -1606,7 +1609,7 @@ TVirtualCollectionProxy::CopyIterator_t TGenCollectionProxy::GetFunctionCopyIter
 
    if ( !fValue.load() ) InitializeEx(kFALSE);
 
-   if (fSTL_type==ROOT::kSTLvector || (fProperties & kIsEmulated))
+   if (fSTL_type==CppyyLegacy::kSTLvector || (fProperties & kIsEmulated))
       return fFunctionCopyIterator = TGenCollectionProxy__VectorCopyIterator;
    else if ( (fProperties & kIsAssociative) && read)
       return TGenCollectionProxy__StagingCopyIterator;
@@ -1633,7 +1636,7 @@ TVirtualCollectionProxy::Next_t TGenCollectionProxy::GetFunctionNext(Bool_t read
 
    if ( !fValue.load() ) InitializeEx(kFALSE);
 
-   if (fSTL_type==ROOT::kSTLvector || (fProperties & kIsEmulated))
+   if (fSTL_type==CppyyLegacy::kSTLvector || (fProperties & kIsEmulated))
       return fFunctionNextIterator = TGenCollectionProxy__VectorNext;
    else if ( (fProperties & kIsAssociative) && read)
       return TGenCollectionProxy__StagingNext;
@@ -1658,7 +1661,7 @@ TVirtualCollectionProxy::DeleteIterator_t TGenCollectionProxy::GetFunctionDelete
 
    if ( !fValue.load() ) InitializeEx(kFALSE);
 
-   if (fSTL_type==ROOT::kSTLvector || (fProperties & kIsEmulated))
+   if (fSTL_type==CppyyLegacy::kSTLvector || (fProperties & kIsEmulated))
       return fFunctionDeleteIterator = TGenCollectionProxy__VectorDeleteSingleIterators;
    else if ( (fProperties & kIsAssociative) && read)
       return TGenCollectionProxy__StagingDeleteSingleIterators;
@@ -1683,7 +1686,7 @@ TVirtualCollectionProxy::DeleteTwoIterators_t TGenCollectionProxy::GetFunctionDe
 
    if ( !fValue.load() ) InitializeEx(kFALSE);
 
-   if (fSTL_type==ROOT::kSTLvector || (fProperties & kIsEmulated))
+   if (fSTL_type==CppyyLegacy::kSTLvector || (fProperties & kIsEmulated))
       return fFunctionDeleteTwoIterators = TGenCollectionProxy__VectorDeleteTwoIterators;
    else if ( (fProperties & kIsAssociative) && read)
       return TGenCollectionProxy__StagingDeleteTwoIterators;
@@ -1783,3 +1786,5 @@ TStreamerInfoActions::TActionSequence *TGenCollectionProxy::GetWriteMemberWiseAc
   }
   return result;
 }
+
+} // namespace CppyyLegacy

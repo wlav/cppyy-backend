@@ -18,7 +18,10 @@ Collectable string class. This is a TObject containing a TString.
 #include "TObjString.h"
 #include "TROOT.h"
 
-ClassImp(TObjString);
+
+ClassImp(CppyyLegacy::TObjString);
+
+namespace CppyyLegacy {
 
 ////////////////////////////////////////////////////////////////////////////////
 /// TObjString destructor.
@@ -26,7 +29,7 @@ ClassImp(TObjString);
 TObjString::~TObjString()
 {
    // Required since we overload TObject::Hash.
-   ROOT::CallRecursiveRemoveIfNeeded(*this);
+   CallRecursiveRemoveIfNeeded(*this);
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -48,3 +51,5 @@ Bool_t TObjString::IsEqual(const TObject *obj) const
    if (TObjString::Class() != obj->IsA()) return kFALSE;
    return fString == ((TObjString*)obj)->fString;
 }
+
+} // namespace CppyyLegacy

@@ -23,8 +23,10 @@
 //////////////////////////////////////////////////////////////////////////
 
 #include "THashList.h"
-
 #include "TDictionary.h"
+
+
+namespace CppyyLegacy {
 
 class TExMap;
 class TDataMember;
@@ -97,4 +99,5 @@ public:
    ClassDef(TListOfDataMembers,2);  // List of TDataMembers for a class
 };
 
+} // namespace CppyyLegacy
 #endif // ROOT_TListOfDataMembers

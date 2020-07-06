@@ -40,7 +40,10 @@ but the type metadata comes from the Clang C++ compiler, not CINT.
 #include <cstdio>
 #include <string>
 
+
 using namespace std;
+
+namespace CppyyLegacy {
 
 ////////////////////////////////////////////////////////////////////////////////
 
@@ -109,7 +112,7 @@ const char *TClingTypeInfo::Name() const
    buf.clear();
 
    R__LOCKGUARD(gInterpreterMutex);
-   ROOT::TMetaUtils::GetFullyQualifiedTypeName(buf,fQualType,*fInterp);
+   CppyyLegacy::TMetaUtils::GetFullyQualifiedTypeName(buf,fQualType,*fInterp);
    return buf.c_str();
 }
 
@@ -295,7 +298,7 @@ const char *TClingTypeInfo::StemName() const
 /// Return the normalized name of the type (i.e. fully qualified and without
 /// the non-opaque typedefs.
 
-const char *TClingTypeInfo::TrueName(const ROOT::TMetaUtils::TNormalizedCtxt &normCtxt) const
+const char *TClingTypeInfo::TrueName(const CppyyLegacy::TMetaUtils::TNormalizedCtxt &normCtxt) const
 {
    if (!IsValid()) {
       return 0;
@@ -304,7 +307,7 @@ const char *TClingTypeInfo::TrueName(const ROOT::TMetaUtils::TNormalizedCtxt &no
    TTHREAD_TLS_DECL( std::string, buf);
    buf.clear();
 
-   ROOT::TMetaUtils::GetNormalizedName(buf,fQualType, *fInterp, normCtxt);
+   CppyyLegacy::TMetaUtils::GetNormalizedName(buf,fQualType, *fInterp, normCtxt);
 
    return buf.c_str();
 }
@@ -313,15 +316,16 @@ const char *TClingTypeInfo::TrueName(const ROOT::TMetaUtils::TNormalizedCtxt &no
 /// Return the normalized name of the type (i.e. fully qualified and without
 /// the non-opaque typedefs.
 
-std::string TClingTypeInfo::NormalizedName(const ROOT::TMetaUtils::TNormalizedCtxt &normCtxt) const
+std::string TClingTypeInfo::NormalizedName(const CppyyLegacy::TMetaUtils::TNormalizedCtxt &normCtxt) const
 {
    if (!IsValid()) {
       return "";
    }
    std::string buf;
-   ROOT::TMetaUtils::GetNormalizedName(buf,fQualType, *fInterp, normCtxt);
+   CppyyLegacy::TMetaUtils::GetNormalizedName(buf,fQualType, *fInterp, normCtxt);
 
    // in C++11 this will be efficient thanks to the move constructor.
    return buf;
 }
 
+} // namespace CppyyLegacy

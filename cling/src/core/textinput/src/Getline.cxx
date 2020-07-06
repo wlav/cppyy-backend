@@ -133,7 +133,7 @@ namespace {
       Display* fDisplay; // Default TerminalDisplay
       Reader* fReader; // Default StreamReader
       std::string fInputLine; // Taken from TextInput
-      ROOT::TextInputColorizer fCol; // Colorizer
+      CppyyLegacy::TextInputColorizer fCol; // Colorizer
       ROOTTabCompletion fTabComp; // Tab completion handler / TTabCom adapter
 
       // Config values:

@@ -31,7 +31,10 @@ compiler, not CINT.
 #include "cling/Utils/AST.h"
 #include "clang/AST/Attr.h"
 
+
 using namespace clang;
+
+namespace CppyyLegacy {
 
 ////////////////////////////////////////////////////////////////////////////////
 /// Lookup named typedef and initialize the iterator to point to it.
@@ -259,7 +262,7 @@ int TClingTypedefInfo::Size() const
 ////////////////////////////////////////////////////////////////////////////////
 /// Get the name of the underlying type of the current typedef.
 
-const char *TClingTypedefInfo::TrueName(const ROOT::TMetaUtils::TNormalizedCtxt &normCtxt) const
+const char *TClingTypedefInfo::TrueName(const CppyyLegacy::TMetaUtils::TNormalizedCtxt &normCtxt) const
 {
    if (!IsValid()) {
       return "(unknown)";
@@ -273,7 +276,7 @@ const char *TClingTypedefInfo::TrueName(const ROOT::TMetaUtils::TNormalizedCtxt 
       return "bool";
    }
    const clang::ASTContext &ctxt = fInterp->getCI()->getASTContext();
-   ROOT::TMetaUtils::GetNormalizedName(truename, ctxt.getTypedefType(td), *fInterp, normCtxt);
+   CppyyLegacy::TMetaUtils::GetNormalizedName(truename, ctxt.getTypedefType(td), *fInterp, normCtxt);
 
    return truename.c_str();
 }
@@ -291,7 +294,7 @@ const char *TClingTypedefInfo::Name()
 
    const clang::TypedefNameDecl *td = llvm::cast<clang::TypedefNameDecl>(fDecl);
    const clang::ASTContext &ctxt = td->getASTContext();
-   ROOT::TMetaUtils::GetFullyQualifiedTypeName(fNameCache, ctxt.getTypedefType(td), *fInterp);
+   CppyyLegacy::TMetaUtils::GetFullyQualifiedTypeName(fNameCache, ctxt.getTypedefType(td), *fInterp);
    return fNameCache.c_str();
 }
 
@@ -311,7 +314,7 @@ const char *TClingTypedefInfo::Title()
    // Iterate over the redeclarations, we can have multiple definitions in the
    // redecl chain (came from merging of pcms).
    if (const TypedefNameDecl *TND = llvm::dyn_cast<TypedefNameDecl>(GetDecl())) {
-      if ( (TND = ROOT::TMetaUtils::GetAnnotatedRedeclarable(TND)) ) {
+      if ( (TND = CppyyLegacy::TMetaUtils::GetAnnotatedRedeclarable(TND)) ) {
          if (AnnotateAttr *A = TND->getAttr<AnnotateAttr>()) {
             fTitle = A->getAnnotation().str();
             return fTitle.c_str();
@@ -322,8 +325,9 @@ const char *TClingTypedefInfo::Title()
       // Try to get the comment from the header file if present
       // but not for decls from AST file, where rootcling would have
       // created an annotation
-      fTitle = ROOT::TMetaUtils::GetComment(*GetDecl()).str();
+      fTitle = CppyyLegacy::TMetaUtils::GetComment(*GetDecl()).str();
    }
    return fTitle.c_str();
 }
 
+} // namespace CppyyLegacy

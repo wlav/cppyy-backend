@@ -25,7 +25,10 @@
 
 #include <errno.h>
 
-ClassImp(TWin32Condition);
+
+ClassImp(CppyyLegacyTWin32Condition);
+
+namespace CppyyLegacy {
 
 ////////////////////////////////////////////////////////////////////////////////
 /// Create Condition variable. Ctor must be given a pointer to an
@@ -220,3 +223,5 @@ Int_t TWin32Condition::Broadcast()
 
    return 0;
 }
+
+} // namespace CppyyLegacy

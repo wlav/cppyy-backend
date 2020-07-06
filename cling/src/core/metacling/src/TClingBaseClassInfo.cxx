@@ -50,9 +50,12 @@ the Clang C++ compiler, not CINT.
 #include <sstream>
 #include <iostream>
 
+
 using namespace llvm;
 using namespace clang;
 using namespace std;
+
+namespace CppyyLegacy {
 
 TClingBaseClassInfo::TClingBaseClassInfo(cling::Interpreter* interp,
                                          TClingClassInfo* ci)
@@ -180,14 +183,14 @@ TClingBaseClassInfo::GenerateBaseOffsetFunction(TClingClassInfo * fromDerivedCla
    const clang::RecordDecl* fromDerivedDecl
       = dyn_cast<clang::RecordDecl>(fromDerivedClass->GetDecl());
    if (!fromDerivedDecl) {
-      ::Error("TClingBaseClassInfo::GenerateBaseOffsetFunction",
+      ::CppyyLegacy::Error("TClingBaseClassInfo::GenerateBaseOffsetFunction",
             "Offset of non-class %s is ill-defined!", fromDerivedClass->Name());
       return 0;
    }
    const clang::RecordDecl* toBaseDecl
       = dyn_cast<clang::RecordDecl>(toBaseClass->GetDecl());
    if (!toBaseDecl) {
-      ::Error("TClingBaseClassInfo::GenerateBaseOffsetFunction",
+      ::CppyyLegacy::Error("TClingBaseClassInfo::GenerateBaseOffsetFunction",
             "Offset of non-class %s is ill-defined!", toBaseClass->Name());
       return 0;
    }
@@ -207,11 +210,11 @@ TClingBaseClassInfo::GenerateBaseOffsetFunction(TClingClassInfo * fromDerivedCla
       // Get the class or namespace name.
       string fromDerivedClassName;
       clang::QualType QTDerived(fromDerivedClass->GetType(), 0);
-      ROOT::TMetaUtils::GetFullyQualifiedTypeName(fromDerivedClassName,
+      CppyyLegacy::TMetaUtils::GetFullyQualifiedTypeName(fromDerivedClassName,
                                                      QTDerived, *fInterp);
       string toBase_class_name;
       clang::QualType QTtoBase(toBaseClass->GetType(), 0);
-      ROOT::TMetaUtils::GetFullyQualifiedTypeName(toBase_class_name,
+      CppyyLegacy::TMetaUtils::GetFullyQualifiedTypeName(toBase_class_name,
                                                   QTtoBase, *fInterp);
       //  Write the wrapper code.
       llvm::raw_string_ostream buf(code);
@@ -234,7 +237,7 @@ TClingBaseClassInfo::GenerateBaseOffsetFunction(TClingClassInfo * fromDerivedCla
    void* f = fInterp->compileFunction(wrapper_name, code, true /*ifUnique*/,
                                       false /*withAccessControl*/);
    if (!f) {
-      ::Error("TClingBaseClassInfo::GenerateBaseOffsetFunction",
+      ::CppyyLegacy::Error("TClingBaseClassInfo::GenerateBaseOffsetFunction",
             "Compilation failed!");
       return 0;
    }
@@ -339,7 +342,7 @@ int TClingBaseClassInfo::InternalNext(int onlyDirect)
       }
       // Update info for this base class.
       delete fBaseInfo;
-      clang::QualType bType = ROOT::TMetaUtils::ReSubstTemplateArg(fIter->getType(),fClassInfo->GetType());
+      clang::QualType bType = CppyyLegacy::TMetaUtils::ReSubstTemplateArg(fIter->getType(),fClassInfo->GetType());
       fBaseInfo = new TClingClassInfo(fInterp, *bType);
       // Iterator is now valid.
       return 1;
@@ -455,12 +458,12 @@ ptrdiff_t TClingBaseClassInfo::Offset(void * address, bool isDerivedObject) cons
             derivedName = buf;
          }
          if (clang_val == -2) {
-            ::Error("TClingBaseClassInfo::Offset",
+            ::CppyyLegacy::Error("TClingBaseClassInfo::Offset",
                   "The class %s does not derive from the base %s.",
                   derivedName.Data(), baseName.Data());
          } else {
             // clang_val == -3
-            ::Error("TClingBaseClassInfo::Offset",
+            ::CppyyLegacy::Error("TClingBaseClassInfo::Offset",
                   "There are multiple paths from derived class %s to base class %s.",
                   derivedName.Data(), baseName.Data());
          }
@@ -471,7 +474,7 @@ ptrdiff_t TClingBaseClassInfo::Offset(void * address, bool isDerivedObject) cons
    }
    // Verify the address of the instantiated object
    if (!address) {
-      ::Error("TClingBaseClassInfo::Offset", "The address of the object for virtual base offset calculation is not valid.");
+      ::CppyyLegacy::Error("TClingBaseClassInfo::Offset", "The address of the object for virtual base offset calculation is not valid.");
       return -1;
    }
 
@@ -502,7 +505,7 @@ long TClingBaseClassInfo::Property() const
    const clang::CXXRecordDecl* BaseCRD
       = llvm::dyn_cast<CXXRecordDecl>(fBaseInfo->GetDecl());
    if (!CRD || !BaseCRD) {
-      ::Error("TClingBaseClassInfo::Property",
+      ::CppyyLegacy::Error("TClingBaseClassInfo::Property",
             "The derived class or the base class do not have a CXXRecordDecl.");
       return property;
    }
@@ -512,7 +515,7 @@ long TClingBaseClassInfo::Property() const
    if (!CRD->isDerivedFrom(BaseCRD, Paths)) {
       // Error really unexpected here, because construction / iteration guarantees
       //inheritance;
-      ::Error("TClingBaseClassInfo", "Class not derived from given base.");
+      ::CppyyLegacy::Error("TClingBaseClassInfo", "Class not derived from given base.");
    }
    if (Paths.getDetectedVirtual()) {
       property |= kIsVirtualBase;
@@ -555,7 +558,7 @@ long TClingBaseClassInfo::Tagnum() const
    return fBaseInfo->Tagnum();
 }
 
-void TClingBaseClassInfo::FullName(std::string &output, const ROOT::TMetaUtils::TNormalizedCtxt &normCtxt) const
+void TClingBaseClassInfo::FullName(std::string &output, const CppyyLegacy::TMetaUtils::TNormalizedCtxt &normCtxt) const
 {
    if (!IsValid()) {
       output.clear();
@@ -580,3 +583,4 @@ const char* TClingBaseClassInfo::TmpltName() const
    return fBaseInfo->TmpltName();
 }
 
+} // namespace CppyyLegacy

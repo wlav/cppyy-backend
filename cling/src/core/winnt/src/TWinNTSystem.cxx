@@ -876,7 +876,9 @@ namespace {
 
 
 ///////////////////////////////////////////////////////////////////////////////
-ClassImp(TWinNTSystem);
+ClassImp(CppyyLegacy::TWinNTSystem);
+
+namespace CppyyLegacy {
 
 void* gConsoleWindow = 0;
 
@@ -1030,7 +1032,7 @@ Bool_t TWinNTSystem::Init()
    fSigcnt = 0;
 
    // This is a fallback in case TROOT::GetRootSys() can't determine ROOTSYS
-   gRootDir = ROOT::FoundationUtils::GetFallbackRootSys().c_str();
+   gRootDir = CppyyLegacy::FoundationUtils::GetFallbackRootSys().c_str();
 
    // Increase the accuracy of Sleep() without needing to link to winmm.lib
    typedef UINT (WINAPI* LPTIMEBEGINPERIOD)( UINT uPeriod );
@@ -4146,7 +4148,7 @@ Double_t TWinNTSystem::GetCPUTime()
                                      &ftUser.ftFileTime);
       if (ret != TRUE){
          ret = ::GetLastError();
-         ::Error("GetCPUTime", " Error on GetProcessTimes 0x%lx", (int)ret);
+         ::CppyyLegacy::Error("GetCPUTime", " Error on GetProcessTimes 0x%lx", (int)ret);
       }
 
       // Process times are returned in a 64-bit structure, as the number of
@@ -4950,7 +4952,7 @@ int TWinNTSystem::AnnounceTcpService(int port, Bool_t reuse, int backlog,
    }
 
    if (port == 0 && reuse) {
-      ::Error("TWinNTSystem::WinNTTcpService", "cannot do a port scan while reuse is true");
+      ::CppyyLegacy::Error("TWinNTSystem::WinNTTcpService", "cannot do a port scan while reuse is true");
       return -1;
    }
 
@@ -5097,3 +5099,5 @@ int TWinNTSystem::AcceptConnection(int socket)
    }
    return soc;
 }
+
+} // namespace CppyyLegacy

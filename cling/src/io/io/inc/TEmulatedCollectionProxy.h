@@ -8,10 +8,14 @@
  * For the licensing terms see $ROOTSYS/LICENSE.                         *
  * For the list of contributors see $ROOTSYS/README/CREDITS.             *
  *************************************************************************/
+
 #ifndef ROOT_TEmulatedCollectionProxy
 #define ROOT_TEmulatedCollectionProxy
 
 #include "TGenCollectionProxy.h"
+
+
+namespace CppyyLegacy {
 
 class TEmulatedCollectionProxy : public TGenCollectionProxy  {
 
@@ -115,4 +119,5 @@ public:
    Bool_t IsValid() const;
 };
 
+} // namespace CppyyLegacy
 #endif

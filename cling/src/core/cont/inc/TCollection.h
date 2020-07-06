@@ -12,7 +12,6 @@
 #ifndef ROOT_TCollection
 #define ROOT_TCollection
 
-
 //////////////////////////////////////////////////////////////////////////
 //                                                                      //
 // TCollection                                                          //
@@ -23,14 +22,13 @@
 //////////////////////////////////////////////////////////////////////////
 
 #include "TObject.h"
-
 #include "TIterator.h"
-
 #include "TString.h"
-
 #include "TVirtualRWMutex.h"
-
 #include <assert.h>
+
+
+namespace CppyyLegacy {
 
 class TClass;
 class TObjectTable;
@@ -279,7 +277,6 @@ public:
 inline TIter TCollection::begin() const { return ++(TIter(this)); }
 inline TIter TCollection::end() const { return TIter::End(); }
 
-namespace ROOT {
 namespace Internal {
 
 const TCollection &EmptyCollection();
@@ -293,7 +290,7 @@ class TRangeDynCastIterator : public TIter {
    /// This is a workaround against ClassDefInline not supporting classes
    /// missing their default constructor or having them private.
    template <class T>
-   friend class ROOT::Internal::ClassDefGenerateInitInstanceLocalInjector;
+   friend class Internal::ClassDefGenerateInitInstanceLocalInjector;
 
    TRangeDynCastIterator() = default;
 
@@ -335,13 +332,13 @@ class TTypedIter : public TIter {
    /// This is a workaround against ClassDefInline not supporting classes
    /// missing their default constructor or having them private.
    template <class T>
-   friend class ROOT::Internal::ClassDefGenerateInitInstanceLocalInjector;
+   friend class Internal::ClassDefGenerateInitInstanceLocalInjector;
 
    TTypedIter() = default;
 
    static Containee *StaticCast(TObject *obj)
    {
-      assert(!obj || ROOT::Internal::ContaineeInheritsFrom(obj->IsA(), Containee::Class()));
+      assert(!obj || Internal::ContaineeInheritsFrom(obj->IsA(), Containee::Class()));
       return static_cast<Containee *>(obj);
    }
 
@@ -380,14 +377,13 @@ class TRangeStaticCast {
 
 public:
    TRangeStaticCast(const TCollection &col) : fCollection(col) {}
-   TRangeStaticCast(const TCollection *col) : fCollection(col != nullptr ? *col : ROOT::Internal::EmptyCollection()) {}
+   TRangeStaticCast(const TCollection *col) : fCollection(col != nullptr ? *col : Internal::EmptyCollection()) {}
 
    TTypedIter<T> begin() const { return fCollection.begin(); }
    TTypedIter<T> end() const { return fCollection.end(); }
 };
 
 } // namespace Detail
-} // namespace ROOT
 
 /// @brief TRangeDynCast is an adaptater class that allows the typed iteration
 /// through a TCollection.
@@ -409,22 +405,24 @@ class TRangeDynCast {
 
 public:
    TRangeDynCast(const TCollection &col) : fCollection(col) {}
-   TRangeDynCast(const TCollection *col) : fCollection(col != nullptr ? *col : ROOT::Internal::EmptyCollection()) {}
+   TRangeDynCast(const TCollection *col) : fCollection(col != nullptr ? *col : Internal::EmptyCollection()) {}
 
-   ROOT::Internal::TRangeDynCastIterator<T> begin() const { return fCollection.begin(); }
-   ROOT::Internal::TRangeDynCastIterator<T> end() const { return fCollection.end(); }
+   Internal::TRangeDynCastIterator<T> begin() const { return fCollection.begin(); }
+   Internal::TRangeDynCastIterator<T> end() const { return fCollection.end(); }
 };
+
+} // namespace CppyyLegacy
 
 // Zero overhead macros in case not compiled with thread support
 #if defined (_REENTRANT) || defined (WIN32)
 
 #define R__COLL_COND_MUTEX(mutex) this->IsUsingRWLock() ? mutex : nullptr
 
-#define R__COLLECTION_READ_LOCKGUARD(mutex) ::ROOT::TReadLockGuard _R__UNIQUE_(R__readguard)(R__COLL_COND_MUTEX(mutex))
-#define R__COLLECTION_READ_LOCKGUARD_NAMED(name,mutex) ::ROOT::TReadLockGuard _NAME2_(R__readguard,name)(R__COLL_COND_MUTEX(mutex))
+#define R__COLLECTION_READ_LOCKGUARD(mutex) ::CppyyLegacy::TReadLockGuard _R__UNIQUE_(R__readguard)(R__COLL_COND_MUTEX(mutex))
+#define R__COLLECTION_READ_LOCKGUARD_NAMED(name,mutex) ::CppyyLegacy::TReadLockGuard _NAME2_(R__readguard,name)(R__COLL_COND_MUTEX(mutex))
 
-#define R__COLLECTION_WRITE_LOCKGUARD(mutex) ::ROOT::TWriteLockGuard _R__UNIQUE_(R__readguard)(R__COLL_COND_MUTEX(mutex))
-#define R__COLLECTION_WRITE_LOCKGUARD_NAMED(name,mutex) ::ROOT::TWriteLockGuard _NAME2_(R__readguard,name)(R__COLL_COND_MUTEX(mutex))
+#define R__COLLECTION_WRITE_LOCKGUARD(mutex) ::CppyyLegacy::TWriteLockGuard _R__UNIQUE_(R__readguard)(R__COLL_COND_MUTEX(mutex))
+#define R__COLLECTION_WRITE_LOCKGUARD_NAMED(name,mutex) ::CppyyLegacy::TWriteLockGuard _NAME2_(R__readguard,name)(R__COLL_COND_MUTEX(mutex))
 
 #else
 

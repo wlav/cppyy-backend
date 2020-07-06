@@ -78,10 +78,12 @@ via the command gObjectTable->Print()
 #include "TError.h"
 #define Printf TStringPrintf
 
+
+ClassImp(CppyyLegacy::TObjectTable);
+
+namespace CppyyLegacy {
+
 TObjectTable *gObjectTable;
-
-
-ClassImp(TObjectTable);
 
 ////////////////////////////////////////////////////////////////////////////////
 /// Create an object table.
@@ -163,7 +165,7 @@ void TObjectTable::AddObj(TObject *op)
    static Bool_t olock = kFALSE;
 
    if (!op) {
-      ::Error("TObjectTable::AddObj", "op is 0");
+      ::CppyyLegacy::Error("TObjectTable::AddObj", "op is 0");
       return;
    }
    if (olock)
@@ -391,3 +393,5 @@ void *TObjectTable::CheckPtrAndWarn(const char *msg, void *vp)
    }
    return vp;
 }
+
+} // namespace CppyyLegacy

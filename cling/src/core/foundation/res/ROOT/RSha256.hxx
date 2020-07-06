@@ -18,8 +18,7 @@
 #include <stdlib.h>
 #include <stdint.h>
 
-
-namespace ROOT {
+namespace CppyyLegacy {
 namespace Internal {
 namespace SHA256 {
 
@@ -274,7 +273,7 @@ void Sha256(const unsigned char *data, int len, ULong64_t *fDigest)
    SHA256::sha256_final(&hash, reinterpret_cast<unsigned char *>(fDigest));
 }
 
-} // End NS Internal
-} // End NS ROOT
+} // namespace Internal
+} // namespace CppyyLegacy
 
 #endif

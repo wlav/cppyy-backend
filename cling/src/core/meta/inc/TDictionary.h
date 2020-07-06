@@ -9,7 +9,6 @@
  * For the list of contributors see $ROOTSYS/README/CREDITS.             *
  *************************************************************************/
 
-
 #ifndef ROOT_TDictionary
 #define ROOT_TDictionary
 
@@ -40,8 +39,10 @@
 //////////////////////////////////////////////////////////////////////////
 
 #include "TNamed.h"
-
 #include "ESTLType.h"
+
+
+namespace CppyyLegacy {
 
 // The following are opaque type and are never really declared
 // The specific implementation of TInterpreter will cast the
@@ -149,12 +150,10 @@ enum ERefTypeValues {
    kParaRefP2P2P   = 103    // not used
 };
 
-namespace ROOT {
-   enum EFunctionMatchMode {
-      kExactMatch = 0,
-      kConversionMatch = 1
-   };
-}
+enum EFunctionMatchMode {
+   kExactMatch = 0,
+   kConversionMatch = 1
+};
 
 
 class TDictionary : public TNamed {
@@ -188,24 +187,25 @@ public:
 
    // Type of STL container (returned by IsSTLContainer).
    enum ESTLType {
-      kNone              = ROOT::kNotSTL,
-      kVector            = ROOT::kSTLvector,
-      kList              = ROOT::kSTLlist,
-      kForwardlist       = ROOT::kSTLforwardlist,
-      kDeque             = ROOT::kSTLdeque,
-      kMap               = ROOT::kSTLmap,
-      kMultimap          = ROOT::kSTLmultimap,
-      kSet               = ROOT::kSTLset,
-      kMultiset          = ROOT::kSTLmultiset,
-      kUnorderedSet      = ROOT::kSTLunorderedset,
-      kUnorderedMultiset = ROOT::kSTLunorderedmultiset,
-      kUnorderedMap      = ROOT::kSTLunorderedmap,
-      kUnorderedMultimap = ROOT::kSTLunorderedmultimap,
-      kBitset            = ROOT::kSTLbitset
+      kNone              = CppyyLegacy::kNotSTL,
+      kVector            = CppyyLegacy::kSTLvector,
+      kList              = CppyyLegacy::kSTLlist,
+      kForwardlist       = CppyyLegacy::kSTLforwardlist,
+      kDeque             = CppyyLegacy::kSTLdeque,
+      kMap               = CppyyLegacy::kSTLmap,
+      kMultimap          = CppyyLegacy::kSTLmultimap,
+      kSet               = CppyyLegacy::kSTLset,
+      kMultiset          = CppyyLegacy::kSTLmultiset,
+      kUnorderedSet      = CppyyLegacy::kSTLunorderedset,
+      kUnorderedMultiset = CppyyLegacy::kSTLunorderedmultiset,
+      kUnorderedMap      = CppyyLegacy::kSTLunorderedmap,
+      kUnorderedMultimap = CppyyLegacy::kSTLunorderedmultimap,
+      kBitset            = CppyyLegacy::kSTLbitset
    };
 
    typedef const void *DeclId_t;
    ClassDef(TDictionary,2)  //Interface to dictionary
 };
 
+} // namespace CppyyLegacy
 #endif

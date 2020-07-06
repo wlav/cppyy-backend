@@ -24,13 +24,13 @@
 #include "TVirtualMutex.h"
 
 
-namespace ROOT {
+namespace CppyyLegacy {
 
 class TVirtualRWMutex;
 
 // Global mutex set in TThread::Init
-// Use either R__READ_LOCKGUARD(ROOT::gCoreMutex);
-//         or R__WRITE_LOCKGUARD(ROOT::gCoreMutex);
+// Use either R__READ_LOCKGUARD(CppyyLegacy::gCoreMutex);
+//         or R__WRITE_LOCKGUARD(CppyyLegacy::gCoreMutex);
 R__EXTERN TVirtualRWMutex *gCoreMutex;
 
 class TVirtualRWMutex : public TVirtualMutex  {
@@ -129,16 +129,16 @@ public:
    ClassDefNV(TWriteLockGuard,0)  // Exception safe read locking/unlocking of mutex
 };
 
-} // namespace ROOT.
+} // namespace CppyyLegacy
 
 // Zero overhead macros in case not compiled with thread support
 #if defined (_REENTRANT) || defined (WIN32)
 
-#define R__READ_LOCKGUARD(mutex) ::ROOT::TReadLockGuard _R__UNIQUE_(R__readguard)(mutex)
-#define R__READ_LOCKGUARD_NAMED(name,mutex) ::ROOT::TReadLockGuard _NAME2_(R__readguard,name)(mutex)
+#define R__READ_LOCKGUARD(mutex) ::CppyyLegacy::TReadLockGuard _R__UNIQUE_(R__readguard)(mutex)
+#define R__READ_LOCKGUARD_NAMED(name,mutex) ::CppyyLegacy::TReadLockGuard _NAME2_(R__readguard,name)(mutex)
 
-#define R__WRITE_LOCKGUARD(mutex) ::ROOT::TWriteLockGuard _R__UNIQUE_(R__readguard)(mutex)
-#define R__WRITE_LOCKGUARD_NAMED(name,mutex) ::ROOT::TWriteLockGuard _NAME2_(R__readguard,name)(mutex)
+#define R__WRITE_LOCKGUARD(mutex) ::CppyyLegacy::TWriteLockGuard _R__UNIQUE_(R__readguard)(mutex)
+#define R__WRITE_LOCKGUARD_NAMED(name,mutex) ::CppyyLegacy::TWriteLockGuard _NAME2_(R__readguard,name)(mutex)
 
 #else
 
@@ -149,6 +149,5 @@ public:
 #define R__WRITE_LOCKGUARD_NAMED(name,mutex) (void)mutex
 
 #endif
-
 
 #endif

@@ -36,6 +36,9 @@ namespace cling {
    class Interpreter;
 }
 
+
+namespace CppyyLegacy {
+
 class BaseSelectionRule
 {
 public:
@@ -166,4 +169,6 @@ inline std::ostream &operator<<(std::ostream& out, const BaseSelectionRule &obj)
    obj.Print(out);
    return out;
 }
+
+} // namespace CppyyLegacy
 #endif

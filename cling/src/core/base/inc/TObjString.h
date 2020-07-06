@@ -25,6 +25,8 @@
 #include "TString.h"
 
 
+namespace CppyyLegacy {
+
 class TObjString : public TObject {
 
 private:
@@ -49,6 +51,8 @@ public:
 
    ClassDef(TObjString,1)  //Collectable string class
 };
+
+} // namespace CppyyLegacy
 
 #endif
 

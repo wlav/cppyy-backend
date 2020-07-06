@@ -12,7 +12,6 @@
 #ifndef ROOT_TEnumConstant
 #define ROOT_TEnumConstant
 
-
 //////////////////////////////////////////////////////////////////////////
 //                                                                      //
 // TEnumConstant                                                        //
@@ -23,6 +22,9 @@
 
 #include "TGlobal.h"
 #include "TEnum.h"
+
+
+namespace CppyyLegacy {
 
 class TEnum;
 
@@ -46,4 +48,5 @@ public:
    ClassDefOverride(TEnumConstant,2)  //Enum type constant
 };
 
+} // namespace CppyyLegacy
 #endif

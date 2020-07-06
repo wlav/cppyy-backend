@@ -12,7 +12,6 @@
 #ifndef ROOT_TApplication
 #define ROOT_TApplication
 
-
 //////////////////////////////////////////////////////////////////////////
 //                                                                      //
 // TApplication                                                         //
@@ -26,12 +25,13 @@
 //////////////////////////////////////////////////////////////////////////
 
 #include "TObject.h"
-
 #include "TApplicationImp.h"
+
+
+namespace CppyyLegacy {
 
 class TObjArray;
 class TSignalHandler;
-
 
 class TApplication : public TObject {
 
@@ -125,5 +125,7 @@ public:
 };
 
 R__EXTERN TApplication *gApplication;
+
+} // namespace CppyyLegacy
 
 #endif

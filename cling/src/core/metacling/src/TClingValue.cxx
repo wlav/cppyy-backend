@@ -14,11 +14,13 @@ Bridge between cling::Value and ROOT.
 */
 
 #include "TClingValue.h"
-
 #include "cling/Interpreter/Value.h"
 #include "llvm/Support/raw_ostream.h"
 
 #include <cassert>
+
+
+namespace CppyyLegacy {
 
 TClingValue::TClingValue() {
    // We default initialize to invalid value to keep a "sane" state.
@@ -87,3 +89,5 @@ std::string TClingValue::ToString() const {
    ToCV().print(ost);
    return ost.str();
 }
+
+} // namespace CppyyLegacy

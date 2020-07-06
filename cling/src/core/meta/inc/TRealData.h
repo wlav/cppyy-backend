@@ -12,7 +12,6 @@
 #ifndef ROOT_TRealData
 #define ROOT_TRealData
 
-
 //////////////////////////////////////////////////////////////////////////
 //                                                                      //
 // TRealData                                                            //
@@ -24,8 +23,10 @@
 #include "TObject.h"
 #include "TString.h"
 
-class TDataMember;
 
+namespace CppyyLegacy {
+
+class TDataMember;
 
 class TRealData : public TObject {
 
@@ -62,5 +63,5 @@ public:
    ClassDef(TRealData,0)  //Description of persistent data members
 };
 
+} // namespace CppyyLegacy
 #endif
-

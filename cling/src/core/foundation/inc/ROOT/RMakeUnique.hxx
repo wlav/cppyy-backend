@@ -21,7 +21,7 @@
 #include <type_traits>
 #include <utility>
 
-namespace ROOT {
+namespace CppyyLegacy {
 namespace Detail {
 // Inspired from abseil
 template <typename T>
@@ -37,25 +37,25 @@ struct RMakeUniqueResult<T[N]> {
    using invalid = void;
 };
 } // namespace Detail
-} // namespace ROOT
+} // namespace CppyyLegacy
 
 namespace std {
 
 // template <typename T, typename... Args, typename std::enable_if<!std::is_array<T>::value, int>::type = 0>
 template <typename T, typename... Args>
-typename ROOT::Detail::RMakeUniqueResult<T>::scalar make_unique(Args &&... args)
+typename CppyyLegacy::Detail::RMakeUniqueResult<T>::scalar make_unique(Args &&... args)
 {
    return std::unique_ptr<T>(new T(std::forward<Args>(args)...));
 }
 
 template <typename T>
-typename ROOT::Detail::RMakeUniqueResult<T>::array make_unique(std::size_t size)
+typename CppyyLegacy::Detail::RMakeUniqueResult<T>::array make_unique(std::size_t size)
 {
    return std::unique_ptr<T>(new typename std::remove_extent<T>::type[size]());
 }
 
 template <typename T, typename... Args>
-typename ROOT::Detail::RMakeUniqueResult<T>::invalid make_unique(Args &&...) = delete;
+typename CppyyLegacy::Detail::RMakeUniqueResult<T>::invalid make_unique(Args &&...) = delete;
 
 
 } // namespace std

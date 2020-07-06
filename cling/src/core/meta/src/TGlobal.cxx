@@ -22,7 +22,9 @@ variables (accessible via TROOT::GetListOfGlobals()).
 #include "TROOT.h"
 
 
-ClassImp(TGlobal);
+ClassImp(CppyyLegacy::TGlobal);
+
+namespace CppyyLegacy {
 
 ////////////////////////////////////////////////////////////////////////////////
 /// Default TGlobal ctor.
@@ -207,3 +209,5 @@ void TGlobalMappedFunction::Add(TGlobalMappedFunction* gmf)
       GetEarlyRegisteredGlobals().Add(gmf);
    }
 }
+
+} // namespace CppyyLegacy

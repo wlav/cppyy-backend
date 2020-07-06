@@ -12,7 +12,6 @@
 #ifndef ROOT_TThreadImp
 #define ROOT_TThreadImp
 
-
 //////////////////////////////////////////////////////////////////////////
 //                                                                      //
 // TThreadImp                                                           //
@@ -26,6 +25,9 @@
 
 #include "TObject.h"
 #include "TThread.h"
+
+
+namespace CppyyLegacy {
 
 class TThreadImp : public TObject {
 public:
@@ -51,4 +53,5 @@ public:
    ClassDef(TThreadImp,0)  // ThreadImp class
 };
 
+} // namespace CppyyLegacy
 #endif

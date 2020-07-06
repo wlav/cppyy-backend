@@ -23,6 +23,9 @@
 
 #include "TObject.h"
 
+
+namespace CppyyLegacy {
+
 class TClass;
 
 class TClassGenerator : public TObject {
@@ -40,4 +43,5 @@ public:
    ClassDef(TClassGenerator,1);  // interface for TClass generators
 };
 
+} // namespace CppyyLegacy
 #endif

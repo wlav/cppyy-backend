@@ -29,6 +29,9 @@ namespace cling {
    class Interpreter;
 }
 
+
+namespace CppyyLegacy {
+
 class ClassSelectionRule final : public BaseSelectionRule
 {
 private:
@@ -87,5 +90,5 @@ public:
    int  RequestedVersionNumber() const;
 };
 
+} // namespace CppyyLegacy
 #endif
-

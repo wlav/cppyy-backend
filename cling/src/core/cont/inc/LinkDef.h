@@ -10,45 +10,47 @@
 
 #ifdef __CINT__
 
-#pragma link C++ global kIterForward;
-#pragma link C++ global kIterBackward;
-#pragma link C++ global gClassTable;
-#pragma link C++ global gObjectTable;
+#pragma link C++ namespace CppyyLegacy;
 
-#pragma link C++ typedef TAssoc;
+#pragma link C++ global CppyyLegacy::kIterForward;
+#pragma link C++ global CppyyLegacy::kIterBackward;
+#pragma link C++ global CppyyLegacy::gClassTable;
+#pragma link C++ global CppyyLegacy::gObjectTable;
 
-#pragma link C++ class TArray!;
-#pragma link C++ class TArrayC-!;
-#pragma link C++ class TBits+;
-#pragma link C++ class TCollection-;
-#pragma link C++ class TClassTable;
-#pragma link C++ class TClonesArray-;
-#pragma link C++ class THashTable;
-#pragma link C++ class THashTableIter;
-#pragma link C++ class TIter;
-#pragma link C++ class TIterator;
-#pragma link C++ class TList-;
-#pragma link C++ class TListIter;
-#pragma link C++ class THashList;
-#pragma link C++ class TMap-;
-#pragma link C++ class TMapIter;
-#pragma link C++ class TPair;
-#pragma link C++ class TObjArray-;
-#pragma link C++ class TObjArrayIter;
-#pragma link C++ class TObjectTable;
-#pragma link C++ class TOrdCollection;
-#pragma link C++ class TOrdCollectionIter;
-#pragma link C++ class TSeqCollection;
-#pragma link C++ class TSortedList;
-#pragma link C++ class TExMap-;
-#pragma link C++ class TExMapIter;
-#pragma link C++ class TVirtualCollectionProxy-;
+#pragma link C++ typedef CppyyLegacy::TAssoc;
+
+#pragma link C++ class CppyyLegacy::TArray!;
+#pragma link C++ class CppyyLegacy::TArrayC-!;
+#pragma link C++ class CppyyLegacy::TBits+;
+#pragma link C++ class CppyyLegacy::TCollection-;
+#pragma link C++ class CppyyLegacy::TClassTable;
+#pragma link C++ class CppyyLegacy::TClonesArray-;
+#pragma link C++ class CppyyLegacy::THashTable;
+#pragma link C++ class CppyyLegacy::THashTableIter;
+#pragma link C++ class CppyyLegacy::TIter;
+#pragma link C++ class CppyyLegacy::TIterator;
+#pragma link C++ class CppyyLegacy::TList-;
+#pragma link C++ class CppyyLegacy::TListIter;
+#pragma link C++ class CppyyLegacy::THashList;
+#pragma link C++ class CppyyLegacy::TMap-;
+#pragma link C++ class CppyyLegacy::TMapIter;
+#pragma link C++ class CppyyLegacy::TPair;
+#pragma link C++ class CppyyLegacy::TObjArray-;
+#pragma link C++ class CppyyLegacy::TObjArrayIter;
+#pragma link C++ class CppyyLegacy::TObjectTable;
+#pragma link C++ class CppyyLegacy::TOrdCollection;
+#pragma link C++ class CppyyLegacy::TOrdCollectionIter;
+#pragma link C++ class CppyyLegacy::TSeqCollection;
+#pragma link C++ class CppyyLegacy::TSortedList;
+#pragma link C++ class CppyyLegacy::TExMap-;
+#pragma link C++ class CppyyLegacy::TExMapIter;
+#pragma link C++ class CppyyLegacy::TVirtualCollectionProxy-;
 
 #pragma link C++ nestedclass;
 #pragma link C++ nestedtypedef;
 
-#pragma link C++ class TBits::TReference-;
-#pragma link C++ operators TBits;
-#pragma link C++ operators TBits::TReference;
+#pragma link C++ class CppyyLegacy::TBits::TReference-;
+#pragma link C++ operators CppyyLegacy::TBits;
+#pragma link C++ operators CppyyLegacy::TBits::TReference;
 
 #endif

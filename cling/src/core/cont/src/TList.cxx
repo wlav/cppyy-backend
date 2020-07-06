@@ -27,7 +27,10 @@ the object pointer also a previous and next pointer.
 #include <string>
 namespace std {} using namespace std;
 
-ClassImp(TList);
+
+ClassImp(CppyyLegacy::TList);
+
+namespace CppyyLegacy {
 
 ////////////////////////////////////////////////////////////////////////////////
 /// Delete the list. Objects are not deleted unless the TList is the
@@ -47,7 +50,7 @@ void TList::AddFirst(TObject *obj)
 
    if (IsArgNull("AddFirst", obj)) return;
 
-   R__COLLECTION_WRITE_LOCKGUARD(ROOT::gCoreMutex);
+   R__COLLECTION_WRITE_LOCKGUARD(gCoreMutex);
 
    if (!fFirst) {
       fFirst = NewLink(obj);
@@ -74,7 +77,7 @@ void TList::AddFirst(TObject *obj, Option_t *opt)
 
    if (IsArgNull("AddFirst", obj)) return;
 
-   R__COLLECTION_WRITE_LOCKGUARD(ROOT::gCoreMutex);
+   R__COLLECTION_WRITE_LOCKGUARD(gCoreMutex);
 
    if (!fFirst) {
       fFirst = NewOptLink(obj, opt);
@@ -98,7 +101,7 @@ void TList::AddLast(TObject *obj)
 
    if (IsArgNull("AddLast", obj)) return;
 
-   R__COLLECTION_WRITE_LOCKGUARD(ROOT::gCoreMutex);
+   R__COLLECTION_WRITE_LOCKGUARD(gCoreMutex);
 
    if (!fFirst) {
       fFirst = NewLink(obj);
@@ -121,7 +124,7 @@ void TList::AddLast(TObject *obj, Option_t *opt)
 
    if (IsArgNull("AddLast", obj)) return;
 
-   R__COLLECTION_WRITE_LOCKGUARD(ROOT::gCoreMutex);
+   R__COLLECTION_WRITE_LOCKGUARD(gCoreMutex);
 
    if (!fFirst) {
       fFirst = NewOptLink(obj, opt);
@@ -141,7 +144,7 @@ void TList::AddBefore(const TObject *before, TObject *obj)
 
    if (IsArgNull("AddBefore", obj)) return;
 
-   R__COLLECTION_WRITE_LOCKGUARD(ROOT::gCoreMutex);
+   R__COLLECTION_WRITE_LOCKGUARD(gCoreMutex);
 
    if (!before)
       TList::AddFirst(obj);
@@ -195,7 +198,7 @@ void TList::AddAfter(const TObject *after, TObject *obj)
 
    if (IsArgNull("AddAfter", obj)) return;
 
-   R__COLLECTION_WRITE_LOCKGUARD(ROOT::gCoreMutex);
+   R__COLLECTION_WRITE_LOCKGUARD(gCoreMutex);
 
    if (!after)
       TList::AddLast(obj);
@@ -227,7 +230,7 @@ void TList::AddAfter(TObjLink *after, TObject *obj)
 
    if (IsArgNull("AddAfter", obj)) return;
 
-   R__COLLECTION_WRITE_LOCKGUARD(ROOT::gCoreMutex);
+   R__COLLECTION_WRITE_LOCKGUARD(gCoreMutex);
 
    if (!after)
       TList::AddLast(obj);
@@ -251,7 +254,7 @@ void TList::AddAt(TObject *obj, Int_t idx)
 
    if (IsArgNull("AddAt", obj)) return;
 
-   R__COLLECTION_WRITE_LOCKGUARD(ROOT::gCoreMutex);
+   R__COLLECTION_WRITE_LOCKGUARD(gCoreMutex);
 
    TObjLink *lnk = LinkAt(idx);
    if (!lnk)
@@ -275,7 +278,7 @@ TObject *TList::After(const TObject *obj) const
 
    TObjLink *t;
 
-   R__COLLECTION_WRITE_LOCKGUARD(ROOT::gCoreMutex);
+   R__COLLECTION_WRITE_LOCKGUARD(gCoreMutex);
 
    auto cached = fCache.lock();
    if (cached.get() && cached->GetObject() && cached->GetObject()->IsEqual(obj)) {
@@ -298,7 +301,7 @@ TObject *TList::After(const TObject *obj) const
 
 TObject *TList::At(Int_t idx) const
 {
-   R__COLLECTION_WRITE_LOCKGUARD(ROOT::gCoreMutex);
+   R__COLLECTION_WRITE_LOCKGUARD(gCoreMutex);
    R__COLLECTION_WRITE_GUARD();
 
    TObjLink *lnk = LinkAt(idx);
@@ -312,7 +315,7 @@ TObject *TList::At(Int_t idx) const
 
 TObject *TList::Before(const TObject *obj) const
 {
-   R__COLLECTION_WRITE_LOCKGUARD(ROOT::gCoreMutex);
+   R__COLLECTION_WRITE_LOCKGUARD(gCoreMutex);
    R__COLLECTION_WRITE_GUARD();
 
    TObjLink *t;
@@ -343,7 +346,7 @@ TObject *TList::Before(const TObject *obj) const
 
 void TList::Clear(Option_t *option)
 {
-   R__COLLECTION_WRITE_LOCKGUARD(ROOT::gCoreMutex);
+   R__COLLECTION_WRITE_LOCKGUARD(gCoreMutex);
    R__COLLECTION_WRITE_GUARD();
 
    Bool_t nodel = option ? (!strcmp(option, "nodelete") ? kTRUE : kFALSE) : kFALSE;
@@ -407,7 +410,7 @@ void TList::Clear(Option_t *option)
 
 void TList::Delete(Option_t *option)
 {
-   R__COLLECTION_WRITE_LOCKGUARD(ROOT::gCoreMutex);
+   R__COLLECTION_WRITE_LOCKGUARD(gCoreMutex);
    R__COLLECTION_WRITE_GUARD();
 
    Bool_t slow = option ? (!strcmp(option, "slow") ? kTRUE : kFALSE) : kFALSE;
@@ -520,7 +523,7 @@ TObject *TList::FindObject(const char *name) const
    if (!name)
       return nullptr;
 
-   R__COLLECTION_READ_LOCKGUARD(ROOT::gCoreMutex);
+   R__COLLECTION_READ_LOCKGUARD(gCoreMutex);
 
    for (TObjLink *lnk = FirstLink(); lnk != nullptr; lnk = lnk->Next()) {
       if (TObject *obj = lnk->GetObject()) {
@@ -547,7 +550,7 @@ TObject *TList::FindObject(const TObject *obj) const
    if (!obj)
       return nullptr;
 
-   R__COLLECTION_READ_LOCKGUARD(ROOT::gCoreMutex);
+   R__COLLECTION_READ_LOCKGUARD(gCoreMutex);
 
    TObjLink *lnk = FirstLink();
 
@@ -570,7 +573,7 @@ TObjLink *TList::FindLink(const TObject *obj, Int_t &idx) const
    if (!obj)
       return nullptr;
 
-   R__COLLECTION_READ_LOCKGUARD(ROOT::gCoreMutex);
+   R__COLLECTION_READ_LOCKGUARD(gCoreMutex);
 
    if (!fFirst) return 0;
 
@@ -596,7 +599,7 @@ TObjLink *TList::FindLink(const TObject *obj, Int_t &idx) const
 
 TObject *TList::First() const
 {
-   R__COLLECTION_READ_LOCKGUARD(ROOT::gCoreMutex);
+   R__COLLECTION_READ_LOCKGUARD(gCoreMutex);
    R__COLLECTION_READ_GUARD();
 
    if (fFirst) return fFirst->GetObject();
@@ -613,7 +616,7 @@ TObject **TList::GetObjectRef(const TObject *obj) const
    if (!obj)
    return nullptr;
 
-   R__COLLECTION_READ_LOCKGUARD(ROOT::gCoreMutex);
+   R__COLLECTION_READ_LOCKGUARD(gCoreMutex);
 
    TObjLink *lnk = FirstLink();
 
@@ -630,7 +633,7 @@ TObject **TList::GetObjectRef(const TObject *obj) const
 
 TObject *TList::Last() const
 {
-   R__COLLECTION_READ_LOCKGUARD(ROOT::gCoreMutex);
+   R__COLLECTION_READ_LOCKGUARD(gCoreMutex);
    R__COLLECTION_READ_GUARD();
 
    if (fLast) return fLast->GetObject();
@@ -642,7 +645,7 @@ TObject *TList::Last() const
 
 TObjLink *TList::LinkAt(Int_t idx) const
 {
-   R__COLLECTION_READ_LOCKGUARD(ROOT::gCoreMutex);
+   R__COLLECTION_READ_LOCKGUARD(gCoreMutex);
    R__COLLECTION_READ_GUARD();
 
    Int_t    i = 0;
@@ -659,7 +662,7 @@ TObjLink *TList::LinkAt(Int_t idx) const
 
 TIterator *TList::MakeIterator(Bool_t dir) const
 {
-   R__COLLECTION_READ_LOCKGUARD(ROOT::gCoreMutex);
+   R__COLLECTION_READ_LOCKGUARD(gCoreMutex);
    R__COLLECTION_READ_GUARD();
 
    return new TListIter(this, dir);
@@ -670,7 +673,7 @@ TIterator *TList::MakeIterator(Bool_t dir) const
 
 TList::TObjLinkPtr_t TList::NewLink(TObject *obj, const TObjLinkPtr_t &prev)
 {
-   R__COLLECTION_WRITE_LOCKGUARD(ROOT::gCoreMutex);
+   R__COLLECTION_WRITE_LOCKGUARD(gCoreMutex);
    R__COLLECTION_WRITE_GUARD();
 
    auto newlink = std::make_shared<TObjLink>(obj);
@@ -685,7 +688,7 @@ TList::TObjLinkPtr_t TList::NewLink(TObject *obj, const TObjLinkPtr_t &prev)
 
 TList::TObjLinkPtr_t TList::NewOptLink(TObject *obj, Option_t *opt, const TObjLinkPtr_t &prev)
 {
-   R__COLLECTION_WRITE_LOCKGUARD(ROOT::gCoreMutex);
+   R__COLLECTION_WRITE_LOCKGUARD(gCoreMutex);
    R__COLLECTION_WRITE_GUARD();
 
    auto newlink = std::make_shared<TObjOptLink>(obj, opt);
@@ -771,7 +774,7 @@ TObject *TList::Remove(TObject *obj)
    // return object found, which may be (pointer wise) different than the
    // input object (depending on what IsEqual() is doing)
 
-   R__COLLECTION_WRITE_LOCKGUARD(ROOT::gCoreMutex);
+   R__COLLECTION_WRITE_LOCKGUARD(gCoreMutex);
 
    TObject *ob = lnk->GetObject();
    lnk->SetObject(nullptr);
@@ -811,7 +814,7 @@ TObject *TList::Remove(TObjLink *lnk)
 
    if (!lnk) return 0;
 
-   R__COLLECTION_WRITE_LOCKGUARD(ROOT::gCoreMutex);
+   R__COLLECTION_WRITE_LOCKGUARD(gCoreMutex);
 
    TObject *obj = lnk->GetObject();
    lnk->SetObject(nullptr);
@@ -846,7 +849,7 @@ TObject *TList::Remove(TObjLink *lnk)
 
 void TList::RemoveLast()
 {
-   R__COLLECTION_WRITE_LOCKGUARD(ROOT::gCoreMutex);
+   R__COLLECTION_WRITE_LOCKGUARD(gCoreMutex);
    R__COLLECTION_WRITE_GUARD();
 
    TObjLink *lnk = fLast.get();
@@ -874,7 +877,7 @@ void TList::RemoveLast()
 
 void TList::Sort(Bool_t order)
 {
-   R__COLLECTION_WRITE_LOCKGUARD(ROOT::gCoreMutex);
+   R__COLLECTION_WRITE_LOCKGUARD(gCoreMutex);
    R__COLLECTION_WRITE_GUARD();
 
    if (!fFirst) return;
@@ -921,7 +924,7 @@ Bool_t TList::LnkCompare(const TObjLinkPtr_t &l1, const TObjLinkPtr_t &l2)
 
 std::shared_ptr<TObjLink> *TList::DoSort(std::shared_ptr<TObjLink> *head, Int_t n)
 {
-   R__COLLECTION_WRITE_LOCKGUARD(ROOT::gCoreMutex);
+   R__COLLECTION_WRITE_LOCKGUARD(gCoreMutex);
    R__COLLECTION_WRITE_GUARD();
 
    std::shared_ptr<TObjLink> p1, p2, *h2, *t2;
@@ -979,11 +982,15 @@ void TList::InsertAfter(const TObjLinkPtr_t &newlink, const TObjLinkPtr_t &prev)
       newlink->fNext->fPrev = newlink;
 }
 
+} // namespace CppyyLegacy
+
 /** \class TListIter
 Iterator of linked list.
 */
 
 ClassImp(TListIter);
+
+namespace CppyyLegacy {
 
 ////////////////////////////////////////////////////////////////////////////////
 /// Create a new list iterator. By default the iteration direction
@@ -1181,7 +1188,7 @@ void TList::Streamer(TBuffer &b)
       b.CheckByteCount(R__s, R__c,TList::IsA());
 
    } else {
-      R__COLLECTION_READ_LOCKGUARD(ROOT::gCoreMutex);
+      R__COLLECTION_READ_LOCKGUARD(gCoreMutex);
 
       R__c = b.WriteVersion(TList::IsA(), kTRUE);
       TObject::Streamer(b);
@@ -1210,3 +1217,5 @@ void TList::Streamer(TBuffer &b)
       b.SetByteCount(R__c, kTRUE);
    }
 }
+
+} // namespace CppyyLegacy

@@ -12,7 +12,6 @@
 #ifndef ROOT_TExMap
 #define ROOT_TExMap
 
-
 //////////////////////////////////////////////////////////////////////////
 //                                                                      //
 // TExMap                                                               //
@@ -24,11 +23,12 @@
 //                                                                      //
 //////////////////////////////////////////////////////////////////////////
 
-
 #include "TObject.h"
 
-class TExMapIter;
 
+namespace CppyyLegacy {
+
+class TExMapIter;
 
 class TExMap : public TObject {
 
@@ -102,4 +102,5 @@ public:
    ClassDef(TExMapIter,0)  // TExMap iterator
 };
 
+} // namespace CppyyLegacy
 #endif

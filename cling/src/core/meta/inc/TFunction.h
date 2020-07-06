@@ -12,7 +12,6 @@
 #ifndef ROOT_TFunction
 #define ROOT_TFunction
 
-
 //////////////////////////////////////////////////////////////////////////
 //                                                                      //
 // TFunction                                                            //
@@ -22,6 +21,9 @@
 //////////////////////////////////////////////////////////////////////////
 
 #include "TDictionary.h"
+
+
+namespace CppyyLegacy {
 
 class TFunction : public TDictionary {
 
@@ -62,4 +64,5 @@ public:
    ClassDef(TFunction,0)  //Dictionary for global function
 };
 
+} // namespace CppyyLegacy
 #endif

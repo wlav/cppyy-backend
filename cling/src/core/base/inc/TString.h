@@ -33,6 +33,8 @@
 #include <stdio.h>
 #include <string>
 
+namespace CppyyLegacy {
+
 inline Ssiz_t R__strlen(const char* s) { return (Ssiz_t)strlen(s); }
 
 class TRegexp;
@@ -140,22 +142,22 @@ friend TString operator+(const TString &s, char c);
 friend TString operator+(char c, const TString &s);
 
 template<class T>
-friend typename std::enable_if<ROOT::TypeTraits::IsSignedNumeral<T>::value,TString>::type
+friend typename std::enable_if<CppyyLegacy::TypeTraits::IsSignedNumeral<T>::value,TString>::type
 operator+(TString s, T i);
 template<class T>
-friend typename std::enable_if<ROOT::TypeTraits::IsUnsignedNumeral<T>::value,TString>::type
+friend typename std::enable_if<CppyyLegacy::TypeTraits::IsUnsignedNumeral<T>::value,TString>::type
 operator+(TString s, T u);
 template<class T>
-friend typename std::enable_if<ROOT::TypeTraits::IsFloatNumeral<T>::value,TString>::type
+friend typename std::enable_if<CppyyLegacy::TypeTraits::IsFloatNumeral<T>::value,TString>::type
 operator+(TString s, T f);
 template<class T>
-friend typename std::enable_if<ROOT::TypeTraits::IsSignedNumeral<T>::value,TString>::type
+friend typename std::enable_if<CppyyLegacy::TypeTraits::IsSignedNumeral<T>::value,TString>::type
 operator+(T i, const TString &s);
 template<class T>
-friend typename std::enable_if<ROOT::TypeTraits::IsUnsignedNumeral<T>::value,TString>::type
+friend typename std::enable_if<CppyyLegacy::TypeTraits::IsUnsignedNumeral<T>::value,TString>::type
 operator+(T u, const TString &s);
 template<class T>
-friend typename std::enable_if<ROOT::TypeTraits::IsFloatNumeral<T>::value,TString>::type
+friend typename std::enable_if<CppyyLegacy::TypeTraits::IsFloatNumeral<T>::value,TString>::type
 operator+(T f, const TString &s);
 
 friend Bool_t  operator==(const TString &s1, const TString &s2);
@@ -260,7 +262,7 @@ private:
 public:
    enum EStripType   { kLeading = 0x1, kTrailing = 0x2, kBoth = 0x3 };
    enum ECaseCompare { kExact, kIgnoreCase };
-   static const Ssiz_t kNPOS = ::kNPOS;
+   static const Ssiz_t kNPOS = CppyyLegacy::kNPOS;
 
    TString();                           // Null string
    explicit TString(Ssiz_t ic);         // Suggested capacity
@@ -284,7 +286,7 @@ public:
    static TString  *ReadString(TBuffer &b, const TClass *clReq);
    static void      WriteString(TBuffer &b, const TString *a);
 
-   friend TBuffer &operator<<(TBuffer &b, const TString *obj);
+   //friend TBuffer &operator<<(TBuffer &b, const TString *obj);
 
    // C I/O interface
    Bool_t   Gets(FILE *fp, Bool_t chop=kTRUE);
@@ -292,15 +294,6 @@ public:
 
    // Type conversion
    operator const char*() const { return GetPointer(); }
-#if (__cplusplus >= 201700L) && (!defined(__clang_major__) || __clang_major__ > 5)
-   // Clang 5.0 support for explicit conversion is still inadequate even in c++17 mode.
-   // (It leads to extraneous ambiguous overload errors)
-   explicit operator std::string() const { return std::string(GetPointer(),Length()); }
-   explicit operator ROOT::Internal::TStringView() const { return ROOT::Internal::TStringView(GetPointer(),Length()); }
-   operator std::string_view() const { return std::string_view(GetPointer(),Length()); }
-#else
-   operator ROOT::Internal::TStringView() const { return ROOT::Internal::TStringView(GetPointer(),Length()); }
-#endif
 
    // Assignment
    TString    &operator=(char s);                // Replace string
@@ -315,13 +308,13 @@ public:
    TString    &operator+=(char c);
 
    template<class T>
-   typename std::enable_if<ROOT::TypeTraits::IsSignedNumeral<T>::value,TString>::type
+   typename std::enable_if<CppyyLegacy::TypeTraits::IsSignedNumeral<T>::value,TString>::type
               &operator+=(T i);
    template<class T>
-   typename std::enable_if<ROOT::TypeTraits::IsUnsignedNumeral<T>::value,TString>::type
+   typename std::enable_if<CppyyLegacy::TypeTraits::IsUnsignedNumeral<T>::value,TString>::type
               &operator+=(T u);
    template<class T>
-   typename std::enable_if<ROOT::TypeTraits::IsFloatNumeral<T>::value,TString>::type
+   typename std::enable_if<CppyyLegacy::TypeTraits::IsFloatNumeral<T>::value,TString>::type
               &operator+=(T f);
 
    // Indexing operators
@@ -453,14 +446,19 @@ public:
    ClassDef(TString,2)  //Basic string class
 };
 
+} // namespace CppyyLegacy
+
 // Related global functions
-std::istream  &operator>>(std::istream &str,       TString &s);
-std::ostream  &operator<<(std::ostream &str, const TString &s);
+std::istream  &operator>>(std::istream &str,       CppyyLegacy::TString &s);
+std::ostream  &operator<<(std::ostream &str, const CppyyLegacy::TString &s);
+
 #if defined(R__TEMPLATE_OVERLOAD_BUG)
 template <>
 #endif
-TBuffer  &operator>>(TBuffer &buf,       TString *&sp);
-TBuffer  &operator<<(TBuffer &buf, const TString * sp);
+CppyyLegacy::TBuffer  &operator>>(CppyyLegacy::TBuffer &buf,       CppyyLegacy::TString *&sp);
+CppyyLegacy::TBuffer  &operator<<(CppyyLegacy::TBuffer &buf, const CppyyLegacy::TString * sp);
+
+namespace CppyyLegacy {
 
 // Conversion operator (per se).
 inline std::string& operator+=(std::string &left, const TString &right)
@@ -505,22 +503,22 @@ extern int strncasecmp(const char *str1, const char *str2, Ssiz_t n);
 //////////////////////////////////////////////////////////////////////////
 
 template<class T>
-inline typename std::enable_if<ROOT::TypeTraits::IsSignedNumeral<T>::value,TString>::type
+inline typename std::enable_if<CppyyLegacy::TypeTraits::IsSignedNumeral<T>::value,TString>::type
 operator+(TString s, T i)
 { return s += i; }
 
 template<class T>
-inline typename std::enable_if<ROOT::TypeTraits::IsUnsignedNumeral<T>::value,TString>::type
+inline typename std::enable_if<CppyyLegacy::TypeTraits::IsUnsignedNumeral<T>::value,TString>::type
 operator+(TString s, T u)
 { return s += u; }
 
 template<class T>
-inline typename std::enable_if<ROOT::TypeTraits::IsFloatNumeral<T>::value,TString>::type
+inline typename std::enable_if<CppyyLegacy::TypeTraits::IsFloatNumeral<T>::value,TString>::type
 operator+(TString s, T f)
 { return s += f; }
 
 template<class T>
-inline typename std::enable_if<ROOT::TypeTraits::IsSignedNumeral<T>::value,TString>::type
+inline typename std::enable_if<CppyyLegacy::TypeTraits::IsSignedNumeral<T>::value,TString>::type
 operator+(T i, const TString &s)
 {
     char buffer[32];
@@ -530,7 +528,7 @@ operator+(T i, const TString &s)
 }
 
 template<class T>
-inline typename std::enable_if<ROOT::TypeTraits::IsUnsignedNumeral<T>::value,TString>::type
+inline typename std::enable_if<CppyyLegacy::TypeTraits::IsUnsignedNumeral<T>::value,TString>::type
 operator+(T u, const TString &s)
 {
     char buffer[32];
@@ -540,7 +538,7 @@ operator+(T u, const TString &s)
 }
 
 template<class T>
-inline typename std::enable_if<ROOT::TypeTraits::IsFloatNumeral<T>::value,TString>::type
+inline typename std::enable_if<CppyyLegacy::TypeTraits::IsFloatNumeral<T>::value,TString>::type
 operator+(T f, const TString &s)
 {
     char buffer[32];
@@ -571,7 +569,7 @@ inline TString &TString::operator+=(char c)
 { return Append(c); }
 
 template<class T>
-inline typename std::enable_if<ROOT::TypeTraits::IsSignedNumeral<T>::value,TString>::type
+inline typename std::enable_if<CppyyLegacy::TypeTraits::IsSignedNumeral<T>::value,TString>::type
 &TString::operator+=(T i)
 {
    char buffer[32];
@@ -581,7 +579,7 @@ inline typename std::enable_if<ROOT::TypeTraits::IsSignedNumeral<T>::value,TStri
 }
 
 template<class T>
-inline typename std::enable_if<ROOT::TypeTraits::IsUnsignedNumeral<T>::value,TString>::type
+inline typename std::enable_if<CppyyLegacy::TypeTraits::IsUnsignedNumeral<T>::value,TString>::type
 &TString::operator+=(T u)
 {
    char buffer[32];
@@ -591,7 +589,7 @@ inline typename std::enable_if<ROOT::TypeTraits::IsUnsignedNumeral<T>::value,TSt
 }
 
 template<class T>
-inline typename std::enable_if<ROOT::TypeTraits::IsFloatNumeral<T>::value,TString>::type
+inline typename std::enable_if<CppyyLegacy::TypeTraits::IsFloatNumeral<T>::value,TString>::type
 &TString::operator+=(T f)
 {
    char buffer[32];
@@ -832,13 +830,15 @@ inline Bool_t operator==(const std::string_view &s1, const char *s2)
 }
 #endif
 
+} // namespace CppyyLegacy
+
 namespace llvm {
    class raw_ostream;
 }
 
 namespace cling {
-  std::string printValue(const TString* val);
-  std::string printValue(const TSubString* val);
+  std::string printValue(const CppyyLegacy::TString* val);
+  std::string printValue(const CppyyLegacy::TSubString* val);
   std::string printValue(const std::string_view* val);
 }
 

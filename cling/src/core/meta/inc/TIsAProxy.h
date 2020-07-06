@@ -17,6 +17,9 @@
 #include <atomic>
 #include <typeinfo>
 
+
+namespace CppyyLegacy {
+
 class TClass;
 
 //////////////////////////////////////////////////////////////////////////
@@ -84,4 +87,5 @@ public:
    }
 };
 
+} // namespace CppyyLegacy
 #endif // ROOT_TIsAProxy

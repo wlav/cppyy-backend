@@ -14,6 +14,9 @@
 #include <ROOT/RConfig.hxx>
 #include "TSystem.h"
 
+
+using namespace CppyyLegacy;
+
 extern "C" {
    R__DLLEXPORT void usedToIdentifyRootClingByDlSym() {}
    void InitializeStreamerInfoROOTFile(const char *filename);
@@ -31,7 +34,7 @@ int main(int argc, char **argv)
 {
    (void) dlsymaddr; // avoid unused variable warning
 
-   ROOT::Internal::RootCling::DriverConfig config{};
+   Internal::RootCling::DriverConfig config{};
 
    config.fBuildingROOTStage1 = false;
    config.fPRootDir = &gRootDir;

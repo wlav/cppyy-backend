@@ -46,10 +46,12 @@ class hierarchies (watch out for overlaps).
 #include "TObjString.h"
 #include "TProcessID.h"
 
+
+ClassImp(CppyyLegacy::TObject);
+
+namespace CppyyLegacy {
+
 intptr_t TObject::fgDtorOnly = 0;
-
-ClassImp(TObject);
-
 
 ////////////////////////////////////////////////////////////////////////////////
 /// Copy this to obj.
@@ -77,7 +79,7 @@ TObject::~TObject()
    // if (!TestBit(kNotDeleted))
    //    Fatal("~TObject", "object deleted twice");
 
-   ROOT::CallRecursiveRemoveIfNeeded(*this);
+   CallRecursiveRemoveIfNeeded(*this);
 
    fBits &= ~kNotDeleted;
 }
@@ -305,14 +307,14 @@ const char *TObject::GetTitle() const
 /// Note: If this routine is overloaded in a derived class, this derived class
 /// should also add
 /// ~~~ {.cpp}
-///    ROOT::CallRecursiveRemoveIfNeeded(*this)
+///    CppyyLegacy::CallRecursiveRemoveIfNeeded(*this)
 /// ~~~
 /// Otherwise, when RecursiveRemove is called (by ~TObject or example) for this
 /// type of object, the transversal of THashList and THashTable containers will
 /// will have to be done without call Hash (and hence be linear rather than
 /// logarithmic complexity).  You will also see warnings like
 /// ~~~
-/// Error in <ROOT::Internal::TCheckHashRecursiveRemoveConsistency::CheckRecursiveRemove>: The class SomeName overrides TObject::Hash but does not call TROOT::RecursiveRemove in its destructor.
+/// Error in <CppyyLegacy::Internal::TCheckHashRecursiveRemoveConsistency::CheckRecursiveRemove>: The class SomeName overrides TObject::Hash but does not call TROOT::RecursiveRemove in its destructor.
 /// ~~~
 ///
 
@@ -675,7 +677,7 @@ void TObject::DoError(int level, const char *location, const char *fmt, va_list 
    if (TROOT::Initialized())
       classname = ClassName();
 
-   ::ErrorHandler(level, Form("%s::%s", classname, location), fmt, va);
+   ::CppyyLegacy::ErrorHandler(level, Form("%s::%s", classname, location), fmt, va);
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -768,7 +770,7 @@ void TObject::Obsolete(const char *method, const char *asOfVers, const char *rem
    if (TROOT::Initialized())
       classname = ClassName();
 
-   ::Obsolete(Form("%s::%s", classname, method), asOfVers, removedFromVers);
+   ::CppyyLegacy::Obsolete(Form("%s::%s", classname, method), asOfVers, removedFromVers);
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -833,15 +835,6 @@ void TObject::operator delete[](void *ptr, size_t size)
 }
 #endif
 
-////////////////////////////////////////////////////////////////////////////////
-/// Print value overload
-
-std::string cling::printValue(TObject *val) {
-   std::ostringstream strm;
-   strm << "Name: " << val->GetName() << " Title: " << val->GetTitle();
-   return strm.str();
-}
-
 #ifdef R__PLACEMENTDELETE
 ////////////////////////////////////////////////////////////////////////////////
 /// Only called by placement new when throwing an exception.
@@ -859,3 +852,14 @@ void TObject::operator delete[](void *ptr, void *vp)
    TStorage::ObjectDealloc(ptr, vp);
 }
 #endif
+
+} // namespace CppyyLegacy
+
+////////////////////////////////////////////////////////////////////////////////
+/// Print value overload
+
+std::string cling::printValue(CppyyLegacy::TObject *val) {
+   std::ostringstream strm;
+   strm << "Name: " << val->GetName() << " Title: " << val->GetTitle();
+   return strm.str();
+}

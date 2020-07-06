@@ -41,7 +41,9 @@ Note: the indentation shows aggregation not inheritance.
 #include "TROOT.h"
 
 
-ClassImp(TDictionary);
+ClassImp(CppyyLegacy::TDictionary);
+
+namespace CppyyLegacy {
 
 TDictionary::TDictionary(const TDictionary& dict):
    TNamed(dict),
@@ -116,3 +118,5 @@ Bool_t TDictionary::UpdateInterpreterStateMarker()
    fUpdatingTransactionCount = currentTransaction;
    return true;
 }
+
+} // namespace CppyyLegacy

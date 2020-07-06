@@ -21,6 +21,9 @@
 TIsAProxy implementation class.
 */
 
+
+namespace CppyyLegacy {
+
 namespace {
    struct DynamicType {
       // Helper class to enable typeid on any address
@@ -176,3 +179,5 @@ void* TIsAProxy::CacheSubType(const std::type_info* type, TClass* cls)
    fSubTypesWriteLockTaken = kFALSE;
    return &(*(ret.first));
 }
+
+} // namespace CppyyLegacy

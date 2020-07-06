@@ -54,11 +54,20 @@ struct timespec {
 typedef struct timespec timespec_t;
 typedef struct tm       tm_t;
 
+namespace CppyyLegacy {
+
 class TVirtualMutex;
 class TTimeStamp;
-std::ostream &operator<<(std::ostream &os,  const TTimeStamp &ts);
-TBuffer &operator<<(TBuffer &buf, const TTimeStamp &ts);
-TBuffer &operator>>(TBuffer &buf, TTimeStamp &ts);
+
+} // namespace CppyyLegacy
+
+std::ostream &operator<<(std::ostream &os,  const CppyyLegacy::TTimeStamp &ts);
+
+CppyyLegacy::TBuffer &operator<<(CppyyLegacy::TBuffer &buf, const CppyyLegacy::TTimeStamp &ts);
+CppyyLegacy::TBuffer &operator>>(CppyyLegacy::TBuffer &buf, CppyyLegacy::TTimeStamp &ts);
+
+namespace CppyyLegacy {
+
 Bool_t operator==(const TTimeStamp &lhs, const TTimeStamp &rhs);
 Bool_t operator!=(const TTimeStamp &lhs, const TTimeStamp &rhs);
 Bool_t operator< (const TTimeStamp &lhs, const TTimeStamp &rhs);
@@ -205,5 +214,7 @@ inline Bool_t operator>=(const TTimeStamp &lhs, const TTimeStamp &rhs)
    { return lhs.fSec > rhs.fSec ||
              (lhs.fSec == rhs.fSec &&
               lhs.fNanoSec >= rhs.fNanoSec); }
+
+} // namespace CppyyLegacy
 
 #endif

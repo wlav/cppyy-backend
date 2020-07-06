@@ -27,9 +27,12 @@
 #include "RtypesCore.h"
 #include "TInterpreterValue.h"
 
+
 namespace cling {
    class Value;
 }
+
+namespace CppyyLegacy {
 
 class TClingValue : public TInterpreterValue {
 private:
@@ -62,5 +65,7 @@ public:
    void*       GetAsPointer() const;
    std::string ToString() const;
 };
+
+} // namespace CppyyLegacy
 
 #endif // ROOT_TClingValue

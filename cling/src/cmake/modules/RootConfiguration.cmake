@@ -136,11 +136,6 @@ if(gcctoolchain)
 else()
   set(setgcctoolchain undef)
 endif()
-if(memory_termination)
-  set(memory_term define)
-else()
-  set(memory_term undef)
-endif()
 
 # clear cache to allow reconfiguring
 # with a different CMAKE_CXX_STANDARD

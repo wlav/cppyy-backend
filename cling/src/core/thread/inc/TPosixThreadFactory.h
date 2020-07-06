@@ -9,7 +9,6 @@
  * For the list of contributors see $ROOTSYS/README/CREDITS.             *
  *************************************************************************/
 
-
 #ifndef ROOT_TPosixThreadFactory
 #define ROOT_TPosixThreadFactory
 
@@ -23,10 +22,12 @@
 
 #include "TThreadFactory.h"
 
+
+namespace CppyyLegacy {
+
 class TMutexImp;
 class TConditionImp;
 class TThreadImp;
-
 
 class TPosixThreadFactory : public TThreadFactory {
 
@@ -41,4 +42,5 @@ public:
    ClassDef(TPosixThreadFactory,0)  // Posix thread factory
 };
 
+} // namespace CppyyLegacy
 #endif

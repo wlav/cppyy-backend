@@ -12,7 +12,6 @@
 #ifndef ROOT_TClonesArray
 #define ROOT_TClonesArray
 
-
 //////////////////////////////////////////////////////////////////////////
 //                                                                      //
 // TClonesArray                                                         //
@@ -23,11 +22,12 @@
 //////////////////////////////////////////////////////////////////////////
 
 #include "Rtypes.h"
-
 #include "TObjArray.h"
 
-class TClass;
 
+namespace CppyyLegacy {
+
+class TClass;
 
 class TClonesArray : public TObjArray {
 
@@ -91,4 +91,5 @@ inline TObject *TClonesArray::AddrAt(Int_t idx)
    return operator[](idx);
 }
 
+} // namespace CppyyLegacy
 #endif

@@ -12,7 +12,6 @@
 #ifndef ROOT_TPosixThread
 #define ROOT_TPosixThread
 
-
 //////////////////////////////////////////////////////////////////////////
 //                                                                      //
 // TPosixThread                                                         //
@@ -29,8 +28,10 @@
 
 R__EXTERN "C" unsigned int sleep(unsigned int seconds);
 
-class TPosixThreadCleanUp;
 
+namespace CppyyLegacy {
+
+class TPosixThreadCleanUp;
 
 class TPosixThread : public TThreadImp {
 
@@ -72,4 +73,5 @@ public:
    ~TPosixThreadCleanUp() { }
 };
 
+} // namespace CppyyLegacy
 #endif

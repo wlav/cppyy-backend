@@ -26,7 +26,10 @@ overridden by the derived classes.
 #include "TROOT.h"
 #include "TClass.h"
 
-ClassImp(TNamed);
+
+ClassImp(CppyyLegacy::TNamed);
+
+namespace CppyyLegacy {
 
 ////////////////////////////////////////////////////////////////////////////////
 /// TNamed copy ctor.
@@ -41,7 +44,7 @@ TNamed::TNamed(const TNamed &named) : TObject(named),fName(named.fName),fTitle(n
 TNamed::~TNamed()
 {
    // Required since we overload TObject::Hash.
-   ROOT::CallRecursiveRemoveIfNeeded(*this);
+   CallRecursiveRemoveIfNeeded(*this);
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -171,3 +174,5 @@ Int_t TNamed::Sizeof() const
    Int_t nbytes = fName.Sizeof() + fTitle.Sizeof();
    return nbytes;
 }
+
+} // namespace CppyyLegacy

@@ -14,7 +14,7 @@ namespace cling {
    class Interpreter;
 }
 
-namespace ROOT {
+namespace CppyyLegacy {
 namespace Internal {
 namespace RootCling {
    struct DriverConfig {
@@ -39,7 +39,7 @@ namespace RootCling {
    };
 } // namespace RootCling
 } // namespace Internal
-} // namespace ROOT
+} // namespace CppyyLegacy
 
 #ifndef R__DLLEXPORT
 #ifdef _MSC_VER
@@ -50,4 +50,4 @@ namespace RootCling {
 #endif
 
 extern "C" R__DLLEXPORT
-int ROOT_rootcling_Driver(int argc, char **argv, const ROOT::Internal::RootCling::DriverConfig& config);
+int ROOT_rootcling_Driver(int argc, char **argv, const CppyyLegacy::Internal::RootCling::DriverConfig& config);

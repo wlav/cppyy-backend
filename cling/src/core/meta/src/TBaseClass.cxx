@@ -27,7 +27,9 @@ The base class information is used a.o. in to find all inherited methods.
 */
 
 
-ClassImp(TBaseClass);
+ClassImp(CppyyLegacy::TBaseClass);
+
+namespace CppyyLegacy {
 
 ////////////////////////////////////////////////////////////////////////////////
 /// Default TBaseClass ctor. TBaseClasses are constructed in TClass
@@ -89,7 +91,7 @@ const char *TBaseClass::GetTitle() const
 ////////////////////////////////////////////////////////////////////////////////
 /// Return which type (if any) of STL container the data member is.
 
-ROOT::ESTLType TBaseClass::IsSTLContainer()
+ESTLType TBaseClass::IsSTLContainer()
 {
    // fSTLType is -1 if not yet evaluated.
    // fSTLType is -2 if no fInfo was available.
@@ -99,24 +101,24 @@ ROOT::ESTLType TBaseClass::IsSTLContainer()
          fSTLType = -2;
       } else {
          const char *type = gCling->BaseClassInfo_TmpltName(fInfo);
-         if (!type)                                    fSTLType = ROOT::kNotSTL;
-         else if (!strcmp(type, "vector"))             fSTLType = ROOT::kSTLvector;
-         else if (!strcmp(type, "list"))               fSTLType = ROOT::kSTLlist;
-         else if (!strcmp(type, "forward_list"))       fSTLType = ROOT::kSTLforwardlist;
-         else if (!strcmp(type, "deque"))              fSTLType = ROOT::kSTLdeque;
-         else if (!strcmp(type, "map"))                fSTLType = ROOT::kSTLmap;
-         else if (!strcmp(type, "multimap"))           fSTLType = ROOT::kSTLmultimap;
-         else if (!strcmp(type, "set"))                fSTLType = ROOT::kSTLset;
-         else if (!strcmp(type, "multiset"))           fSTLType = ROOT::kSTLmultiset;
-         else if (!strcmp(type, "unordered_set"))      fSTLType = ROOT::kSTLunorderedset;
-         else if (!strcmp(type, "unordered_multiset")) fSTLType = ROOT::kSTLunorderedmultiset;
-         else if (!strcmp(type, "unordered_map"))      fSTLType = ROOT::kSTLunorderedmap;
-         else if (!strcmp(type, "unordered_multimap")) fSTLType = ROOT::kSTLunorderedmultimap;
-         else                                          fSTLType = ROOT::kNotSTL;
+         if (!type)                                    fSTLType = kNotSTL;
+         else if (!strcmp(type, "vector"))             fSTLType = kSTLvector;
+         else if (!strcmp(type, "list"))               fSTLType = kSTLlist;
+         else if (!strcmp(type, "forward_list"))       fSTLType = kSTLforwardlist;
+         else if (!strcmp(type, "deque"))              fSTLType = kSTLdeque;
+         else if (!strcmp(type, "map"))                fSTLType = kSTLmap;
+         else if (!strcmp(type, "multimap"))           fSTLType = kSTLmultimap;
+         else if (!strcmp(type, "set"))                fSTLType = kSTLset;
+         else if (!strcmp(type, "multiset"))           fSTLType = kSTLmultiset;
+         else if (!strcmp(type, "unordered_set"))      fSTLType = kSTLunorderedset;
+         else if (!strcmp(type, "unordered_multiset")) fSTLType = kSTLunorderedmultiset;
+         else if (!strcmp(type, "unordered_map"))      fSTLType = kSTLunorderedmap;
+         else if (!strcmp(type, "unordered_multimap")) fSTLType = kSTLunorderedmultimap;
+         else                                          fSTLType = kNotSTL;
       }
    }
-   if (fSTLType == -2) return ROOT::kNotSTL;
-   return (ROOT::ESTLType) fSTLType;
+   if (fSTLType == -2) return kNotSTL;
+   return (::CppyyLegacy::ESTLType) fSTLType;
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -147,3 +149,5 @@ void TBaseClass::Streamer(TBuffer& b) {
       b.WriteClassBuffer(Class(), this);
    }
 }
+
+} // namespace CppyyLegacy

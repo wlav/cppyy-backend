@@ -19,7 +19,9 @@
 
 #include "TSchemaType.h"
 
-namespace ROOT {
+
+namespace CppyyLegacy {
+
 namespace Internal {
    class TSchemaRuleProcessor
    {
@@ -56,7 +58,7 @@ namespace Internal {
          }
 
          static void SplitDeclaration( const std::string& source,
-                                       std::list<std::pair<ROOT::Internal::TSchemaType,std::string> >& result)
+                                       std::list<std::pair<TSchemaType,std::string> >& result)
          {
             // Split a declaration string producing a list of substrings
             // Typically we have:
@@ -116,7 +118,7 @@ namespace Internal {
                         break;
                      }
                   }
-                  result.push_back( make_pair(ROOT::Internal::TSchemaType(type,dims),elem) );
+                  result.push_back( make_pair(TSchemaType(type,dims),elem) );
                }
                last = curr+1;
             }
@@ -249,7 +251,8 @@ namespace Internal {
             return std::all_of(source.begin(), source.end(), [](unsigned char c){return std::isdigit(c);});
          }
    };
+
 } // namespace Internal
-} // namespace ROOT
+} // namespace CppyyLegacy
 
 #endif // ROOT_TSchemaRuleProcessor

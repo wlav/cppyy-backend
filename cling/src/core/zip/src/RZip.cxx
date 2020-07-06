@@ -51,17 +51,17 @@ static void R__unzipZLIB(int *srcsize, unsigned char *src, int *tgtsize, unsigne
   speeds - sometimes by an order of magnitude.
 */
 #ifdef R__HAS_DEFAULT_ZSTD
-ROOT::RCompressionSetting::EAlgorithm::EValues R__ZipMode = ROOT::RCompressionSetting::EAlgorithm::EValues::kZSTD;
+CppyyLegacy::RCompressionSetting::EAlgorithm::EValues R__ZipMode = CppyyLegacy::RCompressionSetting::EAlgorithm::EValues::kZSTD;
 #elif R__HAS_DEFAULT_LZ4
-ROOT::RCompressionSetting::EAlgorithm::EValues R__ZipMode = ROOT::RCompressionSetting::EAlgorithm::EValues::kLZ4;
+CppyyLegacy::RCompressionSetting::EAlgorithm::EValues R__ZipMode = CppyyLegacy::RCompressionSetting::EAlgorithm::EValues::kLZ4;
 #else
-ROOT::RCompressionSetting::EAlgorithm::EValues R__ZipMode = ROOT::RCompressionSetting::EAlgorithm::EValues::kZLIB;
+CppyyLegacy::RCompressionSetting::EAlgorithm::EValues R__ZipMode = CppyyLegacy::RCompressionSetting::EAlgorithm::EValues::kZLIB;
 #endif
 
 /* ===========================================================================
    Function to set the ZipMode
  */
-extern "C" void R__SetZipMode(ROOT::RCompressionSetting::EAlgorithm::EValues mode)
+extern "C" void R__SetZipMode(CppyyLegacy::RCompressionSetting::EAlgorithm::EValues mode)
 {
    R__ZipMode = mode;
 }
@@ -78,7 +78,7 @@ unsigned long R__crc32(unsigned long crc, const unsigned char* buf, unsigned int
 /*                      1 = zlib */
 /*                      2 = lzma */
 /*                      3 = old */
-void R__zipMultipleAlgorithm(int cxlevel, int *srcsize, char *src, int *tgtsize, char *tgt, int *irep, ROOT::RCompressionSetting::EAlgorithm::EValues compressionAlgorithm)
+void R__zipMultipleAlgorithm(int cxlevel, int *srcsize, char *src, int *tgtsize, char *tgt, int *irep, CppyyLegacy::RCompressionSetting::EAlgorithm::EValues compressionAlgorithm)
 {
 
   if (*srcsize < 1 + HDRSIZE + 1) {
@@ -91,13 +91,13 @@ void R__zipMultipleAlgorithm(int cxlevel, int *srcsize, char *src, int *tgtsize,
     return;
   }
 
-  if (compressionAlgorithm == ROOT::RCompressionSetting::EAlgorithm::kUseGlobal) {
+  if (compressionAlgorithm == CppyyLegacy::RCompressionSetting::EAlgorithm::kUseGlobal) {
     compressionAlgorithm = R__ZipMode;
   }
 
   // The LZMA compression algorithm from the XZ package
-  if (compressionAlgorithm == ROOT::RCompressionSetting::EAlgorithm::kOldCompressionAlgo ||
-      compressionAlgorithm == ROOT::RCompressionSetting::EAlgorithm::kUseGlobal) {
+  if (compressionAlgorithm == CppyyLegacy::RCompressionSetting::EAlgorithm::kOldCompressionAlgo ||
+      compressionAlgorithm == CppyyLegacy::RCompressionSetting::EAlgorithm::kUseGlobal) {
      R__zipOld(cxlevel, srcsize, src, tgtsize, tgt, irep);
   } else {
      // 1 is for ZLIB (which is the default), ZLIB is also used for any illegal
@@ -237,7 +237,7 @@ static void R__zipZLIB(int cxlevel, int *srcsize, char *src, int *tgtsize, char 
 
 void R__zip(int cxlevel, int *srcsize, char *src, int *tgtsize, char *tgt, int *irep) {
    R__zipMultipleAlgorithm(cxlevel, srcsize, src, tgtsize, tgt, irep,
-                           ROOT::RCompressionSetting::EAlgorithm::kUseGlobal);
+                           CppyyLegacy::RCompressionSetting::EAlgorithm::kUseGlobal);
 }
 
 /**

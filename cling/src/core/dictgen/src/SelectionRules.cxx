@@ -36,6 +36,9 @@ The class representing the collection of selection rules.
 
 const clang::CXXRecordDecl *R__ScopeSearch(const char *name, const clang::Type** resultType = 0) ;
 
+
+using namespace CppyyLegacy;
+
 void SelectionRules::AddClassSelectionRule(const ClassSelectionRule& classSel)
 {
    fRulesCounter++;
@@ -187,7 +190,7 @@ static bool HasDuplicate(RULE* rule,
    sstr << (areEqual ? "Identical " : "Conflicting ");
    sstr << "rule already stored:\n";
    storedRule->Print(sstr);
-   ROOT::TMetaUtils::Warning("SelectionRules::CheckDuplicates",
+   CppyyLegacy::TMetaUtils::Warning("SelectionRules::CheckDuplicates",
                              "Duplicated rule found.\n%s",sstr.str().c_str());
    return !areEqual;
 }
@@ -211,7 +214,7 @@ int SelectionRules::CheckDuplicates(){
    nDuplicates += CheckDuplicatesImp(fVariableSelectionRules);
    nDuplicates += CheckDuplicatesImp(fEnumSelectionRules);
    if (0 != nDuplicates){
-      ROOT::TMetaUtils::Error("SelectionRules::CheckDuplicates",
+      CppyyLegacy::TMetaUtils::Error("SelectionRules::CheckDuplicates",
             "Duplicates in rules were found.\n");
    }
    return nDuplicates;
@@ -241,7 +244,7 @@ static bool Implies(const ClassSelectionRule& patternRule, const ClassSelectionR
       "Since the name rule has compatible attributes, "
       "it will be removed: the pattern rule will match the necessary classes if needed.\n";
 
-      ROOT::TMetaUtils::Info("SelectionRules::Optimize", msg, pattern, name);
+      CppyyLegacy::TMetaUtils::Info("SelectionRules::Optimize", msg, pattern, name);
    }
 
 
@@ -465,12 +468,12 @@ bool SelectionRules::GetFunctionPrototype(const clang::FunctionDecl* F, std::str
       if (prototype != "")
          prototype += ",";
 
-      ROOT::TMetaUtils::GetNormalizedName(type,P->getType(),fInterp,fNormCtxt);
+      CppyyLegacy::TMetaUtils::GetNormalizedName(type,P->getType(),fInterp,fNormCtxt);
 
       // We need to get rid of the "class " string if present
-      ROOT::TMetaUtils::ReplaceAll(type,"class ", "");
+      CppyyLegacy::TMetaUtils::ReplaceAll(type,"class ", "");
       // We need to get rid of the "restrict " string if present
-      ROOT::TMetaUtils::ReplaceAll(type,"restrict", "");
+      CppyyLegacy::TMetaUtils::ReplaceAll(type,"restrict", "");
 
       // pointers are returned in the form "int *" and I need them in the form "int*"
       // same for &
@@ -668,15 +671,15 @@ const ClassSelectionRule *SelectionRules::IsClassSelected(const clang::Decl* D, 
    const clang::TypedefNameDecl* typeDefNameDecl = llvm::dyn_cast<clang::TypedefNameDecl> (D);
 
    if (!tagDecl && !typeDefNameDecl) { // Ill posed
-      ROOT::TMetaUtils::Error("SelectionRules::IsClassSelected",
+      CppyyLegacy::TMetaUtils::Error("SelectionRules::IsClassSelected",
             "Cannot cast Decl to TagDecl and Decl is not a typedef.\n");
       return 0;
       }
 
    if (!tagDecl && typeDefNameDecl){ // Let's try to fetch the underlying RecordDecl
-      clang::RecordDecl* recordDecl = ROOT::TMetaUtils::GetUnderlyingRecordDecl(typeDefNameDecl->getUnderlyingType());
+      clang::RecordDecl* recordDecl = CppyyLegacy::TMetaUtils::GetUnderlyingRecordDecl(typeDefNameDecl->getUnderlyingType());
       if (!recordDecl){
-         ROOT::TMetaUtils::Error("SelectionRules::IsClassSelected",
+         CppyyLegacy::TMetaUtils::Error("SelectionRules::IsClassSelected",
                                  "Cannot get RecordDecl behind TypedefDecl.\n");
          return 0;
       }
@@ -1342,7 +1345,7 @@ const BaseSelectionRule *SelectionRules::IsMemberSelected(const clang::Decl* D, 
                            prototype = str_name + prototype;
                         }
                         else{
-                           ROOT::TMetaUtils::Warning("","Warning: could not cast Decl to FunctionDecl\n");
+                           CppyyLegacy::TMetaUtils::Warning("","Warning: could not cast Decl to FunctionDecl\n");
                         }
                         members = it->GetMethodSelectionRules();
                      }
@@ -1422,7 +1425,7 @@ bool SelectionRules::AreAllSelectionRulesUsed() const {
          const char* attrVal = nullptr;
          if (!name.empty()) attrVal = name.c_str();
 
-         ROOT::TMetaUtils::Warning(0,"Unused %s rule: %s\n", attrName, attrVal);
+         CppyyLegacy::TMetaUtils::Warning(0,"Unused %s rule: %s\n", attrName, attrVal);
       }
    }
 
@@ -1436,7 +1439,7 @@ bool SelectionRules::AreAllSelectionRulesUsed() const {
          } else {
             name.clear();
          }
-         ROOT::TMetaUtils::Warning("","Unused variable rule: %s\n",name.c_str());
+         CppyyLegacy::TMetaUtils::Warning("","Unused variable rule: %s\n",name.c_str());
          if (name.empty()) {
             rule.PrintAttributes(std::cout,3);
          }
@@ -1445,7 +1448,7 @@ bool SelectionRules::AreAllSelectionRulesUsed() const {
 
 #if defined(R__MUST_REVISIT)
 #if R__MUST_REVISIT(6,2)
-ROOT::TMetaUtils::Warning("SelectionRules::AreAllSelectionRulesUsed",
+CppyyLegacy::TMetaUtils::Warning("SelectionRules::AreAllSelectionRulesUsed",
 "Warnings concerning non matching selection rules are suppressed. An action is to be taken.\n");
 #endif
 #endif
@@ -1492,7 +1495,7 @@ ROOT::TMetaUtils::Warning("SelectionRules::AreAllSelectionRulesUsed",
             name.clear();
          }
 
-         ROOT::TMetaUtils::Warning("","Unused enum rule: %s\n",name.c_str());
+         CppyyLegacy::TMetaUtils::Warning("","Unused enum rule: %s\n",name.c_str());
 
          if (name.empty()){
             rule.PrintAttributes(std::cout,3);
@@ -1516,7 +1519,7 @@ bool SelectionRules::SearchNames(cling::Interpreter &interp)
          // In Class selection rules, we should be interested in scopes.
          const clang::Type *typeptr = 0;
          const clang::CXXRecordDecl *target
-            = ROOT::TMetaUtils::ScopeSearch(name_value.c_str(), interp,
+            = CppyyLegacy::TMetaUtils::ScopeSearch(name_value.c_str(), interp,
                                             true /*diag*/, &typeptr);
          if (target) {
             it->SetCXXRecordDecl(target,typeptr);
@@ -1535,5 +1538,3 @@ void SelectionRules::FillCache()
    for (auto& rule : fVariableSelectionRules) rule.FillCache();
    for (auto& rule : fEnumSelectionRules) rule.FillCache();
 }
-
-

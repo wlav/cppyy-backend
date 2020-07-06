@@ -14,17 +14,19 @@
 #pragma link off all classes;
 #pragma link off all functions;
 
+#pragma link C++ namespace CppyyLegacy;
+
 #pragma link C++ typedef timespec_t;
 #pragma link C++ struct timespec;
 
-#pragma link C++ class TTimeStamp+;
-#pragma link C++ class TVirtualMutex;
-#pragma link C++ class ROOT::TVirtualRWMutex;
-#pragma link C++ class TLockGuard;
-#pragma link C++ class ROOT::TReadLockGuard;
-#pragma link C++ class ROOT::TWriteLockGuard;
-#pragma link C++ class TUrl;
-#pragma link C++ class TInetAddress-;
+#pragma link C++ class CppyyLegacy::TTimeStamp+;
+#pragma link C++ class CppyyLegacy::TVirtualMutex;
+#pragma link C++ class CppyyLegacy::TVirtualRWMutex;
+#pragma link C++ class CppyyLegacy::TLockGuard;
+#pragma link C++ class CppyyLegacy::TReadLockGuard;
+#pragma link C++ class CppyyLegacy::TWriteLockGuard;
+#pragma link C++ class CppyyLegacy::TUrl;
+#pragma link C++ class CppyyLegacy::TInetAddress-;
 
 // Insure the creation of the TClass object for pairs that might be
 // inside the cintdlls.

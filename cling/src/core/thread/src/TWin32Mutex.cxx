@@ -24,7 +24,10 @@
 #include "TThread.h"
 #include "TWin32Mutex.h"
 
-ClassImp(TWin32Mutex);
+
+ClassImp(CppyyLegacy::TWin32Mutex);
+
+namespace CppyyLegacy {
 
 ////////////////////////////////////////////////////////////////////////////////
 /// Create a Win32 mutex lock.
@@ -69,3 +72,5 @@ Int_t TWin32Mutex::UnLock(void)
    ::LeaveCriticalSection(&fCritSect);
    return 0;
 }
+
+} // namespace CppyyLegacy

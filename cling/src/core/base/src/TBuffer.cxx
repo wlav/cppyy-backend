@@ -19,15 +19,17 @@ Buffer base class used for serializing objects.
 #include "TClass.h"
 #include "TProcessID.h"
 
+
+ClassImp(CppyyLegacy::TBuffer);
+
+namespace CppyyLegacy {
+
 constexpr Int_t kExtraSpace    = 8;   // extra space at end of buffer (used for free block count)
 constexpr Int_t kMaxBufferSize  = 0x7FFFFFFE;  // largest possible size.
 
-
-ClassImp(TBuffer);
-
 /// Default streamer implementation used by ClassDefInline to avoid
 /// requirement to include TBuffer.h
-void ROOT::Internal::DefaultStreamer(TBuffer &R__b, const TClass *cl, void *objpointer)
+void Internal::DefaultStreamer(TBuffer &R__b, const TClass *cl, void *objpointer)
 {
    if (R__b.IsReading())
       R__b.ReadClassBuffer(cl, objpointer);
@@ -425,3 +427,5 @@ Bool_t TBuffer::ByteSwapBuffer(Long64_t n, EDataType type)
 
    return true;
 }
+
+} // namespace CppyyLegacy

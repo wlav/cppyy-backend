@@ -15,12 +15,13 @@
 
 #include "TNamed.h"
 
-class TClass;
-class TList;
-class TRealData;
+namespace CppyyLegacy {
+   class TClass;
+   class TList;
+   class TRealData;
+}
 
 #include "TDataMember.h"
-
 #include <vector>
 
 //////////////////////////////////////////////////////////////////////////
@@ -31,6 +32,9 @@ class TRealData;
 // without interpreter information.                                     //
 //                                                                      //
 //////////////////////////////////////////////////////////////////////////
+
+
+namespace CppyyLegacy {
 
 class TProtoClass: public TNamed {
 public:
@@ -119,4 +123,5 @@ public:
    ClassDef(TProtoClass, 2); //Persistent TClass
 };
 
+} // namespace CppyyLegacy
 #endif

@@ -134,7 +134,10 @@ system clock catches up.
 #endif
 #include <chrono>
 
-ClassImp(TUUID);
+
+ClassImp(CppyyLegacy::TUUID);
+
+namespace CppyyLegacy {
 
 ////////////////////////////////////////////////////////////////////////////////
 /// Create a UUID.
@@ -708,3 +711,5 @@ TBuffer &operator<<(TBuffer &buf, const TUUID &uuid)
    const_cast<TUUID&>(uuid).Streamer(buf);
    return buf;
 }
+
+} // namespace CppyyLegacy

@@ -44,11 +44,11 @@ namespace {
    }
 }
 
-namespace ROOT
-{
+namespace CppyyLegacy {
+
    using namespace Internal;
 
-   typedef std::list<std::pair<ROOT::Internal::TSchemaType,std::string> > SourceTypeList_t;
+   typedef std::list<std::pair<Internal::TSchemaType,std::string> > SourceTypeList_t;
 
    //--------------------------------------------------------------------------
    // Allocate global variables
@@ -101,7 +101,7 @@ namespace ROOT
    /// Parse the schema rule as specified in the LinkDef file
 
    Bool_t ParseRule( std::string command,
-                     ROOT::Internal::MembersMap_t &result,
+                     Internal::MembersMap_t &result,
                      std::string &error_string )
    {
       std::string::size_type l=0;
@@ -665,7 +665,7 @@ namespace ROOT
       // Write the automatically generated variables
       //////////////////////////////////////////////////////////////////////////
 
-      std::list<std::pair<ROOT::Internal::TSchemaType,std::string> > source;
+      std::list<std::pair<Internal::TSchemaType,std::string> > source;
       std::list<std::string> target;
       TSchemaRuleProcessor::SplitDeclaration( rule["source"], source );
       TSchemaRuleProcessor::SplitList( rule["target"], target );
@@ -719,7 +719,7 @@ namespace ROOT
       // Write the automatically generated variables
       //////////////////////////////////////////////////////////////////////////
 
-      std::list<std::pair<ROOT::Internal::TSchemaType,std::string> > source;
+      std::list<std::pair<Internal::TSchemaType,std::string> > source;
       std::list<std::string> target;
       TSchemaRuleProcessor::SplitList( rule["target"], target );
 
@@ -950,5 +950,4 @@ namespace ROOT
          it->second.push_back( rule );
    }
 
-
-}
+} // namespace CppyyLegacy

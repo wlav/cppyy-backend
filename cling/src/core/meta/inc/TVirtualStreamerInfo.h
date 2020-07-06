@@ -12,7 +12,6 @@
 #ifndef ROOT_TVirtualStreamerInfo
 #define ROOT_TVirtualStreamerInfo
 
-
 //////////////////////////////////////////////////////////////////////////
 //                                                                      //
 // TVirtualStreamerInfo   Abstract Interface class                      //
@@ -22,8 +21,10 @@
 //////////////////////////////////////////////////////////////////////////
 
 #include "TNamed.h"
-
 #include "ESTLType.h"
+
+
+namespace CppyyLegacy {
 
 class TFile;
 class TClass;
@@ -32,7 +33,8 @@ class TStreamerElement;
 class TStreamerBasicType;
 class TVirtualCollectionProxy;
 class TClassStreamer;
-namespace ROOT { namespace Detail { class TCollectionProxyInfo; } }
+
+namespace Detail { class TCollectionProxyInfo; }
 
 class TVirtualStreamerInfo : public TNamed {
 
@@ -91,8 +93,8 @@ public:
       kSTLp        = 71,
       kSkip        = 100, kSkipL = 120, kSkipP   = 140,
       kConv        = 200, kConvL = 220, kConvP   = 240,
-      kSTL         = ROOT::kSTLany /* 300 */,
-      kSTLstring   = ROOT::kSTLstring /* 365 */,
+      kSTL         = ::CppyyLegacy::kSTLany /* 300 */,
+      kSTLstring   = ::CppyyLegacy::kSTLstring /* 365 */,
       kStreamer    = 500, kStreamLoop = 501,
       kCache       = 600,  // Cache the value in memory than is not part of the object but is accessible via a SchemaRule
       kArtificial  = 1000,
@@ -166,7 +168,6 @@ public:
    virtual void        SetClass(TClass *cl) = 0;
    virtual void        SetClassVersion(Int_t vers) = 0;
    static  Bool_t      SetStreamMemberWise(Bool_t enable = kTRUE);
-   virtual void        TagFile(TFile *fFile) = 0;
    virtual void        Update(const TClass *oldClass, TClass *newClass) = 0;
 
    static const char         *GetElementCounterStart(const char *dmTitle);
@@ -181,12 +182,13 @@ public:
 
    virtual TVirtualCollectionProxy *GenEmulatedProxy(const char* class_name, Bool_t silent) = 0;
    virtual TClassStreamer *GenEmulatedClassStreamer(const char* class_name, Bool_t silent) = 0;
-   virtual TVirtualCollectionProxy *GenExplicitProxy( const ::ROOT::Detail::TCollectionProxyInfo &info, TClass *cl ) = 0;
-   virtual TClassStreamer *GenExplicitClassStreamer( const ::ROOT::Detail::TCollectionProxyInfo &info, TClass *cl ) = 0;
+   virtual TVirtualCollectionProxy *GenExplicitProxy( const Detail::TCollectionProxyInfo &info, TClass *cl ) = 0;
+   virtual TClassStreamer *GenExplicitClassStreamer( const Detail::TCollectionProxyInfo &info, TClass *cl ) = 0;
    static TVirtualStreamerInfo *Factory();
 
    //WARNING this class version must be the same as TStreamerInfo
    ClassDef(TVirtualStreamerInfo,6)  //Abstract Interface describing Streamer information for one class
 };
 
+} // namespace CppyyLegacy
 #endif

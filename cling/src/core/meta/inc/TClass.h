@@ -34,9 +34,12 @@
 #include <atomic>
 #include "ThreadLocalStorage.h"
 
+
+namespace CppyyLegacy {
+
 class TBaseClass;
-class TDataMember;
 class TCling;
+class TDataMember;
 class TMethod;
 class TRealData;
 class TBuffer;
@@ -53,29 +56,27 @@ class TViewPubDataMembers;
 class TFunctionTemplate;
 class TProtoClass;
 
-namespace ROOT {
-   class TGenericClassInfo;
-   class TMapTypeToTClass;
-   class TMapDeclIdToTClass;
-   namespace Detail {
-      class TSchemaRuleSet;
-      class TCollectionProxyInfo;
-   }
-   namespace Internal {
-      class TCheckHashRecursiveRemoveConsistency;
-   }
+class TGenericClassInfo;
+class TMapTypeToTClass;
+class TMapDeclIdToTClass;
+namespace Detail {
+   class TSchemaRuleSet;
+   class TCollectionProxyInfo;
+}
+namespace Internal {
+   class TCheckHashRecursiveRemoveConsistency;
 }
 
-typedef ROOT::TMapTypeToTClass IdMap_t;
-typedef ROOT::TMapDeclIdToTClass DeclIdMap_t;
+typedef CppyyLegacy::TMapTypeToTClass IdMap_t;
+typedef CppyyLegacy::TMapDeclIdToTClass DeclIdMap_t;
 
 class TClass : public TDictionary {
 
 friend class TCling;
-friend void ROOT::ResetClassVersion(TClass*, const char*, Short_t);
-friend class ROOT::TGenericClassInfo;
+friend void  ResetClassVersion(TClass*, const char*, Short_t);
+friend class TGenericClassInfo;
 friend class TProtoClass;
-friend class ROOT::Internal::TCheckHashRecursiveRemoveConsistency;
+friend class Internal::TCheckHashRecursiveRemoveConsistency;
 
 public:
    // TClass status bits
@@ -124,8 +125,6 @@ public:
    };
 
 private:
-
-
 
    class TDeclNameRegistry {
       // A class which is used to collect decl names starting from normalised
@@ -199,12 +198,12 @@ private:
    TVirtualIsAProxy  *fIsA;             //!pointer to the class's IsA proxy.
    IsAGlobalFunc_t    fGlobalIsA;       //pointer to a global IsA function.
 
-   ROOT::NewFunc_t     fNew;            //pointer to a function newing one object.
-   ROOT::NewArrFunc_t  fNewArray;       //pointer to a function newing an array of objects.
-   ROOT::DelFunc_t     fDelete;         //pointer to a function deleting one object.
-   ROOT::DelArrFunc_t  fDeleteArray;    //pointer to a function deleting an array of objects.
-   ROOT::DesFunc_t     fDestructor;     //pointer to a function call an object's destructor.
-   ROOT::DirAutoAdd_t  fDirAutoAdd;     //pointer which implements the Directory Auto Add feature for this class.']'
+   CppyyLegacy::NewFunc_t     fNew;            //pointer to a function newing one object.
+   CppyyLegacy::NewArrFunc_t  fNewArray;       //pointer to a function newing an array of objects.
+   CppyyLegacy::DelFunc_t     fDelete;         //pointer to a function deleting one object.
+   CppyyLegacy::DelArrFunc_t  fDeleteArray;    //pointer to a function deleting an array of objects.
+   CppyyLegacy::DesFunc_t     fDestructor;     //pointer to a function call an object's destructor.
+   CppyyLegacy::DirAutoAdd_t  fDirAutoAdd;     //pointer which implements the Directory Auto Add feature for this class.']'
    ClassStreamerFunc_t fStreamerFunc;   //Wrapper around this class custom Streamer member function.
    ClassConvStreamerFunc_t fConvStreamerFunc;   //Wrapper around this class custom conversion Streamer member function.
    Int_t               fSizeof;         //Sizeof the class.
@@ -235,7 +234,7 @@ private:
    EState             fState;           //!Current 'state' of the class (Emulated,Interpreted,Loaded)
    mutable std::atomic<TVirtualStreamerInfo*>  fCurrentInfo;     //!cached current streamer info.
    mutable std::atomic<TVirtualStreamerInfo*>  fLastReadInfo;    //!cached streamer info used in the last read.
-   ROOT::Detail::TSchemaRuleSet *fSchemaRules;  //! Schema evolution rules
+   Detail::TSchemaRuleSet *fSchemaRules;  //! Schema evolution rules
 
    typedef void (*StreamerImpl_t)(const TClass* pThis, void *obj, TBuffer &b, const TClass *onfile_class);
 #ifdef R__NO_ATOMIC_FUNCTION_POINTER
@@ -347,7 +346,7 @@ public:
    static Bool_t      AddRule(const char *rule);
    static Int_t       ReadRules(const char *filename);
    static Int_t       ReadRules();
-   void               AdoptSchemaRules( ROOT::Detail::TSchemaRuleSet *rules );
+   void               AdoptSchemaRules( Detail::TSchemaRuleSet *rules );
    void               BuildRealData(void *pointer=0, Bool_t isTransient = kFALSE);
    void               BuildEmulatedRealData(const char *name, intptr_t offset, TClass *cl);
    void               CalculateStreamerOffset() const;
@@ -378,16 +377,16 @@ public:
    TMethod           *GetClassMethod(const char *name, const char *params, Bool_t objectIsConst = kFALSE);
    TMethod           *GetClassMethodWithPrototype(const char *name, const char *proto,
                                                   Bool_t objectIsConst = kFALSE,
-                                                  ROOT::EFunctionMatchMode mode = ROOT::kConversionMatch);
+                                                  CppyyLegacy::EFunctionMatchMode mode = CppyyLegacy::kConversionMatch);
    Version_t          GetClassVersion() const { fVersionUsed = kTRUE; return fClassVersion; }
    Int_t              GetClassSize() const { return Size(); }
    TDataMember       *GetDataMember(const char *datamember) const;
    intptr_t             GetDataMemberOffset(const char *membername) const;
    const char        *GetDeclFileName() const;
    Short_t            GetDeclFileLine() const { return fDeclFileLine; }
-   ROOT::DelFunc_t    GetDelete() const;
-   ROOT::DesFunc_t    GetDestructor() const;
-   ROOT::DelArrFunc_t GetDeleteArray() const;
+   CppyyLegacy::DelFunc_t    GetDelete() const;
+   CppyyLegacy::DesFunc_t    GetDestructor() const;
+   CppyyLegacy::DelArrFunc_t GetDeleteArray() const;
    ClassInfo_t       *GetClassInfo() const {
       if (fCanLoadClassInfo && !TestBit(kLoading))
          LoadClassInfo();
@@ -416,24 +415,24 @@ public:
    TClass            *GetBaseClass(const TClass *base);
    intptr_t           GetBaseClassOffset(const TClass *toBase, void *address = 0, bool isDerivedObject = true);
    TClass            *GetBaseDataMember(const char *datamember);
-   ROOT::ESTLType     GetCollectionType() const;
-   ROOT::DirAutoAdd_t GetDirectoryAutoAdd() const;
+   CppyyLegacy::ESTLType     GetCollectionType() const;
+   CppyyLegacy::DirAutoAdd_t GetDirectoryAutoAdd() const;
    TFunctionTemplate *GetFunctionTemplate(const char *name);
    UInt_t             GetInstanceCount() const { return fInstanceCount; }
    UInt_t             GetHeapInstanceCount() const { return fOnHeap; }
    TMethod           *GetMethod(const char *method, const char *params, Bool_t objectIsConst = kFALSE);
    TMethod *GetMethodWithPrototype(const char *method, const char *proto, Bool_t objectIsConst = kFALSE,
-                                   ROOT::EFunctionMatchMode mode = ROOT::kConversionMatch);
+                                   CppyyLegacy::EFunctionMatchMode mode = CppyyLegacy::kConversionMatch);
    TMethod           *GetMethodAny(const char *method);
    TMethod           *GetMethodAllAny(const char *method);
    Int_t              GetNdata();
-   ROOT::NewFunc_t    GetNew() const;
-   ROOT::NewArrFunc_t GetNewArray() const;
+   CppyyLegacy::NewFunc_t    GetNew() const;
+   CppyyLegacy::NewArrFunc_t GetNewArray() const;
    Int_t              GetNmethods();
    TClass      *const*GetPersistentRef() const { return fPersistentRef; }
    TRealData         *GetRealData(const char *name) const;
-   const ROOT::Detail::TSchemaRuleSet *GetSchemaRules() const;
-   ROOT::Detail::TSchemaRuleSet *GetSchemaRules(Bool_t create = kFALSE);
+   const Detail::TSchemaRuleSet *GetSchemaRules() const;
+   Detail::TSchemaRuleSet *GetSchemaRules(Bool_t create = kFALSE);
    const char        *GetSharedLibs();
    ShowMembersFunc_t  GetShowMembersWrapper() const { return fShowMembers; }
    EState             GetState() const { return fState; }
@@ -490,18 +489,18 @@ public:
    void               ResetInstanceCount() { fInstanceCount = fOnHeap = 0; }
    Int_t              Size() const;
    void               SetCanSplit(Int_t splitmode);
-   void               SetCollectionProxy(const ROOT::Detail::TCollectionProxyInfo&);
+   void               SetCollectionProxy(const CppyyLegacy::Detail::TCollectionProxyInfo&);
    void               SetContextMenuTitle(const char *title);
    void               SetCurrentStreamerInfo(TVirtualStreamerInfo *info);
    void               SetGlobalIsA(IsAGlobalFunc_t);
    void               SetDeclFile(const char *name, int line) { fDeclFileName = name; fDeclFileLine = line; }
-   void               SetDelete(ROOT::DelFunc_t deleteFunc);
-   void               SetDeleteArray(ROOT::DelArrFunc_t deleteArrayFunc);
-   void               SetDirectoryAutoAdd(ROOT::DirAutoAdd_t dirAutoAddFunc);
-   void               SetDestructor(ROOT::DesFunc_t destructorFunc);
+   void               SetDelete(CppyyLegacy::DelFunc_t deleteFunc);
+   void               SetDeleteArray(CppyyLegacy::DelArrFunc_t deleteArrayFunc);
+   void               SetDirectoryAutoAdd(CppyyLegacy::DirAutoAdd_t dirAutoAddFunc);
+   void               SetDestructor(CppyyLegacy::DesFunc_t destructorFunc);
    void               SetImplFileName(const char *implFileName) { fImplFileName = implFileName; }
-   void               SetNew(ROOT::NewFunc_t newFunc);
-   void               SetNewArray(ROOT::NewArrFunc_t newArrayFunc);
+   void               SetNew(CppyyLegacy::NewFunc_t newFunc);
+   void               SetNewArray(CppyyLegacy::NewArrFunc_t newArrayFunc);
    TVirtualStreamerInfo     *SetStreamerInfo(Int_t version, const char *info="");
    void               SetUnloaded();
    Int_t              WriteBuffer(TBuffer &b, void *pointer, const char *info="");
@@ -553,7 +552,6 @@ public:
    ClassDef(TClass,0)  //Dictionary containing class information
 };
 
-namespace ROOT {
 namespace Internal {
 template <typename T>
 TClass *GetClassHelper(Bool_t, Bool_t, std::true_type)
@@ -568,16 +566,13 @@ TClass *GetClassHelper(Bool_t load, Bool_t silent, std::false_type)
 }
 
 } // namespace Internal
-} // namespace ROOT
 
 template <typename T>
 TClass *TClass::GetClass(Bool_t load, Bool_t silent)
 {
    typename std::is_base_of<TObject, T>::type tag;
-   return ROOT::Internal::GetClassHelper<T>(load, silent, tag);
+   return CppyyLegacy::Internal::GetClassHelper<T>(load, silent, tag);
 }
-
-namespace ROOT {
 
 template <typename T> TClass *GetClass(T * /* dummy */)       { return TClass::GetClass<T>(); }
 template <typename T> TClass *GetClass(const T * /* dummy */) { return TClass::GetClass<T>(); }
@@ -593,6 +588,7 @@ template <typename T> TClass *GetClass(const T * /* dummy */) { return TClass::G
    extern TClass *CreateClass(const char *cname, Version_t id,
                               const char *dfil, const char *ifil,
                               Int_t dl, Int_t il);
-}
+
+} // namespace CppyyLegacy
 
 #endif // ROOT_TClass

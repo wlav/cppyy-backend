@@ -23,8 +23,10 @@
 
 #include "TNamed.h"
 
-class TCollection;
 
+namespace CppyyLegacy {
+
+class TCollection;
 
 class TFolder : public TNamed {
 
@@ -62,5 +64,7 @@ public:
 
    ClassDef(TFolder,1)  //Describe a folder: a list of objects and folders
 };
+
+} // namespace CppyyLegacy
 
 #endif

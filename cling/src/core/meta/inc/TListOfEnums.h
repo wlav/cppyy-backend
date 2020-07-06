@@ -23,8 +23,10 @@
 //////////////////////////////////////////////////////////////////////////
 
 #include "THashList.h"
-
 #include "TDictionary.h"
+
+
+namespace CppyyLegacy {
 
 class TExMap;
 class TEnum;
@@ -92,4 +94,5 @@ public:
    ClassDefOverride(TListOfEnums,2);  // List of TDataMembers for a class
 };
 
+} // namespace CppyyLegacy
 #endif // ROOT_TListOfEnums

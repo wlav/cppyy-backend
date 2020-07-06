@@ -29,5 +29,4 @@
 # define R__EXTERN extern
 #endif
 
-
 #endif

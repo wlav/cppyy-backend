@@ -25,7 +25,10 @@ occupied by the upper bits that are 0.
 
 #include <string.h>
 
-ClassImp(TBits);
+
+ClassImp(CppyyLegacy::TBits);
+
+namespace CppyyLegacy {
 
 ////////////////////////////////////////////////////////////////////////////////
 /// TBits constructor.  All bits set to 0
@@ -701,3 +704,4 @@ Bool_t TBits::operator==(const TBits &other) const
    }
 }
 
+} // namespace CppyyLegacy

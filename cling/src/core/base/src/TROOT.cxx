@@ -149,12 +149,15 @@ namespace std {} using namespace std;
 
 extern "C" void R__SetZipMode(int);
 
+
+namespace CppyyLegacy {
+
 static DestroyInterpreter_t *gDestroyInterpreter = 0;
 static void *gInterpreterLib = 0;
 
 // Mutex for protection of concurrent gROOT access
 TVirtualMutex* gROOTMutex = 0;
-ROOT::TVirtualRWMutex *ROOT::gCoreMutex = nullptr;
+TVirtualRWMutex *gCoreMutex = nullptr;
 
 // For accessing TThread::Tsd indirectly.
 void **(*gThreadTsd)(void*,Int_t) = 0;
@@ -267,12 +270,11 @@ Int_t  TROOT::fgDirLevel = 0;
 Bool_t TROOT::fgRootInit = kFALSE;
 
 static void at_exit_of_TROOT() {
-   if (ROOT::Internal::gROOTLocal)
-      ROOT::Internal::gROOTLocal->~TROOT();
+   if (Internal::gROOTLocal)
+      Internal::gROOTLocal->~TROOT();
 }
 
 // This local static object initializes the ROOT system
-namespace ROOT {
 namespace Internal {
    class TROOTAllocator {
       // Simple wrapper to separate, time-wise, the call to the
@@ -318,7 +320,7 @@ namespace Internal {
       }
    };
 
-   // The global gROOT is defined to be a function (ROOT::GetROOT())
+   // The global gROOT is defined to be a function (CppyyLegacy::GetROOT())
    // which itself is dereferencing a function pointer.
 
    // Initially this function pointer's value is & GetROOT1 whose role is to
@@ -382,7 +384,7 @@ namespace Internal {
    }
 
 } // end of Internal sub namespace
-// back to ROOT namespace
+// back to CppyyLegacy namespace
 
    TROOT *GetROOT() {
       return (*Internal::gGetROOT)();
@@ -410,9 +412,7 @@ namespace Internal {
          sym();
    }
 
-}
-
-TROOT *ROOT::Internal::gROOTLocal = ROOT::GetROOT();
+TROOT *Internal::gROOTLocal = GetROOT();
 
 // Global debug flag (set to > 0 to get debug output).
 // Can be set either via the interpreter (gDebug is exported to CINT),
@@ -420,8 +420,11 @@ TROOT *ROOT::Internal::gROOTLocal = ROOT::GetROOT();
 // ROOTDEBUG, or via the debugger.
 Int_t gDebug;
 
+} // namespace CppyyLegacy {
 
 ClassImp(TROOT);
+
+namespace CppyyLegacy {
 
 ////////////////////////////////////////////////////////////////////////////////
 /// Default ctor.
@@ -470,14 +473,14 @@ TROOT::TROOT(const char *name, const char *title, VoidFuncPtr_t *initfunc)
      fMessageHandlers(0),fStreamerInfo(0),fClassGenerators(0),
      fUUIDs(0),fRootFolder(0)
 {
-   if (fgRootInit || ROOT::Internal::gROOTLocal) {
+   if (fgRootInit || Internal::gROOTLocal) {
       //Warning("TROOT", "only one instance of TROOT allowed");
       return;
    }
 
    R__LOCKGUARD(gROOTMutex);
 
-   ROOT::Internal::gROOTLocal = this;
+   Internal::gROOTLocal = this;
    gDirectory = 0;
 
    SetName(name);
@@ -585,7 +588,7 @@ TROOT::TROOT(const char *name, const char *title, VoidFuncPtr_t *initfunc)
    // Set initial/default list of browsable objects
    atexit(CleanUpROOTAtExit);
 
-   ROOT::Internal::gGetROOT = &ROOT::Internal::GetROOT2;
+   Internal::gGetROOT = &Internal::GetROOT2;
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -594,7 +597,7 @@ TROOT::TROOT(const char *name, const char *title, VoidFuncPtr_t *initfunc)
 
 TROOT::~TROOT()
 {
-   using namespace ROOT::Internal;
+   using namespace Internal;
 
    if (gROOTLocal == this) {
 
@@ -634,63 +637,16 @@ TROOT::~TROOT()
       // Stop emitting signals
       fMessageHandlers->Delete(); SafeDelete(fMessageHandlers);
 
-#ifdef R__COMPLETE_MEM_TERMINATION
-      fCleanups->Clear();
-      delete gClassTable;  gClassTable = 0;
-      delete gEnv; gEnv = 0;
-
-      if (fTypes) fTypes->Delete();
-      SafeDelete(fTypes);
-      if (fGlobals) fGlobals->Delete();
-      SafeDelete(fGlobals);
-      if (fGlobalFunctions) fGlobalFunctions->Delete();
-      SafeDelete(fGlobalFunctions);
-      fEnums.load()->Delete();
-
-      // FIXME: Causes segfault in rootcling, debug and uncomment
-      // fClasses->Delete();    SafeDelete(fClasses);     // TClass'es must be deleted last
-#endif
-
       // Remove shared libraries produced by the TSystem::CompileMacro() call
       gSystem->CleanCompiledMacros();
 
       // Cleanup system class
       delete gSystem;
 
-      // ROOT-6022:
-      //   if (gInterpreterLib) dlclose(gInterpreterLib);
-#ifdef R__COMPLETE_MEM_TERMINATION
-      // On some 'newer' platform (Fedora Core 17+, Ubuntu 12), the
-      // initialization order is (by default?) is 'wrong' and so we can't
-      // delete the interpreter now .. because any of the static in the
-      // interpreter's library have already been deleted.
-      // On the link line, we must list the most dependent .o file
-      // and end with the least dependent (LLVM libraries), unfortunately,
-      // Fedora Core 17+ or Ubuntu 12 will also execute the initialization
-      // in the same order (hence doing libCoreLegacy's before LLVM's and
-      // vice et versa for both the destructor.  We worked around the
-      // initialization order by delay the TROOT creation until first use.
-      // We can not do the same for destruction as we have no way of knowing
-      // the last access ...
-      // So for now, let's avoid delete TCling except in the special build
-      // checking the completeness of the termination deletion.
-
-      // TODO: Should we do more cleanup here than just call delete?
-      // Segfaults rootcling in some cases, debug and uncomment:
-      //
-      //    delete fInterpreter;
-
-      // We cannot delete fCleanups because of the logic in atexit which needs it.
-      SafeDelete(fCleanups);
-#endif
-
 #ifndef _MSC_VER
       // deleting the interpreter makes things crash at exit in some cases
       delete fInterpreter;
 #endif
-
-      // Prints memory stats
-      TStorage::PrintStatistics();
 
       gROOTLocal = 0;
       fgRootInit = kFALSE;
@@ -1210,12 +1166,12 @@ TCollection *TROOT::GetListOfGlobals(Bool_t load)
       // We add to the list the "funcky-fake" globals.
 
       // provide special functor for gROOT, while ROOT::GetROOT() does not return reference
-      TGlobalMappedFunction::MakeFunctor("gROOT", "TROOT*", ROOT::GetROOT, [] {
-         ROOT::GetROOT();
-         return (void *)&ROOT::Internal::gROOTLocal;
+      TGlobalMappedFunction::MakeFunctor("gROOT", "CppyyLegacy::TROOT*", GetROOT, [] {
+         GetROOT();
+         return (void *)&Internal::gROOTLocal;
       });
 
-      TGlobalMappedFunction::MakeFunctor("gDirectory", "TDirectory*", TDirectory::CurrentDirectory);
+      TGlobalMappedFunction::MakeFunctor("gDirectory", "CppyyLegacy::TDirectory*", TDirectory::CurrentDirectory);
 
       // Don't let TGlobalMappedFunction delete our globals, now that we take them.
       fGlobals->AddAll(&TGlobalMappedFunction::GetEarlyRegisteredGlobals());
@@ -1424,7 +1380,7 @@ void TROOT::InitSystem()
 void TROOT::InitThreads()
 {
    if (gEnv->GetValue("Root.UseThreads", 0) || gEnv->GetValue("Root.EnableThreadSafety", 0)) {
-      ROOT::EnableThreadSafety();
+      EnableThreadSafety();
    }
 }
 
@@ -1668,7 +1624,7 @@ void TROOT::SetReadingObject(Bool_t flag)
 
 void TROOT::RecursiveRemove(TObject *obj)
 {
-   R__READ_LOCKGUARD(ROOT::gCoreMutex);
+   R__READ_LOCKGUARD(gCoreMutex);
 
    fCleanups->RecursiveRemove(obj);
 }
@@ -1678,7 +1634,7 @@ void TROOT::RecursiveRemove(TObject *obj)
 
 static void CallCloseFiles()
 {
-   if (TROOT::Initialized() && ROOT::Internal::gROOTLocal) {
+   if (TROOT::Initialized() && Internal::gROOTLocal) {
       gROOT->CloseFiles();
    }
 }
@@ -1738,7 +1694,7 @@ void TROOT::RegisterModule(const char* modulename,
    // after then end of main (whichever comes first).  We do *not*
    // want the files to be closed whenever a library is unloaded via
    // dlclose.  To avoid this, we add the function (CallCloseFiles)
-   // from the dictionary indirectly (via ROOT::RegisterModule).  In
+   // from the dictionary indirectly (via RegisterModule).  In
    // this case the function will only only be called either when
    // libCoreLegacy is 'dlclose'd or right after the end of main.
 
@@ -1947,7 +1903,7 @@ static Bool_t IgnorePrefix() {
 const TString& TROOT::GetRootSys() {
    // Avoid returning a reference to a temporary because of the conversion
    // between std::string and TString.
-   const static TString rootsys = ROOT::FoundationUtils::GetRootSys();
+   const static TString rootsys = FoundationUtils::GetRootSys();
    return rootsys;
 }
 
@@ -1999,7 +1955,7 @@ const TString& TROOT::GetLibDir() {
 const TString& TROOT::GetIncludeDir() {
    // Avoid returning a reference to a temporary because of the conversion
    // between std::string and TString.
-   const static TString includedir = ROOT::FoundationUtils::GetIncludeDir();
+   const static TString includedir = FoundationUtils::GetIncludeDir();
    return includedir;
 }
 
@@ -2009,7 +1965,7 @@ const TString& TROOT::GetIncludeDir() {
 const TString& TROOT::GetEtcDir() {
    // Avoid returning a reference to a temporary because of the conversion
    // between std::string and TString.
-   const static TString etcdir = ROOT::FoundationUtils::GetEtcDir();
+   const static TString etcdir = FoundationUtils::GetEtcDir();
    return etcdir;
 }
 
@@ -2044,3 +2000,5 @@ const TString& TROOT::GetSourceDir() {
    }
 #endif
 }
+
+} // namespace CppyyLegacy

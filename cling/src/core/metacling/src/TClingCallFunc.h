@@ -36,6 +36,7 @@
 
 #include <llvm/ADT/SmallVector.h>
 
+
 namespace clang {
 class BuiltinType;
 class Expr;
@@ -48,7 +49,12 @@ class Interpreter;
 }
 
 class TClingClassInfo;
-class TInterpreterValue;
+namespace CppyyLegacy {
+   class TInterpreterValue;
+}
+
+
+namespace CppyyLegacy {
 
 typedef void (*tcling_callfunc_Wrapper_t)(void*, int, void**, void*);
 typedef void (*tcling_callfunc_ctor_Wrapper_t)(void**, void*, unsigned long);
@@ -61,7 +67,7 @@ private:
    /// Cling interpreter, we do *not* own.
    cling::Interpreter* fInterp;
    /// ROOT normalized context for that interpreter
-   const ROOT::TMetaUtils::TNormalizedCtxt &fNormCtxt;
+   const CppyyLegacy::TMetaUtils::TNormalizedCtxt &fNormCtxt;
    /// Current method, we own.
    std::unique_ptr<TClingMethodInfo> fMethod;
    /// Decl for the method
@@ -152,13 +158,13 @@ public:
 
    ~TClingCallFunc() = default;
 
-   explicit TClingCallFunc(cling::Interpreter *interp, const ROOT::TMetaUtils::TNormalizedCtxt &normCtxt)
+   explicit TClingCallFunc(cling::Interpreter *interp, const CppyyLegacy::TMetaUtils::TNormalizedCtxt &normCtxt)
       : fInterp(interp), fNormCtxt(normCtxt), fWrapper(0), fIgnoreExtraArgs(false), fReturnIsRecordType(false)
    {
       fMethod = std::unique_ptr<TClingMethodInfo>(new TClingMethodInfo(interp));
    }
 
-   explicit TClingCallFunc(const TClingMethodInfo &minfo, const ROOT::TMetaUtils::TNormalizedCtxt &normCtxt)
+   explicit TClingCallFunc(const TClingMethodInfo &minfo, const CppyyLegacy::TMetaUtils::TNormalizedCtxt &normCtxt)
    : fInterp(minfo.GetInterpreter()), fNormCtxt(normCtxt), fWrapper(0), fIgnoreExtraArgs(false),
      fReturnIsRecordType(false)
 
@@ -226,18 +232,20 @@ public:
    void SetFunc(const TClingMethodInfo* info);
    void SetFuncProto(const TClingClassInfo* info, const char* method,
                      const char* proto, intptr_t* poffset,
-                     ROOT::EFunctionMatchMode mode = ROOT::kConversionMatch);
+                     CppyyLegacy::EFunctionMatchMode mode = CppyyLegacy::kConversionMatch);
    void SetFuncProto(const TClingClassInfo* info, const char* method,
                      const char* proto, bool objectIsConst, intptr_t* poffset,
-                     ROOT::EFunctionMatchMode mode = ROOT::kConversionMatch);
+                     CppyyLegacy::EFunctionMatchMode mode = CppyyLegacy::kConversionMatch);
    void SetFuncProto(const TClingClassInfo* info, const char* method,
                      const llvm::SmallVectorImpl<clang::QualType>& proto,
                      intptr_t* poffset,
-                     ROOT::EFunctionMatchMode mode = ROOT::kConversionMatch);
+                     CppyyLegacy::EFunctionMatchMode mode = CppyyLegacy::kConversionMatch);
    void SetFuncProto(const TClingClassInfo* info, const char* method,
                      const llvm::SmallVectorImpl<clang::QualType>& proto,
                      bool objectIsConst, intptr_t* poffset,
-                     ROOT::EFunctionMatchMode mode = ROOT::kConversionMatch);
+                     CppyyLegacy::EFunctionMatchMode mode = CppyyLegacy::kConversionMatch);
 };
+
+} // namespace CppyyLegacy
 
 #endif // ROOT_CallFunc

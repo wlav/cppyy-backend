@@ -26,7 +26,8 @@ Iteration can only be done via the TIterator interfaces.
 #include "TFunction.h"
 #include "THashList.h"
 
-// ClassImp(TViewPubFunctions);
+
+namespace CppyyLegacy {
 
 ////////////////////////////////////////////////////////////////////////////////
 /// loop over all base classes and add them to the container.
@@ -68,7 +69,7 @@ TViewPubFunctions::~TViewPubFunctions()
 
 void TViewPubFunctions::Clear(Option_t * /* option="" */)
 {
-   ::Error("TViewPubFunctions::Clear","Operation not allowed on a view.");
+   ::CppyyLegacy::Error("TViewPubFunctions::Clear","Operation not allowed on a view.");
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -77,7 +78,7 @@ void TViewPubFunctions::Clear(Option_t * /* option="" */)
 
 void TViewPubFunctions::Delete(Option_t * /*option="" */)
 {
-   ::Error("TViewPubFunctions::Delete","Operation not allowed on a view.");
+   ::CppyyLegacy::Error("TViewPubFunctions::Delete","Operation not allowed on a view.");
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -130,7 +131,7 @@ TIterator *TViewPubFunctions::MakeIterator(Bool_t dir /* = kIterForward*/) const
 
 void TViewPubFunctions::AddFirst(TObject * /* obj */)
 {
-   ::Error("TViewPubFunctions::AddFirst","Operation not allowed on a view.");
+   ::CppyyLegacy::Error("TViewPubFunctions::AddFirst","Operation not allowed on a view.");
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -139,7 +140,7 @@ void TViewPubFunctions::AddFirst(TObject * /* obj */)
 
 void TViewPubFunctions::AddFirst(TObject * /* obj */, Option_t * /* opt */)
 {
-   ::Error("TViewPubFunctions::AddFirst","Operation not allowed on a view.");
+   ::CppyyLegacy::Error("TViewPubFunctions::AddFirst","Operation not allowed on a view.");
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -148,7 +149,7 @@ void TViewPubFunctions::AddFirst(TObject * /* obj */, Option_t * /* opt */)
 
 void TViewPubFunctions::AddLast(TObject * /* obj */)
 {
-   ::Error("TViewPubFunctions::AddLast","Operation not allowed on a view.");
+   ::CppyyLegacy::Error("TViewPubFunctions::AddLast","Operation not allowed on a view.");
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -157,7 +158,7 @@ void TViewPubFunctions::AddLast(TObject * /* obj */)
 
 void TViewPubFunctions::AddLast(TObject * /* obj */, Option_t * /* opt */)
 {
-   ::Error("TViewPubFunctions::AddLast","Operation not allowed on a view.");
+   ::CppyyLegacy::Error("TViewPubFunctions::AddLast","Operation not allowed on a view.");
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -166,7 +167,7 @@ void TViewPubFunctions::AddLast(TObject * /* obj */, Option_t * /* opt */)
 
 void TViewPubFunctions::AddAt(TObject * /* obj */, Int_t /* idx */)
 {
-   ::Error("TViewPubFunctions::AddAt","Operation not allowed on a view.");
+   ::CppyyLegacy::Error("TViewPubFunctions::AddAt","Operation not allowed on a view.");
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -175,7 +176,7 @@ void TViewPubFunctions::AddAt(TObject * /* obj */, Int_t /* idx */)
 
 void TViewPubFunctions::AddAfter(const TObject * /* after */, TObject * /* obj */)
 {
-   ::Error("TViewPubFunctions::RemAddLastove","Operation not allowed on a view.");
+   ::CppyyLegacy::Error("TViewPubFunctions::RemAddLastove","Operation not allowed on a view.");
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -184,7 +185,7 @@ void TViewPubFunctions::AddAfter(const TObject * /* after */, TObject * /* obj *
 
 void TViewPubFunctions::AddAfter(TObjLink * /* after */, TObject * /* obj */)
 {
-   ::Error("TViewPubFunctions::AddAfter","Operation not allowed on a view.");
+   ::CppyyLegacy::Error("TViewPubFunctions::AddAfter","Operation not allowed on a view.");
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -193,7 +194,7 @@ void TViewPubFunctions::AddAfter(TObjLink * /* after */, TObject * /* obj */)
 
 void TViewPubFunctions::AddBefore(const TObject * /* before */, TObject * /* obj */)
 {
-   ::Error("TViewPubFunctions::AddBefore","Operation not allowed on a view.");
+   ::CppyyLegacy::Error("TViewPubFunctions::AddBefore","Operation not allowed on a view.");
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -202,7 +203,7 @@ void TViewPubFunctions::AddBefore(const TObject * /* before */, TObject * /* obj
 
 void TViewPubFunctions::AddBefore(TObjLink * /* before */, TObject * /* obj */)
 {
-   ::Error("TViewPubFunctions::AddBefore","Operation not allowed on a view.");
+   ::CppyyLegacy::Error("TViewPubFunctions::AddBefore","Operation not allowed on a view.");
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -230,7 +231,7 @@ TObject  *TViewPubFunctions::At(Int_t idx) const
 
 TObject  *TViewPubFunctions::After(const TObject * /* obj */) const
 {
-   ::Error("TViewPubFunctions::After","Operation not allowed on a view.");
+   ::CppyyLegacy::Error("TViewPubFunctions::After","Operation not allowed on a view.");
    return 0;
 }
 
@@ -240,7 +241,7 @@ TObject  *TViewPubFunctions::After(const TObject * /* obj */) const
 
 TObject  *TViewPubFunctions::Before(const TObject * /* obj */) const
 {
-   ::Error("TViewPubFunctions::Before","Operation not allowed on a view.");
+   ::CppyyLegacy::Error("TViewPubFunctions::Before","Operation not allowed on a view.");
    return 0;
 }
 
@@ -250,7 +251,7 @@ TObject  *TViewPubFunctions::Before(const TObject * /* obj */) const
 
 TObject  *TViewPubFunctions::First() const
 {
-   ::Error("TViewPubFunctions::First","Operation not allowed on a view.");
+   ::CppyyLegacy::Error("TViewPubFunctions::First","Operation not allowed on a view.");
    return 0;
 }
 
@@ -260,7 +261,7 @@ TObject  *TViewPubFunctions::First() const
 
 TObjLink *TViewPubFunctions::FirstLink() const
 {
-   ::Error("TViewPubFunctions::FirstLink","Operation not allowed on a view.");
+   ::CppyyLegacy::Error("TViewPubFunctions::FirstLink","Operation not allowed on a view.");
    return 0;
 }
 
@@ -270,7 +271,7 @@ TObjLink *TViewPubFunctions::FirstLink() const
 
 TObject **TViewPubFunctions::GetObjectRef(const TObject * /* obj */) const
 {
-   ::Error("TViewPubFunctions::GetObjectRef","Operation not yet allowed on a view.");
+   ::CppyyLegacy::Error("TViewPubFunctions::GetObjectRef","Operation not yet allowed on a view.");
    return 0;
 }
 
@@ -309,7 +310,7 @@ void TViewPubFunctions::Load()
 
 TObject  *TViewPubFunctions::Last() const
 {
-   ::Error("TViewPubFunctions::Last","Operation not allowed on a view.");
+   ::CppyyLegacy::Error("TViewPubFunctions::Last","Operation not allowed on a view.");
    return 0;
 }
 
@@ -319,7 +320,7 @@ TObject  *TViewPubFunctions::Last() const
 
 TObjLink *TViewPubFunctions::LastLink() const
 {
-   ::Error("TViewPubFunctions::LastLink","Operation not allowed on a view.");
+   ::CppyyLegacy::Error("TViewPubFunctions::LastLink","Operation not allowed on a view.");
    return 0;
 }
 
@@ -329,7 +330,7 @@ TObjLink *TViewPubFunctions::LastLink() const
 
 void TViewPubFunctions::RecursiveRemove(TObject * /* obj */)
 {
-   ::Error("TViewPubFunctions::RecursiveRemove","Operation not allowed on a view.");
+   ::CppyyLegacy::Error("TViewPubFunctions::RecursiveRemove","Operation not allowed on a view.");
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -338,7 +339,7 @@ void TViewPubFunctions::RecursiveRemove(TObject * /* obj */)
 
 TObject   *TViewPubFunctions::Remove(TObject * /* obj */)
 {
-   ::Error("TViewPubFunctions::Remove","Operation not allowed on a view.");
+   ::CppyyLegacy::Error("TViewPubFunctions::Remove","Operation not allowed on a view.");
    return 0;
 }
 
@@ -348,15 +349,13 @@ TObject   *TViewPubFunctions::Remove(TObject * /* obj */)
 
 TObject   *TViewPubFunctions::Remove(TObjLink * /* lnk */)
 {
-   ::Error("TViewPubFunctions::Remove","Operation not allowed on a view.");
+   ::CppyyLegacy::Error("TViewPubFunctions::Remove","Operation not allowed on a view.");
    return 0;
 }
 
 /** \class TViewPubFunctionsIter
 Iterator of over the view's content
 */
-
-// ClassImp(TViewPubFunctionsIter);
 
 ////////////////////////////////////////////////////////////////////////////////
 /// Create a new list iterator. By default the iteration direction
@@ -479,3 +478,4 @@ Bool_t TViewPubFunctionsIter::operator!=(const TViewPubFunctionsIter &aIter) con
    return (fClassIter != aIter.fClassIter || fFuncIter != aIter.fFuncIter);
 }
 
+} // namespace CppyyLegacy
