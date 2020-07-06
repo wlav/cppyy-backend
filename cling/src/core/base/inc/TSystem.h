@@ -165,26 +165,6 @@ struct RedirectHandle_t {
                   fStdOutDup = -1; fStdErrDup = -1; fReadOffSet = -1; }
 };
 
-enum ESockOptions {
-   kSendBuffer,        // size of send buffer
-   kRecvBuffer,        // size of receive buffer
-   kOobInline,         // OOB message inline
-   kKeepAlive,         // keep socket alive
-   kReuseAddr,         // allow reuse of local portion of address 5-tuple
-   kNoDelay,           // send without delay
-   kNoBlock,           // non-blocking I/O
-   kProcessGroup,      // socket process group (used for SIGURG and SIGIO)
-   kAtMark,            // are we at out-of-band mark (read only)
-   kBytesToRead        // get number of bytes to read, FIONREAD (read only)
-};
-
-enum ESendRecvOptions {
-   kDefault,           // default option (= 0)
-   kOob,               // send or receive out-of-band data
-   kPeek,              // peek at incoming message (receive only)
-   kDontBlock          // send/recv as much data as possible without blocking
-};
-
 #ifdef __CINT__
 typedef void *Func_t;
 #else
@@ -200,10 +180,7 @@ R__EXTERN TVirtualMutex *gSystemMutex;
 //////////////////////////////////////////////////////////////////////////
 //                                                                      //
 // Asynchronous timer used for processing pending GUI and timer events  //
-// every delay ms. Call in a tight computing loop                       //
-// call will process the pending events and return kTRUE if the         //
-// TROOT::IsInterrupted() flag is set (can be done by hitting key in    //
-// canvas or selecting canvas menu item View/Interrupt.                 //
+// every delay ms.                                                      //
 //                                                                      //
 //////////////////////////////////////////////////////////////////////////
 class TSystem : public TNamed {
@@ -229,10 +206,6 @@ protected:
    Bool_t           fInsideNotify;     //Used by DispatchTimers()
    Int_t            fBeepFreq;         //Used by Beep()
    Int_t            fBeepDuration;     //Used by Beep()
-
-   Bool_t           fInControl;        //True if in eventloop
-   Bool_t           fDone;             //True if eventloop should be finished
-   Int_t            fLevel;            //Level of nested eventloops
 
    TSeqCollection  *fSignalHandler;    //List of signal handlers
    TSeqCollection  *fStdExceptionHandler; //List of std::exception handlers
@@ -300,15 +273,6 @@ public:
    void                    Beep(Int_t freq=-1, Int_t duration=-1, Bool_t setDefault=kFALSE);
    void                    GetBeepDefaults(Int_t &freq, Int_t &duration) const { freq = fBeepFreq; duration = fBeepDuration; }
 
-   //---- EventLoop
-   virtual void            Run();
-   virtual Bool_t          ProcessEvents();
-   virtual void            DispatchOneEvent(Bool_t pendingOnly = kFALSE);
-   virtual void            ExitLoop();
-   Bool_t                  InControl() const { return fInControl; }
-   virtual void            InnerLoop();
-   virtual Int_t           Select(TList *active, Long_t timeout);
-
    //---- Handling of system events
    virtual void            AddSignalHandler(TSignalHandler *sh);
    virtual TSignalHandler *RemoveSignalHandler(TSignalHandler *sh);
@@ -327,7 +291,6 @@ public:
 
    //---- Time & Date
    virtual TTime           Now();
-   virtual void            Sleep(UInt_t milliSec);
 
    //---- Processes
    virtual Int_t           Exec(const char *shellcmd);
@@ -426,23 +389,6 @@ public:
 
    //---- RPC
    virtual TInetAddress    GetHostByName(const char *server);
-   virtual TInetAddress    GetPeerName(int sock);
-   virtual TInetAddress    GetSockName(int sock);
-   virtual int             GetServiceByName(const char *service);
-   virtual char           *GetServiceByPort(int port);
-   virtual int             OpenConnection(const char *server, int port, int tcpwindowsize = -1, const char *protocol = "tcp");
-   virtual int             AnnounceTcpService(int port, Bool_t reuse, int backlog, int tcpwindowsize = -1);
-   virtual int             AnnounceUdpService(int port, int backlog);
-   virtual int             AnnounceUnixService(int port, int backlog);
-   virtual int             AnnounceUnixService(const char *sockpath, int backlog);
-   virtual int             AcceptConnection(int sock);
-   virtual void            CloseConnection(int sock, Bool_t force = kFALSE);
-   virtual int             RecvRaw(int sock, void *buffer, int length, int flag);
-   virtual int             SendRaw(int sock, const void *buffer, int length, int flag);
-   virtual int             RecvBuf(int sock, void *buffer, int length);
-   virtual int             SendBuf(int sock, const void *buffer, int length);
-   virtual int             SetSockOpt(int sock, int kind, int val);
-   virtual int             GetSockOpt(int sock, int kind, int *val);
 
    //---- ACLiC (Automatic Compiler of Shared Library for CINT)
    virtual void            AddIncludePath(const char *includePath);

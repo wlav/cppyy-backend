@@ -118,13 +118,6 @@ public:
    const char       *HostName();
    void              NotifyApplicationCreated();
 
-
-   //---- EventLoop --------------------------------------------
-   Bool_t            ProcessEvents();
-   void              DispatchOneEvent(Bool_t pendingOnly = kFALSE);
-   void              ExitLoop();
-   Int_t             Select(TList *active, Long_t timeout);
-
    //---- Handling of system events ----------------------------
    void              DispatchSignals(ESignals sig);
    void              AddSignalHandler(TSignalHandler *sh);
@@ -215,30 +208,11 @@ public:
 
    //---- Time & Date -------------------------------------------
    TTime             Now();
-   void              Sleep(UInt_t milliSec);
    Double_t          GetRealTime();
    Double_t          GetCPUTime();
 
    //---- RPC --------------------------------------------------
-   int               ConnectService(const char *servername, int port, int tcpwindowsize, const char *protocol = "tcp");
    TInetAddress      GetHostByName(const char *server);
-   TInetAddress      GetPeerName(int sock);
-   TInetAddress      GetSockName(int sock);
-   int               GetServiceByName(const char *service);
-   char              *GetServiceByPort(int port);
-   int               OpenConnection(const char *server, int port, int tcpwindowsize = -1, const char *protocol = "tcp");
-   int               AnnounceTcpService(int port, Bool_t reuse, int backlog, int tcpwindowsize = -1);
-   int               AnnounceUdpService(int port, int backlog);
-   int               AnnounceUnixService(int port, int backlog);
-   int               AnnounceUnixService(const char *sockpath, int backlog);
-   int               AcceptConnection(int sock);
-   void              CloseConnection(int sock, Bool_t force = kFALSE);
-   int               RecvRaw(int sock, void *buffer, int length, int flag);
-   int               SendRaw(int sock, const void *buffer, int length, int flag);
-   int               RecvBuf(int sock, void *buffer, int length);
-   int               SendBuf(int sock, const void *buffer, int length);
-   int               SetSockOpt(int sock, int opt, int val);
-   int               GetSockOpt(int sock, int opt, int *val);
 
    ClassDef(TWinNTSystem, 0)
 };

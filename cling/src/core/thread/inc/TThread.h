@@ -137,7 +137,6 @@ public:
    static Int_t     UnLock();                //User's unlock of main mutex
    static TThread  *Self();
    static Long_t    SelfId();
-   static Int_t     Sleep(ULong_t secs, ULong_t nanos = 0);
    static Int_t     GetTime(ULong_t *absSec, ULong_t *absNanoSec);
 
    static Int_t     Delete(TThread *&th);

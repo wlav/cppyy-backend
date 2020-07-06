@@ -98,13 +98,8 @@ protected:
    std::atomic<TApplication*> fApplication;  //Pointer to current application
    TInterpreter    *fInterpreter;         //Command interpreter
    Bool_t          fBatch;                //True if session without graphics
-   Bool_t          fFromPopUp;            //True if command executed from a popup menu
    Bool_t          fMustClean;            //True if object destructor scans canvases
    Bool_t          fReadingObject;        //True while reading an object [Deprecated (will be removed in next release)
-   Bool_t          fInterrupt;            //True if macro should be interrupted
-   Bool_t          fEscape;               //True if ESC has been pressed
-   Int_t           fEditorMode;           //Current Editor mode
-   const TObject   *fPrimitive;           //Currently selected primitive
    TCollection     *fClasses;             //List of classes definition
    TCollection     *fTypes;               //List of data types definition
    TListOfFunctionTemplates *fFuncTemplate; //List of global function templates
@@ -152,14 +147,12 @@ public:
    const char       *FindObjectClassName(const char *name) const;
    const char       *FindObjectPathName(const TObject *obj) const;
    TClass           *FindSTLClass(const char *name, Bool_t load, Bool_t silent = kFALSE) const;
-   Bool_t            FromPopUp() const { return fFromPopUp; }
    TApplication     *GetApplication() const { return fApplication; }
    TInterpreter     *GetInterpreter() const { return fInterpreter; }
    TClass           *GetClass(const char *name, Bool_t load = kTRUE, Bool_t silent = kFALSE) const;
    TClass           *GetClass(const std::type_info &typeinfo, Bool_t load = kTRUE, Bool_t silent = kFALSE) const;
    const char       *GetConfigOptions() const { return fConfigOptions; }
    const char       *GetConfigFeatures() const { return fConfigFeatures; }
-   Int_t             GetEditorMode() const { return fEditorMode; }
    Int_t             GetVersionDate() const { return fVersionDate; }
    Int_t             GetVersionTime() const { return fVersionTime; }
    Int_t             GetVersionInt() const { return fVersionInt; }
@@ -189,7 +182,6 @@ public:
    TGlobal          *GetGlobal(const TObject *obj, Bool_t load = kFALSE) const;
    TFunction        *GetGlobalFunction(const char *name, const char *params = 0, Bool_t load = kFALSE);
    TFunction        *GetGlobalFunctionWithPrototype(const char *name, const char *proto = 0, Bool_t load = kFALSE);
-   const TObject    *GetSelectedPrimitive() const { return fPrimitive; }
    Int_t             GetNclasses() const { return fClasses->GetSize(); }
    Int_t             GetNtypes() const { return fTypes->GetSize(); }
    TFolder          *GetRootFolder() const { return fRootFolder; }
@@ -197,8 +189,6 @@ public:
    Int_t             IgnoreInclude(const char *fname, const char *expandedfname);
    Bool_t            IsBatch() const { return fBatch; }
    Bool_t            IsFolder() const { return kTRUE; }
-   Bool_t            IsInterrupted() const { return fInterrupt; }
-   Bool_t            IsEscaped() const { return fEscape; }
    Bool_t            IsLineProcessing() const { return fLineIsProcessing ? kTRUE : kFALSE; }
    Bool_t            IsRootFile(const char *filename) const;
    void              ls(Option_t *option = "") const;
@@ -222,15 +212,10 @@ public:
    void              SaveContext();
    void              SetApplication(TApplication *app) { fApplication = app; }
    void              SetBatch(Bool_t batch = kTRUE) { fBatch = batch; }
-   void              SetEditorMode(const char *mode = "");
-   void              SetFromPopUp(Bool_t flag = kTRUE) { fFromPopUp = flag; }
-   void              SetInterrupt(Bool_t flag = kTRUE) { fInterrupt = flag; }
-   void              SetEscape(Bool_t flag = kTRUE) { fEscape = flag; }
    void              SetLineIsProcessing() { fLineIsProcessing++; }
    void              SetLineHasBeenProcessed() { if (fLineIsProcessing) fLineIsProcessing--; }
    void              SetReadingObject(Bool_t flag = kTRUE);
    void              SetMustClean(Bool_t flag = kTRUE) { fMustClean=flag; }
-   void              SetSelectedPrimitive(const TObject *obj) { fPrimitive = obj; }
    void              Time(Int_t casetime=1) { fTimer = casetime; }
    Int_t             Timer() const { return fTimer; }
 

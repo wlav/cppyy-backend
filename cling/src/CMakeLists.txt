@@ -419,7 +419,6 @@ if(NOT CMAKE_SOURCE_DIR STREQUAL CMAKE_INSTALL_PREFIX)
   install(DIRECTORY etc/ DESTINATION ${CMAKE_INSTALL_SYSCONFDIR} USE_SOURCE_PERMISSIONS
                          PATTERN "system.rootrc" EXCLUDE
                          PATTERN "system.rootauthrc" EXCLUDE
-                         PATTERN "system.rootdaemonrc" EXCLUDE
                          PATTERN "*.in" EXCLUDE)
   install(FILES
     cmake/modules/RootMacros.cmake

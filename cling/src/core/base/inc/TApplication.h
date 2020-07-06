@@ -54,11 +54,6 @@ private:
    Int_t              fArgc;            //Number of com   mand line arguments
    char             **fArgv;            //Command line arguments
    TApplicationImp   *fAppImp;          //!Window system specific application implementation
-   Bool_t             fIsRunning;       //True when in event loop (Run() has been called)
-   Bool_t             fReturnFromRun;   //When true return from Run()
-   Bool_t             fNoLog;           //Do not process logon and logoff macros
-   Bool_t             fNoLogo;          //Do not show splash screen and welcome message
-   Bool_t             fQuit;            //Exit after having processed input files
    TObjArray         *fFiles;           //Array of input files or C++ expression (TObjString's) specified via argv
    TString            fWorkDir;         //Working directory specified via argv
    TSignalHandler    *fSigHandler;      //Interrupt handler
@@ -81,42 +76,18 @@ public:
    virtual ~TApplication();
 
    TSignalHandler *GetSignalHandler() const { return fSigHandler; }
-   virtual void    SetEchoMode(Bool_t mode);
    virtual void    HandleException(Int_t sig);
    virtual Bool_t  HandleTermInput() { return kFALSE; }
    virtual void    Init() { fAppImp->Init(); }
-   virtual void    Run(Bool_t retrn = kFALSE);
    EExitOnException ExitOnException(EExitOnException opt = kExit);
 
    virtual const char *ApplicationName() const { return fAppImp->ApplicationName(); }
-   virtual void    Show()    { fAppImp->Show(); }
-   virtual void    Hide()    { fAppImp->Hide(); }
-   virtual void    Iconify() { fAppImp->Iconify(); }
-   virtual void    Open()    { fAppImp->Open(); }
-   virtual void    Raise()   { fAppImp->Raise(); }
-   virtual void    Lower()   { fAppImp->Lower(); }
-   virtual Bool_t  IsCmdThread() { return fAppImp ? fAppImp->IsCmdThread() : kTRUE; }
-   virtual TApplicationImp *GetApplicationImp() { return fAppImp;}
 
    virtual void    ls(Option_t *option="") const;
 
-   Bool_t          NoLogOpt() const { return fNoLog; }
-   Bool_t          NoLogoOpt() const { return fNoLogo; }
-   Bool_t          QuitOpt() const { return fQuit; }
    TObjArray      *InputFiles() const { return fFiles; }
    const char     *WorkingDirectory() const { return fWorkDir; }
    void            ClearInputFiles();
-
-   TApplication   *GetAppRemote() const { return fAppRemote; }
-
-   Bool_t          IsRunning() const { return fIsRunning; }
-   Bool_t          ReturnFromRun() const { return fReturnFromRun; }
-   void            SetReturnFromRun(Bool_t ret) { fReturnFromRun = ret; }
-
-   virtual void    LineProcessed(const char *line);   //*SIGNAL*
-   virtual void    Terminate(Int_t status = 0);       //*SIGNAL*
-   virtual void    KeyPressed(Int_t key);             //*SIGNAL*
-   virtual void    ReturnPressed(char *text );        //*SIGNAL*
 
    static TList   *GetApplications();
    static void     CreateApplication();

@@ -7266,14 +7266,6 @@ MethodInfo_t* TCling::CallFunc_FactoryMethod(CallFunc_t* func) const
 
 ////////////////////////////////////////////////////////////////////////////////
 
-void TCling::CallFunc_IgnoreExtraArgs(CallFunc_t* func, bool ignore) const
-{
-   TClingCallFunc* f = (TClingCallFunc*) func;
-   f->IgnoreExtraArgs(ignore);
-}
-
-////////////////////////////////////////////////////////////////////////////////
-
 void TCling::CallFunc_Init(CallFunc_t* func) const
 {
    R__LOCKGUARD(gInterpreterMutex);

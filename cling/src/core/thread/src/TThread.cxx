@@ -173,8 +173,6 @@ Int_t TJoinHelper::Join()
          // If any other error occured, there is no point in trying again
          break;
       }
-
-      gSystem->ProcessEvents();
    }
 
    fM->UnLock();
@@ -729,16 +727,6 @@ void TThread::AfterCancel(TThread *th)
 Int_t TThread::Exit(void *ret)
 {
    return fgThreadImp ? fgThreadImp->Exit(ret) : -1;
-}
-
-////////////////////////////////////////////////////////////////////////////////
-/// Static method to sleep the calling thread.
-
-Int_t TThread::Sleep(ULong_t secs, ULong_t nanos)
-{
-   UInt_t ms = UInt_t(secs * 1000) + UInt_t(nanos / 1000000);
-   if (gSystem) gSystem->Sleep(ms);
-   return 0;
 }
 
 ////////////////////////////////////////////////////////////////////////////////

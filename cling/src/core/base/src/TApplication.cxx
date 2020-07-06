@@ -71,8 +71,7 @@ static void CallEndOfProcessCleanups()
 /// Default ctor. Can be used by classes deriving from TApplication.
 
 TApplication::TApplication() :
-   fArgc(0), fArgv(0), fAppImp(0), fIsRunning(kFALSE), fReturnFromRun(kFALSE),
-   fNoLog(kFALSE), fNoLogo(kFALSE), fQuit(kFALSE),
+   fArgc(0), fArgv(0), fAppImp(0),
    fFiles(0), fSigHandler(0), fExitOnException(kDontExit),
    fAppRemote(0)
 {
@@ -83,8 +82,7 @@ TApplication::TApplication() :
 
 TApplication::TApplication(const char *appClassName, Int_t *argc, char **argv,
                            void * /*options*/, Int_t /* numOptions */) :
-   fArgc(0), fArgv(0), fAppImp(0), fIsRunning(kFALSE), fReturnFromRun(kFALSE),
-   fNoLog(kFALSE), fNoLogo(kFALSE), fQuit(kFALSE),
+   fArgc(0), fArgv(0), fAppImp(0),
    fFiles(0), fSigHandler(0), fExitOnException(kDontExit),
    fAppRemote(0)
 {
@@ -226,63 +224,6 @@ TApplication::EExitOnException TApplication::ExitOnException(TApplication::EExit
    EExitOnException old = fExitOnException;
    fExitOnException = opt;
    return old;
-}
-
-////////////////////////////////////////////////////////////////////////////////
-/// Main application eventloop. Calls system dependent eventloop via gSystem.
-
-void TApplication::Run(Bool_t retrn)
-{
-   SetReturnFromRun(retrn);
-
-   fIsRunning = kTRUE;
-
-   gSystem->Run();
-   fIsRunning = kFALSE;
-}
-
-////////////////////////////////////////////////////////////////////////////////
-/// Terminate the application by call TSystem::Exit() unless application has
-/// been told to return from Run(), by a call to SetReturnFromRun().
-
-void TApplication::Terminate(Int_t status)
-{
-   if (fReturnFromRun)
-      gSystem->ExitLoop();
-   else {
-      gSystem->Exit(status);
-   }
-}
-
-////////////////////////////////////////////////////////////////////////////////
-/// Emit signal when a line has been processed.
-
-void TApplication::LineProcessed(const char *)
-{
-}
-
-////////////////////////////////////////////////////////////////////////////////
-/// Emit signal when console keyboard key was pressed.
-
-void TApplication::KeyPressed(Int_t)
-{
-}
-
-////////////////////////////////////////////////////////////////////////////////
-/// Emit signal when return key was pressed.
-
-void TApplication::ReturnPressed(char *)
-{
-}
-
-////////////////////////////////////////////////////////////////////////////////
-/// Set console echo mode:
-///
-///  - mode = kTRUE  - echo input symbols
-///  - mode = kFALSE - noecho input symbols
-
-void TApplication::SetEchoMode(Bool_t)
-{
 }
 
 ////////////////////////////////////////////////////////////////////////////////

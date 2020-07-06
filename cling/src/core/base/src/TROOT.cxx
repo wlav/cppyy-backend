@@ -433,9 +433,8 @@ TROOT::TROOT() : TDirectory(),
      fLineIsProcessing(0), fVersion(0), fVersionInt(0), fVersionCode(0),
      fVersionDate(0), fVersionTime(0),
      fTimer(0), fApplication(0), fInterpreter(0), fBatch(kTRUE),
-     fFromPopUp(kTRUE),fMustClean(kTRUE),fReadingObject(kFALSE),
-     fInterrupt(kFALSE),fEscape(kFALSE),fEditorMode(0),
-     fPrimitive(0),fClasses(0),fTypes(0),fGlobals(0),fGlobalFunctions(0),
+     fMustClean(kTRUE),
+     fClasses(0),fTypes(0),fGlobals(0),fGlobalFunctions(0),
      fClosedObjects(0),fFiles(0),fMappedFiles(0),fFunctions(0),
      fCleanups(0),
      fMessageHandlers(0),fStreamerInfo(0),fClassGenerators(0),
@@ -465,9 +464,8 @@ TROOT::TROOT(const char *name, const char *title, VoidFuncPtr_t *initfunc)
    : TDirectory(), fLineIsProcessing(0), fVersion(0), fVersionInt(0), fVersionCode(0),
      fVersionDate(0), fVersionTime(0),
      fTimer(0), fApplication(0), fInterpreter(0), fBatch(kTRUE),
-     fFromPopUp(kTRUE),fMustClean(kTRUE),fReadingObject(kFALSE),
-     fInterrupt(kFALSE),fEscape(kFALSE),fEditorMode(0),
-     fPrimitive(0),fClasses(0),fTypes(0),fGlobals(0),fGlobalFunctions(0),
+     fMustClean(kTRUE),
+     fClasses(0),fTypes(0),fGlobals(0),fGlobalFunctions(0),
      fClosedObjects(0),fFiles(0),fMappedFiles(0),fFunctions(0),
      fCleanups(0),
      fMessageHandlers(0),fStreamerInfo(0),fClassGenerators(0),
@@ -566,13 +564,7 @@ TROOT::TROOT(const char *name, const char *title, VoidFuncPtr_t *initfunc)
    // And add TROOT's TDirectory personality
    fCleanups->Add(fList);
 
-   fFromPopUp     = kFALSE;
-   fReadingObject = kFALSE;
-   fInterrupt     = kFALSE;
-   fEscape        = kFALSE;
    fMustClean     = kTRUE;
-   fPrimitive     = 0;
-   fEditorMode    = 0;
    fLineIsProcessing = 1;   // This prevents WIN32 "Windows" thread to pick ROOT objects with mouse
    gDirectory     = this;
 
@@ -1773,16 +1765,7 @@ void TROOT::SaveContext()
       gInterpreter->SaveGlobalsContext();
 }
 
-////////////////////////////////////////////////////////////////////////////////
-/// Set editor mode
-
-void TROOT::SetEditorMode(const char *)
-{
-   fEditorMode = 0;
-}
-
 //-------- Static Member Functions ---------------------------------------------
-
 
 ////////////////////////////////////////////////////////////////////////////////
 /// Decrease the indentation level for ls().

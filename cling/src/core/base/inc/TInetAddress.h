@@ -18,9 +18,6 @@
 // TInetAddress                                                         //
 //                                                                      //
 // This class represents an Internet Protocol (IP) address.             //
-// Objects of this class can not be created directly, but only via      //
-// the TSystem GetHostByName(), GetSockName(), and GetPeerName()        //
-// members and via members of the TServerSocket and TSocket classes.    //
 //                                                                      //
 //////////////////////////////////////////////////////////////////////////
 
@@ -41,10 +38,6 @@ friend class TSystem;
 friend class TUnixSystem;
 friend class TWinNTSystem;
 friend class TUUID;
-friend class TSocket;
-friend class TUDPSocket;
-friend class TServerSocket;
-friend class TXSocket;   // special for BaBar
 
 public:
    typedef std::vector<UInt_t>  AddressList_t;

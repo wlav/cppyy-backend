@@ -39,7 +39,7 @@ TInetAddress::TInetAddress()
 
 ////////////////////////////////////////////////////////////////////////////////
 /// Create TInetAddress. Private ctor. TInetAddress objects can only
-/// be created via the friend classes TSystem, TServerSocket and TSocket.
+/// be created via the friend class TSystem.
 /// Use the IsValid() method to check the validity of a TInetAddress.
 
 TInetAddress::TInetAddress(const char *host, UInt_t addr, Int_t family, Int_t port)

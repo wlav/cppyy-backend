@@ -1615,8 +1615,6 @@ TInterpreter::CallFuncIFacePtr_t TClingCallFunc::IFacePtr()
       } else {
          fWrapper = make_wrapper();
       }
-
-      fReturnIsRecordType = decl->getReturnType().getCanonicalType()->isRecordType();
    }
    return TInterpreter::CallFuncIFacePtr_t(fWrapper);
 }

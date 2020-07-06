@@ -56,10 +56,6 @@ protected:
    static int          UnixFilestat(const char *path, FileStat_t &buf);
    static int          UnixFSstat(const char *path, Long_t *id, Long_t *bsize,
                                   Long_t *blocks, Long_t *bfree);
-   static int          UnixTcpConnect(const char *hostname, int port, int tcpwindowsize);
-   static int          UnixUdpConnect(const char *hostname, int port);
-   static int          UnixUnixConnect(int port);
-   static int          UnixUnixConnect(const char *path);
    static int          UnixTcpService(int port, Bool_t reuse, int backlog,
                                       int tcpwindowsize);
    static int          UnixUdpService(int port, int backlog);
@@ -79,10 +75,6 @@ public:
    const char       *GetError();
    const char       *HostName();
 
-   //---- EventLoop --------------------------------------------
-   void              DispatchOneEvent(Bool_t pendingOnly = kFALSE);
-   Int_t             Select(TList *active, Long_t timeout);
-
    //---- Handling of system events ----------------------------
    void              CheckChilds();
    Bool_t            CheckSignals(Bool_t sync);
@@ -101,7 +93,6 @@ public:
 
    //---- Time & Date ------------------------------------------
    TTime             Now();
-   void              Sleep(UInt_t milliSec);
 
    //---- Processes --------------------------------------------
    Int_t             Exec(const char *shellcmd);
@@ -180,24 +171,6 @@ public:
 
    //---- RPC --------------------------------------------------
    TInetAddress      GetHostByName(const char *server);
-   TInetAddress      GetPeerName(int sock);
-   TInetAddress      GetSockName(int sock);
-   int               GetServiceByName(const char *service);
-   char             *GetServiceByPort(int port);
-   int               ConnectService(const char *server, int port, int tcpwindowsize, const char *protocol = "tcp");
-   int               OpenConnection(const char *server, int port, int tcpwindowsize = -1, const char *protocol = "tcp");
-   int               AnnounceTcpService(int port, Bool_t reuse, int backlog, int tcpwindowsize = -1);
-   int               AnnounceUdpService(int port, int backlog);
-   int               AnnounceUnixService(int port, int backlog);
-   int               AnnounceUnixService(const char *sockpath, int backlog);
-   int               AcceptConnection(int sock);
-   void              CloseConnection(int sock, Bool_t force = kFALSE);
-   int               RecvRaw(int sock, void *buffer, int length, int flag);
-   int               SendRaw(int sock, const void *buffer, int length, int flag);
-   int               RecvBuf(int sock, void *buffer, int length);
-   int               SendBuf(int sock, const void *buffer, int length);
-   int               SetSockOpt(int sock, int option, int val);
-   int               GetSockOpt(int sock, int option, int *val);
 
    ClassDef(TUnixSystem,0)  //Interface to Unix OS services
 };
