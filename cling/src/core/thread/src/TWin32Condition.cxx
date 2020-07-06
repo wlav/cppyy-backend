@@ -26,7 +26,7 @@
 #include <errno.h>
 
 
-ClassImp(CppyyLegacyTWin32Condition);
+ClassImp(CppyyLegacy::TWin32Condition);
 
 namespace CppyyLegacy {
 

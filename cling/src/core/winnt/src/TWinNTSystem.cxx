@@ -32,7 +32,6 @@
 #include "TException.h"
 #include "TEnv.h"
 #include "TApplication.h"
-#include "Win32Constants.h"
 #include "TInterpreter.h"
 #include "TObjString.h"
 #include "TUrl.h"
@@ -101,6 +100,8 @@ extern "C" {
    void *_ReturnAddress(void);
 }
 
+namespace CppyyLegacy {
+
 //////////////////// Windows TFdSet ////////////////////////////////////////////////
 class TFdSet {
 private:
@@ -117,7 +118,7 @@ public:
       if (fds_bits->fd_count < FD_SETSIZE-1) // protect out of bound access (64)
          fds_bits->fd_array[fds_bits->fd_count++] = (SOCKET)fd;
       else
-         ::SysError("TFdSet::Set", "fd_count will exeed FD_SETSIZE");
+         ::CppyyLegacy::SysError("TFdSet::Set", "fd_count will exeed FD_SETSIZE");
    }
    void  Clr(Int_t fd)
    {
@@ -179,167 +180,6 @@ namespace {
    };
 
    ////// static functions providing interface to raw WinNT ////////////////////
-
-   //---- RPC -------------------------------------------------------------------
-   //*-* Error codes set by the Windows Sockets implementation are not made available
-   //*-* via the errno variable. Additionally, for the getXbyY class of functions,
-   //*-* error codes are NOT made available via the h_errno variable. Instead, error
-   //*-* codes are accessed by using the WSAGetLastError . This function is provided
-   //*-* in Windows Sockets as a precursor (and eventually an alias) for the Win32
-   //*-* function GetLastError. This is intended to provide a reliable way for a thread
-   //*-* in a multithreaded process to obtain per-thread error information.
-
-   /////////////////////////////////////////////////////////////////////////////
-   /// Receive exactly length bytes into buffer. Returns number of bytes
-   /// received. Returns -1 in case of error, -2 in case of MSG_OOB
-   /// and errno == EWOULDBLOCK, -3 in case of MSG_OOB and errno == EINVAL
-   /// and -4 in case of kNonBlock and errno == EWOULDBLOCK.
-   /// Returns -5 if pipe broken or reset by peer (EPIPE || ECONNRESET).
-
-   static int WinNTRecv(int socket, void *buffer, int length, int flag)
-   {
-      if (socket == -1) return -1;
-      SOCKET sock = socket;
-
-      int once = 0;
-      if (flag == -1) {
-         flag = 0;
-         once = 1;
-      }
-      if (flag == MSG_PEEK) {
-         once = 1;
-      }
-
-      int nrecv, n;
-      char *buf = (char *)buffer;
-
-      for (n = 0; n < length; n += nrecv) {
-         if ((nrecv = ::recv(sock, buf+n, length-n, flag)) <= 0) {
-            if (nrecv == 0) {
-               break;        // EOF
-            }
-            if (flag == MSG_OOB) {
-               if (::WSAGetLastError() == WSAEWOULDBLOCK) {
-                  return -2;
-               } else if (::WSAGetLastError() == WSAEINVAL) {
-                  return -3;
-               }
-            }
-            if (::WSAGetLastError() == WSAEWOULDBLOCK) {
-               return -4;
-            } else {
-               if (::WSAGetLastError() != WSAEINTR)
-                  ::SysError("TWinNTSystem::WinNTRecv", "recv");
-               if (::WSAGetLastError() == EPIPE ||
-                  ::WSAGetLastError() == WSAECONNRESET)
-                  return -5;
-               else
-                  return -1;
-            }
-         }
-         if (once) {
-            return nrecv;
-         }
-      }
-      return n;
-   }
-
-   /////////////////////////////////////////////////////////////////////////////
-   /// Send exactly length bytes from buffer. Returns -1 in case of error,
-   /// otherwise number of sent bytes. Returns -4 in case of kNoBlock and
-   /// errno == EWOULDBLOCK. Returns -5 if pipe broken or reset by peer
-   /// (EPIPE || ECONNRESET).
-
-   static int WinNTSend(int socket, const void *buffer, int length, int flag)
-   {
-      if (socket < 0) return -1;
-      SOCKET sock = socket;
-
-      int once = 0;
-      if (flag == -1) {
-         flag = 0;
-         once = 1;
-      }
-
-      int nsent, n;
-      const char *buf = (const char *)buffer;
-
-      for (n = 0; n < length; n += nsent) {
-         if ((nsent = ::send(sock, buf+n, length-n, flag)) <= 0) {
-            if (nsent == 0) {
-               break;
-            }
-            if (::WSAGetLastError() == WSAEWOULDBLOCK) {
-               return -4;
-            } else {
-               if (::WSAGetLastError() != WSAEINTR)
-                  ::SysError("TWinNTSystem::WinNTSend", "send");
-               if (::WSAGetLastError() == EPIPE ||
-                  ::WSAGetLastError() == WSAECONNRESET)
-                  return -5;
-               else
-                  return -1;
-            }
-         }
-         if (once) {
-            return nsent;
-         }
-      }
-      return n;
-   }
-
-   /////////////////////////////////////////////////////////////////////////////
-   /// Wait for events on the file descriptors specified in the readready and
-   /// writeready masks or for timeout (in milliseconds) to occur.
-
-   static int WinNTSelect(TFdSet *readready, TFdSet *writeready, Long_t timeout)
-   {
-      int retcode;
-      fd_set* rbits = readready ? (fd_set*)readready->GetBits() : 0;
-      fd_set* wbits = writeready ? (fd_set*)writeready->GetBits() : 0;
-
-      if (timeout >= 0) {
-         timeval tv;
-         tv.tv_sec  = timeout / 1000;
-         tv.tv_usec = (timeout % 1000) * 1000;
-
-         retcode = ::select(0, rbits, wbits, 0, &tv);
-      } else {
-         retcode = ::select(0, rbits, wbits, 0, 0);
-      }
-
-      if (retcode == SOCKET_ERROR) {
-         int errcode = ::WSAGetLastError();
-
-         // if file descriptor is not a socket, assume it is the pipe used
-         // by TXSocket
-         if (errcode == WSAENOTSOCK) {
-            struct __stat64 buf;
-            int result = _fstat64( readready->GetFd(0), &buf );
-            if ( result == 0 ) {
-               if (buf.st_size > 0)
-                  return 1;
-            }
-            // yield execution to another thread that is ready to run
-            // if no other thread is ready, sleep 1 ms before to return
-            if (gGlobalEvent) {
-               ::WaitForSingleObject(gGlobalEvent, 1);
-               ::ResetEvent(gGlobalEvent);
-            }
-            return 0;
-         }
-
-         if ( errcode == WSAEINTR) {
-            TSystem::ResetErrno();  // errno is not self reseting
-            return -2;
-         }
-         if (errcode == EBADF) {
-            return -3;
-         }
-         return -1;
-      }
-      return retcode;
-   }
 
    /////////////////////////////////////////////////////////////////////////////
    /// Get shared library search path.
@@ -716,33 +556,12 @@ namespace {
 
 } // end unnamed namespace
 
+} // namespace CppyyLegacy
 
 ///////////////////////////////////////////////////////////////////////////////
 ClassImp(CppyyLegacy::TWinNTSystem);
 
 namespace CppyyLegacy {
-
-void* gConsoleWindow = 0;
-
-////////////////////////////////////////////////////////////////////////////////
-///
-
-Bool_t TWinNTSystem::HandleConsoleEvent()
-{
-   TSignalHandler *sh;
-   TIter next(fSignalHandler);
-   ESignals s;
-
-   while (sh = (TSignalHandler*)next()) {
-      s = sh->GetSignal();
-      if (s == kSigInterrupt) {
-         sh->Notify();
-         Throw(SIGINT);
-         return kTRUE;
-      }
-   }
-   return kFALSE;
-}
 
 ////////////////////////////////////////////////////////////////////////////////
 /// ctor
@@ -1311,7 +1130,7 @@ void TWinNTSystem::DispatchSignals(ESignals sig)
          //high order bit to indicate a signal (?)
          StackTrace();
          if (TROOT::Initialized()) {
-             ::Throw(sig);
+             ::CppyyLegacy::Throw(sig);
          }
       }
       Abort(-1);
@@ -1769,7 +1588,7 @@ FILE *TWinNTSystem::TempFileName(TString &base, const char *dir)
    base = tmpName;
    FILE *fp = fopen(tmpName, "w+");
 
-   if (!fp) ::SysError("TempFileName", "error opening %s", tmpName);
+   if (!fp) ::CppyyLegacy::SysError("TempFileName", "error opening %s", tmpName);
 
    return fp;
 }
@@ -2385,7 +2204,7 @@ int TWinNTSystem::Unlink(const char *name)
 int TWinNTSystem::SetNonBlock(int fd)
 {
    if (::ioctlsocket(fd, FIONBIO, (u_long *)1) == SOCKET_ERROR) {
-      ::SysError("SetNonBlock", "ioctlsocket");
+      ::CppyyLegacy::SysError("SetNonBlock", "ioctlsocket");
       return -1;
    }
    return 0;
@@ -3360,14 +3179,6 @@ int TWinNTSystem::GetPid()
 }
 
 ////////////////////////////////////////////////////////////////////////////////
-/// Get current process handle
-
-HANDLE TWinNTSystem::GetProcess()
-{
-  return fhProcess;
-}
-
-////////////////////////////////////////////////////////////////////////////////
 /// Exit the application.
 
 void TWinNTSystem::Exit(int code, Bool_t mode)
@@ -3891,7 +3702,7 @@ TTime TWinNTSystem::Now()
 
       jan95 = mktime(&tp);
       if ((int)jan95 == -1) {
-         ::SysError("TWinNTSystem::Now", "error converting 950001 0:00 to time_t");
+         ::CppyyLegacy::SysError("TWinNTSystem::Now", "error converting 950001 0:00 to time_t");
          return 0;
       }
    }
@@ -3900,15 +3711,6 @@ TTime TWinNTSystem::Now()
    _ftime(&now);
    return TTime((now.time-(Long_t)jan95)*1000 + now.millitm);
 }
-
-////////////////////////////////////////////////////////////////////////////////
-/// Select on file descriptors. The timeout to is in millisec.
-
-Int_t TWinNTSystem::Select(TList *act, Long_t to)
-{
-   return -1;
-}
-
 
 ////////////////////////////////////////////////////////////////////////////////
 /// Get Internet Protocol (IP) address of host.

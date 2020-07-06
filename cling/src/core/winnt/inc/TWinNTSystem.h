@@ -23,7 +23,6 @@
 
 #include "TSystem.h"
 
-
 #if !defined(__CINT__)
  #include "Windows4Root.h"
  #include <commctrl.h>
@@ -63,6 +62,8 @@ struct group {
    char   **gr_mem;     // group members
 };
 
+
+namespace CppyyLegacy {
 
 class TWinNTSystem : public TSystem {
 public:
@@ -105,10 +106,6 @@ protected:
 public:
    TWinNTSystem();
    virtual ~TWinNTSystem();
-
-   //---- non-TSystem methods ----------------------------------
-   HANDLE            GetProcess();
-   Bool_t            HandleConsoleEvent();
 
    //---- Misc -------------------------------------------------
    Bool_t            Init();
@@ -217,6 +214,6 @@ public:
    ClassDef(TWinNTSystem, 0)
 };
 
-R__EXTERN void* gConsoleWindow;   // console window handle
+} // namespace CppyyLegacy
 
 #endif

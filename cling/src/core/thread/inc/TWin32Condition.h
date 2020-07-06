@@ -75,4 +75,5 @@ public:
 };
 
 } // namespace CppyyLegacy
+
 #endif

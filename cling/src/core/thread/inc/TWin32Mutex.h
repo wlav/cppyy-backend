@@ -51,4 +51,5 @@ public:
 };
 
 } // namespace CppyyLegacy
+
 #endif
