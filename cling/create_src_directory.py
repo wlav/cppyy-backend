@@ -52,7 +52,7 @@ def get_root_version(try_recover=True):
     #
     parts = version.split('.', 3)
     major, minor, patch = map(int, parts[:3])
-    root_version = '%d.%02d.%02d' % (major, minor, patch)
+    root_version = '%d.%02d.%02d' % (major, minor//2*2, patch)
     return root_version
 
 
