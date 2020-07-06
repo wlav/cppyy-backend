@@ -76,8 +76,6 @@ private:
    size_t fMinRequiredArguments = -1;
    /// Pointer to compiled wrapper, we do *not* own.
    tcling_callfunc_Wrapper_t fWrapper;
-   /// Stored function arguments, we own.
-   mutable llvm::SmallVector<cling::Value, 8> fArgVals;
    /// If true, do not limit number of function arguments to declared number.
    bool fIgnoreExtraArgs : 1;
    bool fReturnIsRecordType : 1;
@@ -88,8 +86,6 @@ private:
       kLValueReference,
       kRValueReference
    };
-
-   using ExecWithRetFunc_t =  std::function<void(void* address, cling::Value &ret)>;
 
    void* compile_wrapper(const std::string& wrapper_name,
                          const std::string& wrapper,
@@ -123,24 +119,6 @@ private:
    tcling_callfunc_dtor_Wrapper_t
    make_dtor_wrapper(const TClingClassInfo* info);
 
-   // Implemented in source file.
-   template <typename T>
-   void execWithLL(void* address, cling::Value* val);
-   template <typename T>
-   void execWithULL(void* address, cling::Value* val);
-   template <class T>
-   ExecWithRetFunc_t InitRetAndExecIntegral(clang::QualType QT, cling::Value &ret);
-
-   ExecWithRetFunc_t InitRetAndExecBuiltin(clang::QualType QT, const clang::BuiltinType *BT, cling::Value &ret);
-   ExecWithRetFunc_t InitRetAndExecNoCtor(clang::QualType QT, cling::Value &ret);
-   ExecWithRetFunc_t InitRetAndExec(const clang::FunctionDecl *FD, cling::Value &ret);
-
-   void exec(void* address, void* ret);
-
-   void exec_with_valref_return(void* address,
-                                cling::Value* ret);
-   void EvaluateArgList(const std::string& ArgList);
-
    size_t CalculateMinRequiredArguments();
 
    size_t GetMinRequiredArguments() {
@@ -152,7 +130,6 @@ private:
    // Implemented in source file.
    template <typename T>
    T ExecT(void* address);
-
 
 public:
 
@@ -173,7 +150,7 @@ public:
    }
 
    TClingCallFunc(const TClingCallFunc &rhs)
-      : fInterp(rhs.fInterp), fNormCtxt(rhs.fNormCtxt), fWrapper(rhs.fWrapper), fArgVals(rhs.fArgVals),
+      : fInterp(rhs.fInterp), fNormCtxt(rhs.fNormCtxt), fWrapper(rhs.fWrapper),
         fIgnoreExtraArgs(rhs.fIgnoreExtraArgs), fReturnIsRecordType(rhs.fReturnIsRecordType)
    {
       fMethod = std::unique_ptr<TClingMethodInfo>(new TClingMethodInfo(*rhs.fMethod));
@@ -185,15 +162,6 @@ public:
                                 unsigned long nary = 0UL);
    void ExecDestructor(const TClingClassInfo* info, void* address = 0,
                        unsigned long nary = 0UL, bool withFree = true);
-   void ExecWithReturn(void* address, void* ret = 0);
-   void ExecWithArgsAndReturn(void* address,
-                              const void* args[] = 0,
-                              int nargs = 0,
-                              void* ret = 0);
-   void Exec(void* address, TInterpreterValue* interpVal = 0);
-   long ExecInt(void* address);
-   long long ExecInt64(void* address);
-   double ExecDouble(void* address);
    TClingMethodInfo* FactoryMethod() const;
    void IgnoreExtraArgs(bool ignore) { fIgnoreExtraArgs = ignore; }
    void Init();
@@ -216,34 +184,11 @@ public:
          return fDecl;
       return fMethod->GetMethodDecl();
    }
-   void ResetArg();
-   void SetArg(long arg);
-   void SetArg(unsigned long arg);
-   void SetArg(float arg);
-   void SetArg(double arg);
-   void SetArg(long long arg);
-   void SetArg(unsigned long long arg);
-   void SetArgArray(long* argArr, int narg);
-   void SetArgs(const char* args);
    void SetFunc(const TClingClassInfo* info, const char* method,
                 const char* arglist, intptr_t* poffset);
    void SetFunc(const TClingClassInfo* info, const char* method,
                 const char* arglist, bool objectIsConst, intptr_t* poffset);
    void SetFunc(const TClingMethodInfo* info);
-   void SetFuncProto(const TClingClassInfo* info, const char* method,
-                     const char* proto, intptr_t* poffset,
-                     CppyyLegacy::EFunctionMatchMode mode = CppyyLegacy::kConversionMatch);
-   void SetFuncProto(const TClingClassInfo* info, const char* method,
-                     const char* proto, bool objectIsConst, intptr_t* poffset,
-                     CppyyLegacy::EFunctionMatchMode mode = CppyyLegacy::kConversionMatch);
-   void SetFuncProto(const TClingClassInfo* info, const char* method,
-                     const llvm::SmallVectorImpl<clang::QualType>& proto,
-                     intptr_t* poffset,
-                     CppyyLegacy::EFunctionMatchMode mode = CppyyLegacy::kConversionMatch);
-   void SetFuncProto(const TClingClassInfo* info, const char* method,
-                     const llvm::SmallVectorImpl<clang::QualType>& proto,
-                     bool objectIsConst, intptr_t* poffset,
-                     CppyyLegacy::EFunctionMatchMode mode = CppyyLegacy::kConversionMatch);
 };
 
 } // namespace CppyyLegacy

@@ -226,7 +226,6 @@ public:
    Int_t               GetSize()    const;
    Int_t               GetSizeElements()    const;
    TStreamerElement   *GetStreamerElement(const char*datamember, Int_t& offset) const;
-   TStreamerElement   *GetStreamerElementReal(Int_t i, Int_t j) const;
    Int_t               GetType(Int_t id)   const {return fComp[id].fType;}
    template <typename T> T GetTypedValue(char *pointer, Int_t i, Int_t j, Int_t len) const;
    template <typename T> T GetTypedValueClones(TClonesArray *clones, Int_t i, Int_t j, Int_t k, Int_t eoffset) const;

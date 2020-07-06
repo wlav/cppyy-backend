@@ -43,9 +43,6 @@
 
 #pragma link C++ enum CppyyLegacy::EObjBits;
 #pragma link C++ enum CppyyLegacy::EEnvLevel;
-#pragma link C++ enum CppyyLegacy::EColor;
-#pragma link C++ enum CppyyLegacy::ELineStyle;
-#pragma link C++ enum CppyyLegacy::EMarkerStyle;
 
 #pragma link C++ global CppyyLegacy::gEnv;
 #pragma link C++ global gSystem;

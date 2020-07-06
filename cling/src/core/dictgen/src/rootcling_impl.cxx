@@ -612,10 +612,6 @@ void ParseRootMapFile(ifstream &file, map<string, string> &autoloads)
 
       CheckClassNameForRootMap(classname, autoloads);
 
-      if (classname == "CppyyLegacy::TImpProxy") {
-         // Do not register the CppyyLegacy::TImpProxy so that they can be instantiated.
-         continue;
-      }
       autoloads[classname] = line;
    }
 

@@ -324,25 +324,6 @@ void TStorage::SetReAllocHooks(ReAllocFun_t rh1, ReAllocCFun_t rh2)
    fgReAllocCHook = rh2;
 }
 
-
-////////////////////////////////////////////////////////////////////////////////
-
-ULong_t TStorage::GetHeapBegin()
-{
-   ::CppyyLegacy::Obsolete("GetHeapBegin()", "v5-34-00", "v6-02-00");
-   //return begin of heap
-   return 0;
-}
-
-////////////////////////////////////////////////////////////////////////////////
-
-ULong_t TStorage::GetHeapEnd()
-{
-   ::CppyyLegacy::Obsolete("GetHeapBegin()", "v5-34-00", "v6-02-00");
-   //return end of heap
-   return 0;
-}
-
 ////////////////////////////////////////////////////////////////////////////////
 ///return static free hook data
 
@@ -365,24 +346,6 @@ Bool_t TStorage::HasCustomNewDelete()
 void TStorage::SetCustomNewDelete()
 {
    fgHasCustomNewDelete = kTRUE;
-}
-
-
-////////////////////////////////////////////////////////////////////////////////
-///add a range to the heap
-
-void TStorage::AddToHeap(ULong_t, ULong_t)
-{
-   ::CppyyLegacy::Obsolete("AddToHeap(ULong_t,ULong_t)", "v5-34-00", "v6-02-00");
-}
-
-////////////////////////////////////////////////////////////////////////////////
-///is object at p in the heap?
-
-Bool_t TStorage::IsOnHeap(void *)
-{
-   ::CppyyLegacy::Obsolete("IsOnHeap(void*)", "v5-34-00", "v6-02-00");
-   return false;
 }
 
 } // namespace CppyyLegacy

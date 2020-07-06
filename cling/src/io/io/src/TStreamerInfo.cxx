@@ -3613,14 +3613,6 @@ TStreamerElement* TStreamerInfo::GetStreamerElement(const char* datamember, Int_
 }
 
 ////////////////////////////////////////////////////////////////////////////////
-/// <b>Obsolete</b>: this routine is obsolete and should not longer be used.
-
-TStreamerElement* TStreamerInfo::GetStreamerElementReal(Int_t, Int_t) const
-{
-   return nullptr;
-}
-
-////////////////////////////////////////////////////////////////////////////////
 /// Get the value from inside a collection.
 
 template <typename T>

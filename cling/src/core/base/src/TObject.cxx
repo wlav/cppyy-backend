@@ -201,39 +201,6 @@ void TObject::Dump() const
 }
 
 ////////////////////////////////////////////////////////////////////////////////
-/// Execute method on this object with the given parameter string, e.g.
-/// "3.14,1,\"text\"".
-
-void TObject::Execute(const char *method, const char *params, Int_t *error)
-{
-   if (!IsA()) return;
-   gInterpreter->Execute(this, IsA(), method, params, error);
-}
-
-////////////////////////////////////////////////////////////////////////////////
-/// Execute method on this object with parameters stored in the TObjArray.
-/// The TObjArray should contain an argv vector like:
-/// ~~~ {.cpp}
-///  argv[0] ... argv[n] = the list of TObjString parameters
-/// ~~~
-
-void TObject::Execute(TMethod *method, TObjArray *params, Int_t *error)
-{
-   if (!IsA()) return;
-   gInterpreter->Execute(this, IsA(), method, params, error);
-}
-
-
-////////////////////////////////////////////////////////////////////////////////
-/// Execute action corresponding to an event at (px,py). This method
-/// must be overridden if an object can react to graphics events.
-
-void TObject::ExecuteEvent(Int_t, Int_t, Int_t)
-{
-   // AbstractMethod("ExecuteEvent");
-}
-
-////////////////////////////////////////////////////////////////////////////////
 /// Must be redefined in derived classes.
 /// This function is typically used with TCollections, but can also be used
 /// to find an object by name inside this object.

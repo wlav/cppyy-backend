@@ -102,9 +102,6 @@ public:
    virtual void        Delete(Option_t *option=""); // *MENU*
    virtual Int_t       DistancetoPrimitive(Int_t px, Int_t py);
    virtual void        Dump() const; // *MENU*
-   virtual void        Execute(const char *method,  const char *params, Int_t *error=0);
-   virtual void        Execute(TMethod *method, TObjArray *params, Int_t *error=0);
-   virtual void        ExecuteEvent(Int_t event, Int_t px, Int_t py);
    virtual TObject    *FindObject(const char *name) const;
    virtual TObject    *FindObject(const TObject *obj) const;
    virtual UInt_t      GetUniqueID() const;

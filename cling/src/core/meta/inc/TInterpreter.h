@@ -59,7 +59,6 @@ struct InterpreterMutexRegistrationRAII {
 class TInterpreter : public TNamed {
 
 protected:
-   virtual void Execute(TMethod *method, TObjArray *params, int *error = 0) = 0;
    virtual Bool_t SetSuspendAutoParsing(Bool_t value) = 0;
 
    friend class SuspendAutoParsing;
@@ -233,10 +232,6 @@ public:
    virtual void     GetInterpreterTypeName(const char *name, std::string &output, Bool_t full = kFALSE) = 0;
    virtual void    *GetInterfaceMethod(TClass *cl, const char *method, const char *params, Bool_t objectIsConst = kFALSE) = 0;
    virtual void    *GetInterfaceMethodWithPrototype(TClass *cl, const char *method, const char *proto, Bool_t objectIsConst = kFALSE, CppyyLegacy::EFunctionMatchMode /* mode */ = CppyyLegacy::kConversionMatch) = 0;
-   virtual void     Execute(const char *function, const char *params, int *error = 0) = 0;
-   virtual void     Execute(TObject *obj, TClass *cl, const char *method, const char *params, int *error = 0) = 0;
-   virtual void     Execute(TObject *obj, TClass *cl, TMethod *method, TObjArray *params, int *error = 0) = 0;
-   virtual void     ExecuteWithArgsAndReturn(TMethod *method, void* address, const void* args[] = 0, int /*nargs*/ = 0, void* ret= 0) const = 0;
    virtual Bool_t   IsErrorMessagesEnabled() const = 0;
    virtual Bool_t   SetErrorMessages(Bool_t enable = kTRUE) = 0;
    virtual Bool_t   IsProcessLineLocked() const = 0;
@@ -310,13 +305,6 @@ public:
 
    // CallFunc interface
    virtual void   CallFunc_Delete(CallFunc_t * /* func */) const {;}
-   virtual void   CallFunc_Exec(CallFunc_t * /* func */, void * /* address */) const {;}
-   virtual void   CallFunc_Exec(CallFunc_t * /* func */, void * /* address */, TInterpreterValue& /* val */) const {;}
-   virtual void   CallFunc_ExecWithReturn(CallFunc_t * /* func */, void * /* address */, void * /* ret */) const {;}
-   virtual void   CallFunc_ExecWithArgsAndReturn(CallFunc_t * /* func */, void * /* address */, const void* /* args */ [] = 0, int /*nargs*/ = 0, void * /* ret */ = 0) const {}
-   virtual Long_t    CallFunc_ExecInt(CallFunc_t * /* func */, void * /* address */) const {return 0;}
-   virtual Long64_t  CallFunc_ExecInt64(CallFunc_t * /* func */, void * /* address */) const {return 0;}
-   virtual Double_t  CallFunc_ExecDouble(CallFunc_t * /* func */, void * /* address */) const {return 0;}
    virtual CallFunc_t   *CallFunc_Factory() const {return 0;}
    virtual CallFunc_t   *CallFunc_FactoryCopy(CallFunc_t * /* func */) const {return 0;}
    virtual MethodInfo_t *CallFunc_FactoryMethod(CallFunc_t * /* func */) const {return 0;}
@@ -324,72 +312,8 @@ public:
    virtual void   CallFunc_Init(CallFunc_t * /* func */) const {;}
    virtual Bool_t CallFunc_IsValid(CallFunc_t * /* func */) const {return 0;}
    virtual CallFuncIFacePtr_t CallFunc_IFacePtr(CallFunc_t * /* func */) const {return CallFuncIFacePtr_t();}
-   virtual void   CallFunc_ResetArg(CallFunc_t * /* func */) const {;}
-   virtual void   CallFunc_SetArgArray(CallFunc_t * /* func */, Long_t * /* paramArr */, Int_t /* nparam */) const {;}
-   virtual void   CallFunc_SetArgs(CallFunc_t * /* func */, const char * /* param */) const {;}
 
-   virtual void   CallFunc_SetArg(CallFunc_t * /*func */, Long_t /* param */) const = 0;
-   virtual void   CallFunc_SetArg(CallFunc_t * /*func */, ULong_t /* param */) const = 0;
-   virtual void   CallFunc_SetArg(CallFunc_t * /* func */, Float_t /* param */) const = 0;
-   virtual void   CallFunc_SetArg(CallFunc_t * /* func */, Double_t /* param */) const = 0;
-   virtual void   CallFunc_SetArg(CallFunc_t * /* func */, Long64_t /* param */) const = 0;
-   virtual void   CallFunc_SetArg(CallFunc_t * /* func */, ULong64_t /* param */) const = 0;
-
-   void CallFunc_SetArg(CallFunc_t * func, Char_t param) const { CallFunc_SetArg(func,(Long_t)param); }
-   void CallFunc_SetArg(CallFunc_t * func, Short_t param) const { CallFunc_SetArg(func,(Long_t)param); }
-   void CallFunc_SetArg(CallFunc_t * func, Int_t param) const { CallFunc_SetArg(func,(Long_t)param); }
-
-   void CallFunc_SetArg(CallFunc_t * func, UChar_t param) const { CallFunc_SetArg(func,(ULong_t)param); }
-   void CallFunc_SetArg(CallFunc_t * func, UShort_t param) const { CallFunc_SetArg(func,(ULong_t)param); }
-   void CallFunc_SetArg(CallFunc_t * func, UInt_t param) const { CallFunc_SetArg(func,(ULong_t)param); }
-
-   template <typename T>
-   void CallFunc_SetArgRef(CallFunc_t * func, T &param) const { CallFunc_SetArg(func,(ULong_t)&param); }
-
-   void CallFunc_SetArg(CallFunc_t *func, void *arg)
-   {
-      CallFunc_SetArg(func,(intptr_t) arg);
-   }
-
-   template <typename T>
-   void CallFunc_SetArg(CallFunc_t *func, const T *arg)
-   {
-      CallFunc_SetArg(func,(intptr_t) arg);
-   }
-
-   void CallFunc_SetArgImpl(CallFunc_t * /* func */)
-   {
-   }
-
-   template <typename U>
-   void CallFunc_SetArgImpl(CallFunc_t *func, const U& head)
-   {
-      CallFunc_SetArg(func, head);
-   }
-
-   template <typename U, typename... T>
-   void CallFunc_SetArgImpl(CallFunc_t *func, const U& head, const T&... tail)
-   {
-      CallFunc_SetArg(func, head);
-      CallFunc_SetArgImpl(func, tail...);
-   }
-
-   template <typename... T>
-   void CallFunc_SetArguments(CallFunc_t *func, const T&... args)
-   {
-      R__LOCKGUARD(gInterpreterMutex);
-
-      CallFunc_ResetArg(func);
-      CallFunc_SetArgImpl(func,args...);
-   }
-
-   virtual void   CallFunc_SetFunc(CallFunc_t * /* func */, ClassInfo_t * /* info */, const char * /* method */, const char * /* params */, bool /* objectIsConst */, intptr_t * /* Offset */) const {;}
-   virtual void   CallFunc_SetFunc(CallFunc_t * /* func */, ClassInfo_t * /* info */, const char * /* method */, const char * /* params */, intptr_t * /* Offset */) const {;}
    virtual void   CallFunc_SetFunc(CallFunc_t * /* func */, MethodInfo_t * /* info */) const {;}
-   virtual void   CallFunc_SetFuncProto(CallFunc_t * /* func */, ClassInfo_t * /* info */, const char * /* method */, const char * /* proto */, intptr_t * /* Offset */, CppyyLegacy::EFunctionMatchMode /* mode */ = CppyyLegacy::kConversionMatch) const {;}
-   virtual void   CallFunc_SetFuncProto(CallFunc_t * /* func */, ClassInfo_t * /* info */, const char * /* method */, const char * /* proto */, bool /* objectIsConst */, intptr_t * /* Offset */, CppyyLegacy::EFunctionMatchMode /* mode */ = CppyyLegacy::kConversionMatch) const {;}
-   virtual void   CallFunc_SetFuncProto(CallFunc_t* func, ClassInfo_t* info, const char* method, const std::vector<TypeInfo_t*> &proto, intptr_t* Offset, CppyyLegacy::EFunctionMatchMode mode = CppyyLegacy::kConversionMatch) const = 0;
-   virtual void   CallFunc_SetFuncProto(CallFunc_t* func, ClassInfo_t* info, const char* method, const std::vector<TypeInfo_t*> &proto, bool objectIsConst, intptr_t* Offset, CppyyLegacy::EFunctionMatchMode mode = CppyyLegacy::kConversionMatch) const = 0;
 
    virtual std::string CallFunc_GetWrapperCode(CallFunc_t *func) const = 0;
 

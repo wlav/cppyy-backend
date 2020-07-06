@@ -1490,58 +1490,6 @@ TString operator+(char c, const TString &s)
 // Static Member Functions
 // The static data members access
 
-////////////////////////////////////////////////////////////////////////////////
-
-Ssiz_t  TString::GetInitialCapacity()
-{
-   ::CppyyLegacy::Obsolete("TString::GetInitialCapacity", "v5-30-00", "v5-32-00");
-   return 15;
-}
-
-////////////////////////////////////////////////////////////////////////////////
-
-Ssiz_t  TString::GetResizeIncrement()
-{
-   ::CppyyLegacy::Obsolete("TString::GetResizeIncrement", "v5-30-00", "v5-32-00");
-   return 16;
-}
-
-////////////////////////////////////////////////////////////////////////////////
-
-Ssiz_t  TString::GetMaxWaste()
-{
-   ::CppyyLegacy::Obsolete("TString::GetMaxWaste", "v5-30-00", "v5-32-00");
-   return 15;
-}
-
-////////////////////////////////////////////////////////////////////////////////
-/// Set default initial capacity for all TStrings. Default is 15.
-
-Ssiz_t TString::InitialCapacity(Ssiz_t)
-{
-   ::CppyyLegacy::Obsolete("TString::InitialCapacity", "v5-30-00", "v5-32-00");
-   return 15;
-}
-
-////////////////////////////////////////////////////////////////////////////////
-/// Set default resize increment for all TStrings. Default is 16.
-
-Ssiz_t TString::ResizeIncrement(Ssiz_t)
-{
-   ::CppyyLegacy::Obsolete("TString::ResizeIncrement", "v5-30-00", "v5-32-00");
-   return 16;
-}
-
-////////////////////////////////////////////////////////////////////////////////
-/// Set maximum space that may be wasted in a string before doing a resize.
-/// Default is 15.
-
-Ssiz_t TString::MaxWaste(Ssiz_t)
-{
-   ::CppyyLegacy::Obsolete("TString::MaxWaste", "v5-30-00", "v5-32-00");
-   return 15;
-}
-
 /** \class TSubString
 A zero length substring is legal. It can start
 at any character. It is considered to be "pointing"

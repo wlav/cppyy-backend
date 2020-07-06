@@ -307,11 +307,6 @@ public: // Public Interface
    virtual std::vector<std::string> GetUsingNamespaces(ClassInfo_t *cl) const;
 
    void    GetInterpreterTypeName(const char* name, std::string &output, Bool_t full = kFALSE);
-   void    Execute(const char* function, const char* params, int* error = 0);
-   void    Execute(TObject* obj, TClass* cl, const char* method, const char* params, int* error = 0);
-   void    Execute(TObject* obj, TClass* cl, const char* method, const char* params, Bool_t objectIsConst, int* error = 0);
-   void    Execute(TObject* obj, TClass* cl, TMethod* method, TObjArray* params, int* error = 0);
-   void    ExecuteWithArgsAndReturn(TMethod* method, void* address, const void* args[] = 0, int nargs = 0, void* ret= 0) const;
    void    RecursiveRemove(TObject* obj);
    Bool_t  IsErrorMessagesEnabled() const;
    Bool_t  SetErrorMessages(Bool_t enable = kTRUE);
@@ -371,13 +366,6 @@ public: // Public Interface
    // CallFunc interface
    virtual DeclId_t GetDeclId(CallFunc_t *info) const;
    virtual void   CallFunc_Delete(CallFunc_t* func) const;
-   virtual void   CallFunc_Exec(CallFunc_t* func, void* address) const;
-   virtual void   CallFunc_Exec(CallFunc_t* func, void* address, TInterpreterValue& val) const;
-   virtual void   CallFunc_ExecWithReturn(CallFunc_t* func, void* address, void* ret) const;
-   virtual void   CallFunc_ExecWithArgsAndReturn(CallFunc_t* func, void* address, const void* args[] = 0, int nargs = 0, void* ret = 0) const;
-   virtual Long_t    CallFunc_ExecInt(CallFunc_t* func, void* address) const;
-   virtual Long64_t  CallFunc_ExecInt64(CallFunc_t* func, void* address) const;
-   virtual Double_t  CallFunc_ExecDouble(CallFunc_t* func, void* address) const;
    virtual CallFunc_t*   CallFunc_Factory() const;
    virtual CallFunc_t*   CallFunc_FactoryCopy(CallFunc_t* func) const;
    virtual MethodInfo_t* CallFunc_FactoryMethod(CallFunc_t* func) const;
@@ -385,22 +373,7 @@ public: // Public Interface
    virtual void   CallFunc_Init(CallFunc_t* func) const;
    virtual bool   CallFunc_IsValid(CallFunc_t* func) const;
    virtual CallFuncIFacePtr_t CallFunc_IFacePtr(CallFunc_t * func) const;
-   virtual void   CallFunc_ResetArg(CallFunc_t* func) const;
-   virtual void   CallFunc_SetArg(CallFunc_t* func, Long_t param) const;
-   virtual void   CallFunc_SetArg(CallFunc_t* func, ULong_t param) const;
-   virtual void   CallFunc_SetArg(CallFunc_t* func, Float_t param) const;
-   virtual void   CallFunc_SetArg(CallFunc_t* func, Double_t param) const;
-   virtual void   CallFunc_SetArg(CallFunc_t* func, Long64_t param) const;
-   virtual void   CallFunc_SetArg(CallFunc_t* func, ULong64_t param) const;
-   virtual void   CallFunc_SetArgArray(CallFunc_t* func, Long_t* paramArr, Int_t nparam) const;
-   virtual void   CallFunc_SetArgs(CallFunc_t* func, const char* param) const;
-   virtual void   CallFunc_SetFunc(CallFunc_t* func, ClassInfo_t* info, const char* method, const char* params, intptr_t* Offset) const;
-   virtual void   CallFunc_SetFunc(CallFunc_t* func, ClassInfo_t* info, const char* method, const char* params, bool objectIsConst, intptr_t* Offset) const;
    virtual void   CallFunc_SetFunc(CallFunc_t* func, MethodInfo_t* info) const;
-   virtual void   CallFunc_SetFuncProto(CallFunc_t* func, ClassInfo_t* info, const char* method, const char* proto, intptr_t* Offset, CppyyLegacy::EFunctionMatchMode mode = CppyyLegacy::kConversionMatch) const;
-   virtual void   CallFunc_SetFuncProto(CallFunc_t* func, ClassInfo_t* info, const char* method, const char* proto, bool objectIsConst, intptr_t* Offset, CppyyLegacy::EFunctionMatchMode mode = CppyyLegacy::kConversionMatch) const;
-   virtual void   CallFunc_SetFuncProto(CallFunc_t* func, ClassInfo_t* info, const char* method, const std::vector<TypeInfo_t*> &proto, intptr_t* Offset, CppyyLegacy::EFunctionMatchMode mode = CppyyLegacy::kConversionMatch) const;
-   virtual void   CallFunc_SetFuncProto(CallFunc_t* func, ClassInfo_t* info, const char* method, const std::vector<TypeInfo_t*> &proto, bool objectIsConst, intptr_t* Offset, CppyyLegacy::EFunctionMatchMode mode = CppyyLegacy::kConversionMatch) const;
 
    virtual std::string CallFunc_GetWrapperCode(CallFunc_t *func) const;
 
@@ -607,10 +580,6 @@ private: // Private Utility Functions and Classes
    TCling();
    TCling(const TCling&); // NOT IMPLEMENTED
    TCling& operator=(const TCling&); // NOT IMPLEMENTED
-
-   void Execute(TMethod*, TObjArray*, int* /*error*/ = 0)
-   {
-   }
 
    void UpdateListOfLoadedSharedLibraries();
    void RegisterLoadedSharedLibrary(const char* name);

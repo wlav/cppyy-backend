@@ -426,12 +426,6 @@ public:
 
    // Static member functions
    static UInt_t  Hash(const void *txt, Int_t ntxt);    // Calculates hash index from any char string.
-   static Ssiz_t  InitialCapacity(Ssiz_t ic = 15);      // Initial allocation capacity
-   static Ssiz_t  MaxWaste(Ssiz_t mw = 15);             // Max empty space before reclaim
-   static Ssiz_t  ResizeIncrement(Ssiz_t ri = 16);      // Resizing increment
-   static Ssiz_t  GetInitialCapacity();
-   static Ssiz_t  GetResizeIncrement();
-   static Ssiz_t  GetMaxWaste();
    static TString Itoa   (    Int_t value, Int_t base);  // Converts int to string with respect to the base specified (2-36)
    static TString UItoa  (   UInt_t value, Int_t base);
    static TString LLtoa  ( Long64_t value, Int_t base);
