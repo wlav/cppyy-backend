@@ -458,6 +458,14 @@ void TClingCallFunc::make_narg_call(const std::string &return_type, const unsign
       llvm::raw_string_ostream stream(function_name);
       FD->getNameForDiagnostic(stream, FD->getASTContext().getPrintingPolicy(), /*Qualified=*/false);
    }
+#ifdef _WIN32
+// TODO: This is not a true solution, but make_unique is so far the only relevant
+// case: on Windows, make_unique is a variadic template and Cling finds the expanded
+// version which can not be used in-place, so drop the expansion here. To be fixed
+// with an update of Cling's lookup helper for templated functions.
+   if (function_name.compare(0, 12, "make_unique<") == 0)
+       function_name = function_name.substr(0, function_name.find(','))+'>';
+#endif
 
    if (optype.empty() || N == 1) {
       if (const CXXMethodDecl *MD = dyn_cast<CXXMethodDecl>(FD)) {
