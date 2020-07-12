@@ -28,7 +28,6 @@ End_Macro
 #include "TDirectoryFile.h"
 #include "TFile.h"
 #include "TBufferFile.h"
-#include "TMapFile.h"
 #include "TClassTable.h"
 #include "TInterpreter.h"
 #include "THashList.h"
@@ -211,12 +210,6 @@ void TDirectoryFile::Append(TObject *obj, Bool_t replace /* = kFALSE */)
    if (!obj || !fList) return;
 
    TDirectory::Append(obj,replace);
-
-   if (!fMother) return;
-   if (fMother->IsA() == TMapFile::Class()) {
-      TMapFile *mfile = (TMapFile*)fMother;
-      mfile->Add(obj);
-   }
 }
 
 ////////////////////////////////////////////////////////////////////////////////

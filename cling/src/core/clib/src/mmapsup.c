@@ -179,7 +179,6 @@ __mmalloc_mmap_morecore (mdp, size)
               result = (PTR) mapto;
             }
           } else {
-            /*fprintf(stderr, "mmap_morecore: try to extend mapping by %d bytes, use bigger TMapFile\n", mapbytes);*/
 #ifndef WIN32
             mapto = mmap (mdp -> top, mapbytes, PROT_READ | PROT_WRITE,
                           MAP_SHARED | MAP_FIXED, mdp -> fd, foffset);

@@ -22,7 +22,6 @@
 #pragma link C++ class CppyyLegacy::TFile-;
 #pragma link C++ class CppyyLegacy::TFree;
 #pragma link C++ class CppyyLegacy::TKey-;
-#pragma link C++ class CppyyLegacy::TMapFile;
 #pragma link C++ class CppyyLegacy::TMapRec;
 #pragma link C++ class CppyyLegacy::TMemFile;
 #pragma link C++ class CppyyLegacy::TStreamerInfo-;

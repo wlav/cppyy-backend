@@ -22,7 +22,6 @@ ROOT_LINKER_LIBRARY(RIOLegacy
   src/TGenCollectionProxy.cxx
   src/TKey.cxx
   src/TMemFile.cxx
-  src/TMapFile.cxx
   src/TStreamerInfo.cxx
   src/TStreamerInfoActions.cxx
   src/TStreamerInfoReadBuffer.cxx
@@ -52,7 +51,6 @@ ROOT_GENERATE_DICTIONARY(G__RIOLegacy
   TGenCollectionProxy.h
   TKey.h
   TMemFile.h
-  TMapFile.h
   TStreamerInfoActions.h
   TVirtualCollectionIterators.h
   TStreamerInfo.h

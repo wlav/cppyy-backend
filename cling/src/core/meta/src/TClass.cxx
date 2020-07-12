@@ -125,14 +125,6 @@ namespace {
 
    static constexpr const char kUndeterminedClassInfoName[] = "<NOT YET DETERMINED FROM fClassInfo>";
 
-   class TMmallocDescTemp {
-   private:
-      void *fSave;
-   public:
-      TMmallocDescTemp(void *value = 0) :
-         fSave(Internal::gMmallocDesc) { Internal::gMmallocDesc = value; }
-      ~TMmallocDescTemp() { Internal::gMmallocDesc = fSave; }
-   };
 }
 
 std::atomic<Int_t> TClass::fgClassCount;
@@ -860,7 +852,6 @@ TClass::TClass() :
 
    R__LOCKGUARD(gInterpreterMutex);
    {
-      TMmallocDescTemp setreset;
       fStreamerInfo = new TObjArray(1, -2);
    }
    fDeclFileLine   = -2;    // -2 for standalone TClass (checked in dtor)
@@ -899,7 +890,6 @@ TClass::TClass(const char *name, Bool_t silent) :
       ::CppyyLegacy::Fatal("TClass::TClass", "ROOT system not initialized");
 
    {
-      TMmallocDescTemp setreset;
       fStreamerInfo = new TObjArray(1, -2);
    }
    fDeclFileLine   = -2;    // -2 for standalone TClass (checked in dtor)
@@ -1720,10 +1710,6 @@ void TClass::BuildRealData(void* pointer, Bool_t isTransient)
       isTransient = kTRUE;
    }
 
-   // When called via TMapFile (e.g. Update()) make sure that the dictionary
-   // gets allocated on the heap and not in the mapped file.
-   TMmallocDescTemp setreset;
-
    // Handle emulated classes and STL containers specially.
    if (!HasInterpreterInfo() || TClassEdit::IsSTLCont(GetName(), 0) || TClassEdit::IsSTLBitset(GetName())) {
       // We are an emulated class or an STL container.
@@ -1862,10 +1848,6 @@ void TClass::CalculateStreamerOffset() const
 {
    R__LOCKGUARD(gInterpreterMutex);
    if (!fIsOffsetStreamerSet && HasInterpreterInfo()) {
-      // When called via TMapFile (e.g. Update()) make sure that the dictionary
-      // gets allocated on the heap and not in the mapped file.
-
-      TMmallocDescTemp setreset;
       fOffsetStreamer = const_cast<TClass*>(this)->GetBaseClassOffsetRecurse(TObject::Class());
       if (fStreamerType == kTObject) {
          fStreamerImpl = &TClass::StreamerTObjectInitialized;
@@ -4150,7 +4132,6 @@ TVirtualStreamerInfo* TClass::GetStreamerInfo(Int_t version /* = 0 */) const
 
    if (!sinfo) {
       // We just were not able to find a streamer info, we have to make a new one.
-      TMmallocDescTemp setreset;
       sinfo = TVirtualStreamerInfo::Factory()->NewInfo(const_cast<TClass*>(this));
       fStreamerInfo->AddAtAndExpand(sinfo, fClassVersion);
       if (gDebug > 0) {
@@ -5226,9 +5207,6 @@ TClass *CreateClass(const char *cname, Version_t id,
                           const char *dfil, const char *ifil,
                           Int_t dl, Int_t il)
 {
-   // When called via TMapFile (e.g. Update()) make sure that the dictionary
-   // gets allocated on the heap and not in the mapped file.
-   TMmallocDescTemp setreset;
    return new TClass(cname, id, info, isa, dfil, ifil, dl, il);
 }
 
@@ -5240,9 +5218,6 @@ TClass *CreateClass(const char *cname, Version_t id,
                           const char *dfil, const char *ifil,
                           Int_t dl, Int_t il)
 {
-   // When called via TMapFile (e.g. Update()) make sure that the dictionary
-   // gets allocated on the heap and not in the mapped file.
-   TMmallocDescTemp setreset;
    return new TClass(cname, id, dfil, ifil, dl, il);
 }
 
@@ -5405,10 +5380,6 @@ Long_t TClass::Property() const
 
    // Avoid asking about the class when it is still building
    if (TestBit(kLoading)) return fProperty;
-
-   // When called via TMapFile (e.g. Update()) make sure that the dictionary
-   // gets allocated on the heap and not in the mapped file.
-   TMmallocDescTemp setreset;
 
    TClass *kl = const_cast<TClass*>(this);
 

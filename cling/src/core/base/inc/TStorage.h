@@ -135,12 +135,6 @@ inline void TStorage::SetMaxBlockSize(size_t size) { fgMaxBlockSize = size; }
 
 inline FreeHookFun_t TStorage::GetFreeHook() { return fgFreeHook; }
 
-namespace Internal {
-using FreeIfTMapFile_t = bool(void*);
-R__EXTERN FreeIfTMapFile_t *gFreeIfTMapFile;
-R__EXTERN void *gMmallocDesc;
-}
-
 } // namespace CppyyLegacy
 
 #endif

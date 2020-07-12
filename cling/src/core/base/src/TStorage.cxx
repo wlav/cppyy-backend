@@ -80,11 +80,6 @@ static const char *gSpaceErr = "storage exhausted";
 
 const size_t kObjMaxSize = 10024;
 
-// Used in NewDelete.cxx; set by TMapFile.
-Internal::FreeIfTMapFile_t *Internal::gFreeIfTMapFile = nullptr;
-void *Internal::gMmallocDesc = 0; //is used and set in TMapFile
-
-
 ////////////////////////////////////////////////////////////////////////////////
 /// Allocate a block of memory, that later can be resized using
 /// TStorage::ReAlloc().
