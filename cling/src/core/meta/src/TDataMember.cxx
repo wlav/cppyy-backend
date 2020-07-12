@@ -262,7 +262,6 @@ void TDataMember::Init(bool afterReading)
             it1=new TOptionListItem(this,-9999,0,0,ptr3,ptr2);
             fOptions->Add(it1);
          }  else {
-
             char *strtolResult;
             Long_t l = std::strtol(ptr1, &strtolResult, 10);
             bool isnumber = (strtolResult != ptr1);
@@ -278,7 +277,7 @@ void TDataMember::Init(bool afterReading)
                   if (obj)
                      l = ((TEnumConstant *)obj)->GetValue();
                   else
-                     l = gInterpreter->Calc(Form("%s;", ptr1));
+                     l = (Long_t)gInterpreter->Calc(Form("%s;", ptr1));
                } else {
                   Fatal("TDataMember", "Internal error, couldn't recognize enum/global value %s.", ptr1);
                }

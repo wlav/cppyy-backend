@@ -1197,7 +1197,7 @@ static void RegisterPreIncludedHeaders(cling::Interpreter &clingInterp)
 
 TCling::TCling(const char *name, const char *title, const char* const argv[])
 : TInterpreter(name, title), fMore(0), fGlobalsListSerial(-1), fMapfile(nullptr),
-  fRootmapFiles(nullptr), fLockProcessLine(true), fNormalizedCtxt(0),
+  fRootmapFiles(nullptr), fNormalizedCtxt(0),
   fPrevLoadedDynLibInfo(0), fClingCallbacks(0), fAutoLoadCallBack(0),
   fTransactionCount(0), fHeaderParsingOnDemand(true), fIsAutoParsingSuspended(kFALSE)
 {
@@ -2301,12 +2301,7 @@ bool TCling::DiagnoseIfInterpreterException(const std::exception &e) const
 
 ////////////////////////////////////////////////////////////////////////////////
 
-#ifdef _WIN64
-Long64_t
-#else
-Long_t
-#endif
-TCling::ProcessLine(const char* line, EErrorCode* error/*=0*/)
+intptr_t TCling::ProcessLine(const char* line, EErrorCode* error/*=0*/)
 {
    // Copy the passed line, it comes from a static buffer in TApplication
    // which can be reentered through the Cling evaluation routines,
@@ -2315,13 +2310,13 @@ TCling::ProcessLine(const char* line, EErrorCode* error/*=0*/)
    //
    TString sLine(line);
 
-   if (gGlobalMutex && !gInterpreterMutex && fLockProcessLine) {
+   if (gGlobalMutex && !gInterpreterMutex) {
       gGlobalMutex->Lock();
       if (!gInterpreterMutex)
          gInterpreterMutex = gGlobalMutex->Factory(kTRUE);
       gGlobalMutex->UnLock();
    }
-   R__LOCKGUARD_CLING(fLockProcessLine ? gInterpreterMutex : 0);
+   R__LOCKGUARD_CLING(gInterpreterMutex);
    gROOT->SetLineIsProcessing();
 
    struct InterpreterFlagsRAII {
@@ -2442,7 +2437,7 @@ TCling::ProcessLine(const char* line, EErrorCode* error/*=0*/)
        && result.isValid()
        && !result.isVoid())
    {
-      return result.simplisticCastAs<long>();
+      return result.simplisticCastAs<intptr_t>();
    }
    return 0;
 }
@@ -3275,29 +3270,10 @@ Int_t TCling::Load(const char* filename, Bool_t system)
 }
 
 ////////////////////////////////////////////////////////////////////////////////
-/// Let cling process a command line asynch.
-
-#ifdef _WIN64
-Long64_t
-#else
-Long_t
-#endif
-TCling::ProcessLineAsynch(const char* line, EErrorCode* error)
-{
-   return ProcessLine(line, error);
-}
-
-
-////////////////////////////////////////////////////////////////////////////////
 /// Directly execute an executable statement (e.g. "func()", "3+5", etc.
 /// however not declarations, like "Int_t x;").
 
-#ifdef _WIN64
-Long64_t
-#else
-Long_t
-#endif
-TCling::Calc(const char* line, EErrorCode* error)
+intptr_t TCling::Calc(const char* line, EErrorCode* error)
 {
    R__LOCKGUARD_CLING(gInterpreterMutex);
    if (error) {
@@ -3327,11 +3303,7 @@ TCling::Calc(const char* line, EErrorCode* error)
    }
 
    RegisterTemporary(valRef);
-#ifdef _WIN64
-   return valRef.simplisticCastAs<uint64_t>();
-#else
-   return valRef.simplisticCastAs<long>();
-#endif
+   return valRef.simplisticCastAs<intptr_t>();
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -6881,12 +6853,6 @@ const char* TCling::GetSTLIncludePath() const
 //                      M I S C
 //______________________________________________________________________________
 
-int TCling::DisplayClass(FILE* /*fout*/, const char* /*name*/, int /*base*/, int /*start*/) const
-{
-   // Interface to cling function
-   return 0;
-}
-
 ////////////////////////////////////////////////////////////////////////////////
 /// Interface to cling function
 
@@ -7071,26 +7037,6 @@ Bool_t TCling::SetSuspendAutoParsing(Bool_t value) {
    return old;
 }
 
-////////////////////////////////////////////////////////////////////////////////
-/// Set a callback to receive error messages.
-
-void TCling::SetErrmsgcallback(void* p) const
-{
-#if defined(R__MUST_REVISIT)
-#if R__MUST_REVISIT(6,2)
-   Warning("SetErrmsgcallback", "Interface not available yet.");
-#endif
-#endif
-}
-
-
-////////////////////////////////////////////////////////////////////////////////
-/// Create / close a scope for temporaries. No-op for cling; use
-/// cling::Value instead.
-
-void TCling::SetTempLevel(int val) const
-{
-}
 
 ////////////////////////////////////////////////////////////////////////////////
 

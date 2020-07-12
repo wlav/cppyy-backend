@@ -128,7 +128,6 @@ private: // Data Members
    std::hash<std::string> fStringHashFunction; // A simple hashing function
    std::unordered_set<const clang::NamespaceDecl*> fNSFromRootmaps;   // Collection of namespaces fwd declared in the rootmaps
    TObjArray*      fRootmapFiles;     // Loaded rootmap files.
-   Bool_t          fLockProcessLine;  // True if ProcessLine should lock gInterpreterMutex.
    Bool_t          fCxxModulesEnabled;// True if C++ modules was enabled
 
    std::unique_ptr<cling::Interpreter>   fInterpreter;   // The interpreter.
@@ -230,13 +229,7 @@ public: // Public Interface
    Int_t   ReloadAllSharedLibraryMaps();
    Int_t   UnloadAllSharedLibraryMaps();
    Int_t   UnloadLibraryMap(const char* library);
-#ifdef _WIN64
-   Long64_t  ProcessLine(const char* line, EErrorCode* error = 0);
-   Long64_t  ProcessLineAsynch(const char* line, EErrorCode* error = 0);
-#else
-   Long_t  ProcessLine(const char* line, EErrorCode* error = 0);
-   Long_t  ProcessLineAsynch(const char* line, EErrorCode* error = 0);
-#endif
+   intptr_t ProcessLine(const char* line, EErrorCode* error = 0);
    void    PrintIntro();
    bool    RegisterPrebuiltModulePath(const std::string& FullPath,
                                       const std::string& ModuleMapName = "module.modulemap") const;
@@ -273,11 +266,7 @@ public: // Public Interface
    ECheckClassInfo CheckClassInfo(const char *name, Bool_t autoload, Bool_t isClassOrNamespaceOnly = kFALSE);
 
    Bool_t  CheckClassTemplate(const char *name);
-#ifdef _WIN64
-   Long64_t  Calc(const char* line, EErrorCode* error = 0);
-#else
-   Long_t  Calc(const char* line, EErrorCode* error = 0);
-#endif
+   intptr_t Calc(const char* line, EErrorCode* error = 0);
    void    CreateListOfBaseClasses(TClass* cl) const;
    void    CreateListOfDataMembers(TClass* cl) const;
    void    CreateListOfMethods(TClass* cl) const;
@@ -310,12 +299,6 @@ public: // Public Interface
    void    RecursiveRemove(TObject* obj);
    Bool_t  IsErrorMessagesEnabled() const;
    Bool_t  SetErrorMessages(Bool_t enable = kTRUE);
-   Bool_t  IsProcessLineLocked() const {
-      return fLockProcessLine;
-   }
-   void    SetProcessLineLock(Bool_t lock = kTRUE) {
-      fLockProcessLine = lock;
-   }
    const char* TypeName(const char* typeDesc);
 
    void     SnapshotMutexState(CppyyLegacy::TVirtualRWMutex* mtx);
@@ -331,7 +314,6 @@ public: // Public Interface
    static void  UpdateAllCanvases();
 
    // Misc
-   virtual int    DisplayClass(FILE* fout, const char* name, int base, int start) const;
    virtual int    DisplayIncludePath(FILE* fout) const;
    virtual void*  FindSym(const char* entry) const;
    virtual void   GenericError(const char* error) const;
@@ -345,8 +327,6 @@ public: // Public Interface
    virtual int    SetClassAutoloading(int) const;
    virtual int    SetClassAutoparsing(int) ;
            Bool_t IsAutoParsingSuspended() const { return fIsAutoParsingSuspended; }
-   virtual void   SetErrmsgcallback(void* p) const;
-   virtual void   SetTempLevel(int val) const;
    virtual int    UnloadFile(const char* path) const;
 
    void               CodeComplete(const std::string&, size_t&,

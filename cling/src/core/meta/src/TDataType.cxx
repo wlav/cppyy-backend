@@ -436,13 +436,8 @@ void TDataType::AddBuiltins(TCollection* types)
       fgBuiltins[kUInt_t] = new TDataType("unsigned int");
       fgBuiltins[kLong_t] = new TDataType("long");
       fgBuiltins[kULong_t] = new TDataType("unsigned long");
-#ifndef _WIN32
       fgBuiltins[kLong64_t] = new TDataType("long long");
       fgBuiltins[kULong64_t] = new TDataType("unsigned long long");
-#else
-      fgBuiltins[kLong64_t] = new TDataType("__int64");
-      fgBuiltins[kULong64_t] = new TDataType("unsigned __int64");
-#endif
       fgBuiltins[kFloat_t] = new TDataType("float");
       fgBuiltins[kDouble_t] = new TDataType("double");
       fgBuiltins[kVoid_t] = new TDataType("void");

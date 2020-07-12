@@ -172,11 +172,7 @@ public:
    virtual Int_t    ReloadAllSharedLibraryMaps() = 0;
    virtual Int_t    UnloadAllSharedLibraryMaps() = 0;
    virtual Int_t    UnloadLibraryMap(const char *library) = 0;
-#ifdef _WIN64
-   virtual Long64_t ProcessLine(const char *line, EErrorCode *error = 0) = 0;
-#else
-   virtual Long_t   ProcessLine(const char *line, EErrorCode *error = 0) = 0;
-#endif
+   virtual intptr_t ProcessLine(const char *line, EErrorCode *error = 0) = 0;
    virtual void     PrintIntro() = 0;
    virtual bool     RegisterPrebuiltModulePath(const std::string& FullPath,
                                                const std::string& ModuleMapName = "module.modulemap") const = 0;
@@ -217,11 +213,7 @@ public:
    virtual ECheckClassInfo CheckClassInfo(const char *name, Bool_t autoload, Bool_t isClassOrNamespaceOnly = kFALSE) = 0;
 
    virtual Bool_t   CheckClassTemplate(const char *name) = 0;
-#ifdef _WIN64
-   virtual Long64_t Calc(const char *line, EErrorCode* error = 0) = 0;
-#else
-   virtual Long_t   Calc(const char *line, EErrorCode* error = 0) = 0;
-#endif
+   virtual intptr_t Calc(const char *line, EErrorCode* error = 0) = 0;
    virtual void     CreateListOfBaseClasses(TClass *cl) const = 0;
    virtual void     CreateListOfDataMembers(TClass *cl) const = 0;
    virtual void     CreateListOfMethods(TClass *cl) const = 0;
@@ -234,8 +226,6 @@ public:
    virtual void    *GetInterfaceMethodWithPrototype(TClass *cl, const char *method, const char *proto, Bool_t objectIsConst = kFALSE, CppyyLegacy::EFunctionMatchMode /* mode */ = CppyyLegacy::kConversionMatch) = 0;
    virtual Bool_t   IsErrorMessagesEnabled() const = 0;
    virtual Bool_t   SetErrorMessages(Bool_t enable = kTRUE) = 0;
-   virtual Bool_t   IsProcessLineLocked() const = 0;
-   virtual void     SetProcessLineLock(Bool_t lock = kTRUE) = 0;
    virtual const char *TypeName(const char *s) = 0;
    virtual std::string ToString(const char *type, void *obj) = 0;
 
@@ -246,7 +236,6 @@ public:
    // These functions are redefined in TCling.
 
    // Misc
-   virtual int    DisplayClass(FILE * /* fout */,const char * /* name */,int /* base */,int /* start */) const {return 0;}
    virtual int    DisplayIncludePath(FILE * /* fout */) const {return 0;}
    virtual void  *FindSym(const char * /* entry */) const {return 0;}
    virtual void   GenericError(const char * /* error */) const {;}
@@ -259,8 +248,6 @@ public:
    virtual void   SetAllocunlockfunc(void (*)()) const {;}
    virtual int    SetClassAutoloading(int) const {return 0;}
    virtual int    SetClassAutoparsing(int) {return 0;};
-   virtual void   SetErrmsgcallback(void * /* p */) const {;}
-   virtual void   SetTempLevel(int /* val */) const {;}
    virtual int    UnloadFile(const char * /* path */) const {return 0;}
 
    /// The created temporary must be deleted by the caller.
