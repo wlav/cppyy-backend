@@ -5822,8 +5822,13 @@ UInt_t TClass::GetCheckSum(ECheckSum code, Bool_t &isvalid) const
                if (prop&kIsEnum) {
                   type = "int";
                } else {
-                  type.ReplaceAll("ULong64_t","unsigned long long");
-                  type.ReplaceAll("Long64_t","long long");
+#ifndef _WIN32
+                  type.ReplaceAll("CppyyLegacy::ULong64_t","unsigned long long");
+                  type.ReplaceAll("CppyyLegacy::Long64_t","long long");
+#else
+                  type.ReplaceAll("CppyyLegacy::ULong64_t","unsigned __int64");
+                  type.ReplaceAll("CppyyLegacy::Long64_t","__int64");
+#endif
                   type.ReplaceAll("<signed char","<char");
                   type.ReplaceAll(",signed char",",char");
                   if (type=="signed char") type = "char";

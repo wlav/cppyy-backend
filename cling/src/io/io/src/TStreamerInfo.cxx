@@ -3407,14 +3407,19 @@ UInt_t TStreamerInfo::GetCheckSum(TClass::ECheckSum code) const
          //
          type = el->GetTypeName();
       } else {
-         type = TClassEdit::GetLong64_Name(TClassEdit::ResolveTypedef(el->GetTypeName(),kTRUE));
+         type = TClassEdit::ResolveTypedef(el->GetTypeName(),kTRUE);
       }
       if (TClassEdit::IsSTLCont(type.Data())) {
          type = TClassEdit::ShortType( type, TClassEdit::kDropStlDefault | TClassEdit::kLong64 );
       }
       if (code == TClass::kReflex || code == TClass::kReflexNoComment) {
+#ifndef _WIN32
          type.ReplaceAll("CppyyLegacy::ULong64_t","unsigned long long");
          type.ReplaceAll("CppyyLegacy::Long64_t","long long");
+#else
+         type.ReplaceAll("CppyyLegacy::ULong64_t","unsigned __int64");
+         type.ReplaceAll("CppyyLegacy::Long64_t","__int64");
+#endif
          type.ReplaceAll("signed char","char");
          type.ReplaceAll("<signed char","<char");
          type.ReplaceAll(",signed char",",char");
@@ -4542,7 +4547,6 @@ void TStreamerInfo::Streamer(TBuffer &R__b)
          R__b.ClassBegin(TStreamerInfo::Class(), R__v);
          R__b.ClassMember("CppyyLegacy::TNamed");
          TNamed::Streamer(R__b);
-         fName = TClassEdit::GetLong64_Name( fName.Data() ).c_str();
          R__b.ClassMember("fCheckSum","CppyyLegacy::UInt_t");
          R__b >> fCheckSum;
          R__b.ClassMember("fClassVersion","CpppyyLegacy::Int_t");
@@ -4595,7 +4599,6 @@ void TStreamerInfo::Streamer(TBuffer &R__b)
       }
       //====process old versions before automatic schema evolution
       TNamed::Streamer(R__b);
-      fName = TClassEdit::GetLong64_Name( fName.Data() ).c_str();
       R__b >> fCheckSum;
       R__b >> fClassVersion;
       fOnFileClassVersion = fClassVersion;

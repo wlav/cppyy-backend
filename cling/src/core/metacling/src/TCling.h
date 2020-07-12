@@ -217,7 +217,7 @@ public: // Public Interface
    const char* GetIncludePath();
    virtual const char* GetSTLIncludePath() const;
    TObjArray*  GetRootMapFiles() const { return fRootmapFiles; }
-   unsigned long long GetInterpreterStateMarker() const { return fTransactionCount;}
+   ULong64_t GetInterpreterStateMarker() const { return fTransactionCount;}
    virtual void Initialize();
    virtual void ShutDown();
    void    InspectMembers(TMemberInspector&, const void* obj, const TClass* cl, Bool_t isTransient);

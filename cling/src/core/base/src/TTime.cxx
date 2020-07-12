@@ -38,7 +38,7 @@ TTime::operator long() const
 {
 #ifndef R__B64
    if (fMilliSec > (Long64_t)kMaxInt)
-      Error("TTime::operator long()", "time truncated, use operator long long");
+      Error("TTime::operator long()", "time truncated, use operator Long64_t");
 #endif
    return (Long_t) fMilliSec;
 }
@@ -49,7 +49,7 @@ TTime::operator unsigned long() const
 {
 #ifndef R__B64
    if (fMilliSec > (Long64_t)kMaxUInt)
-      Error("TTime::operator unsigned long()", "time truncated, use operator unsigned long long");
+      Error("TTime::operator unsigned long()", "time truncated, use operator ULong64_t");
 #endif
    return (ULong_t) fMilliSec;
 }

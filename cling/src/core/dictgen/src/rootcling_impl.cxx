@@ -4961,8 +4961,6 @@ int RootClingMain(int argc,
          outputfile << "# Now the list of classes\n";
          // SELECTION LOOP
          for (auto const & annRcd : scan.fSelectedClasses) {
-            // Shouldn't it be GetLong64_Name( cl_input.GetNormalizedName() )
-            // or maybe we should be normalizing to turn directly all long long into Long64_t
             outputfile << annRcd.GetNormalizedName() << endl;
          }
       }

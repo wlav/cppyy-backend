@@ -819,22 +819,6 @@ void TClassEdit::GetNormalizedName(std::string &norm_name, std::string_view name
 }
 
 ////////////////////////////////////////////////////////////////////////////////
-/// Replace 'long long' and 'unsigned long long' by 'Long64_t' and 'ULong64_t'
-
-string TClassEdit::GetLong64_Name(const char* original)
-{
-   return original;
-}
-
-////////////////////////////////////////////////////////////////////////////////
-/// Replace 'long long' and 'unsigned long long' by 'Long64_t' and 'ULong64_t'
-
-string TClassEdit::GetLong64_Name(const string& original)
-{
-   return original;
-}
-
-////////////////////////////////////////////////////////////////////////////////
 /// Return the start of the unqualified name include in 'original'.
 
 const char *TClassEdit::GetUnqualifiedName(const char *original)

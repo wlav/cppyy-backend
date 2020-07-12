@@ -834,17 +834,17 @@ private:
 
   static Option* tag(Option* ptr)
   {
-    return (Option*) ((unsigned long long) ptr | 1);
+    return (Option*) ((uintptr_t) ptr | 1);
   }
 
   static Option* untag(Option* ptr)
   {
-    return (Option*) ((unsigned long long) ptr & ~1ull);
+    return (Option*) ((uintptr_t) ptr & ~1ull);
   }
 
   static bool isTagged(Option* ptr)
   {
-    return ((unsigned long long) ptr & 1);
+    return ((uintptr_t) ptr & 1);
   }
 };
 

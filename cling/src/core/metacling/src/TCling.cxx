@@ -5480,10 +5480,8 @@ Int_t TCling::AutoLoad(const std::type_info& typeinfo, Bool_t knowDictNotLoaded 
    // inlined namespaces ...
 
    Int_t result = AutoLoad(demangled_name.c_str());
-   if (result == 0) {
-      demangled_name = TClassEdit::GetLong64_Name(demangled_name);
+   if (result == 0)
       result = AutoLoad(demangled_name.c_str(), knowDictNotLoaded);
-   }
 
    return result;
 }

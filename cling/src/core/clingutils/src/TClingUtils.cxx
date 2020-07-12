@@ -1540,7 +1540,7 @@ void CppyyLegacy::TMetaUtils::WriteClassInit(std::ostream& finalString,
                                       const RConstructorTypes& ctorTypes,
                                       bool& needCollectionProxy)
 {
-   std::string classname = TClassEdit::GetLong64_Name(cl.GetNormalizedName());
+   std::string classname = cl.GetNormalizedName();
 
    std::string mappedname;
    CppyyLegacy::TMetaUtils::GetCppName(mappedname,classname.c_str());
@@ -2167,7 +2167,7 @@ void CppyyLegacy::TMetaUtils::WriteAuxFunctions(std::ostream& finalString,
                                          const RConstructorTypes& ctorTypes,
                                          const TNormalizedCtxt &normCtxt)
 {
-   std::string classname = TClassEdit::GetLong64_Name(cl.GetNormalizedName());
+   std::string classname = cl.GetNormalizedName();
 
    std::string mappedname;
    CppyyLegacy::TMetaUtils::GetCppName(mappedname,classname.c_str());
@@ -5268,7 +5268,7 @@ int CppyyLegacy::TMetaUtils::AST2SourceTools::GetDefArg(const clang::ParmVarDecl
       defArgExprPtr->EvaluateAsInt(result,ctxt);
       auto uintVal = *result.getRawData();
       if (result.isNegative()){
-         long long int intVal=uintVal*-1;
+         Long64_t intVal=uintVal*-1;
          valAsString=std::to_string(intVal);
       } else {
          valAsString=std::to_string(uintVal);

@@ -80,7 +80,7 @@ using namespace std;
 
 namespace CppyyLegacy {
 
-static unsigned long long gWrapperSerial = 0LL;
+static ULong64_t gWrapperSerial = 0LL;
 static const string kIndentString("   ");
 
 static map<const FunctionDecl *, void *> gWrapperStore;

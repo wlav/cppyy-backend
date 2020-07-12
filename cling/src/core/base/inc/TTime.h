@@ -58,8 +58,8 @@ public:
 
    operator long() const;
    operator unsigned long() const;
-   operator long long() const;
-   operator unsigned long long() const;
+   operator Long64_t() const;
+   operator ULong64_t() const;
    const char *AsString() const;
 
    ClassDef(TTime,2)  //Basic time type with milli second precision
@@ -75,9 +75,9 @@ inline TTime TTime::operator*=(const TTime &t)
    { fMilliSec *= t.fMilliSec; return *this; }
 inline TTime TTime::operator/=(const TTime &t)
    { fMilliSec /= t.fMilliSec; return *this; }
-inline TTime::operator long long() const
+inline TTime::operator Long64_t() const
    { return fMilliSec; }
-inline TTime::operator unsigned long long() const
+inline TTime::operator ULong64_t() const
    { return (ULong64_t) fMilliSec; }
 
 inline TTime operator+(const TTime &t1, const TTime &t2)

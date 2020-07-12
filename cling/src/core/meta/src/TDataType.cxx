@@ -130,7 +130,7 @@ const char *TDataType::GetTypeName(EDataType type)
       case 13: return "CppyyLegacy::UInt_t";
       case 14: return "CppyyLegacy::ULong_t";
       case 15: return "CppyyLegacy::UInt_t";
-      case 16: return "long long";
+      case 16: return "CppyyLegacy::Long64_t";
       case 17: return "CppyyLegacy::ULong64_t";
       case 18: return "CppyyLegacy::Bool_t";
       case 19: return "CppyyLegacy::Float16_t";
@@ -262,10 +262,18 @@ const char *TDataType::AsString(void *buf) const
       line.Form( "%llu", *(ULong64_t *)buf);
    else if (!strcmp("CppyyLegacy::ULong64_t", name))
       line.Form( "%llu", *(ULong64_t *)buf);
+#ifdef _WIN32
+   else if (!strcmp("unsigned __int64", name))
+      line.Form( "%llu", *(ULong64_t *)buf);
+#endif
    else if (!strcmp("long long", name))
       line.Form( "%lld", *(Long64_t *)buf);
    else if (!strcmp("CppyyLegacy::Long64_t", name))
       line.Form( "%lld", *(Long64_t *)buf);
+#ifdef _WIN32
+   else if (!strcmp("__int64", name))
+      line.Form( "%lld", *(Long64_t *)buf);
+#endif
    else if (!strcmp("unsigned short", name))
       line.Form( "%hu", *(unsigned short *)buf);
    else if (!strcmp("short", name))
@@ -319,10 +327,18 @@ void TDataType::SetType(const char *name)
    } else if (!strcmp("long", name)) {
       fType = kLong_t;
       fSize = sizeof(Long_t);
-   } else if (!strcmp("unsigned long long", name) || !strcmp("CppyyLegacy::ULong64_t",name)) {
+   } else if (!strcmp("unsigned long long", name) || !strcmp("CppyyLegacy::ULong64_t",name)
+#ifdef _WIN32
+         || !strcmp("unsigned __int64", name)
+#endif
+   ) {
       fType = kULong64_t;
       fSize = sizeof(ULong64_t);
-   } else if (!strcmp("long long", name) || !strcmp("CppyyLegacy::Long64_t",name)) {
+   } else if (!strcmp("long long", name) || !strcmp("CppyyLegacy::Long64_t",name)
+#ifdef _WIN32
+         || !strcmp("__int64", name)
+#endif
+   ) {
       fType = kLong64_t;
       fSize = sizeof(Long64_t);
    } else if (!strcmp("unsigned short", name)) {
@@ -420,8 +436,13 @@ void TDataType::AddBuiltins(TCollection* types)
       fgBuiltins[kUInt_t] = new TDataType("unsigned int");
       fgBuiltins[kLong_t] = new TDataType("long");
       fgBuiltins[kULong_t] = new TDataType("unsigned long");
+#ifndef _WIN32
       fgBuiltins[kLong64_t] = new TDataType("long long");
       fgBuiltins[kULong64_t] = new TDataType("unsigned long long");
+#else
+      fgBuiltins[kLong64_t] = new TDataType("__int64");
+      fgBuiltins[kULong64_t] = new TDataType("unsigned __int64");
+#endif
       fgBuiltins[kFloat_t] = new TDataType("float");
       fgBuiltins[kDouble_t] = new TDataType("double");
       fgBuiltins[kVoid_t] = new TDataType("void");
