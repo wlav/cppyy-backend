@@ -213,7 +213,7 @@ setup(
     author='PyPy Developers',
     author_email='pypy-dev@python.org',
 
-    version='1.12.1',
+    version='1.13.0',
 
     license='LBNL BSD',
 

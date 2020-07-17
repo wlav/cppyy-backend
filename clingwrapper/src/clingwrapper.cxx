@@ -1856,9 +1856,7 @@ std::string Cppyy::GetDatamemberType(TCppScope_t scope, TCppIndex_t idata)
         TGlobal* gbl = g_globalvars[idata];
         std::string fullType = gbl->GetFullTypeName();
 
-        if ((int)gbl->GetArrayDim() > 1)
-            fullType.append("*");
-        else if ((int)gbl->GetArrayDim() == 1) {
+        if ((int)gbl->GetArrayDim() == 1) {
             std::ostringstream s;
             s << '[' << gbl->GetMaxIndex(0) << ']' << std::ends;
             fullType.append(s.str());
@@ -1880,9 +1878,7 @@ std::string Cppyy::GetDatamemberType(TCppScope_t scope, TCppIndex_t idata)
                 fullType = trueName;
         }
 
-        if ((int)m->GetArrayDim() > 1 || (!m->IsBasic() && m->IsaPointer()))
-            fullType.append("*");
-        else if ((int)m->GetArrayDim() == 1) {
+        if ((int)m->GetArrayDim() == 1) {
             std::ostringstream s;
             s << '[' << m->GetMaxIndex(0) << ']' << std::ends;
             fullType.append(s.str());
