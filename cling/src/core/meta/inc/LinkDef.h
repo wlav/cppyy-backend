@@ -33,9 +33,6 @@
 #pragma link C++ class CppyyLegacy::TEnum+;
 #pragma link C++ class CppyyLegacy::TFunction;
 #pragma link C++ class CppyyLegacy::TFunctionTemplate+;
-#pragma link C++ class CppyyLegacy::TSchemaRule+;
-#pragma link C++ class CppyyLegacy::TSchemaRule::TSources+;
-#pragma link C++ class CppyyLegacy::Detail::TSchemaRuleSet-;
 #pragma link C++ class CppyyLegacy::TGlobal;
 #pragma link C++ class CppyyLegacy::TMethod;
 #pragma link C++ class CppyyLegacy::TMethodArg;
@@ -46,7 +43,6 @@
 #pragma link C++ class CppyyLegacy::TProtoClass+;
 #pragma link C++ class CppyyLegacy::TProtoClass::TProtoRealData+;
 #pragma link C++ class CppyyLegacy::TRealData;
-#pragma link C++ class CppyyLegacy::TStreamerArtificial-;
 #pragma link C++ class CppyyLegacy::TStreamerBase-;
 #pragma link C++ class CppyyLegacy::TStreamerBasicPointer-;
 #pragma link C++ class CppyyLegacy::TStreamerLoop-;

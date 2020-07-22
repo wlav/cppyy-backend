@@ -21,7 +21,6 @@ set(Foundation_dict_headers
 
 set(sources
   src/FoundationUtils.cxx
-  src/RConversionRuleParser.cxx
   src/TClassEdit.cxx
 )
 

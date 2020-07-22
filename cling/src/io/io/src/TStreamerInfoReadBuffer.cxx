@@ -513,48 +513,6 @@ Int_t TStreamerInfo::ReadBufferSkip(TBuffer &b, const T &arr, const TCompInfo *c
    }
 
 ////////////////////////////////////////////////////////////////////////////////
-/// Handle Artificial StreamerElement
-
-template <class T>
-Int_t TStreamerInfo::ReadBufferArtificial(TBuffer &b, const T &arr,
-                                          TStreamerElement *aElement, Int_t narr,
-                                          Int_t eoffset)
-{
-   TStreamerArtificial *artElement = (TStreamerArtificial*)aElement;
-   CppyyLegacy::TSchemaRule::ReadRawFuncPtr_t rawfunc = artElement->GetReadRawFunc();
-
-   if (rawfunc) {
-      for(Int_t k=0; k<narr; ++k) {
-         rawfunc( arr[k], b ); // Intentionally pass the object, so that the member can be set from other members.
-      }
-      return 0;
-   }
-
-   CppyyLegacy::TSchemaRule::ReadFuncPtr_t readfunc = artElement->GetReadFunc();
-   // Process the result
-   if (readfunc) {
-      TVirtualObject obj(0);
-      TVirtualArray *objarr = ((TBufferFile&)b).PeekDataCache();
-      if (objarr) {
-         obj.fClass = objarr->fClass;
-
-         for(Int_t k=0; k<narr; ++k) {
-            obj.fObject = objarr->GetObjectAt(k);
-            readfunc(arr[k]+eoffset, &obj);
-         }
-         obj.fObject = 0; // Prevent auto deletion
-      } else {
-         for(Int_t k=0; k<narr; ++k) {
-            readfunc(arr[k]+eoffset, &obj);
-         }
-      }
-      return 0;
-   }
-
-   return 0;
-}
-
-////////////////////////////////////////////////////////////////////////////////
 ///  Convert elements of a TClonesArray
 
 template <class T>
@@ -1612,9 +1570,6 @@ Int_t TStreamerInfo::ReadBuffer(TBuffer &b, const T &arr,
                ans = thisVar->ReadBufferSkip(b,arr,compinfo[i],kase,aElement,narr,eoffset);
             if (ans==0) continue;
 
-            if (kase >= TStreamerInfo::kArtificial) {
-               ans = thisVar->ReadBufferArtificial(b,arr,aElement,narr,eoffset);
-            }
             if (ans==0) continue;
          }
          if (aElement)
@@ -1650,16 +1605,6 @@ template Int_t TStreamerInfo::ReadBufferConv<TVirtualCollectionProxy>(TBuffer &b
 template Int_t TStreamerInfo::ReadBufferConv<TVirtualArray>(TBuffer &b, const TVirtualArray &arr, const TCompInfo *compinfo, Int_t kase,
                                        TStreamerElement *aElement, Int_t narr,
                                        Int_t eoffset);
-
-template Int_t TStreamerInfo::ReadBufferArtificial<char**>(TBuffer &b, char** const &arr,
-                                             TStreamerElement *aElement, Int_t narr,
-                                             Int_t eoffset);
-template Int_t TStreamerInfo::ReadBufferArtificial<TVirtualCollectionProxy>(TBuffer &b, const TVirtualCollectionProxy &arr,
-                                             TStreamerElement *aElement, Int_t narr,
-                                             Int_t eoffset);
-template Int_t TStreamerInfo::ReadBufferArtificial<TVirtualArray>(TBuffer &b, const TVirtualArray &arr,
-                                             TStreamerElement *aElement, Int_t narr,
-                                             Int_t eoffset);
 
 template Int_t TStreamerInfo::ReadBuffer<char**>(TBuffer &b, char** const &arr,
                                                  TCompInfo *const*const compinfo, Int_t first, Int_t last,

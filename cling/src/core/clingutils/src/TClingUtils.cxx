@@ -30,6 +30,8 @@
 
 #include "RStl.h"
 
+#include "TSchemaType.h"
+
 #include "clang/AST/ASTContext.h"
 #include "clang/AST/Attr.h"
 #include "clang/AST/CXXInheritance.h"
@@ -68,6 +70,9 @@
 
 
 namespace CppyyLegacy {
+
+typedef std::map<std::string, Internal::TSchemaType> MembersTypeMap_t;
+
 namespace TMetaUtils {
 
 std::string GetRealPath(const std::string &path)
@@ -1600,77 +1605,8 @@ void CppyyLegacy::TMetaUtils::WriteClassInit(std::ostream& finalString,
    // Check if we have any schema evolution rules for this class
    /////////////////////////////////////////////////////////////////////////////
 
-   CppyyLegacy::SchemaRuleClassMap_t::iterator rulesIt1 = CppyyLegacy::gReadRules.find( classname.c_str() );
-   CppyyLegacy::SchemaRuleClassMap_t::iterator rulesIt2 = CppyyLegacy::gReadRawRules.find( classname.c_str() );
-
    CppyyLegacy::MembersTypeMap_t nameTypeMap;
    CreateNameTypeMap( *decl, nameTypeMap ); // here types for schema evo are written
-
-   //--------------------------------------------------------------------------
-   // Process the read rules
-   /////////////////////////////////////////////////////////////////////////////
-
-   if( rulesIt1 != CppyyLegacy::gReadRules.end() ) {
-      int i = 0;
-      finalString << "\n   // Schema evolution read functions\n";
-      std::list<CppyyLegacy::SchemaRuleMap_t>::iterator rIt = rulesIt1->second.begin();
-      while( rIt != rulesIt1->second.end() ) {
-
-         //--------------------------------------------------------------------
-         // Check if the rules refer to valid data members
-         ///////////////////////////////////////////////////////////////////////
-
-         std::string error_string;
-         if( !HasValidDataMembers( *rIt, nameTypeMap, error_string ) ) {
-            Warning(0, "%s", error_string.c_str());
-            rIt = rulesIt1->second.erase(rIt);
-            continue;
-         }
-
-         //---------------------------------------------------------------------
-         // Write the conversion function if necessary
-         ///////////////////////////////////////////////////////////////////////
-
-         if( rIt->find( "code" ) != rIt->end() ) {
-            WriteReadRuleFunc( *rIt, i++, mappedname, nameTypeMap, finalString );
-         }
-         ++rIt;
-      }
-   }
-
-
-   //--------------------------------------------------------------------------
-   // Process the read raw rules
-   /////////////////////////////////////////////////////////////////////////////
-
-   if( rulesIt2 != CppyyLegacy::gReadRawRules.end() ) {
-      int i = 0;
-      finalString << "\n   // Schema evolution read raw functions\n";
-      std::list<CppyyLegacy::SchemaRuleMap_t>::iterator rIt = rulesIt2->second.begin();
-      while( rIt != rulesIt2->second.end() ) {
-
-         //--------------------------------------------------------------------
-         // Check if the rules refer to valid data members
-         ///////////////////////////////////////////////////////////////////////
-
-         std::string error_string;
-         if( !HasValidDataMembers( *rIt, nameTypeMap, error_string ) ) {
-            Warning(0, "%s", error_string.c_str());
-            rIt = rulesIt2->second.erase(rIt);
-            continue;
-         }
-
-         //---------------------------------------------------------------------
-         // Write the conversion function
-         ///////////////////////////////////////////////////////////////////////
-
-         if( rIt->find( "code" ) == rIt->end() )
-            continue;
-
-         WriteReadRawRuleFunc( *rIt, i++, mappedname, nameTypeMap, finalString );
-         ++rIt;
-      }
-   }
 
    finalString << "\n" << "   // Function generating the singleton type initializer" << "\n";
 
@@ -1811,26 +1747,6 @@ void CppyyLegacy::TMetaUtils::WriteClassInit(std::ostream& finalString,
    if (cl.GetRequestedName()[0] && classname != cl.GetRequestedName()) {
       finalString << "\n" << "      ::CppyyLegacy::AddClassAlternate(\""
                   << classname << "\",\"" << cl.GetRequestedName() << "\");\n";
-   }
-
-   //---------------------------------------------------------------------------
-   // Pass the schema evolution rules to TGenericClassInfo
-   /////////////////////////////////////////////////////////////////////////////
-
-   if( (rulesIt1 != CppyyLegacy::gReadRules.end() && rulesIt1->second.size()>0) || (rulesIt2 != CppyyLegacy::gReadRawRules.end()  && rulesIt2->second.size()>0) ) {
-      finalString << "\n" << "      ::CppyyLegacy::Internal::TSchemaHelper* rule;" << "\n";
-   }
-
-   if( rulesIt1 != CppyyLegacy::gReadRules.end() ) {
-      finalString << "\n" << "      // the io read rules" << "\n" << "      std::vector<::CppyyLegacy::Internal::TSchemaHelper> readrules(" << rulesIt1->second.size() << ");" << "\n";
-      CppyyLegacy::WriteSchemaList( rulesIt1->second, "readrules", finalString );
-      finalString << "      instance.SetReadRules( readrules );" << "\n";
-   }
-
-   if( rulesIt2 != CppyyLegacy::gReadRawRules.end() ) {
-      finalString << "\n" << "      // the io read raw rules" << "\n" << "      std::vector<::CppyyLegacy::Internal::TSchemaHelper> readrawrules(" << rulesIt2->second.size() << ");" << "\n";
-      CppyyLegacy::WriteSchemaList( rulesIt2->second, "readrawrules", finalString );
-      finalString << "      instance.SetReadRawRules( readrawrules );" << "\n";
    }
 
    finalString << "      return &instance;" << "\n" << "   }" << "\n";

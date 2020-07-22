@@ -30,7 +30,6 @@ The concrete implementation of TBuffer for writing/reading to/from a ROOT file o
 #include "TStreamer.h"
 #include "TStreamerInfo.h"
 #include "TStreamerElement.h"
-#include "TSchemaRuleSet.h"
 #include "TStreamerInfoActions.h"
 #include "TInterpreter.h"
 #include "TVirtualMutex.h"
@@ -2366,32 +2365,8 @@ void *TBufferFile::ReadObjectAny(const TClass *clCast)
    if (clRef && (clRef!=(TClass*)(-1)) && clCast) {
       //baseOffset will be -1 if clRef does not inherit from clCast.
       baseOffset = clRef->GetBaseClassOffset(clCast);
-      if (baseOffset == -1) {
-         // The 2 classes are unrelated, maybe there is a converter between the 2.
-
-         if (!clCast->GetSchemaRules() ||
-             !clCast->GetSchemaRules()->HasRuleWithSourceClass(clRef->GetName()))
-         {
-            // There is no converter
-            Error("ReadObject", "got object of wrong class! requested %s but got %s",
-                  clCast->GetName(), clRef->GetName());
-
-            CheckByteCount(startpos, tag, (TClass *)nullptr); // avoid mis-leading byte count error message
-            return 0; // We better return at this point
-         }
-         baseOffset = 0; // For now we do not support requesting from a class that is the base of one of the class for which there is transformation to ....
-
-         Info("ReadObjectAny","Using Converter StreamerInfo from %s to %s",clRef->GetName(),clCast->GetName());
-         clRef = const_cast<TClass*>(clCast);
-
-      }
-      if (clCast->GetState() > TClass::kEmulated && clRef->GetState() <= TClass::kEmulated) {
-         //we cannot mix a compiled class with an emulated class in the inheritance
-         Error("ReadObject", "trying to read an emulated class (%s) to store in a compiled pointer (%s)",
-               clRef->GetName(),clCast->GetName());
-         CheckByteCount(startpos, tag, (TClass *)nullptr); // avoid mis-leading byte count error message
+      if (baseOffset == -1)
          return 0;
-      }
    }
 
    // check if object has not already been read
@@ -2629,11 +2604,7 @@ TClass *TBufferFile::ReadClass(const TClass *clReq, UInt_t *objTag)
       cl = (TClass *)(intptr_t)fMap->GetValue(clTag);
    }
 
-   if (cl && clReq &&
-       (!cl->InheritsFrom(clReq) &&
-        !(clReq->GetSchemaRules() &&
-          clReq->GetSchemaRules()->HasRuleWithSourceClass(cl->GetName()) )
-        ) ) {
+   if (cl && clReq && !cl->InheritsFrom(clReq)) {
       Error("ReadClass", "The on-file class is \"'%s\" which is not compatible with the requested class: \"%s\"",
             cl->GetName(), clReq->GetName());
       // exception

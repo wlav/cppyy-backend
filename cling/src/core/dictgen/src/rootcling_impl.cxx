@@ -4748,20 +4748,6 @@ int RootClingMain(int argc,
    // Write schema evolution related headers and declarations
    /////////////////////////////////////////////////////////////////////////////
 
-   if (!gReadRules.empty() || !gReadRawRules.empty()) {
-      dictStream << "#include \"TBuffer.h\"\n"
-                 << "#include \"TVirtualObject.h\"\n"
-                 << "#include <vector>\n"
-                 << "#include \"TSchemaHelper.h\"\n\n";
-
-      std::list<std::string> includes;
-      GetRuleIncludes(includes);
-      for (auto & incFile : includes) {
-         dictStream << "#include <" << incFile << ">" << std::endl;
-      }
-      dictStream << std::endl;
-   }
-
    selectionRules.SearchNames(interp);
 
    int scannerVerbLevel = 0;

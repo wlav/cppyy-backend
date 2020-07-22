@@ -60,7 +60,6 @@ class TGenericClassInfo;
 class TMapTypeToTClass;
 class TMapDeclIdToTClass;
 namespace Detail {
-   class TSchemaRuleSet;
    class TCollectionProxyInfo;
 }
 namespace Internal {
@@ -233,7 +232,6 @@ private:
    EState             fState;           //!Current 'state' of the class (Emulated,Interpreted,Loaded)
    mutable std::atomic<TVirtualStreamerInfo*>  fCurrentInfo;     //!cached current streamer info.
    mutable std::atomic<TVirtualStreamerInfo*>  fLastReadInfo;    //!cached streamer info used in the last read.
-   Detail::TSchemaRuleSet *fSchemaRules;  //! Schema evolution rules
 
    typedef void (*StreamerImpl_t)(const TClass* pThis, void *obj, TBuffer &b, const TClass *onfile_class);
 #ifdef R__NO_ATOMIC_FUNCTION_POINTER
@@ -342,8 +340,6 @@ public:
 
    void               AddInstance(Bool_t heap = kFALSE) { fInstanceCount++; if (heap) fOnHeap++; }
    void               AddImplFile(const char *filename, int line);
-   static Bool_t      AddRule(const char *rule);
-   void               AdoptSchemaRules( Detail::TSchemaRuleSet *rules );
    void               BuildRealData(void *pointer=0, Bool_t isTransient = kFALSE);
    void               BuildEmulatedRealData(const char *name, intptr_t offset, TClass *cl);
    void               CalculateStreamerOffset() const;
@@ -426,8 +422,6 @@ public:
    Int_t              GetNmethods();
    TClass      *const*GetPersistentRef() const { return fPersistentRef; }
    TRealData         *GetRealData(const char *name) const;
-   const Detail::TSchemaRuleSet *GetSchemaRules() const;
-   Detail::TSchemaRuleSet *GetSchemaRules(Bool_t create = kFALSE);
    const char        *GetSharedLibs();
    ShowMembersFunc_t  GetShowMembersWrapper() const { return fShowMembers; }
    EState             GetState() const { return fState; }

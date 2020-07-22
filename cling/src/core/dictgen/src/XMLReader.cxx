@@ -816,57 +816,6 @@ bool XMLReader::Parse(const std::string &fileName, SelectionRules& out)
 
          // Take care of ioread rules
          if (tagKind == kBeginIoread || tagKind == kBeginIoreadRaw){
-            // A first sanity check
-            if (attrs.empty()){
-               TMetaUtils::Error(0,"At line %s. ioread element has no attributes.\n",lineNumCharp);
-               return false;
-            }
-            // Loop over the attrs to get the info to build the linkdef-like string
-            // Cache the name and the value
-            std::string iAttrName;
-            std::string iAttrValue;
-            // save attributes in a map to then format the new line which is of the form
-            // #pragma read sourceClass="class1" targetClass="class2" version="[1-]" source="" target="transient_" code="{ newObj->initializeTransientss(); }";
-            // where "#pragma read" should not appear
-            // The check for the sanity of the pragma is delegated to the ProcessReadPragma routine
-
-            std::map<std::string,std::string> pragmaArgs;
-            for (int i = 0, n = attrs.size(); i < n; ++i) {
-               pragmaArgs[attrs[i].fName]=attrs[i].fValue;
-            }
-
-            std::stringstream pragmaLineStream;
-            const std::string attrs[11] ={"sourceClass",
-                                          "version",
-                                          "targetClass",
-                                          "target",
-                                          "targetType",
-                                          "source",
-                                          "code",
-                                          "checksum",
-                                          "embed",
-                                          "include",
-                                          "attributes"};
-            std::string value;
-            for (unsigned int i=0;i<11;++i) {
-               const std::string& attr = attrs[i];
-               if ( pragmaArgs.count(attr) == 1){
-                  value = pragmaArgs[attr];
-                  if (attr == "code")  value= "{"+value+"}";
-                  pragmaLineStream << " " << attr << "=\""<< value << "\"";
-                  }
-               }
-
-            // Now send them to the pragma processor. The info will be put
-            // in a global then read by the TMetaUtils
-            TMetaUtils::Info(0,"Pragma generated for ioread rule: %s\n", pragmaLineStream.str().c_str());
-            std::string error_string;
-            if (tagKind == kBeginIoread)
-              CppyyLegacy::ProcessReadPragma( pragmaLineStream.str().c_str(), error_string );
-            else // this is a raw rule
-              CppyyLegacy::ProcessReadRawPragma( pragmaLineStream.str().c_str(), error_string );
-            if (!error_string.empty())
-               CppyyLegacy::TMetaUtils::Error(0, "%s", error_string.c_str());
             continue; // no need to go further
          } // end of ioread rules
 
@@ -900,24 +849,6 @@ bool XMLReader::Parse(const std::string &fileName, SelectionRules& out)
                }
                // DEBUG else std::cout<<"Don't care (don't create sel rule)"<<std::endl;
             }
-
-//             // DEBUG std::cout<<"Is child: ";
-//             if (inClass){
-//                if (((tagKind == kClass)) || tagKind == kEndClass) // if this is the same tag as the parent
-//                   // or it is a closing tag, the tag is not a child
-//                   ;// DEBUG std::cout<<"No"<<std::endl;
-//                // else if tagKind is one of the following, it means that we have a missing </class> tag
-//                // because these tag kinds cannot be children for a parent <class> tag
-//                else if (tagKind == kClass || tagKind == kEnum || tagKind == kVariable || tagKind == kFunction ||
-//                         tagKind == kEndSelection || tagKind == kExclusion || tagKind == kEndExclusion){
-//                   TMetaUtils::Error(0,"XML at line %s. Missing </class> tag\n",lineNumCharp);
-//                   out.ClearSelectionRules();
-//                   return false;
-//                }
-//                // DEBUG else std::cout<<"Yes"<<std::endl;
-//             }
-//             // DEBUG else std::cout<<"No"<<std::endl;
-
 
             if (!attrs.empty()){
                // Cache the name and the value

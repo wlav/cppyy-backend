@@ -441,34 +441,4 @@ class TBuffer;
 
 } // namespace CppyyLegacy
 
-#include "TSchemaRule.h"
-
-namespace CppyyLegacy {
-
-//________________________________________________________________________
-class TStreamerArtificial : public TStreamerElement {
-private:
-   TStreamerArtificial(const TStreamerArtificial&);          // Not implemented
-   TStreamerArtificial&operator=(const TStreamerArtificial&); // Not implemented
-
-protected:
-   CppyyLegacy::TSchemaRule::ReadFuncPtr_t     fReadFunc;    //!
-   CppyyLegacy::TSchemaRule::ReadRawFuncPtr_t  fReadRawFunc; //!
-
-public:
-
-   // TStreamerArtificial() : fReadFunc(0),fReadRawFunc(0) {}
-
-   TStreamerArtificial(const char *name, const char *title, Int_t offset, Int_t dtype, const char *typeName) : TStreamerElement(name,title,offset,dtype,typeName), fReadFunc(0), fReadRawFunc(0) {}
-
-   void SetReadFunc( CppyyLegacy::TSchemaRule::ReadFuncPtr_t val ) { fReadFunc = val; };
-   void SetReadRawFunc( CppyyLegacy::TSchemaRule::ReadRawFuncPtr_t val ) { fReadRawFunc = val; };
-
-   CppyyLegacy::TSchemaRule::ReadFuncPtr_t     GetReadFunc();
-   CppyyLegacy::TSchemaRule::ReadRawFuncPtr_t  GetReadRawFunc();
-
-   ClassDef(TStreamerArtificial, 0); // StreamerElement injected by a TSchemaRule. Transient only to preverse forward compatibility.
-};
-
-} // namespace CppyyLegacy
 #endif

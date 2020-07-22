@@ -29,7 +29,6 @@
 #include <memory>
 #include "LinkdefReader.h"
 #include "SelectionRules.h"
-#include "RConversionRuleParser.h"
 
 #include "llvm/Support/raw_ostream.h"
 
@@ -806,7 +805,6 @@ public:
          Error("Warning - lonely pragma statement: ", tok);
          return;
       }
-      const char *start = fSourceManager.getCharacterData(tok.getLocation());
       clang::Token end;
       end.startToken(); // Initialize token.
       while (tok.isNot(clang::tok::eod) && tok.isNot(clang::tok::semi)) {
@@ -820,18 +818,6 @@ public:
       // }
       if (end.is(clang::tok::unknown)) {
          Error("Error: unknown token", tok);
-      } else {
-         llvm::StringRef rule_text(start, fSourceManager.getCharacterData(end.getLocation()) - start + end.getLength());
-
-         std::string error_string;
-         CppyyLegacy::ProcessReadPragma(rule_text.str().c_str(), error_string);
-         if (!error_string.empty())
-            std::cerr << error_string;
-         //std::cerr << "Warning: #pragma read not yet handled: " << include.str() << "\n";
-         //         if (!fOwner.AddInclude(include))
-         //         {
-         //            Error("",tok);
-         //         }
       }
    }
 };

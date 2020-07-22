@@ -70,10 +70,8 @@ In order to access the name of a class within the ROOT type system, the method T
 #include "TVirtualIsAProxy.h"
 #include "TVirtualMutex.h"
 #include "THashTable.h"
-#include "TSchemaRuleSet.h"
 #include "TGenericClassInfo.h"
 #include "TIsAProxy.h"
-#include "TSchemaRule.h"
 #include "TSystem.h"
 #include "TThreadSlots.h"
 
@@ -655,9 +653,7 @@ TClass::TClass() :
    fDestructor(0), fDirAutoAdd(0), fStreamerFunc(0), fConvStreamerFunc(0), fSizeof(-1),
    fCanSplit(-1), fProperty(0), fClassProperty(0), fHasRootPcmInfo(kFALSE), fCanLoadClassInfo(kFALSE),
    fIsOffsetStreamerSet(kFALSE), fVersionUsed(kFALSE), fRuntimeProperties(0), fOffsetStreamer(0), fStreamerType(TClass::kDefault),
-   fState(kNoInfo),
-   fCurrentInfo(0), fLastReadInfo(0),
-   fSchemaRules(0), fStreamerImpl(&TClass::StreamerDefault)
+   fState(kNoInfo), fCurrentInfo(0), fLastReadInfo(0), fStreamerImpl(&TClass::StreamerDefault)
 
 {
    // Default ctor.
@@ -692,9 +688,7 @@ TClass::TClass(const char *name, Bool_t silent) :
    fDestructor(0), fDirAutoAdd(0), fStreamerFunc(0), fConvStreamerFunc(0), fSizeof(-1),
    fCanSplit(-1), fProperty(0), fClassProperty(0), fHasRootPcmInfo(kFALSE), fCanLoadClassInfo(kFALSE),
    fIsOffsetStreamerSet(kFALSE), fVersionUsed(kFALSE), fRuntimeProperties(0), fOffsetStreamer(0), fStreamerType(TClass::kDefault),
-   fState(kNoInfo),
-   fCurrentInfo(0), fLastReadInfo(0),
-   fSchemaRules(0), fStreamerImpl(&TClass::StreamerDefault)
+   fState(kNoInfo), fCurrentInfo(0), fLastReadInfo(0), fStreamerImpl(&TClass::StreamerDefault)
 {
    R__LOCKGUARD(gInterpreterMutex);
 
@@ -738,9 +732,7 @@ TClass::TClass(const char *name, Version_t cversion, Bool_t silent) :
    fDestructor(0), fDirAutoAdd(0), fStreamerFunc(0), fConvStreamerFunc(0), fSizeof(-1),
    fCanSplit(-1), fProperty(0), fClassProperty(0), fHasRootPcmInfo(kFALSE), fCanLoadClassInfo(kFALSE),
    fIsOffsetStreamerSet(kFALSE), fVersionUsed(kFALSE), fRuntimeProperties(0), fOffsetStreamer(0), fStreamerType(TClass::kDefault),
-   fState(kNoInfo),
-   fCurrentInfo(0), fLastReadInfo(0),
-   fSchemaRules(0), fStreamerImpl(&TClass::StreamerDefault)
+   fState(kNoInfo), fCurrentInfo(0), fLastReadInfo(0), fStreamerImpl(&TClass::StreamerDefault)
 {
    R__LOCKGUARD(gInterpreterMutex);
    Init(name, cversion, 0, 0, 0, 0, -1, -1, 0, silent);
@@ -765,9 +757,7 @@ TClass::TClass(const char *name, Version_t cversion, EState theState, Bool_t sil
    fDestructor(0), fDirAutoAdd(0), fStreamerFunc(0), fConvStreamerFunc(0), fSizeof(-1),
    fCanSplit(-1), fProperty(0), fClassProperty(0), fHasRootPcmInfo(kFALSE), fCanLoadClassInfo(kFALSE),
    fIsOffsetStreamerSet(kFALSE), fVersionUsed(kFALSE), fRuntimeProperties(0), fOffsetStreamer(0), fStreamerType(TClass::kDefault),
-   fState(theState),
-   fCurrentInfo(0), fLastReadInfo(0),
-   fSchemaRules(0), fStreamerImpl(&TClass::StreamerDefault)
+   fState(theState), fCurrentInfo(0), fLastReadInfo(0), fStreamerImpl(&TClass::StreamerDefault)
 {
    R__LOCKGUARD(gInterpreterMutex);
 
@@ -809,9 +799,7 @@ TClass::TClass(ClassInfo_t *classInfo, Version_t cversion,
    fDestructor(0), fDirAutoAdd(0), fStreamerFunc(0), fConvStreamerFunc(0), fSizeof(-1),
    fCanSplit(-1), fProperty(0), fClassProperty(0), fHasRootPcmInfo(kFALSE), fCanLoadClassInfo(kFALSE),
    fIsOffsetStreamerSet(kFALSE), fVersionUsed(kFALSE), fRuntimeProperties(0), fOffsetStreamer(0), fStreamerType(TClass::kDefault),
-   fState(kNoInfo),
-   fCurrentInfo(0), fLastReadInfo(0),
-   fSchemaRules(0), fStreamerImpl(&TClass::StreamerDefault)
+   fState(kNoInfo), fCurrentInfo(0), fLastReadInfo(0), fStreamerImpl(&TClass::StreamerDefault)
 {
    R__LOCKGUARD(gInterpreterMutex);
 
@@ -859,9 +847,7 @@ TClass::TClass(const char *name, Version_t cversion,
    fDestructor(0), fDirAutoAdd(0), fStreamerFunc(0), fConvStreamerFunc(0), fSizeof(-1),
    fCanSplit(-1), fProperty(0), fClassProperty(0), fHasRootPcmInfo(kFALSE), fCanLoadClassInfo(kFALSE),
    fIsOffsetStreamerSet(kFALSE), fVersionUsed(kFALSE), fRuntimeProperties(0), fOffsetStreamer(0), fStreamerType(TClass::kDefault),
-   fState(kNoInfo),
-   fCurrentInfo(0), fLastReadInfo(0),
-   fSchemaRules(0), fStreamerImpl(&TClass::StreamerDefault)
+   fState(kNoInfo), fCurrentInfo(0), fLastReadInfo(0), fStreamerImpl(&TClass::StreamerDefault)
 {
    R__LOCKGUARD(gInterpreterMutex);
    Init(name,cversion, 0, 0, dfil, ifil, dl, il, 0, silent);
@@ -889,9 +875,7 @@ TClass::TClass(const char *name, Version_t cversion,
    fDestructor(0), fDirAutoAdd(0), fStreamerFunc(0), fConvStreamerFunc(0), fSizeof(-1),
    fCanSplit(-1), fProperty(0), fClassProperty(0), fHasRootPcmInfo(kFALSE), fCanLoadClassInfo(kFALSE),
    fIsOffsetStreamerSet(kFALSE), fVersionUsed(kFALSE), fRuntimeProperties(0), fOffsetStreamer(0), fStreamerType(TClass::kDefault),
-   fState(kHasTClassInit),
-   fCurrentInfo(0), fLastReadInfo(0),
-   fSchemaRules(0), fStreamerImpl(&TClass::StreamerDefault)
+   fState(kHasTClassInit), fCurrentInfo(0), fLastReadInfo(0), fStreamerImpl(&TClass::StreamerDefault)
 {
    R__LOCKGUARD(gInterpreterMutex);
    // use info
@@ -994,10 +978,6 @@ void TClass::Init(const char *name, Version_t cversion,
       }
       oldcl->fStreamerInfo->Clear();
       // The code diverges here from ForceReload.
-
-      // Move the Schema Rules too.
-      fSchemaRules = oldcl->fSchemaRules;
-      oldcl->fSchemaRules = 0;
 
       // Move the TFunctions.
       fFuncTemplate = oldcl->fFuncTemplate;
@@ -1190,10 +1170,6 @@ void TClass::Init(const char *name, Version_t cversion,
          fCollectionProxy = TVirtualStreamerInfo::Factory()->GenEmulatedProxy( GetName(), silent );
          if (fCollectionProxy) {
             fSizeof = fCollectionProxy->Sizeof();
-
-            // Numeric Collections have implicit conversions:
-            GetSchemaRules(kTRUE);
-
          } else if (!silent) {
             Warning("Init","Collection proxy for %s was not properly initialized!",GetName());
          }
@@ -1201,9 +1177,6 @@ void TClass::Init(const char *name, Version_t cversion,
             fStreamer =  TVirtualStreamerInfo::Factory()->GenEmulatedClassStreamer( GetName(), silent );
          }
       }
-   } else if (!strncmp(GetName(),"std::pair<",10) || !strncmp(GetName(),"pair<",5) ) {
-      // std::pairs have implicit conversions
-      GetSchemaRules(kTRUE);
    }
 
    ResetBit(kLoading);
@@ -1278,7 +1251,6 @@ TClass::~TClass()
 
    delete fStreamer;
    delete fCollectionProxy;
-   delete fSchemaRules;
    if (fConversionStreamerInfo.load()) {
       std::map<std::string, TObjArray*>::iterator it;
       std::map<std::string, TObjArray*>::iterator end = (*fConversionStreamerInfo).end();
@@ -1287,93 +1259,6 @@ TClass::~TClass()
       }
       delete fConversionStreamerInfo.load();
    }
-}
-
-////////////////////////////////////////////////////////////////////////////////
-/// Add a schema evolution customization rule.
-/// The syntax of the rule can be either the short form:
-/// ~~~ {.cpp}
-///  [type=Read] classname membername [attributes=... ] [version=[...] ] [checksum=[...] ] [oldtype=...] [code={...}]
-/// ~~~
-/// or the long form
-/// ~~~ {.cpp}
-///  [type=Read] sourceClass=classname [targetclass=newClassname] [ source="type membername; [type2 membername2]" ]
-///      [target="membername3;membername4"] [attributes=... ] [version=...] [checksum=...] [code={...}|functionname]
-/// ~~~
-///
-/// For example to set HepMC::GenVertex::m_event to _not_ owned the object it is pointing to:
-///   HepMC::GenVertex m_event attributes=NotOwner
-///
-/// Semantic of the tags:
-///  - type : the type of the rule, valid values: Read, ReadRaw, Write, WriteRaw, the default is 'Read'.
-///  - sourceClass : the name of the class as it is on the rule file
-///  - targetClass : the name of the class as it is in the current code ; defaults to the value of sourceClass
-///  - source : the types and names of the data members from the class on file that are needed, the list is separated by semi-colons ';'
-///  - oldtype: in the short form only, indicates the type on disk of the data member.
-///  - target : the names of the data members updated by this rule, the list is separated by semi-colons ';'
-///  - attributes : list of possible qualifiers among: Owner, NotOwner
-///  - version : list of the version of the class layout that this rule applies to.  The syntax can be [1,4,5] or [2-] or [1-3] or [-3]
-///  - checksum : comma delimited list of the checksums of the class layout that this rule applies to.
-///  - code={...} : code to be executed for the rule or name of the function implementing it.
-
-Bool_t TClass::AddRule( const char *rule )
-{
-   TSchemaRule *ruleobj = new TSchemaRule();
-   if (! ruleobj->SetFromRule( rule ) ) {
-      delete ruleobj;
-      return kFALSE;
-   }
-
-   R__LOCKGUARD(gInterpreterMutex);
-
-   TClass *cl = TClass::GetClass( ruleobj->GetTargetClass() );
-   if (!cl) {
-      // Create an empty emulated class for now.
-      cl = gInterpreter->GenerateTClass(ruleobj->GetTargetClass(), /* emulation = */ kTRUE, /*silent = */ kTRUE);
-   }
-   Detail::TSchemaRuleSet* rset = cl->GetSchemaRules( kTRUE );
-
-   TString errmsg;
-   if( !rset->AddRule( ruleobj, Detail::TSchemaRuleSet::kCheckConflict, &errmsg ) ) {
-      ::CppyyLegacy::Warning( "TClass::AddRule", "The rule for class: \"%s\": version, \"%s\" and data members: \"%s\" has been skipped because it conflicts with one of the other rules (%s).",
-                ruleobj->GetTargetClass(), ruleobj->GetVersion(), ruleobj->GetTargetString(), errmsg.Data() );
-      delete ruleobj;
-      return kFALSE;
-   }
-   return kTRUE;
-}
-
-////////////////////////////////////////////////////////////////////////////////
-/// Adopt a new set of Data Model Evolution rules.
-
-void TClass::AdoptSchemaRules( Detail::TSchemaRuleSet *rules )
-{
-   R__LOCKGUARD(gInterpreterMutex);
-
-   delete fSchemaRules;
-   fSchemaRules = rules;
-   fSchemaRules->SetClass( this );
-}
-
-////////////////////////////////////////////////////////////////////////////////
-/// Return the set of the schema rules if any.
-
-const Detail::TSchemaRuleSet* TClass::GetSchemaRules() const
-{
-   return fSchemaRules;
-}
-
-////////////////////////////////////////////////////////////////////////////////
-/// Return the set of the schema rules if any.
-/// If create is true, create an empty set
-
-Detail::TSchemaRuleSet* TClass::GetSchemaRules(Bool_t create)
-{
-   if (create && fSchemaRules == 0) {
-      fSchemaRules = new Detail::TSchemaRuleSet();
-      fSchemaRules->SetClass( this );
-   }
-   return fSchemaRules;
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -3763,8 +3648,6 @@ TVirtualStreamerInfo* TClass::GetStreamerInfo(Int_t version /* = 0 */) const
    } else {
       if (!sinfo->IsCompiled()) {
          // Streamer info has not been compiled, but exists.
-         // Therefore it was read in from a file and we have to do schema evolution?
-         // Or it didn't have a dictionary before, but does now?
          sinfo->BuildOld();
       }
    }
@@ -3839,7 +3722,6 @@ TVirtualStreamerInfo* TClass::GetStreamerInfoAbstractEmulated(Int_t version /* =
             sinfo->SetName(newname);
             sinfo->BuildCheck();
             sinfo->BuildOld();
-            sinfo->GetClass()->AddRule(TString::Format("sourceClass=%s targetClass=%s",GetName(),newname.Data()));
          } else {
             Error("GetStreamerInfoAbstractEmulated", "could not create TVirtualStreamerInfo");
          }
@@ -3902,7 +3784,6 @@ TVirtualStreamerInfo* TClass::FindStreamerInfoAbstractEmulated(UInt_t checksum) 
             sinfo->SetName( newname );
             sinfo->BuildCheck();
             sinfo->BuildOld();
-            sinfo->GetClass()->AddRule(TString::Format("sourceClass=%s targetClass=%s",GetName(),newname.Data()));
          } else {
             Error("GetStreamerInfoAbstractEmulated", "could not create TVirtualStreamerInfo");
          }
@@ -5095,10 +4976,6 @@ void TClass::SetCollectionProxy(const Detail::TCollectionProxyInfo &info)
 
    AdoptStreamer(TVirtualStreamerInfo::Factory()->GenExplicitClassStreamer(info,this));
 
-   if (fCollectionProxy && !fSchemaRules) {
-      // Numeric Collections have implicit conversions:
-      GetSchemaRules(kTRUE);
-   }
    fCanSplit = -1;
 }
 
@@ -5246,8 +5123,6 @@ UInt_t TClass::GetCheckSum(Bool_t &isvalid) const
 /// isvalid is set to false, if the function is unable to calculate the
 /// checksum.
 ///
-/// The class ckecksum is used by the automatic schema evolution algorithm
-/// to uniquely identify a class version.
 /// The check sum is built from the names/types of base classes and
 /// data members.
 /// Original algorithm from Victor Perevovchikov (perev@bnl.gov).
@@ -5840,15 +5715,8 @@ TVirtualStreamerInfo *TClass::GetConversionStreamerInfo( const TClass* cl, Int_t
 
    info = (TVirtualStreamerInfo*)info->Clone();
 
-   if( !info->BuildFor( this ) ) {
-      delete info;
-      return 0;
-   }
-
    if (!info->IsCompiled()) {
       // Streamer info has not been compiled, but exists.
-      // Therefore it was read in from a file and we have to do schema evolution?
-      // Or it didn't have a dictionary before, but does now?
       info->BuildOld();
    }
 
@@ -5934,15 +5802,9 @@ TVirtualStreamerInfo *TClass::FindConversionStreamerInfo( const TClass* cl, UInt
    /////////////////////////////////////////////////////////////////////////////
 
    info = (TVirtualStreamerInfo*)info->Clone();
-   if( !info->BuildFor( this ) ) {
-      delete info;
-      return 0;
-   }
 
    if (!info->IsCompiled()) {
       // Streamer info has not been compiled, but exists.
-      // Therefore it was read in from a file and we have to do schema evolution?
-      // Or it didn't have a dictionary before, but does now?
       info->BuildOld();
    }
 

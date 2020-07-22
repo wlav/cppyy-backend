@@ -17,8 +17,6 @@
 #include "TVirtualIsAProxy.h"
 #include "TVirtualCollectionProxy.h"
 #include "TCollectionProxyInfo.h"
-#include "TSchemaRule.h"
-#include "TSchemaRuleSet.h"
 #include "TError.h"
 #include "TVirtualMutex.h"
 #include "TInterpreter.h"
@@ -279,66 +277,8 @@ namespace Internal {
          }
          fClass->SetClassSize(fSizeof);
 
-         //---------------------------------------------------------------------
-         // Attach the schema evolution information
-         ///////////////////////////////////////////////////////////////////////
-
-         CreateRuleSet( fReadRules, true );
-         CreateRuleSet( fReadRawRules, false );
       }
       return fClass;
-   }
-
-   /////////////////////////////////////////////////////////////////////////////
-   /// Attach the schema evolution information to TClassObject
-
-   void TGenericClassInfo::CreateRuleSet( std::vector<Internal::TSchemaHelper>& vect,
-                                          Bool_t ProcessReadRules )
-   {
-      if ( vect.empty() ) {
-         return;
-      }
-
-      //------------------------------------------------------------------------
-      // Get the rules set
-      //////////////////////////////////////////////////////////////////////////
-
-      TSchemaRuleSet* rset = fClass->GetSchemaRules( kTRUE );
-
-      //------------------------------------------------------------------------
-      // Process the rules
-      //////////////////////////////////////////////////////////////////////////
-
-      TSchemaRule* rule;
-      TString errmsg;
-      std::vector<Internal::TSchemaHelper>::iterator it;
-      for( it = vect.begin(); it != vect.end(); ++it ) {
-         rule = new TSchemaRule();
-         rule->SetTarget( it->fTarget );
-         rule->SetTargetClass( fClass->GetName() );
-         rule->SetSourceClass( it->fSourceClass );
-         rule->SetSource( it->fSource );
-         rule->SetCode( it->fCode );
-         rule->SetVersion( it->fVersion );
-         rule->SetChecksum( it->fChecksum );
-         rule->SetEmbed( it->fEmbed );
-         rule->SetInclude( it->fInclude );
-         rule->SetAttributes( it->fAttributes );
-
-         if( ProcessReadRules ) {
-            rule->SetRuleType( TSchemaRule::kReadRule );
-            rule->SetReadFunctionPointer( (TSchemaRule::ReadFuncPtr_t)it->fFunctionPtr );
-         }
-         else {
-            rule->SetRuleType( TSchemaRule::kReadRawRule );
-            rule->SetReadRawFunctionPointer( (TSchemaRule::ReadRawFuncPtr_t)it->fFunctionPtr );
-         }
-         if( !rset->AddRule( rule, TSchemaRuleSet::kCheckAll, &errmsg ) ) {
-            ::CppyyLegacy::Warning( "TGenericClassInfo", "The rule for class: \"%s\": version, \"%s\" and data members: \"%s\" has been skipped because %s.",
-                        GetClassName(), it->fVersion.c_str(), it->fTarget.c_str(), errmsg.Data() );
-            delete rule;
-         }
-      }
    }
 
    const char *TGenericClassInfo::GetClassName() const
@@ -368,20 +308,6 @@ namespace Internal {
       // Return the typeinfo value
 
       return fInfo;
-   }
-
-   const std::vector<Internal::TSchemaHelper>& TGenericClassInfo::GetReadRawRules() const
-   {
-      // Return the list of rule give raw access to the TBuffer.
-
-      return fReadRawRules;
-   }
-
-
-   const std::vector<Internal::TSchemaHelper>& TGenericClassInfo::GetReadRules() const
-   {
-      // Return the list of Data Model Evolution regular read rules.
-      return fReadRules;
    }
 
    void TGenericClassInfo::SetFromTemplate()
@@ -464,19 +390,6 @@ namespace Internal {
          fClass->CopyCollectionProxy(*fCollectionProxy);
       }
       return 0;
-   }
-
-   void TGenericClassInfo::SetReadRawRules( const std::vector<Internal::TSchemaHelper>& rules )
-   {
-      // Set the list of Data Model Evolution read rules giving direct access to the TBuffer.
-      fReadRawRules = rules;
-   }
-
-
-   void TGenericClassInfo::SetReadRules( const std::vector<Internal::TSchemaHelper>& rules )
-   {
-      // Set the list of Data Model Evolution regular read rules.
-      fReadRules = rules;
    }
 
    Short_t TGenericClassInfo::SetStreamer(ClassStreamerFunc_t streamer)

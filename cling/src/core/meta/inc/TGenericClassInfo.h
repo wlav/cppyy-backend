@@ -12,8 +12,8 @@
 #ifndef ROOT_TGenericClassInfo
 #define ROOT_TGenericClassInfo
 
+#include <string>
 #include <vector>
-#include "TSchemaHelper.h"
 #include "Rtypes.h"
 
 
@@ -61,8 +61,6 @@ class TVirtualIsAProxy;
       Int_t                       fPragmaBits;
       Detail::TCollectionProxyInfo *fCollectionProxyInfo;
       Detail::TCollectionProxyInfo *fCollectionStreamerInfo;
-      std::vector<Internal::TSchemaHelper>  fReadRules;
-      std::vector<Internal::TSchemaHelper>  fReadRawRules;
 
    public:
       TGenericClassInfo(const char *fullClassname,
@@ -102,8 +100,6 @@ class TVirtualIsAProxy;
       TVirtualIsAProxy                 *GetIsA() const;
       NewFunc_t                         GetNew() const;
       NewArrFunc_t                      GetNewArray() const;
-      const std::vector<Internal::TSchemaHelper> &GetReadRawRules() const;
-      const std::vector<Internal::TSchemaHelper> &GetReadRules() const;
       Int_t                             GetVersion() const;
 
       TClass                           *IsA(const void *obj);
@@ -121,8 +117,6 @@ class TVirtualIsAProxy;
       Int_t                             SetImplFile(const char *file, Int_t line);
       void                              SetNew(NewFunc_t newFunc);
       void                              SetNewArray(NewArrFunc_t newArrayFunc);
-      void                              SetReadRawRules( const std::vector<Internal::TSchemaHelper>& rules );
-      void                              SetReadRules( const std::vector<Internal::TSchemaHelper>& rules );
       Short_t                           SetStreamer(ClassStreamerFunc_t);
       void                              SetStreamerFunc(ClassStreamerFunc_t);
       void                              SetConvStreamerFunc(ClassConvStreamerFunc_t);
@@ -130,7 +124,6 @@ class TVirtualIsAProxy;
 
       //   protected:
    private:
-      void CreateRuleSet( std::vector<Internal::TSchemaHelper>& vect, Bool_t ProcessReadRules );
       TGenericClassInfo(const TGenericClassInfo&); // Not implemented
       TGenericClassInfo& operator=(const TGenericClassInfo&); // Not implemented
 

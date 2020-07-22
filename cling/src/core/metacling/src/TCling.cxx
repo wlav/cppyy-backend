@@ -58,7 +58,6 @@ clang/LLVM technology.
 #include "TEnum.h"
 #include "TEnumConstant.h"
 #include "THashTable.h"
-#include "RConversionRuleParser.h"
 #include "RConfigure.h"
 #include "compiledata.h"
 #include "TClingUtils.h"

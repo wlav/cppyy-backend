@@ -12,9 +12,10 @@
 #ifndef ROOT_TMetaUtils
 #define ROOT_TMetaUtils
 
-#include "RConversionRuleParser.h"
+#include "TSchemaType.h"
 
 #include <functional>
+#include <list>
 #include <set>
 #include <string>
 #include <unordered_set>

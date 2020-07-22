@@ -119,8 +119,6 @@ The structure of a directory is shown in TDirectoryFile::TDirectoryFile
 #include "compiledata.h"
 #include <cmath>
 #include <set>
-#include "TSchemaRule.h"
-#include "TSchemaRuleSet.h"
 #include "TThreadSlots.h"
 #include "TGlobal.h"
 #include "ROOT/RMakeUnique.hxx"
@@ -1145,10 +1143,6 @@ TFile::InfoListRet TFile::GetStreamerInfoListImpl(bool lookupSICache)
 ///
 /// The function returns a TList. It is the user's responsibility
 /// to delete the list created by this function.
-///
-/// Note the list, in addition to TStreamerInfo object, contains sometimes
-/// a TList named 'listOfRules' and containing the schema evolution rules
-/// related to the file's content.
 ///
 /// Using the list, one can access additional information, e.g.:
 /// ~~~{.cpp}
@@ -2190,21 +2184,6 @@ void TFile::ReadStreamerInfo()
          }
          if (info->IsA() != TStreamerInfo::Class()) {
             if (mode==1) {
-               TObject *obj = (TObject*)info;
-               if (strcmp(obj->GetName(),"listOfRules")==0) {
-#if 0
-                  // Completely ignore the rules for now.
-                  TList *listOfRules = (TList*)obj;
-                  TObjLink *rulelnk = listOfRules->FirstLink();
-                  while (rulelnk) {
-                     TObjString *rule = (TObjString*)rulelnk->GetObject();
-                     TClass::AddRule( rule->String().Data() );
-                     rulelnk = rulelnk->Next();
-                  }
-#endif
-               } else {
-                  Warning("ReadStreamerInfo","%s has a %s in the list of TStreamerInfo.", GetName(), info->IsA()->GetName());
-               }
                info->SetBit(kCanDelete);
             }
             lnk = lnk->Next();
@@ -2334,9 +2313,6 @@ void TFile::WriteStreamerInfo()
    TIter next(gROOT->GetListOfStreamerInfo());
    TStreamerInfo *info;
    TList list;
-   TList listOfRules;
-   listOfRules.SetOwner(kTRUE);
-   listOfRules.SetName("listOfRules");
    std::set<TClass*> classSet;
 
 
@@ -2345,34 +2321,11 @@ void TFile::WriteStreamerInfo()
       if (fClassIndex->fArray[uid]) {
          list.Add(info);
          if (gDebug > 0) printf(" -class: %s info number %d saved\n",info->GetName(),uid);
-
-         // Add the IO customization rules to the list to be saved for the underlying
-         // class but make sure to add them only once.
-         TClass *clinfo = info->GetClass();
-         if (clinfo && clinfo->GetSchemaRules()) {
-            if ( classSet.find( clinfo ) == classSet.end() ) {
-               if (gDebug > 0) printf(" -class: %s stored the I/O customization rules\n",info->GetName());
-
-               TObjArrayIter it( clinfo->GetSchemaRules()->GetRules() );
-               TSchemaRule *rule;
-               while( (rule = (TSchemaRule*)it.Next()) ) {
-                  TObjString *obj = new TObjString();
-                  rule->AsString(obj->String());
-                  listOfRules.Add(obj);
-               }
-               classSet.insert(clinfo);
-            }
-         }
       }
    }
 
    // Write the StreamerInfo list even if it is empty.
    fClassIndex->fArray[0] = 2;
-
-   if (listOfRules.GetEntries()) {
-      // Only add the list of rules if we have something to say.
-      list.Add(&listOfRules);
-   }
 
    //free previous StreamerInfo record
    if (fSeekInfo) MakeFree(fSeekInfo,fSeekInfo+fNbytesInfo-1);
@@ -2385,8 +2338,6 @@ void TFile::WriteStreamerInfo()
    key.WriteFile(0);
 
    fClassIndex->fArray[0] = 0;
-
-   list.RemoveLast(); // remove the listOfRules.
 }
 
 ////////////////////////////////////////////////////////////////////////////////

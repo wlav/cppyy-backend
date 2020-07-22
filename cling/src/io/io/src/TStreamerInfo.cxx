@@ -58,9 +58,6 @@ element type.
 
 #include "TMemberInspector.h"
 
-#include "TSchemaRuleSet.h"
-#include "TSchemaRule.h"
-
 #include "TVirtualMutex.h"
 
 #include "TStreamerInfoActions.h"
@@ -77,54 +74,6 @@ namespace CppyyLegacy {
 std::atomic<Int_t> TStreamerInfo::fgCount{0};
 
 const Int_t kMaxLen = 1024;
-
-static void R__TObjArray_InsertAt(TObjArray *arr, TObject *obj, Int_t at)
-{
-   // Slide by one.
-   Int_t last = arr->GetLast();
-   arr->AddAtAndExpand(arr->At(last),last+1);
-   for(Int_t ind = last-1; ind >= at; --ind) {
-      arr->AddAt( arr->At(ind), ind+1);
-   };
-   arr->AddAt( obj, at);
-}
-
-static void R__TObjArray_InsertAt(TObjArray *arr, std::vector<TStreamerArtificial*> &objs, Int_t at)
-{
-   // Slide by enough.
-   Int_t offset = objs.size();
-   Int_t last = arr->GetLast();
-   arr->AddAtAndExpand(arr->At(last),last+offset);
-   for(Int_t ind = last-1; ind >= at; --ind) {
-      arr->AddAt( arr->At(ind), ind+offset);
-   };
-   for(size_t ins = 0; ins < objs.size(); ++ins) {
-      arr->AddAt(objs[ins], at+ins);
-   }
-}
-
-static void R__TObjArray_InsertAfter(TObjArray *arr, TObject *newobj, TObject *oldobj)
-{
-   // Slide by one.
-   Int_t last = arr->GetLast();
-   Int_t at = 0;
-   while (at<last && arr->At(at) != oldobj) {
-      ++at;
-   }
-   ++at; // we found the object, insert after it
-   R__TObjArray_InsertAt(arr, newobj, at);
-}
-
-static void R__TObjArray_InsertBefore(TObjArray *arr, TObject *newobj, TObject *oldobj)
-{
-   // Slide by one.
-   Int_t last = arr->GetLast();
-   Int_t at = 0;
-   while (at<last && arr->At(at) != oldobj) {
-      ++at;
-   }
-   R__TObjArray_InsertAt(arr, newobj, at);
-}
 
 enum class EUniquePtrOffset : char
    {
@@ -292,10 +241,6 @@ void TStreamerInfo::Build()
 
    Bool_t needAllocClass = kFALSE;
    Bool_t wasCompiled = fComp != 0;
-   CppyyLegacy::TSchemaRuleSet::TMatches rules;
-   if (fClass->GetSchemaRules()) {
-       rules = fClass->GetSchemaRules()->FindRules(fClass->GetName(), fClassVersion);
-   }
 
    //
    // Iterate over base classes.
@@ -594,7 +539,7 @@ void TStreamerInfo::Build()
          }
       }
 
-      if ( !wasCompiled && (rules && rules.HasRuleWithSource( element->GetName(), kTRUE )) ) {
+      if ( !wasCompiled  ) {
          needAllocClass = kTRUE;
 
          // If this is optimized to re-use TStreamerElement(s) in case of variable renaming,
@@ -603,8 +548,7 @@ void TStreamerInfo::Build()
 
          TStreamerElement *cached = element;
          // Now that we are caching the unconverted element, we do not assign it to the real type even if we could have!
-         if (element->GetNewType()>0 /* intentionally not including base class for now */
-             && rules && !rules.HasRuleWithTarget( element->GetName(), kTRUE ) )
+         if (element->GetNewType()>0) /* intentionally not including base class for now */
          {
             TStreamerElement *copy = (TStreamerElement*)element->Clone();
             fElements->Add(copy);
@@ -630,9 +574,6 @@ void TStreamerInfo::Build()
       fElements->Add(element);
    } // end of member loop
 
-   // Now add artificial TStreamerElement (i.e. rules that creates new members or set transient members).
-   InsertArtificialElements(rules);
-
    if (needAllocClass) {
       TStreamerInfo *infoalloc  = (TStreamerInfo *)Clone(TString::Format("%s@@%d",GetName(),GetClassVersion()));
       if (!infoalloc) {
@@ -646,7 +587,6 @@ void TStreamerInfo::Build()
          infoalloc->BuildCheck();
          infoalloc->BuildOld();
          fIsBuilt = kFALSE;
-         TClass *allocClass = infoalloc->GetClass();
 
          {
             TIter next(fElements);
@@ -670,12 +610,6 @@ void TStreamerInfo::Build()
             }
             }
          }
-
-         TStreamerElement *el = new TStreamerArtificial("@@alloc","", 0, TStreamerInfo::kCacheNew, allocClass->GetName());
-         R__TObjArray_InsertAt( fElements, el, 0 );
-
-         el = new TStreamerArtificial("@@dealloc","", 0, TStreamerInfo::kCacheDelete, allocClass->GetName());
-         fElements->Add( el );
       }
    }
 
@@ -1246,31 +1180,6 @@ void TStreamerInfo::BuildEmulated(TFile *file)
    BuildOld();
 }
 
-////////////////////////////////////////////////////////////////////////////////
-/// Check if we can build this for foreign class - do we have some rules
-/// to do that.
-
-Bool_t TStreamerInfo::BuildFor( const TClass *in_memory_cl )
-{
-   R__LOCKGUARD(gInterpreterMutex);
-
-   if( !in_memory_cl || !in_memory_cl->GetSchemaRules() ) {
-      return kFALSE;
-   }
-
-   auto rules = in_memory_cl->GetSchemaRules()->FindRules( GetName(), fOnFileClassVersion, fCheckSum );
-
-   if( rules.empty() && !in_memory_cl->GetCollectionType() ) {
-      Warning( "BuildFor", "The build of %s streamer info for %s has been requested, but no matching conversion rules were specified", GetName(), in_memory_cl->GetName() );
-      return kFALSE;
-   }
-
-   fClass = const_cast<TClass*>(in_memory_cl);
-
-   return kTRUE;
-}
-
-
 namespace {
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -1806,8 +1715,6 @@ void TStreamerInfo::BuildOld()
       printf("\n====>Rebuilding TStreamerInfo for class: %s, version: %d\n", GetName(), fClassVersion);
    }
 
-   Bool_t wasCompiled = IsCompiled();
-
    if (fClass->GetClassVersion() == fClassVersion) {
       if (!fClass->HasInterpreterInfo() || fClass->GetCollectionType() || TClassEdit::IsSTLBitset(GetName()))
       {
@@ -1867,17 +1774,9 @@ void TStreamerInfo::BuildOld()
       }
    }
 
-   TClass *allocClass = 0;
-   TStreamerInfo *infoalloc = 0;
-
    //---------------------------------------------------------------------------
    // Get schema rules for this class
    /////////////////////////////////////////////////////////////////////////////
-
-   CppyyLegacy::TSchemaRuleSet::TMatches rules;
-   const CppyyLegacy::TSchemaRuleSet* ruleSet = fClass->GetSchemaRules();
-
-   if (ruleSet) rules = ruleSet->FindRules( GetName(), fOnFileClassVersion, fCheckSum );
 
    Bool_t shouldHaveInfoLoc = fClass->TestBit(TClass::kIsEmulation) && !TClassEdit::IsStdClass(fClass->GetName());
    Int_t virtualInfoLocAlloc = 0;
@@ -1886,14 +1785,8 @@ void TStreamerInfo::BuildOld()
    fVirtualInfoLoc = 0;
 
    while ((element = (TStreamerElement*) next())) {
-      if (element->IsA()==TStreamerArtificial::Class()
-          || element->TestBit(TStreamerElement::kCache) )
+      if (element->TestBit(TStreamerElement::kCache) )
       {
-         // Prevent BuildOld from modifying existing ArtificialElement (We need to review when and why BuildOld
-         // needs to be re-run; it might be needed if the 'current' class change (for example from being an onfile
-         // version to being a version loaded from a shared library) and we thus may have to remove the artifical
-         // element at the beginning of BuildOld)
-
          continue;
       };
 
@@ -1916,39 +1809,11 @@ void TStreamerInfo::BuildOld()
             TClassRef baseclass =  base->GetClassPointer();
 #endif
 
-            //------------------------------------------------------------------
-            // We do not have this base class - check if we're renaming
-            ////////////////////////////////////////////////////////////////////
-
-            if( !baseclass && !fClass->TestBit( TClass::kIsEmulation ) ) {
-               const CppyyLegacy::TSchemaRule* rule = (rules ? rules.GetRuleWithSource( base->GetName() ) : 0);
-
-               //---------------------------------------------------------------
-               // No renaming, sorry
-               /////////////////////////////////////////////////////////////////
-
-               if( !rule ) {
-                  Error("BuildOld", "Could not find base class: %s for %s and could not find any matching rename rule\n", base->GetName(), GetName());
-                  continue;
-               }
-
-               //----------------------------------------------------------------
-               // Find a new target class
-               /////////////////////////////////////////////////////////////////
-
-               const TObjArray* targets = rule->GetTarget();
-               if( !targets ) {
-                  Error("BuildOld", "Could not find base class: %s for %s, renaming rule was found but is malformed\n", base->GetName(), GetName());
-               }
-               TString newBaseClass = ((TObjString*)targets->At(0))->GetString();
-               baseclass = TClass::GetClass( newBaseClass );
-               base->SetNewBaseClass( baseclass );
-            }
             //-------------------------------------------------------------------
             // No base class in emulated mode
             ////////////////////////////////////////////////////////////////////
 
-            else if( !baseclass ) {
+            if( !baseclass ) {
                baseclass = base->GetClassPointer();
                if (!baseclass) {
                   Warning("BuildOld", "Missing base class: %s skipped", base->GetName());
@@ -1963,28 +1828,6 @@ void TStreamerInfo::BuildOld()
             // '@@emulated' in the case of the emulation of an abstract base class.
             Int_t baseOffset = fClass->GetBaseClassOffset(baseclass);
 
-            // Deal with potential schema evolution (renaming) of the base class.
-            if (baseOffset < 0) {
-
-               // See if this base element can be converted into one of
-               // the existing base class.
-               TList* listOfBases = fClass->GetListOfBases();
-               if (listOfBases) {
-                  TBaseClass* bc = 0;
-                  TIter nextBC(fClass->GetListOfBases());
-                  while ((bc = (TBaseClass*) nextBC())) {
-                     TClass *in_memory_bcl = bc->GetClassPointer();
-                     if (in_memory_bcl && in_memory_bcl->GetSchemaRules()) {
-                        auto baserule = in_memory_bcl->GetSchemaRules()->FindRules( base->GetName(), base->GetBaseVersion(), base->GetBaseCheckSum() );
-                        if (!baserule.empty()) {
-                           base->SetNewBaseClass(in_memory_bcl);
-                           baseOffset = bc->GetDelta();
-
-                        }
-                     }
-                  }
-               }
-            }
             // We need to initialize the element now, as we need the
             // correct StreamerInfo next.
             element->Init(this);
@@ -2390,25 +2233,10 @@ void TStreamerInfo::BuildOld()
             } else if (CollectionMatchULong64(oldClass,newClass)) {
                // Not much to do since both are the same collection of 8 bits unsigned entities on file
                element->Update(oldClass, newClass.GetClass());
-            } else if (newClass->GetSchemaRules()->HasRuleWithSourceClass( oldClass->GetName() )) {
-               //------------------------------------------------------------------------
-               // We can convert one type to another (at least for some of the versions).
-               /////////////////////////////////////////////////////////////////
-
-               element->SetNewClass( newClass );
             } else {
                element->SetNewType(-2);
             }
 
-         } else if(oldClass &&
-                   newClass.GetClass() &&
-                   newClass->GetSchemaRules() &&
-                   newClass->GetSchemaRules()->HasRuleWithSourceClass( oldClass->GetName() ) ) {
-            //------------------------------------------------------------------------
-            // We can convert one type to another (at least for some of the versions).
-            ////////////////////////////////////////////////////////////////////
-
-            element->SetNewClass( newClass );
          } else {
             element->SetNewType(-2);
          }
@@ -2559,70 +2387,6 @@ void TStreamerInfo::BuildOld()
          offset += asize;
       }
 
-      if (!wasCompiled && rules) {
-         if (rules.HasRuleWithSource( element->GetName(), kTRUE ) ) {
-
-            if (allocClass == 0) {
-               infoalloc  = (TStreamerInfo *)Clone(TString::Format("%s@@%d",GetName(),GetOnFileClassVersion()));
-               if (!infoalloc) {
-                  Error("BuildOld","Unable to create the StreamerInfo for %s.",TString::Format("%s@@%d",GetName(),GetOnFileClassVersion()).Data());
-               } else {
-                  infoalloc->SetBit(kBuildOldUsed,false);
-                  infoalloc->BuildCheck();
-                  infoalloc->BuildOld();
-                  allocClass = infoalloc->GetClass();
-               }
-            }
-
-            // Now that we are caching the unconverted element, we do not assign it to the real type even if we could have!
-            if (element->GetNewType()>0 /* intentionally not including base class for now */
-                && !rules.HasRuleWithTarget( element->GetName(), kTRUE ) ) {
-
-               TStreamerElement *copy = (TStreamerElement*)element->Clone();
-               R__TObjArray_InsertBefore( fElements, copy, element );
-               next(); // move the cursor passed the insert object.
-               copy->SetBit(TStreamerElement::kRepeat);
-               element = copy;
-
-               // Warning("BuildOld","%s::%s is not set from the version %d of %s (You must add a rule for it)\n",GetName(), element->GetName(), GetClassVersion(), GetName() );
-            } else {
-               // If the element is just cached and not repeat, we need to inject an element
-               // to insure the writing.
-               TStreamerElement *writecopy = (TStreamerElement*)element->Clone();
-               R__TObjArray_InsertAfter( fElements, writecopy, element );
-               next(); // move the cursor passed the insert object.
-               writecopy->SetBit(TStreamerElement::kWrite);
-               writecopy->SetNewType( writecopy->GetType() );
-               writecopy->SetOffset(element->GetOffset());
-            }
-            element->SetBit(TStreamerElement::kCache);
-            element->SetNewType( element->GetType() );
-            element->SetOffset(infoalloc ? infoalloc->GetOffset(element->GetName()) : 0);
-         } else if (rules.HasRuleWithTarget( element->GetName(), kTRUE ) ) {
-            // The data member exist in the onfile StreamerInfo and there is a rule
-            // that has the same member 'only' has a target ... so this means we are
-            // asked to ignore the input data ...
-            if (element->GetType() == kCounter) {
-               // If the element is a counter, we will need its value to read
-               // other data member, so let's do so (by not disabling it) even
-               // if the value will be over-written by a rule.
-            } else {
-               element->SetOffset(kMissing);
-            }
-         }
-      } else if (rules && rules.HasRuleWithTarget( element->GetName(), kTRUE ) ) {
-         // The data member exist in the onfile StreamerInfo and there is a rule
-         // that has the same member 'only' has a target ... so this means we are
-         // asked to ignore the input data ...
-         if (element->GetType() == kCounter) {
-            // If the element is a counter, we will need its value to read
-            // other data member, so let's do so (by not disabling it) even
-            // if the value will be over-written by a rule.
-         } else {
-            element->SetOffset(kMissing);
-         }
-      }
-
       if (element->GetNewType() == -2) {
          Warning("BuildOld", "Cannot convert %s::%s from type: %s to type: %s, skip element", GetName(), element->GetName(), element->GetTypeName(), newClass ? newClass->GetName() : (dm ? dm->GetFullTypeName() : "unknown") );
       }
@@ -2657,18 +2421,6 @@ void TStreamerInfo::BuildOld()
       for (kel = 0; jel < narr;) {
          arr[jel++] = tai[kel++];
       }
-   }
-
-   // Now add artificial TStreamerElement (i.e. rules that creates new members or set transient members).
-   if (!wasCompiled) InsertArtificialElements(rules);
-
-   if (!wasCompiled && allocClass) {
-
-      TStreamerElement *el = new TStreamerArtificial("@@alloc","", 0, TStreamerInfo::kCacheNew, allocClass->GetName());
-      R__TObjArray_InsertAt( fElements, el, 0 );
-
-      el = new TStreamerArtificial("@@dealloc","", 0, TStreamerInfo::kCacheDelete, allocClass->GetName());
-      fElements->Add( el );
    }
 
    Compile();
@@ -3103,7 +2855,7 @@ Bool_t TStreamerInfo::CompareContent(TClass *cl, TVirtualStreamerInfo *info, Boo
       local.Clear();
       other.Clear();
       el = (TStreamerElement*)next();
-      while (el && (el->IsBase() || el->IsA() == TStreamerArtificial::Class())) {
+      while (el && el->IsBase()) {
          el = (TStreamerElement*)next();
          ++idx;
       }
@@ -3144,7 +2896,7 @@ Bool_t TStreamerInfo::CompareContent(TClass *cl, TVirtualStreamerInfo *info, Boo
          }
       } else {
          infoel = (TStreamerElement*)infonext();
-         while (infoel && (infoel->IsBase() || infoel->IsA() == TStreamerArtificial::Class())) {
+         while (infoel && infoel->IsBase()) {
             infoel = (TStreamerElement*)infonext();
          }
          if (infoel) {
@@ -3822,147 +3574,6 @@ T TStreamerInfo::GetTypedValueSTLP(TVirtualCollectionProxy *cont, Int_t i, Int_t
 }
 
 ////////////////////////////////////////////////////////////////////////////////
-/// Insert new members as expressed in the array of TSchemaRule(s).
-
-void TStreamerInfo::InsertArtificialElements(std::vector<const CppyyLegacy::TSchemaRule*> &rules)
-{
-   if (rules.empty()) return;
-
-   TIter next(fElements);
-   UInt_t count = 0;
-
-   for(auto rule : rules) {
-      if( rule->IsRenameRule() || rule->IsAliasRule() )
-         continue;
-      next.Reset();
-      TStreamerElement *element;
-      while ((element = (TStreamerElement*) next())) {
-         if ( rule->HasTarget( element->GetName() ) ) {
-
-            // Check whether this is an 'attribute' rule.
-            if ( rule->GetAttributes()[0] != 0 ) {
-               TString attr( rule->GetAttributes() );
-               attr.ToLower();
-               if (attr.Contains("owner")) {
-                  if (attr.Contains("notowner")) {
-                     element->SetBit(TStreamerElement::kDoNotDelete);
-                  } else {
-                     element->ResetBit(TStreamerElement::kDoNotDelete);
-                  }
-               }
-
-            }
-            break;
-         }
-      }
-
-      // NOTE: Before adding the rule we should check that the source do
-      // existing in this StreamerInfo.
-      const TObjArray *sources = rule->GetSource();
-      TIter input(sources);
-      TObject *src;
-      while((src = input())) {
-         if ( !GetElements()->FindObject(src->GetName()) ) {
-            // Missing source.
-#if 0 // Don't warn about not activating the rule.  If don't warn the user can
-      // have more flexibility in specifying when the rule applies and relying
-      // on both the version number *and* the presence of the source members.
-      // Activating this warning would for example mean that we need to carefully
-      // tweak $ROOTSYS/etc/class.rules.
-            TString ruleStr;
-            rule->AsString(ruleStr);
-            Warning("InsertArtificialElements","For class %s in StreamerInfo %d is missing the source data member %s when trying to apply the rule:\n   %s",
-                   GetName(),GetClassVersion(),src->GetName(),ruleStr.Data());
-            rule = 0;
-#endif
-            break;
-         }
-      }
-
-      if (!rule) continue;
-
-      TStreamerArtificial *newel;
-      typedef std::vector<TStreamerArtificial*> vec_t;
-      vec_t toAdd;
-
-      if (rule->GetTarget()==0) {
-         TString newName;
-         newName.Form("%s_rule%d",fClass->GetName(),count);
-         newel = new TStreamerArtificial(newName,"",
-                                         fClass->GetDataMemberOffset(newName),
-                                         TStreamerInfo::kArtificial,
-                                         "void");
-         newel->SetBit(TStreamerElement::kWholeObject);
-         newel->SetReadFunc( rule->GetReadFunctionPointer() );
-         newel->SetReadRawFunc( rule->GetReadRawFunctionPointer() );
-         toAdd.push_back(newel);
-      } else {
-         toAdd.reserve(rule->GetTarget()->GetEntries());
-         TObjString * objstr = (TObjString*)(rule->GetTarget()->At(0));
-         if (objstr) {
-            TString newName = objstr->String();
-            TString realDataName;
-            if ( TDataMember* dm = fClass->GetDataMember( newName ) ) {
-               TRealData::GetName(realDataName,dm);
-               newel = new TStreamerArtificial(realDataName,"",
-                                               fClass->GetDataMemberOffset(newName),
-                                               TStreamerInfo::kArtificial,
-                                               fClass->GetDataMember( newName )->GetTypeName());
-               newel->SetReadFunc( rule->GetReadFunctionPointer() );
-               newel->SetReadRawFunc( rule->GetReadRawFunctionPointer() );
-               toAdd.push_back(newel);
-            } else {
-               // This would be a completely new member (so it would need to be cached)
-               // TOBEDONE
-            }
-            for(Int_t other = 1; other < rule->GetTarget()->GetEntries(); ++other) {
-               objstr = (TObjString*)(rule->GetTarget()->At(other));
-               if (objstr) {
-                  newName = objstr->String();
-                  if ( TDataMember* dm = fClass->GetDataMember( newName ) ) {
-                     TRealData::GetName(realDataName,dm);
-                     newel = new TStreamerArtificial(realDataName,"",
-                                                     fClass->GetDataMemberOffset(newName),
-                                                     TStreamerInfo::kArtificial,
-                                                     fClass->GetDataMember( newName )->GetTypeName());
-                     toAdd.push_back(newel);
-                  }
-               }
-            }
-         } // For each target of the rule
-      }
-      // Now find we with need to add them
-      TIter s_iter(rule->GetSource());
-      Int_t loc = -1;
-      while( TObjString *s = (TObjString*)s_iter() ) {
-         for(Int_t i = fElements->GetLast(); i >= 0 && (i+1) >= loc; --i) {
-            if (s->String() == fElements->UncheckedAt(i)->GetName()) {
-               if (loc == -1 || (i+1)>loc) {
-                  loc = i+1;
-               }
-            }
-         }
-      }
-      if (loc == -1) {
-         // Verify if the last one is not 'skipped'.
-         for(Int_t i = fElements->GetLast(); i >= 0 && (i+1) >= loc; --i) {
-            if ( ((TStreamerElement*)fElements->UncheckedAt(i))->GetNewType() != -2 ) {
-               break;
-            }
-            loc = i;
-         }
-      }
-      if (loc == -1) {
-         for(vec_t::iterator iter = toAdd.begin(); iter != toAdd.end(); ++iter) {
-            fElements->Add(*iter);
-         }
-      } else {
-         R__TObjArray_InsertAt(fElements, toAdd, loc);
-      }
-   } // None of the target of the rule are on file.
-}
-
-////////////////////////////////////////////////////////////////////////////////
 /// An emulated object is created at address obj, if obj is null we
 /// allocate memory for the object.
 
@@ -4539,7 +4150,7 @@ void TStreamerInfo::Streamer(TBuffer &R__b)
          Int_t nobjects = fElements->GetEntriesFast();
          for (Int_t i = 0; i < nobjects; i++) {
             el = (TStreamerElement *)fElements->UncheckedAt(i);
-            if (el != 0 && (el->IsA() == TStreamerArtificial::Class() || el->TestBit(TStreamerElement::kRepeat))) {
+            if (el != 0 && el->TestBit(TStreamerElement::kRepeat)) {
                // skip
             } else if (el != 0 && (el->TestBit(TStreamerElement::kCache) && !el->TestBit(TStreamerElement::kWrite))) {
                // skip

@@ -37,9 +37,6 @@ set(Meta_dict_headers
   TMethod.h
   TProtoClass.h
   TRealData.h
-  TSchemaHelper.h
-  TSchemaRule.h
-  TSchemaRuleSet.h
   TStreamerElement.h
   TStreamer.h
   TVirtualIsAProxy.h
@@ -73,8 +70,6 @@ ROOT_OBJECT_LIBRARY(Meta
   src/TMethodArg.cxx
   src/TProtoClass.cxx
   src/TRealData.cxx
-  src/TSchemaRule.cxx
-  src/TSchemaRuleSet.cxx
   src/TStreamerElement.cxx
   src/TViewPubDataMembers.cxx
   src/TViewPubFunctions.cxx

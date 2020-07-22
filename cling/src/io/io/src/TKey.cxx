@@ -59,7 +59,6 @@
 #include "TInterpreter.h"
 #include "TError.h"
 #include "TVirtualStreamerInfo.h"
-#include "TSchemaRuleSet.h"
 
 #include "RZip.h"
 
@@ -980,18 +979,7 @@ void *TKey::ReadObjectAny(const TClass* expectedClass)
        // baseOffset will be -1 if cl does not inherit from expectedClass
       baseOffset = cl->GetBaseClassOffset(expectedClass);
       if (baseOffset == -1) {
-         // The 2 classes are unrelated, maybe there is a converter between the 2.
-
-         if (!expectedClass->GetSchemaRules() ||
-             !expectedClass->GetSchemaRules()->HasRuleWithSourceClass(cl->GetName()))
-         {
-            // There is no converter
-            return 0;
-         }
-         baseOffset = 0; // For now we do not support requesting from a class that is the base of one of the class for which there is transformation to ....
-         clOnfile = cl;
-         cl = const_cast<TClass*>(expectedClass);
-         Info("ReadObjectAny","Using Converter StreamerInfo from %s to %s",clOnfile->GetName(),expectedClass->GetName());
+         return 0;
       }
       if (cl->GetState() > TClass::kEmulated && expectedClass->GetState() <= TClass::kEmulated) {
          //we cannot mix a compiled class with an emulated class in the inheritance

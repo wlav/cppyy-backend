@@ -36,7 +36,6 @@ class TStreamerBasicType;
 class TClassStreamer;
 class TVirtualArray;
 namespace Detail { class TCollectionProxyInfo; }
-class TSchemaRule;
 
 namespace TStreamerInfoActions { class TActionSequence; }
 
@@ -120,7 +119,6 @@ private:
    template <typename T> static T GetTypedValueAux(Int_t type, void *ladd, int k, Int_t len);
    static void       PrintValueAux(char *ladd, Int_t atype, TStreamerElement * aElement, Int_t aleng, Int_t *count);
 
-   void              InsertArtificialElements(std::vector<const CppyyLegacy::TSchemaRule*> &rules);
    void              DestructorImpl(void* p, Bool_t dtorOnly);
 
 private:
@@ -189,7 +187,6 @@ public:
    void                BuildCheck(TFile *file = 0);
    void                BuildEmulated(TFile *file);
    void                BuildOld();
-   virtual Bool_t      BuildFor( const TClass *cl );
    void                CallShowMembers(const void* obj, TMemberInspector &insp, Bool_t isTransient) const;
    void                Clear(Option_t *);
    TObject            *Clone(const char *newname = "") const;

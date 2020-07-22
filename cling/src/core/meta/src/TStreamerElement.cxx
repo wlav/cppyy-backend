@@ -423,8 +423,7 @@ Bool_t TStreamerElement::IsBase() const
 Bool_t TStreamerElement::IsTransient() const
 {
    if (fType == TVirtualStreamerInfo::kArtificial) {
-      // if (((const TStreamerArtificial*)this)->GetWriteFunc() == 0)
-         return kTRUE;
+       return kTRUE;
    }
    if (fType == TVirtualStreamerInfo::kCacheNew) return kTRUE;
    if (fType == TVirtualStreamerInfo::kCacheDelete) return kTRUE;
@@ -2038,36 +2037,4 @@ void TStreamerSTLstring::Streamer(TBuffer &R__b)
 
 //______________________________________________________________________________
 
-///////////////////////////////////////////////////////////////////////////////
-//                                                                           //
-// TStreamerArtificial implements StreamerElement injected by a TSchemaRule. //
-//                                                                           //
-///////////////////////////////////////////////////////////////////////////////
-
 ClassImp(CppyyLegacy::TStreamerSTLstring);
-
-namespace CppyyLegacy {
-
-void TStreamerArtificial::Streamer(TBuffer& /* R__b */)
-{
-   // Avoid streaming the synthetic/artificial streamer elements.
-
-   // Intentionally, nothing to do at all.
-   return;
-}
-
-TSchemaRule::ReadFuncPtr_t     TStreamerArtificial::GetReadFunc()
-{
-   // Return the read function if any.
-
-   return fReadFunc;
-}
-
-TSchemaRule::ReadRawFuncPtr_t  TStreamerArtificial::GetReadRawFunc()
-{
-   // Return the raw read function if any.
-
-   return fReadRawFunc;
-}
-
-} // namespace CppyyLegacy
