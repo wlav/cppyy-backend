@@ -244,9 +244,6 @@ public:
                "#include <utility>";
         gInterpreter->ProcessLine(code);
 
-    // make sure we run in batch mode as far as ROOT graphics is concerned
-        gROOT->SetBatch(kTRUE);
-
     // create helpers for comparing thingies
         gInterpreter->Declare(
             "namespace __cppyy_internal { template<class C1, class C2>"

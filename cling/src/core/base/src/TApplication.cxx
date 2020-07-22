@@ -22,7 +22,6 @@ TApplication (see TRint).
 #include "RConfigure.h"
 #include "Riostream.h"
 #include "TApplication.h"
-#include "TApplicationImp.h"
 #include "TException.h"
 #include "TROOT.h"
 #include "TSystem.h"
@@ -71,9 +70,7 @@ static void CallEndOfProcessCleanups()
 /// Default ctor. Can be used by classes deriving from TApplication.
 
 TApplication::TApplication() :
-   fArgc(0), fArgv(0), fAppImp(0),
-   fFiles(0), fSigHandler(0), fExitOnException(kDontExit),
-   fAppRemote(0)
+   fArgc(0), fArgv(0), fExitOnException(kDontExit)
 {
 }
 
@@ -82,9 +79,7 @@ TApplication::TApplication() :
 
 TApplication::TApplication(const char *appClassName, Int_t *argc, char **argv,
                            void * /*options*/, Int_t /* numOptions */) :
-   fArgc(0), fArgv(0), fAppImp(0),
-   fFiles(0), fSigHandler(0), fExitOnException(kDontExit),
-   fAppRemote(0)
+   fArgc(0), fArgv(0), fExitOnException(kDontExit)
 {
    R__LOCKGUARD(gInterpreterMutex);
 
@@ -101,7 +96,6 @@ TApplication::TApplication(const char *appClassName, Int_t *argc, char **argv,
       // allow default TApplication to be replaced by a "real" TApplication
       delete gApplication;
       gApplication = 0;
-      gROOT->SetBatch(kFALSE);
    }
 
    if (gApplication) {
@@ -139,8 +133,6 @@ TApplication::TApplication(const char *appClassName, Int_t *argc, char **argv,
    // Tell TSystem the TApplication has been created
    gSystem->NotifyApplicationCreated();
 
-   fAppImp = new TApplicationImp(appClassName, argc, argv);
-
    // Save current interpreter context
    gInterpreter->SaveContext();
    gInterpreter->SaveGlobalsContext();
@@ -170,23 +162,6 @@ TApplication::~TApplication()
    // unloaded).
    if (fgApplications == 0 || fgApplications->FirstLink() == 0 ) {
       TROOT::ShutDown();
-   }
-
-   // Now that all the canvases and files have been closed we can
-   // delete the implementation.
-   SafeDelete(fAppImp);
-}
-
-////////////////////////////////////////////////////////////////////////////////
-/// Clear list containing macro files passed as program arguments.
-/// This method is called from TRint::Run() to ensure that the macro
-/// files are only executed the first time Run() is called.
-
-void TApplication::ClearInputFiles()
-{
-   if (fFiles) {
-      fFiles->Delete();
-      SafeDelete(fFiles);
    }
 }
 
@@ -247,14 +222,6 @@ void TApplication::CreateApplication()
       delete [] a; delete [] b;
       gApplication->SetBit(kDefaultApplication);
    }
-}
-
-////////////////////////////////////////////////////////////////////////////////
-/// Static method returning the list of available applications
-
-TList *TApplication::GetApplications()
-{
-   return fgApplications;
 }
 
 } // namespace CppyyLegacy

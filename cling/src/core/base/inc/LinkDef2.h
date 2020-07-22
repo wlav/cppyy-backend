@@ -23,7 +23,6 @@
 #pragma link C++ struct CppyyLegacy::UserGroup_t;
 #pragma link C++ struct CppyyLegacy::RedirectHandle_t;
 
-#pragma link C++ class CppyyLegacy::TFolder+;
 #pragma link C++ class CppyyLegacy::TMD5+;
 #pragma link C++ class CppyyLegacy::TMemberInspector;
 #pragma link C++ class CppyyLegacy::TNamed+;

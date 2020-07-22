@@ -374,21 +374,6 @@ TObject *TDirectoryFile::CloneObject(const TObject *obj, Bool_t autoadd /* = kTR
 }
 
 ////////////////////////////////////////////////////////////////////////////////
-/// Scan the memory lists of all files for an object with name
-
-TObject *TDirectoryFile::FindObjectAnyFile(const char *name) const
-{
-   TFile *f;
-   R__LOCKGUARD(gROOTMutex);
-   TIter next(gROOT->GetListOfFiles());
-   while ((f = (TFile*)next())) {
-      TObject *obj = f->GetList()->FindObject(name);
-      if (obj) return obj;
-   }
-   return nullptr;
-}
-
-////////////////////////////////////////////////////////////////////////////////
 /// Find a directory named "apath".
 ///
 /// It apath is null or empty, returns "this" directory.
@@ -750,50 +735,6 @@ TKey *TDirectoryFile::FindKeyAny(const char *keyname) const
              const_cast<TDirectoryFile*>(this)->GetDirectory(key->GetName(), kTRUE, "FindKeyAny");
          TKey *k = subdir ? subdir->FindKeyAny(keyname) : nullptr;
          if (k) return k;
-      }
-   }
-   if (dirsav) dirsav->cd();
-   return nullptr;
-}
-
-////////////////////////////////////////////////////////////////////////////////
-/// Find object by name in the list of memory objects of the current
-/// directory or its sub-directories.
-///
-/// After this call the current directory is not changed.
-/// To automatically set the current directory where the object is found,
-/// use FindKeyAny(aname)->ReadObj().
-
-TObject *TDirectoryFile::FindObjectAny(const char *aname) const
-{
-   //object may be already in the list of objects in memory
-   TObject *obj = TDirectory::FindObjectAny(aname);
-   if (obj) return obj;
-
-   TDirectory *dirsav = gDirectory;
-   Short_t  cycle;
-   char     name[kMaxLen];
-
-   DecodeNameCycle(aname, name, cycle, kMaxLen);
-
-   TIter next(GetListOfKeys());
-   TKey *key;
-   //may be a key in the current directory
-   while ((key = (TKey *) next())) {
-      if (!strcmp(name, key->GetName())) {
-         if (cycle == 9999)             return key->ReadObj();
-         if (cycle >= key->GetCycle())  return key->ReadObj();
-      }
-   }
-   //try with subdirectories
-   next.Reset();
-   while ((key = (TKey *) next())) {
-      //if (!strcmp(key->GetClassName(),"TCppyyLegacy::Directory")) {
-      if (strstr(key->GetClassName(),"TCppyyLegacy::Directory")) {
-         TDirectory* subdir =
-           ((TDirectory*)this)->GetDirectory(key->GetName(), kTRUE, "FindKeyAny");
-         TKey *k = subdir ? subdir->FindKeyAny(aname) : nullptr;
-         if (k) { if (dirsav) dirsav->cd(); return k->ReadObj();}
       }
    }
    if (dirsav) dirsav->cd();

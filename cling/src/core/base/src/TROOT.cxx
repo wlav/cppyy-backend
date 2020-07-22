@@ -28,7 +28,6 @@ The following lists are accessible from gROOT object:
       gROOT->GetListOfGlobals
       gROOT->GetListOfGlobalFunctions
       gROOT->GetListOfFiles
-      gROOT->GetListOfMappedFiles
       gROOT->GetListOfFunctions
       gROOT->GetListOfCleanups
       gROOT->GetListOfMessageHandlers
@@ -123,7 +122,6 @@ FARPROC dlsym(void *library, const char *function_name)
 #include "TFunction.h"
 #include "TApplication.h"
 #include "TInterpreter.h"
-#include "TFolder.h"
 #include "TProcessUUID.h"
 #include "TMap.h"
 #include "TObjString.h"
@@ -214,8 +212,6 @@ static void CleanUpROOTAtExit()
 
       if (gROOT->GetListOfFiles())
          gROOT->GetListOfFiles()->Delete("slow");
-      if (gROOT->GetListOfMappedFiles())
-         gROOT->GetListOfMappedFiles()->Delete("slow");
       if (gROOT->GetListOfClosedObjects())
          gROOT->GetListOfClosedObjects()->Delete("slow");
    }
@@ -430,14 +426,13 @@ namespace CppyyLegacy {
 
 TROOT::TROOT() : TDirectory(),
      fLineIsProcessing(0), fVersion(0), fVersionInt(0), fVersionCode(0),
-     fVersionDate(0), fVersionTime(0),
-     fTimer(0), fApplication(0), fInterpreter(0), fBatch(kTRUE),
+     fVersionDate(0), fVersionTime(0), fApplication(0), fInterpreter(0),
      fMustClean(kTRUE),
      fClasses(0),fTypes(0),fGlobals(0),fGlobalFunctions(0),
-     fClosedObjects(0),fFiles(0),fMappedFiles(0),fFunctions(0),
+     fClosedObjects(0),fFiles(0),fFunctions(0),
      fCleanups(0),
      fMessageHandlers(0),fStreamerInfo(0),fClassGenerators(0),
-     fUUIDs(0),fRootFolder(0)
+     fUUIDs(0)
 {
 }
 
@@ -461,14 +456,13 @@ TROOT::TROOT() : TDirectory(),
 
 TROOT::TROOT(const char *name, const char *title, VoidFuncPtr_t *initfunc)
    : TDirectory(), fLineIsProcessing(0), fVersion(0), fVersionInt(0), fVersionCode(0),
-     fVersionDate(0), fVersionTime(0),
-     fTimer(0), fApplication(0), fInterpreter(0), fBatch(kTRUE),
+     fVersionDate(0), fVersionTime(0), fApplication(0), fInterpreter(0),
      fMustClean(kTRUE),
      fClasses(0),fTypes(0),fGlobals(0),fGlobalFunctions(0),
-     fClosedObjects(0),fFiles(0),fMappedFiles(0),fFunctions(0),
+     fClosedObjects(0),fFiles(0),fFunctions(0),
      fCleanups(0),
      fMessageHandlers(0),fStreamerInfo(0),fClassGenerators(0),
-     fUUIDs(0),fRootFolder(0)
+     fUUIDs(0)
 {
    if (fgRootInit || Internal::gROOTLocal) {
       //Warning("TROOT", "only one instance of TROOT allowed");
@@ -482,10 +476,6 @@ TROOT::TROOT(const char *name, const char *title, VoidFuncPtr_t *initfunc)
 
    SetName(name);
    SetTitle(title);
-
-   // will be used by global "operator delete" so make sure it is set
-   // before anything is deleted
-   fMappedFiles = 0;
 
    // Initialize Operating System interface
    InitSystem();
@@ -507,8 +497,6 @@ TROOT::TROOT(const char *name, const char *title, VoidFuncPtr_t *initfunc)
    fClasses         = 0;  // might be checked via TCling ctor
    fEnums           = 0;
 
-   fConfigOptions   = R__CONFIGUREOPTIONS;
-   fConfigFeatures  = R__CONFIGUREFEATURES;
    fVersion         = ROOT_RELEASE;
    fVersionCode     = ROOT_VERSION_CODE;
    fVersionInt      = IVERSQ();
@@ -526,7 +514,6 @@ TROOT::TROOT(const char *name, const char *title, VoidFuncPtr_t *initfunc)
       return l;
    };
 
-   fTimer       = 0;
    fApplication = 0;
    fTypes       = 0;
    fGlobals     = 0;
@@ -536,7 +523,6 @@ TROOT::TROOT(const char *name, const char *title, VoidFuncPtr_t *initfunc)
    fList        = new THashList(1000,3); fList->UseRWLock();
    fClosedObjects = setNameLocked(new TList, "ClosedFiles");
    fFiles       = setNameLocked(new TList, "Files");
-   fMappedFiles = setNameLocked(new TList, "MappedFiles");
    fFunctions   = setNameLocked(new TList, "Functions");
    fCleanups    = setNameLocked(new THashList, "Cleanups");
    fMessageHandlers = setNameLocked(new TList, "MessageHandlers");
@@ -544,18 +530,6 @@ TROOT::TROOT(const char *name, const char *title, VoidFuncPtr_t *initfunc)
 
    TProcessID::AddProcessID();
    fUUIDs = new TProcessUUID();
-
-   fRootFolder = new TFolder();
-   fRootFolder->SetName("root");
-   fRootFolder->SetTitle("root of all folders");
-   fRootFolder->AddFolder("Classes",   "List of Active Classes",fClasses);
-   fRootFolder->AddFolder("MapFiles",  "List of MapFiles",fMappedFiles);
-   fRootFolder->AddFolder("Functions", "List of Functions",fFunctions);
-   fRootFolder->AddFolder("Handlers",  "List of Message Handlers",fMessageHandlers);
-   fRootFolder->AddFolder("Cleanups",  "List of RecursiveRemove Collections",fCleanups);
-   fRootFolder->AddFolder("StreamerInfo","List of Active StreamerInfo Classes",fStreamerInfo);
-   fRootFolder->AddFolder("ROOT Memory","List of Objects in the gROOT Directory",fList);
-   fRootFolder->AddFolder("ROOT Files","List of Connected ROOT Files",fFiles);
 
    // by default, add the list of files, tasks, canvases and browsers in the Cleanups list
    fCleanups->Add(fFiles);    fFiles->SetBit(kMustCleanup);
@@ -567,12 +541,9 @@ TROOT::TROOT(const char *name, const char *title, VoidFuncPtr_t *initfunc)
    fLineIsProcessing = 1;   // This prevents WIN32 "Windows" thread to pick ROOT objects with mouse
    gDirectory     = this;
 
-   fBatch = kFALSE;
-
    int i = 0;
    while (initfunc && initfunc[i]) {
       (initfunc[i])();
-      fBatch = kFALSE;  // put system in graphics mode (backward compatible)
       i++;
    }
 
@@ -609,14 +580,9 @@ TROOT::~TROOT()
 
       // ATTENTION!!! Order is important!
 
-      // FIXME: Causes rootcling to deadlock, debug and uncomment
-      // SafeDelete(fRootFolder);
-
       fClosedObjects->Delete("slow"); // and closed files
       fFiles->Delete("slow");       // and files
       SafeDelete(fFiles);
-      fMappedFiles->Delete("slow");                     // and mapped files
-      TSeqCollection *tl = fMappedFiles; fMappedFiles = 0; delete tl;
 
       SafeDelete(fClosedObjects);
 
@@ -674,19 +640,6 @@ void TROOT::Append(TObject *obj, Bool_t replace /* = kFALSE */)
 {
    R__LOCKGUARD(gROOTMutex);
    TDirectory::Append(obj,replace);
-}
-
-////////////////////////////////////////////////////////////////////////////////
-/// return class status bit kClassSaved for class cl
-/// This function is called by the SavePrimitive functions writing
-/// the C++ code for an object.
-
-Bool_t TROOT::ClassSaved(TClass *cl)
-{
-   if (cl == 0) return kFALSE;
-   if (cl->TestBit(TClass::kClassSaved)) return kTRUE;
-   cl->SetBit(TClass::kClassSaved);
-   return kFALSE;
 }
 
 namespace {
@@ -762,10 +715,6 @@ void TROOT::CloseFiles()
    }
    // and Close TROOT itself.
    Close("slow");
-   if (fMappedFiles && fMappedFiles->First()) {
-      R__ListSlowClose(static_cast<TList*>(fMappedFiles));
-   }
-
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -797,146 +746,6 @@ void TROOT::EndOfProcessCleanups()
    }
 }
 
-
-////////////////////////////////////////////////////////////////////////////////
-/// Find an object in one Root folder
-
-TObject *TROOT::FindObject(const TObject *) const
-{
-   Error("FindObject","Not yet implemented");
-   return 0;
-}
-
-////////////////////////////////////////////////////////////////////////////////
-/// Returns address of a ROOT object if it exists
-///
-/// If name contains at least one "/" the function calls FindObjectany
-/// else
-/// This function looks in the following order in the ROOT lists:
-///     - List of files
-///     - List of memory mapped files
-///     - List of functions
-///     - List of geometries
-///     - List of canvases
-///     - List of styles
-///     - List of specials
-///     - List of materials in current geometry
-///     - List of shapes in current geometry
-///     - List of matrices in current geometry
-///     - List of Nodes in current geometry
-///     - Current Directory in memory
-///     - Current Directory on file
-
-TObject *TROOT::FindObject(const char *name) const
-{
-   if (name && strstr(name,"/")) return FindObjectAny(name);
-
-   TObject *temp = 0;
-
-   temp   = fFiles->FindObject(name);       if (temp) return temp;
-   temp   = fMappedFiles->FindObject(name); if (temp) return temp;
-   {
-      R__LOCKGUARD(gROOTMutex);
-      temp   = fFunctions->FindObject(name);if (temp) return temp;
-   }
-   if (gDirectory) temp = gDirectory->Get(name);
-   if (temp) return temp;
-   return temp;
-}
-
-////////////////////////////////////////////////////////////////////////////////
-/// Return a pointer to the first object with name starting at //root.
-/// This function scans the list of all folders.
-/// if no object found in folders, it scans the memory list of all files.
-
-TObject *TROOT::FindObjectAny(const char *name) const
-{
-   TObject *obj = fRootFolder->FindObjectAny(name);
-   if (obj) return obj;
-   return gDirectory->FindObjectAnyFile(name);
-}
-
-////////////////////////////////////////////////////////////////////////////////
-/// Scan the memory lists of all files for an object with name
-
-TObject *TROOT::FindObjectAnyFile(const char *name) const
-{
-   R__LOCKGUARD(gROOTMutex);
-   TDirectory *d;
-   TIter next(GetListOfFiles());
-   while ((d = (TDirectory*)next())) {
-      // Call explicitly TDirectory::FindObject to restrict the search to the
-      // already in memory object.
-      TObject *obj = d->TDirectory::FindObject(name);
-      if (obj) return obj;
-   }
-   return 0;
-}
-
-////////////////////////////////////////////////////////////////////////////////
-/// Returns class name of a ROOT object including CINT globals.
-
-const char *TROOT::FindObjectClassName(const char *name) const
-{
-   // Search first in the list of "standard" objects
-   TObject *obj = FindObject(name);
-   if (obj) return obj->ClassName();
-
-   // Is it a global variable?
-   TGlobal *g = GetGlobal(name);
-   if (g) return g->GetTypeName();
-
-   return 0;
-}
-
-////////////////////////////////////////////////////////////////////////////////
-/// Return path name of obj somewhere in the //root/... path.
-/// The function returns the first occurence of the object in the list
-/// of folders. The returned string points to a static char array in TROOT.
-/// If this function is called in a loop or recursively, it is the
-/// user's responsibility to copy this string in their area.
-
-const char *TROOT::FindObjectPathName(const TObject *) const
-{
-   Error("FindObjectPathName","Not yet implemented");
-   return "??";
-}
-
-////////////////////////////////////////////////////////////////////////////////
-/// return a TClass object corresponding to 'name' assuming it is an STL container.
-/// In particular we looking for possible alternative name (default template
-/// parameter, typedefs template arguments, typedefed name).
-
-TClass *TROOT::FindSTLClass(const char *name, Bool_t load, Bool_t silent) const
-{
-   // Example of inputs are
-   //   vector<int>  (*)
-   //   vector<Int_t>
-   //   vector<long long>
-   //   vector<Long_64_t> (*)
-   //   vector<int, allocator<int> >
-   //   vector<Int_t, allocator<int> >
-   //
-   //   One of the possibly expensive operation is the resolving of the typedef
-   //   which can provoke the parsing of the header files (and/or the loading
-   //   of clang pcms information).
-
-   R__LOCKGUARD(gInterpreterMutex);
-
-   // Remove std::, allocator, typedef, add Long64_t, etc. in just one call.
-   std::string normalized;
-   TClassEdit::GetNormalizedName(normalized, name);
-
-   TClass *cl = 0;
-   if (normalized != name) cl = TClass::GetClass(normalized.c_str(),load,silent);
-
-   if (load && cl==0) {
-      // Create an Emulated class for this container.
-      cl = gInterpreter->GenerateTClass(normalized.c_str(), kTRUE, silent);
-   }
-
-   return cl;
-}
 
 ////////////////////////////////////////////////////////////////////////////////
 /// Return pointer to type with name.
@@ -1213,78 +1022,6 @@ TCollection *TROOT::GetListOfTypes(Bool_t /* load */)
 
 
 ////////////////////////////////////////////////////////////////////////////////
-/// Check whether className is a known class, and only autoload
-/// if we can. Helper function for TROOT::IgnoreInclude().
-
-static TClass* R__GetClassIfKnown(const char* className)
-{
-   // Check whether the class is available for auto-loading first:
-   const char* libsToLoad = gInterpreter->GetClassSharedLibs(className);
-   TClass* cla = 0;
-   if (libsToLoad) {
-      // trigger autoload, and only create TClass in this case.
-      return TClass::GetClass(className);
-   } else if (gROOT->GetListOfClasses()
-              && (cla = (TClass*)gROOT->GetListOfClasses()->FindObject(className))) {
-      // cla assigned in if statement
-   } else if (gClassTable->FindObject(className)) {
-      return TClass::GetClass(className);
-   }
-   return cla;
-}
-
-////////////////////////////////////////////////////////////////////////////////
-/// Return 1 if the name of the given include file corresponds to a class that
-///  is known to ROOT, e.g. "TLorentzVector.h" versus TLorentzVector.
-
-Int_t TROOT::IgnoreInclude(const char *fname, const char * /*expandedfname*/)
-{
-   if (fname == 0) return 0;
-
-   TString stem(fname);
-   // Remove extension if any, ignore files with extension not being .h*
-   Int_t where = stem.Last('.');
-   if (where != kNPOS) {
-      if (stem.EndsWith(".so") || stem.EndsWith(".sl") ||
-          stem.EndsWith(".dl") || stem.EndsWith(".a")  ||
-          stem.EndsWith(".dll", TString::kIgnoreCase))
-         return 0;
-      stem.Remove(where);
-   }
-
-   TString className = gSystem->BaseName(stem);
-   TClass* cla = R__GetClassIfKnown(className);
-   if (!cla) {
-      // Try again with modifications to the file name:
-      className = stem;
-      className.ReplaceAll("/", "::");
-      className.ReplaceAll("\\", "::");
-      if (className.Contains(":::")) {
-         // "C:\dir" becomes "C:::dir".
-         // fname corresponds to whatever is stated after #include and
-         // a full path name usually means that it's not a regular #include
-         // but e.g. a ".L", so we can assume that this is not a header of
-         // a class in a namespace (a global-namespace class would have been
-         // detected already before).
-         return 0;
-      }
-      cla = R__GetClassIfKnown(className);
-   }
-
-   if (!cla) {
-      return 0;
-   }
-
-   // cla is valid, check wether it's actually in the header of the same name:
-   if (cla->GetDeclFileLine() <= 0) return 0; // to a void an error with VisualC++
-   TString decfile = gSystem->BaseName(cla->GetDeclFileName());
-   if (decfile != gSystem->BaseName(fname)) {
-      return 0;
-   }
-   return 1;
-}
-
-////////////////////////////////////////////////////////////////////////////////
 /// Initialize operating system interface.
 
 void TROOT::InitSystem()
@@ -1554,31 +1291,6 @@ Bool_t TROOT::IsRootFile(const char *filename) const
 }
 
 ////////////////////////////////////////////////////////////////////////////////
-/// To list all objects of the application.
-/// Loop on all objects created in the ROOT linked lists.
-/// Objects may be files and windows or any other object directly
-/// attached to the ROOT linked list.
-
-Bool_t &GetReadingObject() {
-   TTHREAD_TLS(Bool_t) fgReadingObject = false;
-   return fgReadingObject;
-}
-
-////////////////////////////////////////////////////////////////////////////////
-/// Deprecated (will be removed in next release).
-
-Bool_t TROOT::ReadingObject() const
-{
-   return GetReadingObject();
-}
-
-void TROOT::SetReadingObject(Bool_t flag)
-{
-   GetReadingObject() = flag;
-}
-
-
-////////////////////////////////////////////////////////////////////////////////
 /// Recursively remove this object from the list of Cleanups.
 /// Typically RecursiveRemove is implemented by classes that can contain
 /// mulitple references to a same object or shared ownership of the object
@@ -1756,17 +1468,6 @@ Bool_t TROOT::Initialized()
 Int_t TROOT::ConvertVersionCode2Int(Int_t code)
 {
    return 10000*(code>>16) + 100*((code&65280)>>8) + (code&255);
-}
-
-////////////////////////////////////////////////////////////////////////////////
-/// Convert version as an integer to version code as used in RVersion.h.
-
-Int_t TROOT::ConvertVersionInt2Code(Int_t v)
-{
-   int a = v/10000;
-   int b = (v - a*10000)/100;
-   int c = v - a*10000 - b*100;
-   return (a << 16) + (b << 8) + c;
 }
 
 ////////////////////////////////////////////////////////////////////////////////

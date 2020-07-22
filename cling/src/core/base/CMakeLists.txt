@@ -22,7 +22,6 @@ set(BASE_HEADERS
   TEnv.h
   TError.h
   TException.h
-  TFolder.h
   TInetAddress.h
   TMathBase.h
   TMD5.h
@@ -49,7 +48,6 @@ set(BASE_HEADERS
 )
 
 set(BASE_SOURCES
-  src/TApplicationImp.cxx
   src/Match.cxx
   src/String.cxx
   src/Stringio.cxx
@@ -60,7 +58,6 @@ set(BASE_SOURCES
   src/TEnv.cxx
   src/TError.cxx
   src/TException.cxx
-  src/TFolder.cxx
   src/TInetAddress.cxx
   src/TListOfTypes.cxx
   src/TListOfTypes.h

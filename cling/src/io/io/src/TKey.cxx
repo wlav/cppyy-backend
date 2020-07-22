@@ -1143,7 +1143,7 @@ void TKey::ReadBuffer(char *&buffer)
 {
    ReadKeyBuffer(buffer);
 
-   if (!gROOT->ReadingObject() && gDirectory) {
+   if (gDirectory) {
       if (fSeekPdir != gDirectory->GetSeekDir()) gDirectory->AppendKey(this);
    }
 }

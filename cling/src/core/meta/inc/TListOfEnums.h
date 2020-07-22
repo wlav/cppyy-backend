@@ -91,8 +91,9 @@ public:
    TObject   *Remove(TObject *obj) override;
    TObject   *Remove(TObjLink *lnk) override;
 
-   ClassDefOverride(TListOfEnums,2);  // List of TDataMembers for a class
+   ClassDefOverride(TListOfEnums,2);  // List of TListOfEnums for a class
 };
 
 } // namespace CppyyLegacy
+
 #endif // ROOT_TListOfEnums

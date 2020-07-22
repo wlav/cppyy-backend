@@ -74,8 +74,6 @@ public:
           void        FillBuffer(char *&buffer) override;
           TKey       *FindKey(const char *keyname) const override;
           TKey       *FindKeyAny(const char *keyname) const override;
-          TObject    *FindObjectAny(const char *name) const override;
-          TObject    *FindObjectAnyFile(const char *name) const override;
           TObject    *Get(const char *namecycle) override;
    /// See documentation of TDirectoryFile::Get(const char *namecycle)
    template <class T> inline T* Get(const char* namecycle)

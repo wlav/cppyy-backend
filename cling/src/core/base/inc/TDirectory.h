@@ -136,8 +136,6 @@ public:
    virtual TKey       *FindKeyAny(const char * /*keyname*/) const {return nullptr;}
            TObject    *FindObject(const char *name) const override;
            TObject    *FindObject(const TObject *obj) const override;
-   virtual TObject    *FindObjectAny(const char *name) const;
-   virtual TObject    *FindObjectAnyFile(const char * /*name*/) const {return nullptr;}
    virtual TObject    *Get(const char *namecycle);
    /// See documentation of TDirectoryFile::Get(const char *namecycle)
    template <class T> inline T* Get(const char* namecycle)

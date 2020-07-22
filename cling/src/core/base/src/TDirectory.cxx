@@ -701,33 +701,6 @@ TObject *TDirectory::FindObject(const char *name) const
 }
 
 ////////////////////////////////////////////////////////////////////////////////
-/// Find object by name in the list of memory objects of the current
-/// directory or its sub-directories.
-/// After this call the current directory is not changed.
-/// To automatically set the current directory where the object is found,
-/// use FindKeyAny(aname)->ReadObj().
-
-TObject *TDirectory::FindObjectAny(const char *aname) const
-{
-   //object may be already in the list of objects in memory
-   TObject *obj = fList->FindObject(aname);
-   if (obj) return obj;
-
-   //try with subdirectories
-   TIter next(fList);
-   while( (obj = next()) ) {
-      if (obj->IsA()->InheritsFrom(TDirectory::Class())) {
-         TDirectory* subdir = static_cast<TDirectory*>(obj);
-         TObject *subobj = subdir->TDirectory::FindObjectAny(aname); // Explicitly recurse into _this_ exact function.
-         if (subobj) {
-            return subobj;
-         }
-      }
-   }
-   return nullptr;
-}
-
-////////////////////////////////////////////////////////////////////////////////
 /// Return pointer to object identified by namecycle.
 ///
 ///   namecycle has the format name;cycle

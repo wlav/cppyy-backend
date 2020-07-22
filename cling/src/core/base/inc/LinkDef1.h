@@ -78,7 +78,6 @@
 #pragma create TClass CppyyLegacy::TMath;
 
 #pragma link C++ class CppyyLegacy::TApplication;
-#pragma link C++ class CppyyLegacy::TApplicationImp;
 #pragma link C++ class CppyyLegacy::TBuffer;
 #pragma link C++ class CppyyLegacy::TDatime-;
 #pragma link C++ class CppyyLegacy::TDirectory-;
