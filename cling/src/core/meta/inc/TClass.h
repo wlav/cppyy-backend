@@ -344,8 +344,6 @@ public:
    void               AddInstance(Bool_t heap = kFALSE) { fInstanceCount++; if (heap) fOnHeap++; }
    void               AddImplFile(const char *filename, int line);
    static Bool_t      AddRule(const char *rule);
-   static Int_t       ReadRules(const char *filename);
-   static Int_t       ReadRules();
    void               AdoptSchemaRules( Detail::TSchemaRuleSet *rules );
    void               BuildRealData(void *pointer=0, Bool_t isTransient = kFALSE);
    void               BuildEmulatedRealData(const char *name, intptr_t offset, TClass *cl);

@@ -102,7 +102,6 @@ public:
 
    virtual void     Randomize(Int_t ntimes=1);
    virtual void     Sort(Int_t upto = kMaxInt);
-   virtual Int_t    BinarySearch(TObject *obj, Int_t upto = kMaxInt); // the TObjArray has to be sorted, -1 == not found !!
 
    ClassDef(TObjArray,3)  //An array of objects
 };

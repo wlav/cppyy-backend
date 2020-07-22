@@ -832,40 +832,6 @@ void TObjArray::Sort(Int_t upto)
    fSorted = kTRUE;
 }
 
-////////////////////////////////////////////////////////////////////////////////
-/// Find object using a binary search. Array must first have been sorted.
-/// Search can be limited by setting upto to desired index.
-
-Int_t TObjArray::BinarySearch(TObject *op, Int_t upto)
-{
-   R__COLLECTION_READ_LOCKGUARD(gCoreMutex);
-
-   Int_t   base, position, last, result = 0;
-   TObject *op2;
-
-   if (!op) return -1;
-
-   if (!fSorted) {
-      Error("BinarySearch", "array must first be sorted");
-      return -1;
-   }
-
-   base = 0;
-   last = TMath::Min(fSize, upto-fLowerBound) - 1;
-
-   while (last >= base) {
-      position = (base+last) / 2;
-      op2 = fCont[position];
-      if (op2 && (result = op->Compare(op2)) == 0)
-         return position + fLowerBound;
-      if (!op2 || result < 0)
-         last = position-1;
-      else
-         base = position+1;
-   }
-   return -1;
-}
-
 } // namespace CppyyLegacy
 
 /** \class TObjArrayIter

@@ -78,7 +78,6 @@ public:
    TObject      *Last() const;
 
    void          Sort();
-   Int_t         BinarySearch(TObject *obj);
 
    ClassDef(TOrdCollection,0)  //An ordered collection
 };

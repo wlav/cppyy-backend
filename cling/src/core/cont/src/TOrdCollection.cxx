@@ -410,38 +410,6 @@ void TOrdCollection::Sort()
    fSorted = kTRUE;
 }
 
-////////////////////////////////////////////////////////////////////////////////
-/// Find object using a binary search. Collection must first have been
-/// sorted.
-
-Int_t TOrdCollection::BinarySearch(TObject *obj)
-{
-   Int_t result;
-
-   if (!obj) return -1;
-
-   if (!fSorted) {
-      Error("BinarySearch", "collection must first be sorted");
-      return -1;
-   }
-
-   MoveGapTo(fCapacity - fGapSize);
-
-   Int_t base = 0;
-   Int_t last = base + GetSize() - 1;
-   while (last >= base) {
-      Int_t position = (base + last) / 2;
-      TObject *obj2 = fCont[position];
-      if ((obj2 == 0) || (result = obj->Compare(obj2)) == 0)
-         return LogIndex(position);
-      if (result < 0)
-         last = position - 1;
-      else
-         base = position + 1;
-   }
-   return -1;
-}
-
 } // namespace CppyyLegacy
 
 /** \class TOrdCollectionIter

@@ -2936,7 +2936,6 @@ void TCling::EnableAutoLoading()
    // *not* using them.
    // Note this call must happen before the first call to LoadLibraryMap.
    assert(GetRootMapFiles() == 0 && "Must be called before LoadLibraryMap!");
-   TClass::ReadRules(); // Read the default customization rules ...
 
    LoadLibraryMap();
    SetClassAutoloading(true);

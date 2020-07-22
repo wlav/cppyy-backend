@@ -46,24 +46,6 @@ namespace TMath {
    inline Double_t Abs(Double_t d);
    inline LongDouble_t Abs(LongDouble_t d);
 
-   // Even/Odd
-   inline Bool_t   Even(Long_t a);
-   inline Bool_t   Odd(Long_t a);
-
-   // SignBit
-   template<typename Integer>
-   inline Bool_t SignBit(Integer a);
-   inline Bool_t SignBit(Float_t a);
-   inline Bool_t SignBit(Double_t a);
-   inline Bool_t SignBit(LongDouble_t a);
-
-   // Sign
-   template<typename T1, typename T2>
-   inline T1 Sign( T1 a, T2 b);
-   inline Float_t  Sign(Float_t a, Float_t b);
-   inline Double_t Sign(Double_t a, Double_t b);
-   inline LongDouble_t Sign(LongDouble_t a, LongDouble_t b);
-
    // Min, Max of two scalars
    inline Short_t   Min(Short_t a, Short_t b);
    inline UShort_t  Min(UShort_t a, UShort_t b);
@@ -97,11 +79,6 @@ namespace TMath {
    //NextPrime is used by the Core classes.
    Long_t   NextPrime(Long_t x);   // Least prime number greater than x
 
-   // Binary search
-   template <typename T> Long64_t BinarySearch(Long64_t n, const T  *array, T value);
-   template <typename T> Long64_t BinarySearch(Long64_t n, const T **array, T value);
-   template <typename Iterator, typename Element> Iterator BinarySearch(Iterator first, Iterator last, Element value);
-
    // Sorting
    template <typename Element, typename Index>
    void Sort(Index n, const Element* a, Index* index, Bool_t down=kTRUE);
@@ -109,14 +86,6 @@ namespace TMath {
    void SortItr(Iterator first, Iterator last, IndexIterator index, Bool_t down=kTRUE);
 }
 
-
-//---- Even/odd ----------------------------------------------------------------
-
-inline Bool_t TMath::Even(Long_t a)
-   { return ! (a & 1); }
-
-inline Bool_t TMath::Odd(Long_t a)
-   { return (a & 1); }
 
 //---- Abs ---------------------------------------------------------------------
 
@@ -144,38 +113,6 @@ inline Double_t TMath::Abs(Double_t d)
 
 inline LongDouble_t TMath::Abs(LongDouble_t d)
 { return std::abs(d); }
-
-
-//---- Sign Bit--------------------------------------------------------------------
-
-template<typename Integer>
-inline Bool_t TMath::SignBit( Integer a)
-   { return (a < 0); }
-
-inline Bool_t TMath::SignBit(Float_t a)
-   { return std::signbit(a);  }
-
-inline Bool_t TMath::SignBit(Double_t a)
-   { return std::signbit(a);  }
-
-inline Bool_t TMath::SignBit(LongDouble_t a)
-   { return std::signbit(a);  }
-
-
-//---- Sign --------------------------------------------------------------------
-
-template<typename T1, typename T2>
-inline T1 TMath::Sign( T1 a, T2 b)
-   { return (SignBit(b)) ? - Abs(a) : Abs(a); }
-
-inline Float_t TMath::Sign(Float_t a, Float_t b)
-   { return std::copysign(a,b);  }
-
-inline Double_t TMath::Sign(Double_t a, Double_t b)
-   { return std::copysign(a,b);  }
-
-inline LongDouble_t TMath::Sign(LongDouble_t a, LongDouble_t b)
-   { return std::copysign(a,b);  }
 
 
 //---- Min ---------------------------------------------------------------------
@@ -258,57 +195,6 @@ inline ULong_t TMath::Range(ULong_t lb, ULong_t ub, ULong_t x)
 
 inline Double_t TMath::Range(Double_t lb, Double_t ub, Double_t x)
    { return x < lb ? lb : (x > ub ? ub : x); }
-
-template <typename Iterator, typename Element>
-Iterator TMath::BinarySearch(Iterator first, Iterator last, Element value)
-{
-   // Binary search in an array defined by its iterators.
-   //
-   // The values in the iterators range are supposed to be sorted
-   // prior to this call.  If match is found, function returns
-   // position of element.  If no match found, function gives nearest
-   // element smaller than value.
-
-   Iterator pind;
-   pind = std::lower_bound(first, last, value);
-   if ( (pind != last) && (*pind == value) )
-      return pind;
-   else
-      return ( pind - 1);
-}
-
-
-template <typename T> Long64_t TMath::BinarySearch(Long64_t n, const T  *array, T value)
-{
-   // Binary search in an array of n values to locate value.
-   //
-   // Array is supposed  to be sorted prior to this call.
-   // If match is found, function returns position of element.
-   // If no match found, function gives nearest element smaller than value.
-
-   const T* pind;
-   pind = std::lower_bound(array, array + n, value);
-   if ( (pind != array + n) && (*pind == value) )
-      return (pind - array);
-   else
-      return ( pind - array - 1);
-}
-
-template <typename T> Long64_t TMath::BinarySearch(Long64_t n, const T **array, T value)
-{
-   // Binary search in an array of n values to locate value.
-   //
-   // Array is supposed  to be sorted prior to this call.
-   // If match is found, function returns position of element.
-   // If no match found, function gives nearest element smaller than value.
-
-   const T* pind;
-   pind = std::lower_bound(*array, *array + n, value);
-   if ( (pind != *array + n) && (*pind == value) )
-      return (pind - *array);
-   else
-      return ( pind - *array - 1);
-}
 
 template<typename T>
 struct CompareDesc {
