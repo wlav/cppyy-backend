@@ -1062,65 +1062,6 @@ TKey *TDirectoryFile::GetKey(const char *name, Short_t cycle) const
 }
 
 ////////////////////////////////////////////////////////////////////////////////
-/// List Directory contents
-///
-/// Indentation is used to identify the directory tree
-/// Subdirectories are listed first, then objects in memory, then objects on the file
-///
-/// The option can has the following format: <b>[-d |-m][<regexp>]</b>
-/// Options:
-///   - -d: only list objects in the file
-///   - -m: only list objects in memory
-///  The <regexp> will be used to match the name of the objects.
-///  By default memory and disk objects are listed.
-
-void TDirectoryFile::ls(Option_t *option) const
-{
-   TROOT::IndentLevel();
-   std::cout <<ClassName()<<"*\t\t"<<GetName()<<"\t"<<GetTitle()<<std::endl;
-   TROOT::IncreaseDirLevel();
-
-   TString opta = option;
-   TString opt  = opta.Strip(TString::kBoth);
-   Bool_t memobj  = kTRUE;
-   Bool_t diskobj = kTRUE;
-   TString reg = "*";
-   if (opt.BeginsWith("-m")) {
-      diskobj = kFALSE;
-      if (opt.Length() > 2)
-         reg = opt(2,opt.Length());
-   } else if (opt.BeginsWith("-d")) {
-      memobj  = kFALSE;
-      if (opt.Length() > 2)
-         reg = opt(2,opt.Length());
-   } else if (!opt.IsNull())
-      reg = opt;
-
-   TRegexp re(reg, kTRUE);
-
-   if (memobj) {
-      TObject *obj;
-      TIter nextobj(fList);
-      while ((obj = (TObject *) nextobj())) {
-         TString s = obj->GetName();
-         if (s.Index(re) == kNPOS) continue;
-         obj->ls(option);            //*-* Loop on all the objects in memory
-      }
-   }
-
-   if (diskobj) {
-      TKey *key;
-      TIter next(GetListOfKeys());
-      while ((key = (TKey *) next())) {
-         TString s = key->GetName();
-         if (s.Index(re) == kNPOS) continue;
-         key->ls();                 //*-* Loop on all the keys
-      }
-   }
-   TROOT::DecreaseDirLevel();
-}
-
-////////////////////////////////////////////////////////////////////////////////
 /// Interface to TFile::Open
 
 TFile *TDirectoryFile::OpenFile(const char *name, Option_t *option,const char *ftitle, Int_t compress, Int_t netopt)

@@ -155,11 +155,6 @@ const BaseSelectionRule::AttributesMap_t& BaseSelectionRule::GetAttributes() con
    return fAttributes;
 }
 
-void BaseSelectionRule::DebugPrint() const
-{
-   Print(std::cout);
-}
-
 void BaseSelectionRule::PrintAttributes(std::ostream &out, int level) const
 {
    std::string tabs;

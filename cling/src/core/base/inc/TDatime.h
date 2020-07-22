@@ -71,7 +71,6 @@ public:
    Int_t        GetMinute() const { return (fDatime<<20)>>26; }
    Int_t        GetSecond() const { return (fDatime<<26)>>26; }
    void         FillBuffer(char *&buffer);
-   void         Print(Option_t *option="") const;
    void         ReadBuffer(char *&buffer);
    void         Set();
    void         Set(UInt_t tloc, Bool_t dosDate = kFALSE);

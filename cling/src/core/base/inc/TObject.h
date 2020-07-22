@@ -101,7 +101,6 @@ public:
    virtual void        Copy(TObject &object) const;
    virtual void        Delete(Option_t *option=""); // *MENU*
    virtual Int_t       DistancetoPrimitive(Int_t px, Int_t py);
-   virtual void        Dump() const; // *MENU*
    virtual TObject    *FindObject(const char *name) const;
    virtual TObject    *FindObject(const TObject *obj) const;
    virtual UInt_t      GetUniqueID() const;
@@ -123,9 +122,7 @@ public:
    R__ALWAYS_INLINE Bool_t IsZombie() const { return TestBit(kZombie); }
 
    virtual Bool_t      Notify();
-   virtual void        ls(Option_t *option="") const;
    virtual void        Pop();
-   virtual void        Print(Option_t *option="") const;
    virtual Int_t       Read(const char *name);
    virtual void        RecursiveRemove(TObject *obj);
    virtual void        SaveAs(const char *filename="",Option_t *option="") const; // *MENU*
@@ -189,7 +186,6 @@ public:
 
    void     AbstractMethod(const char *method) const;
    void     MayNotUse(const char *method) const;
-   void     Obsolete(const char *method, const char *asOfVers, const char *removedFromVers) const;
 
    //---- static functions
    static Long_t    GetDtorOnly();

@@ -99,7 +99,6 @@ public:
            Long64_t    GetSeekKeys() const override { return fSeekKeys; }
            Bool_t      IsModified() const override { return fModified; }
            Bool_t      IsWritable() const override { return fWritable; }
-           void        ls(Option_t *option="") const override;
            TDirectory *mkdir(const char *name, const char *title="", Bool_t returnExistingDirectory = kFALSE) override;
            TFile      *OpenFile(const char *name, Option_t *option= "",
                             const char *ftitle = "", Int_t compress = CppyyLegacy::RCompressionSetting::EDefaults::kUseCompiledDefault,

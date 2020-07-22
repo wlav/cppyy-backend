@@ -62,48 +62,6 @@ static ErrorHandlerFunc_t gErrorHandler = DefaultErrorHandler;
 
 
 ////////////////////////////////////////////////////////////////////////////////
-/// Print debugging message to stderr and, on Windows, to the system debugger.
-
-static void DebugPrint(const char *fmt, ...)
-{
-   TTHREAD_TLS(Int_t) buf_size = 2048;
-   TTHREAD_TLS(char*) buf = 0;
-
-   va_list ap;
-   va_start(ap, fmt);
-
-again:
-   if (!buf)
-      buf = new char[buf_size];
-
-   Int_t n = vsnprintf(buf, buf_size, fmt, ap);
-   // old vsnprintf's return -1 if string is truncated new ones return
-   // total number of characters that would have been written
-   if (n == -1 || n >= buf_size) {
-      if (n == -1)
-         buf_size *= 2;
-      else
-         buf_size = n+1;
-      delete [] buf;
-      buf = 0;
-      va_end(ap);
-      va_start(ap, fmt);
-      goto again;
-   }
-   va_end(ap);
-
-   // Serialize the actual printing.
-   R__LOCKGUARD2(gErrorMutex);
-
-   const char *toprint = buf; // Work around for older platform where we use TThreadTLSWrapper
-   fprintf(stderr, "%s", toprint);
-
-#ifdef WIN32
-   ::OutputDebugString(buf);
-#endif
-}
-
-////////////////////////////////////////////////////////////////////////////////
 /// Set an errorhandler function. Returns the old handler.
 
 ErrorHandlerFunc_t SetErrorHandler(ErrorHandlerFunc_t newhandler)
@@ -178,8 +136,6 @@ void DefaultErrorHandler(Int_t level, Bool_t abort_bool, const char *location, c
    else
       smsg.Form("%s in <%s>: %s", type, location, msg);
 
-   DebugPrint("%s\n", smsg.Data());
-
    fflush(stderr);
    if (abort_bool) {
 
@@ -189,7 +145,6 @@ void DefaultErrorHandler(Int_t level, Bool_t abort_bool, const char *location, c
       __crashreporter_info__ = StrDup(smsg);
 #endif
 
-      DebugPrint("aborting\n");
       fflush(stderr);
       if (gSystem) {
          gSystem->StackTrace();
@@ -272,17 +227,6 @@ void AbstractMethod(const char *method)
 void MayNotUse(const char *method)
 {
    Warning(method, "may not use this method");
-}
-
-////////////////////////////////////////////////////////////////////////////////
-/// Use this function to declare a function obsolete. Specify as of which version
-/// the method is obsolete and as from which version it will be removed.
-
-void Obsolete(const char *function, const char *asOfVers, const char *removedFromVers)
-{
-   TString mess;
-   mess.Form("obsolete as of %s and will be removed from %s", asOfVers, removedFromVers);
-   Warning(function, "%s", mess.Data());
 }
 
 ////////////////////////////////////////////////////////////////////////////////

@@ -60,7 +60,6 @@ public:
    static size_t         GetMaxBlockSize();
    static void          *Alloc(size_t size);
    static void           Dealloc(void *ptr);
-   static void          *ReAlloc(void *vp, size_t size);
    static void          *ReAlloc(void *vp, size_t size, size_t oldsize);
    static char          *ReAllocChar(char *vp, size_t size, size_t oldsize);
    static Int_t         *ReAllocInt(Int_t *vp, size_t size, size_t oldsize);

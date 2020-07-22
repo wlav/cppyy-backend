@@ -48,9 +48,6 @@ namespace TStreamerInfoActions {
       virtual void SetMissing();
 
       virtual TConfiguration *Copy() { return new TConfiguration(*this); }
-
-      virtual void Print() const;
-      virtual void PrintDebug(TBuffer &buffer, void *object) const;
    };
 
    /// Base class of the Configurations for the member wise looping routines.
@@ -61,9 +58,7 @@ namespace TStreamerInfoActions {
       TLoopConfiguration() = default;
       TLoopConfiguration(TVirtualCollectionProxy *proxy) : fProxy(proxy) {}
 
-      // virtual void PrintDebug(TBuffer &buffer, void *object) const;
       virtual ~TLoopConfiguration() {};
-      virtual void Print() const;
       virtual void *GetFirstAddress(void *start, const void *end) const = 0;
       virtual TLoopConfiguration* Copy() const = 0; // { return new TLoopConfiguration(*this); }
       virtual TVirtualCollectionProxy* GetCollectionProxy() const { return fProxy; }
@@ -121,7 +116,6 @@ namespace TStreamerInfoActions {
          // we can shared them between the optimized and non-optimized list of actions.
          delete fConfiguration;
       }
-      void PrintDebug(TBuffer &buffer, void *object) const;
 
       inline Int_t operator()(TBuffer &buffer, void *object) const {
          return fAction(buffer, object, fConfiguration);
@@ -206,8 +200,6 @@ namespace TStreamerInfoActions {
 
       TActionSequence *CreateSubSequence(const TIDs &element_ids, size_t offset, SequenceGetter_t create);
       void AddToSubSequence(TActionSequence *sequence, const TIDs &element_ids, Int_t offset, SequenceGetter_t create);
-
-      void Print(Option_t * = "") const;
 
       // Maybe owner unique_ptr
       struct SequencePtr {

@@ -83,8 +83,6 @@ public:
 
    virtual const char *ApplicationName() const { return fAppImp->ApplicationName(); }
 
-   virtual void    ls(Option_t *option="") const;
-
    TObjArray      *InputFiles() const { return fFiles; }
    const char     *WorkingDirectory() const { return fWorkDir; }
    void            ClearInputFiles();

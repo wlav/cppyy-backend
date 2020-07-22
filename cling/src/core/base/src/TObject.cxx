@@ -170,37 +170,6 @@ Int_t TObject::DistancetoPrimitive(Int_t, Int_t)
 }
 
 ////////////////////////////////////////////////////////////////////////////////
-/// Dump contents of object on stdout.
-/// Using the information in the object dictionary (class TClass)
-/// each data member is interpreted.
-/// If a data member is a pointer, the pointer value is printed
-///
-/// The following output is the Dump of a TArrow object:
-/// ~~~ {.cpp}
-///   fAngle                   0           Arrow opening angle (degrees)
-///   fArrowSize               0.2         Arrow Size
-///   fOption.*fData
-///   fX1                      0.1         X of 1st point
-///   fY1                      0.15        Y of 1st point
-///   fX2                      0.67        X of 2nd point
-///   fY2                      0.83        Y of 2nd point
-///   fUniqueID                0           object unique identifier
-///   fBits                    50331648    bit field status word
-///   fLineColor               1           line color
-///   fLineStyle               1           line style
-///   fLineWidth               1           line width
-///   fFillColor               19          fill area color
-///   fFillStyle               1001        fill area style
-/// ~~~
-
-void TObject::Dump() const
-{
-   // Get the actual address of the object.
-   const void *actual = IsA()->DynamicCast(TObject::Class(),this,kFALSE);
-   IsA()->Dump(actual);
-}
-
-////////////////////////////////////////////////////////////////////////////////
 /// Must be redefined in derived classes.
 /// This function is typically used with TCollections, but can also be used
 /// to find an object by name inside this object.
@@ -310,7 +279,6 @@ Bool_t TObject::InheritsFrom(const TClass *cl) const
 
 ////////////////////////////////////////////////////////////////////////////////
 /// Dump contents of this object in a graphics canvas.
-/// Same action as Dump but in a graphical form.
 /// In addition pointers to other objects can be followed.
 ///
 /// The following picture is the Inspect of a histogram object:
@@ -340,21 +308,6 @@ Bool_t TObject::IsEqual(const TObject *obj) const
 }
 
 ////////////////////////////////////////////////////////////////////////////////
-/// The ls function lists the contents of a class on stdout. Ls output
-/// is typically much less verbose then Dump().
-
-void TObject::ls(Option_t *option) const
-{
-   TROOT::IndentLevel();
-   std::cout <<"OBJ: " << IsA()->GetName() << "\t" << GetName() << "\t" << GetTitle() << " : ";
-   std::cout << Int_t(TestBit(kCanDelete));
-   if (option && strstr(option,"noaddr")==0) {
-      std::cout <<" at: "<< this ;
-   }
-   std::cout << std::endl;
-}
-
-////////////////////////////////////////////////////////////////////////////////
 /// This method must be overridden to handle object notification.
 
 Bool_t TObject::Notify()
@@ -368,14 +321,6 @@ Bool_t TObject::Notify()
 
 void TObject::Pop()
 {
-}
-
-////////////////////////////////////////////////////////////////////////////////
-/// This method must be overridden when a class wants to print itself.
-
-void TObject::Print(Option_t *) const
-{
-   std::cout <<"OBJ: " << IsA()->GetName() << "\t" << GetName() << "\t" << GetTitle() << std::endl;
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -725,19 +670,6 @@ void TObject::AbstractMethod(const char *method) const
 void TObject::MayNotUse(const char *method) const
 {
    Warning(method, "may not use this method");
-}
-
-////////////////////////////////////////////////////////////////////////////////
-/// Use this method to declare a method obsolete. Specify as of which version
-/// the method is obsolete and as from which version it will be removed.
-
-void TObject::Obsolete(const char *method, const char *asOfVers, const char *removedFromVers) const
-{
-   const char *classname = "UnknownClass";
-   if (TROOT::Initialized())
-      classname = ClassName();
-
-   ::CppyyLegacy::Obsolete(Form("%s::%s", classname, method), asOfVers, removedFromVers);
 }
 
 ////////////////////////////////////////////////////////////////////////////////

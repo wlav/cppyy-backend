@@ -455,22 +455,6 @@ void TBits::Output(std::ostream &os) const
 }
 
 ////////////////////////////////////////////////////////////////////////////////
-/// Print the list of active bits
-
-void TBits::Print(Option_t *) const
-{
-   Int_t count = 0;
-   for(UInt_t i=0; i<fNbytes; ++i) {
-      UChar_t val = fAllBits[i];
-      for (UInt_t j=0; j<8; ++j) {
-         if (val & 1) printf(" bit:%4d = 1\n",count);
-         count++;
-         val = val >> 1;
-      }
-   }
-}
-
-////////////////////////////////////////////////////////////////////////////////
 /// Reset all bits to 0 (false).
 
 void TBits::ResetAllBits(Bool_t)

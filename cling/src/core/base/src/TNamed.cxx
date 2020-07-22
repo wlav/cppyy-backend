@@ -110,29 +110,6 @@ void TNamed::FillBuffer(char *&buffer)
 }
 
 ////////////////////////////////////////////////////////////////////////////////
-/// List TNamed name and title.
-
-void TNamed::ls(Option_t *opt) const
-{
-   TROOT::IndentLevel();
-   if (opt && strstr(opt,"noaddr")) {
-      std::cout <<"OBJ: " << IsA()->GetName() << "\t" << GetName() << "\t" << GetTitle() << " : "
-                << Int_t(TestBit(kCanDelete)) << std::endl;
-   } else {
-      std::cout <<"OBJ: " << IsA()->GetName() << "\t" << GetName() << "\t" << GetTitle() << " : "
-                 << Int_t(TestBit(kCanDelete)) << " at: "<<this<< std::endl;
-   }
-}
-
-////////////////////////////////////////////////////////////////////////////////
-/// Print TNamed name and title.
-
-void TNamed::Print(Option_t *) const
-{
-   std::cout <<"OBJ: " << IsA()->GetName() << "\t" << GetName() << "\t" << GetTitle() << std::endl;
-}
-
-////////////////////////////////////////////////////////////////////////////////
 /// Set the name of the TNamed.
 ///
 /// WARNING: if the object is a member of a THashTable or THashList container

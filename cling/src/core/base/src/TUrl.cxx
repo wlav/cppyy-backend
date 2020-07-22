@@ -532,17 +532,6 @@ Int_t TUrl::Compare(const TObject *obj) const
 }
 
 ////////////////////////////////////////////////////////////////////////////////
-/// Print URL on stdout.
-
-void TUrl::Print(Option_t *) const
-{
-   if (fPort == -1)
-      Printf("Illegal URL");
-
-   Printf("%s", GetUrl());
-}
-
-////////////////////////////////////////////////////////////////////////////////
 /// Read the list of special protocols from the rootrc files.
 /// These protocols will be parsed in a protocol and a file part,
 /// no host or other info will be determined. This is typically

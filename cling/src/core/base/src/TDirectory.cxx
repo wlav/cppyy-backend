@@ -1048,59 +1048,6 @@ TDirectory *TDirectory::mkdir(const char *name, const char *title, Bool_t return
    return newdir;
 }
 
-////////////////////////////////////////////////////////////////////////////////
-/// List Directory contents.
-///
-/// Indentation is used to identify the directory tree
-/// Subdirectories are listed first, then objects in memory.
-///
-/// The option can has the following format:
-///
-///      [<regexp>]
-///
-/// The `<regexp>` will be used to match the name of the objects.
-/// By default memory and disk objects are listed.
-
-void TDirectory::ls(Option_t *option) const
-{
-   TROOT::IndentLevel();
-   TROOT::IncreaseDirLevel();
-
-   TString opta = option;
-   TString opt  = opta.Strip(TString::kBoth);
-   Bool_t memobj  = kTRUE;
-   TString reg = "*";
-   if (opt.BeginsWith("-m")) {
-      if (opt.Length() > 2)
-         reg = opt(2,opt.Length());
-   } else if (opt.BeginsWith("-d")) {
-      memobj  = kFALSE;
-      if (opt.Length() > 2)
-         reg = opt(2,opt.Length());
-   } else if (!opt.IsNull())
-      reg = opt;
-
-   TRegexp re(reg, kTRUE);
-
-   if (memobj) {
-      TObject *obj;
-      TIter nextobj(fList);
-      while ((obj = (TObject *) nextobj())) {
-         TString s = obj->GetName();
-         if (s.Index(re) == kNPOS) continue;
-         obj->ls(option);            //*-* Loop on all the objects in memory
-      }
-   }
-   TROOT::DecreaseDirLevel();
-}
-
-////////////////////////////////////////////////////////////////////////////////
-/// Print all objects in the directory.
-
-void TDirectory::Print(Option_t *option) const
-{
-   fList->R__FOR_EACH(TObject,Print)(option);
-}
 
 ////////////////////////////////////////////////////////////////////////////////
 /// Print the path of the directory.

@@ -207,7 +207,6 @@ public:
            Bool_t      IsBinary() const { return TestBit(kBinaryFile); }
            Bool_t      IsRaw() const { return !fIsRootFile; }
    virtual Bool_t      IsOpen() const;
-           void        ls(Option_t *option="") const override;
    virtual void        MakeFree(Long64_t first, Long64_t last);
    virtual void        MakeProject(const char *dirname, const char *classes="*",
                                    Option_t *option="new"); // *MENU*
@@ -215,7 +214,6 @@ public:
    virtual void        Map() { Map(""); }; // *MENU*
    virtual Bool_t      Matches(const char *name);
    virtual Bool_t      MustFlush() const {return fMustFlush;}
-           void        Print(Option_t *option="") const override;
    virtual Bool_t      ReadBuffer(char *buf, Int_t len);
    virtual Bool_t      ReadBuffer(char *buf, Long64_t pos, Int_t len);
    virtual Bool_t      ReadBuffers(char *buf, Long64_t *pos, Int_t *len, Int_t nbuf);

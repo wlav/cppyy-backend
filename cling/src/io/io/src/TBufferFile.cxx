@@ -3553,7 +3553,6 @@ Int_t TBufferFile::ApplySequence(const TStreamerInfoActions::TActionSequence &se
       for(TStreamerInfoActions::ActionContainer_t::const_iterator iter = sequence.fActions.begin();
           iter != end;
           ++iter) {
-         (*iter).PrintDebug(*this,obj);
          (*iter)(*this,obj);
       }
 
@@ -3582,10 +3581,6 @@ Int_t TBufferFile::ApplySequenceVecPtr(const TStreamerInfoActions::TActionSequen
       for(TStreamerInfoActions::ActionContainer_t::const_iterator iter = sequence.fActions.begin();
           iter != end;
           ++iter) {
-         if (!start_collection || start_collection == end_collection)
-            (*iter).PrintDebug(*this, nullptr);  // Warning: This limits us to TClonesArray and vector of pointers.
-         else
-            (*iter).PrintDebug(*this, *(char**)start_collection);  // Warning: This limits us to TClonesArray and vector of pointers.
          (*iter)(*this, start_collection, end_collection);
       }
 
@@ -3608,29 +3603,12 @@ Int_t TBufferFile::ApplySequenceVecPtr(const TStreamerInfoActions::TActionSequen
 Int_t TBufferFile::ApplySequence(const TStreamerInfoActions::TActionSequence &sequence, void *start_collection, void *end_collection)
 {
    TStreamerInfoActions::TLoopConfiguration *loopconfig = sequence.fLoopConfig;
-   if (gDebug) {
-
-      // Get the address of the first item for the PrintDebug.
-      // (Performance is not essential here since we are going to print to
-      // the screen anyway).
-      void *arr0 = start_collection ? loopconfig->GetFirstAddress(start_collection,end_collection) : 0;
-      // loop on all active members
-      TStreamerInfoActions::ActionContainer_t::const_iterator end = sequence.fActions.end();
-      for(TStreamerInfoActions::ActionContainer_t::const_iterator iter = sequence.fActions.begin();
-          iter != end;
-          ++iter) {
-         (*iter).PrintDebug(*this,arr0);
-         (*iter)(*this,start_collection,end_collection,loopconfig);
-      }
-
-   } else {
-      //loop on all active members
-      TStreamerInfoActions::ActionContainer_t::const_iterator end = sequence.fActions.end();
-      for(TStreamerInfoActions::ActionContainer_t::const_iterator iter = sequence.fActions.begin();
-          iter != end;
-          ++iter) {
-         (*iter)(*this,start_collection,end_collection,loopconfig);
-      }
+   //loop on all active members
+   TStreamerInfoActions::ActionContainer_t::const_iterator end = sequence.fActions.end();
+   for(TStreamerInfoActions::ActionContainer_t::const_iterator iter = sequence.fActions.begin();
+       iter != end;
+       ++iter) {
+      (*iter)(*this,start_collection,end_collection,loopconfig);
    }
 
    return 0;

@@ -266,7 +266,6 @@ namespace {
    }
 }
 
-Int_t  TROOT::fgDirLevel = 0;
 Bool_t TROOT::fgRootInit = kFALSE;
 
 static void at_exit_of_TROOT() {
@@ -940,24 +939,6 @@ TClass *TROOT::FindSTLClass(const char *name, Bool_t load, Bool_t silent) const
 }
 
 ////////////////////////////////////////////////////////////////////////////////
-/// Return pointer to class with name. Obsolete, use TClass::GetClass directly
-
-TClass *TROOT::GetClass(const char *name, Bool_t load, Bool_t silent) const
-{
-   return TClass::GetClass(name,load,silent);
-}
-
-
-////////////////////////////////////////////////////////////////////////////////
-/// Return pointer to class from its name. Obsolete, use TClass::GetClass directly
-/// See TClass::GetClass
-
-TClass *TROOT::GetClass(const std::type_info& typeinfo, Bool_t load, Bool_t silent) const
-{
-   return TClass::GetClass(typeinfo,load,silent);
-}
-
-////////////////////////////////////////////////////////////////////////////////
 /// Return pointer to type with name.
 
 TDataType *TROOT::GetType(const char *name, Bool_t /* load */) const
@@ -1219,10 +1200,6 @@ TCollection *TROOT::GetListOfGlobalFunctions(Bool_t load)
 /// TDataType is not already in the list itself and the type does exist,
 /// a new TDataType will be created and added to the list.
 ///
-/// Calling
-/// ~~~ {.cpp}
-///    gROOT->GetListOfTypes()->ls(); // or Print()
-/// ~~~
 /// list only the typedefs that have been previously accessed through the
 /// list (plus the builtins types).
 
@@ -1582,13 +1559,6 @@ Bool_t TROOT::IsRootFile(const char *filename) const
 /// Objects may be files and windows or any other object directly
 /// attached to the ROOT linked list.
 
-void TROOT::ls(Option_t *option) const
-{
-//   TObject::SetDirLevel();
-//   GetList()->R__FOR_EACH(TObject,ls)(option);
-   TDirectory::ls(option);
-}
-
 Bool_t &GetReadingObject() {
    TTHREAD_TLS(Bool_t) fgReadingObject = false;
    return fgReadingObject;
@@ -1765,40 +1735,6 @@ void TROOT::SaveContext()
       gInterpreter->SaveGlobalsContext();
 }
 
-//-------- Static Member Functions ---------------------------------------------
-
-////////////////////////////////////////////////////////////////////////////////
-/// Decrease the indentation level for ls().
-
-Int_t TROOT::DecreaseDirLevel()
-{
-   return --fgDirLevel;
-}
-
-////////////////////////////////////////////////////////////////////////////////
-///return directory level
-
-Int_t TROOT::GetDirLevel()
-{
-   return fgDirLevel;
-}
-
-////////////////////////////////////////////////////////////////////////////////
-/// Increase the indentation level for ls().
-
-Int_t TROOT::IncreaseDirLevel()
-{
-   return ++fgDirLevel;
-}
-
-////////////////////////////////////////////////////////////////////////////////
-/// Functions used by ls() to indent an object hierarchy.
-
-void TROOT::IndentLevel()
-{
-   for (int i = 0; i < fgDirLevel; i++) std::cout.put(' ');
-}
-
 ////////////////////////////////////////////////////////////////////////////////
 /// Initialize ROOT explicitly.
 
@@ -1812,14 +1748,6 @@ void TROOT::Initialize() {
 Bool_t TROOT::Initialized()
 {
    return fgRootInit;
-}
-
-////////////////////////////////////////////////////////////////////////////////
-/// Return Indentation level for ls().
-
-void TROOT::SetDirLevel(Int_t level)
-{
-   fgDirLevel = level;
 }
 
 ////////////////////////////////////////////////////////////////////////////////

@@ -13,63 +13,12 @@
 \ingroup Containers
 This class registers all instances of TObject and its derived
 classes in a hash table. The Add() and Remove() members are called
-from the TObject ctor and dtor, respectively. Using the Print()
-member one can see all currently active objects in the system.
-Using the resource (in .rootrc): Root.ObjectStat one can toggle this
-feature on or off.
+from the TObject ctor and dtor, respectively.
 
 Using the compile option R__NOSTATS one can de-active this feature
 for the entire system (for maximum performance in highly time
 critical applications).
 
-The following output has been produced in a ROOT interactive session
-via the command gObjectTable->Print()
-~~~ {.cpp}
-  class                     cnt    on heap     size    total size    heap size
-  ============================================================================
-  TKey                        4          4       72           288          288
-  TClass                     84         84       80          6720         6720
-  TDataMember               276        276       24          6624         6624
-  TObject                    11         11       12           132          132
-  TMethod                  1974       1974       64        126336       126336
-  TDataType                  34         34       56          1904         1904
-  TList                    2328       2328       36         83808        83808
-  TH1F                        1          1      448           448          448
-  TText                    2688       2688       56        150528       150528
-  TGaxis                      1          0      120           120            0
-  TAxis                       6          3       88           528          264
-  TBox                       57         57       52          2964         2964
-  TLine                     118        118       40          4720         4720
-  TWbox                       1          1       56            56           56
-  TArrow                      1          1       64            64           64
-  TPaveText                  59         59      124          7316         7316
-  TPave                       1          1       92            92           92
-  TFile                       1          1      136           136          136
-  TPad                        1          1      312           312          312
-  TMethodArg               2166       2166       44         95304        95304
-  TPaveLabel                  1          1      120           120          120
-  THtml                       1          1       32            32           32
-  TROOT                       1          0      208           208            0
-  TApplication                1          1       28            28           28
-  TRealData                 117        117       28          3276         3276
-  TBaseClass                 88         88       36          3168         3168
-  THashList                   5          5       40           200          200
-  THashTable                  5          5       36           180          180
-  TGeometry                   1          1       64            64           64
-  TLink                       7          7       60           420          420
-  TPostScript                 1          1      764           764          764
-  TMinuit                     1          1      792           792          792
-  TUnixSystem                 1          1      252           252          252
-  TSignalHandler              1          1       20            20           20
-  TOrdCollection              3          3       40           120          120
-  TEnv                        1          1       24            24           24
-  TCling                      1          1      208           208          208
-  TClassTable                 1          1       12            12           12
-  TObjectTable                1          1       12            12           12
-  ----------------------------------------------------------------------------
-  Total:                  10225      10219     5976        506988       506340
-  ============================================================================
-~~~
 */
 
 #include "TObjectTable.h"
@@ -102,35 +51,6 @@ TObjectTable::TObjectTable(Int_t tableSize)
 TObjectTable::~TObjectTable()
 {
    delete [] fTable; fTable = 0;
-}
-
-////////////////////////////////////////////////////////////////////////////////
-/// Print the object table.
-/// If option ="all" prints the list of all objects with the format
-/// object number, pointer, class name, object name
-
-void TObjectTable::Print(Option_t *option) const
-{
-   TString opt = option;
-   opt.ToLower();
-   if (opt.Contains("all")) {
-      TObject *obj;
-      int i, num = 0;
-      Printf("\nList of all objects");
-      Printf("object   address            class                    name");
-      Printf("================================================================================");
-      for (i = 0; i < fSize; i++) {
-         if (!fTable[i]) continue;
-         num++;
-         obj = fTable[i];
-         printf("%-8d 0x%-16td %-24s %s\n", num, (intptr_t)obj, obj->ClassName(),
-                obj->GetName());
-      }
-      Printf("================================================================================\n");
-   }
-
-   //print the number of instances per class
-   InstanceStatistics();
 }
 
 ////////////////////////////////////////////////////////////////////////////////

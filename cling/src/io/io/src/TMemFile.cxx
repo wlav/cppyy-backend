@@ -295,26 +295,6 @@ Long64_t TMemFile::GetSize() const
 }
 
 ////////////////////////////////////////////////////////////////////////////////
-
-void TMemFile::Print(Option_t *option /* = "" */) const
-{
-   Printf("TMemFile: name=%s, title=%s, option=%s", GetName(), GetTitle(), GetOption());
-   if (strcmp(option,"blocks")==0) {
-      const TMemBlock *current = &fBlockList;
-      Int_t counter = 0;
-      while(current) {
-         Printf("TMemBlock: %d size=%lld addr=%p curr=%p prev=%p next=%p",
-                counter,current->fSize,current->fBuffer,
-                current,current->fPrevious,current->fNext);
-         current = current->fNext;
-         ++counter;
-      }
-   } else {
-      GetList()->R__FOR_EACH(TObject,Print)(option);
-   }
-}
-
-////////////////////////////////////////////////////////////////////////////////
 /// Read specified number of bytes from current offset into the buffer.
 /// See documentation for TFile::SysRead().
 

@@ -170,12 +170,10 @@ public:
            Bool_t      IsFolder() const override { return kTRUE; }
    virtual Bool_t      IsModified() const { return kFALSE; }
    virtual Bool_t      IsWritable() const { return kFALSE; }
-           void        ls(Option_t *option="") const override;
    virtual TDirectory *mkdir(const char *name, const char *title="", Bool_t returnExistingDirectory = kFALSE);
    virtual TFile      *OpenFile(const char * /*name*/, Option_t * /*option*/ = "",
                             const char * /*ftitle*/ = "", Int_t /*compress*/ = 1,
                             Int_t /*netopt*/ = 0) {return nullptr;}
-           void        Print(Option_t *option="") const override;
    virtual void        Purge(Short_t /*nkeep*/=1) {}
    virtual void        pwd() const;
    virtual void        ReadAll(Option_t * /*option*/="") {}

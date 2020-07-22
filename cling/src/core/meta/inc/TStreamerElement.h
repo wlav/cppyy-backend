@@ -130,7 +130,6 @@ public:
    virtual Bool_t   IsOldFormat(const char *newTypeName);
    virtual Bool_t   IsBase() const;
    virtual Bool_t   IsTransient() const;
-   virtual void     ls(Option_t *option="") const;
    virtual void     SetArrayDim(Int_t dim);
    virtual void     SetMaxIndex(Int_t dim, Int_t max);
    virtual void     SetOffset(Int_t offset) {fOffset=offset;}
@@ -181,7 +180,6 @@ public:
    TVirtualStreamerInfo *GetBaseStreamerInfo () const { return fStreamerInfo; }
    virtual void     Init(TVirtualStreamerInfo *obj=0);
    Bool_t           IsBase() const;
-   virtual void     ls(Option_t *option="") const;
    Int_t            ReadBuffer (TBuffer &b, char *pointer);
    void             SetNewBaseClass( TClass* cl ) { fNewBaseClass = cl; InitStreaming(); }
    void             SetBaseVersion(Int_t v) {fBaseVersion = v;}
@@ -412,7 +410,6 @@ public:
    Int_t          GetCtype()   const {return fCtype;}
    const char    *GetInclude() const;
    Int_t          GetSize() const;
-   virtual void   ls(Option_t *option="") const;
    void           SetSTLtype(Int_t t) {fSTLtype = t;}
    void           SetCtype(Int_t t) {fCtype = t;}
    virtual void   SetStreamer(TMemberStreamer *streamer);

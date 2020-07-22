@@ -5117,10 +5117,6 @@ Int_t TCling::LoadLibraryMap(const char* rootmapfile)
                               fRootmapFiles->Add(new TNamed(f, p));
                            }
                         }
-                        // else {
-                        //    fprintf(stderr,"Reject %s because %s is already there\n",p.Data(),f.Data());
-                        //    fRootmapFiles->FindObject(f)->ls();
-                        // }
                      }
                   }
                   if (f.BeginsWith("rootmap")) {

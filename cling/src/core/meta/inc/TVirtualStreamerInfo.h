@@ -157,7 +157,6 @@ public:
            Bool_t      IsCompiled() const { return fIsCompiled; }
            Bool_t      IsOptimized() const { return fOptimized; }
            Int_t       IsRecovered() const { return TestBit(kRecovered); }
-   virtual void        ls(Option_t *option="") const = 0;
    virtual TVirtualStreamerInfo *NewInfo(TClass *cl) = 0;
    virtual void       *New(void *obj = 0) = 0;
    virtual void       *NewArray(Long_t nElements, void* ary = 0) = 0;

@@ -763,9 +763,6 @@ bool RScanner::TreatRecordDeclOrTypedefNameDecl(clang::TypeDecl* typeDecl)
                                     << lineno << " and " << previouslineno << ". ";
             message << "Attempt to select a class "<< normName << " with two rules which have incompatible attributes. "
                   << "The attributes such as transiency might not be correctly propagated to the typesystem of ROOT.\n";
-            selected->Print(message);
-            message << "Conflicting rule already matched:\n";
-            previouslyMatchingRule->Print(message);
             TMetaUtils::Warning(0,"%s\n", message.str().c_str());
          }
       }

@@ -55,7 +55,6 @@ namespace CppyyLegacy {
 
       void GenerateTClassFor(const char *requestedName, const clang::CXXRecordDecl *stlClass, const cling::Interpreter &interp, const TMetaUtils::TNormalizedCtxt &normCtxt);
       void GenerateTClassFor(const clang::QualType &type, const cling::Interpreter &interp, const TMetaUtils::TNormalizedCtxt &normCtxt);
-      void Print();
       void WriteClassInit(std::ostream &strm,
                           const cling::Interpreter &interp,
                           const TMetaUtils::TNormalizedCtxt &normCtxt,

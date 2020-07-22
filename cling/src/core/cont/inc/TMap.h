@@ -49,8 +49,6 @@ private:
 protected:
    enum EStatusBits { kIsOwnerValue = BIT(15) };
 
-   virtual void        PrintCollectionEntry(TObject* entry, Option_t* option, Int_t recurse) const;
-
 public:
    typedef TMapIter Iterator_t;
 

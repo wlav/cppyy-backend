@@ -101,11 +101,9 @@ public:
 
    virtual Long64_t CopyTo(void *to, Long64_t maxsize) const;
    virtual void     CopyTo(TBuffer &tobuf) const;
-           Long64_t GetSize() const override;
+   Long64_t GetSize() const override;
 
-           void ResetErrno() const override;
-
-           void        Print(Option_t *option="") const override;
+   void ResetErrno() const override;
 
    ClassDefOverride(TMemFile, 0) // A ROOT file that reads/writes on a chunk of memory
 };

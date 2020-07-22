@@ -69,7 +69,6 @@ public:
    const AddressList_t &GetAddresses() const { return fAddresses; }
    const AliasList_t   &GetAliases() const { return fAliases; }
    Bool_t      IsValid() const { return fFamily == -1 ? kFALSE : kTRUE; }
-   void        Print(Option_t *option="") const;
 
    static const char *GetHostAddress(UInt_t addr);
 

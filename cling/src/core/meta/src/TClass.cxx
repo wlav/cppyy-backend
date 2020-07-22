@@ -470,194 +470,6 @@ void Class_ShowMembers(TClass *cl, const void *obj, TMemberInspector&insp)
 }
 
 //______________________________________________________________________________
-//______________________________________________________________________________
-
-class TDumpMembers : public TMemberInspector {
-   bool fNoAddr;
-public:
-   TDumpMembers(bool noAddr): fNoAddr(noAddr) { }
-
-   using TMemberInspector::Inspect;
-   void Inspect(TClass *cl, const char *parent, const char *name, const void *addr, Bool_t isTransient);
-};
-
-////////////////////////////////////////////////////////////////////////////////
-/// Print value of member mname.
-///
-/// This method is called by the ShowMembers() method for each
-/// data member when object.Dump() is invoked.
-///
-///  - cl    is the pointer to the current class
-///  - pname is the parent name (in case of composed objects)
-///  - mname is the data member name
-///  - add   is the data member address
-
-void TDumpMembers::Inspect(TClass *cl, const char *pname, const char *mname, const void *add, Bool_t /* isTransient */)
-{
-   const Int_t kvalue = 30;
-#ifdef R__B64
-   const Int_t ktitle = 50;
-#else
-   const Int_t ktitle = 42;
-#endif
-   const Int_t kline  = 1024;
-   Int_t cdate = 0;
-   Int_t ctime = 0;
-   UInt_t *cdatime = 0;
-   char line[kline];
-
-   TDataType *membertype;
-   EDataType memberDataType = kNoType_t;
-   const char *memberName;
-   const char *memberFullTypeName;
-   const char *memberTitle;
-   Bool_t isapointer;
-   Bool_t isbasic;
-
-   if (TDataMember *member = cl->GetDataMember(mname)) {
-      if (member->GetDataType()) {
-         memberDataType = (EDataType)member->GetDataType()->GetType();
-      }
-      memberName = member->GetName();
-      memberFullTypeName = member->GetFullTypeName();
-      memberTitle = member->GetTitle();
-      isapointer = member->IsaPointer();
-      isbasic = member->IsBasic();
-      membertype = member->GetDataType();
-   } else if (!cl->IsLoaded()) {
-      // The class is not loaded, hence it is 'emulated' and the main source of
-      // information is the StreamerInfo.
-      TVirtualStreamerInfo *info = cl->GetStreamerInfo();
-      if (!info) return;
-      const char *cursor = mname;
-      while ( (*cursor)=='*' ) ++cursor;
-      TString elname( cursor );
-      Ssiz_t pos = elname.Index("[");
-      if ( pos != kNPOS ) {
-         elname.Remove( pos );
-      }
-      TStreamerElement *element = (TStreamerElement*)info->GetElements()->FindObject(elname.Data());
-      if (!element) return;
-      memberFullTypeName = element->GetTypeName();
-
-      memberDataType = (EDataType)element->GetType();
-
-      memberName = element->GetName();
-      memberTitle = element->GetTitle();
-      isapointer = element->IsaPointer() || element->GetType() == TVirtualStreamerInfo::kCharStar;
-      membertype = gROOT->GetType(memberFullTypeName);
-
-      isbasic = membertype !=0;
-   } else {
-      return;
-   }
-
-
-   Bool_t isdate = kFALSE;
-   if (strcmp(memberName,"fDatime") == 0 && memberDataType == kUInt_t) {
-      isdate = kTRUE;
-   }
-   Bool_t isbits = kFALSE;
-   if (strcmp(memberName,"fBits") == 0 && memberDataType == kUInt_t) {
-      isbits = kTRUE;
-   }
-   TClass * dataClass = TClass::GetClass(memberFullTypeName);
-   Bool_t isTString = (dataClass == TString::Class());
-   static TClassRef stdClass("std::string");
-   Bool_t isStdString = (dataClass == stdClass);
-
-   Int_t i;
-   for (i = 0;i < kline; i++) line[i] = ' ';
-   line[kline-1] = 0;
-   snprintf(line,kline,"%s%s ",pname,mname);
-   i = strlen(line); line[i] = ' ';
-
-   // Encode data value or pointer value
-   char *pointer = (char*)add;
-   char **ppointer = (char**)(pointer);
-
-   if (isapointer) {
-      char **p3pointer = (char**)(*ppointer);
-      if (!p3pointer)
-         snprintf(&line[kvalue],kline-kvalue,"->0");
-      else if (!isbasic) {
-         if (!fNoAddr) {
-            snprintf(&line[kvalue],kline-kvalue,"->%td ", (intptr_t)p3pointer);
-         }
-      } else if (membertype) {
-         if (!strcmp(membertype->GetTypeName(), "char")) {
-            i = strlen(*ppointer);
-            if (kvalue+i > kline) i=kline-1-kvalue;
-            Bool_t isPrintable = kTRUE;
-            for (Int_t j = 0; j < i; j++) {
-               if (!std::isprint((*ppointer)[j])) {
-                  isPrintable = kFALSE;
-                  break;
-               }
-            }
-            if (isPrintable) {
-               strncpy(line + kvalue, *ppointer, i);
-               line[kvalue+i] = 0;
-            } else {
-               line[kvalue] = 0;
-            }
-         } else {
-            strncpy(&line[kvalue], membertype->AsString(p3pointer), TMath::Min(kline-1-kvalue,(int)strlen(membertype->AsString(p3pointer))));
-         }
-      } else if (!strcmp(memberFullTypeName, "char*") ||
-                 !strcmp(memberFullTypeName, "const char*")) {
-         i = strlen(*ppointer);
-         if (kvalue+i >= kline) i=kline-1-kvalue;
-         Bool_t isPrintable = kTRUE;
-         for (Int_t j = 0; j < i; j++) {
-            if (!std::isprint((*ppointer)[j])) {
-               isPrintable = kFALSE;
-               break;
-            }
-         }
-         if (isPrintable) {
-            strncpy(line + kvalue, *ppointer, std::min( i, kline - kvalue));
-            line[kvalue+i] = 0;
-         } else {
-            line[kvalue] = 0;
-         }
-      } else {
-         if (!fNoAddr) {
-            snprintf(&line[kvalue],kline-kvalue,"->%td ", (intptr_t)p3pointer);
-         }
-      }
-   } else if (membertype) {
-      if (isdate) {
-         cdatime = (UInt_t*)pointer;
-         TDatime::GetDateTime(cdatime[0],cdate,ctime);
-         snprintf(&line[kvalue],kline-kvalue,"%d/%d",cdate,ctime);
-      } else if (isbits) {
-         snprintf(&line[kvalue],kline-kvalue,"0x%08x", *(UInt_t*)pointer);
-      } else {
-         strncpy(&line[kvalue], membertype->AsString(pointer), TMath::Min(kline-1-kvalue,(int)strlen(membertype->AsString(pointer))));
-      }
-   } else {
-      if (isStdString) {
-         std::string *str = (std::string*)pointer;
-         snprintf(&line[kvalue],kline-kvalue,"%s",str->c_str());
-      } else if (isTString) {
-         TString *str = (TString*)pointer;
-         snprintf(&line[kvalue],kline-kvalue,"%s",str->Data());
-      } else {
-         if (!fNoAddr) {
-            snprintf(&line[kvalue],kline-kvalue,"->%td ", (intptr_t)pointer);
-         }
-      }
-   }
-   // Encode data member title
-   if (isdate == kFALSE && strcmp(memberFullTypeName, "char*") && strcmp(memberFullTypeName, "const char*")) {
-      i = strlen(&line[0]); line[i] = ' ';
-      assert(250 > ktitle);
-      strlcpy(&line[ktitle],memberTitle,250-ktitle+1); // strlcpy copy 'size-1' characters.
-   }
-   Printf("%s", line);
-}
-
 THashTable* TClass::fgClassTypedefHash = 0;
 
 //______________________________________________________________________________
@@ -684,9 +496,9 @@ public:
       fRealDataObject = obj;
       fRealDataClass = cl;
    }
+
    using TMemberInspector::Inspect;
    void Inspect(TClass *cl, const char *parent, const char *name, const void *addr, Bool_t isTransient);
-
 };
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -2141,62 +1953,6 @@ void TClass::CopyCollectionProxy(const TVirtualCollectionProxy &orig)
 
 void TClass::Draw(Option_t *)
 {
-}
-
-////////////////////////////////////////////////////////////////////////////////
-/// Dump contents of object on stdout.
-/// Using the information in the object dictionary
-/// each data member is interpreted.
-/// If a data member is a pointer, the pointer value is printed
-/// 'obj' is assume to point to an object of the class describe by this TClass
-///
-/// The following output is the Dump of a TArrow object:
-/// ~~~ {.cpp}
-///   fAngle                   0           Arrow opening angle (degrees)
-///   fArrowSize               0.2         Arrow Size
-///   fOption.*fData
-///   fX1                      0.1         X of 1st point
-///   fY1                      0.15        Y of 1st point
-///   fX2                      0.67        X of 2nd point
-///   fY2                      0.83        Y of 2nd point
-///   fUniqueID                0           object unique identifier
-///   fBits                    50331648    bit field status word
-///   fLineColor               1           line color
-///   fLineStyle               1           line style
-///   fLineWidth               1           line width
-///   fFillColor               19          fill area color
-///   fFillStyle               1001        fill area style
-/// ~~~
-///
-/// If noAddr is true, printout of all pointer values is skipped.
-
-void TClass::Dump(const void *obj, Bool_t noAddr /*=kFALSE*/) const
-{
-
-   intptr_t prObj = noAddr ? 0 : (intptr_t)obj;
-   if (IsTObject()) {
-      if (!fIsOffsetStreamerSet) {
-         CalculateStreamerOffset();
-      }
-      TObject *tobj = (TObject*)((intptr_t)obj + fOffsetStreamer);
-
-
-      if (sizeof(this) == 4)
-         Printf("==> Dumping object at: 0x%08lx, name=%s, class=%s\n",prObj,tobj->GetName(),GetName());
-      else
-         Printf("==> Dumping object at: 0x%016lx, name=%s, class=%s\n",prObj,tobj->GetName(),GetName());
-   } else {
-
-      if (sizeof(this) == 4)
-         Printf("==> Dumping object at: 0x%08lx, class=%s\n",prObj,GetName());
-      else
-         Printf("==> Dumping object at: 0x%016lx, class=%s\n",prObj,GetName());
-   }
-
-   TDumpMembers dm(noAddr);
-   if (!CallShowMembers(obj, dm, kFALSE)) {
-      Info("Dump", "No ShowMembers function, dumping disabled");
-   }
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -3790,30 +3546,6 @@ void TClass::ResetCaches()
 }
 
 ////////////////////////////////////////////////////////////////////////////////
-/// The ls function lists the contents of a class on stdout. Ls output
-/// is typically much less verbose then Dump().
-/// If options contains 'streamerinfo', run ls on the list of streamerInfos
-/// and the list of conversion streamerInfos.
-
-void TClass::ls(Option_t *options) const
-{
-   TNamed::ls(options);
-   if (options==0 || options[0]==0) return;
-
-   if (strstr(options,"streamerinfo")!=0) {
-      GetStreamerInfos()->ls(options);
-
-      if (fConversionStreamerInfo.load()) {
-         std::map<std::string, TObjArray*>::iterator it;
-         std::map<std::string, TObjArray*>::iterator end = (*fConversionStreamerInfo).end();
-         for( it = (*fConversionStreamerInfo).begin(); it != end; ++it ) {
-            it->second->ls(options);
-         }
-      }
-   }
-}
-
-////////////////////////////////////////////////////////////////////////////////
 /// Register the fact that an object was moved from the memory location
 /// 'arenaFrom' to the memory location 'arenaTo'.
 
@@ -4824,38 +4556,12 @@ void TClass::Destructor(void *obj, Bool_t dtorOnly)
          } else {
             Error("Destructor", "No streamer info available for class '%s' version %d at address %p, cannot destruct emulated object!", GetName(), fClassVersion, p);
             Error("Destructor", "length of fStreamerInfo is %d", fStreamerInfo->GetSize());
-            Int_t i = fStreamerInfo->LowerBound();
-            for (Int_t v = 0; v < fStreamerInfo->GetSize(); ++v, ++i) {
-               Error("Destructor", "fStreamerInfo->At(%d): %p", i, fStreamerInfo->At(i));
-               if (fStreamerInfo->At(i) != 0) {
-                  Error("Destructor", "Doing Dump() ...");
-                  ((TVirtualStreamerInfo*)fStreamerInfo->At(i))->Dump();
-               }
-            }
          }
       } else {
          // The loaded class version is not the same as the version of the code
          // which was used to allocate this object.  The best we can do is use
          // the TVirtualStreamerInfo to try to free up some of the allocated memory.
          Error("Destructor", "Loaded class %s version %d is not registered for addr %p", GetName(), fClassVersion, p);
-#if 0
-         TVirtualStreamerInfo* si = (TVirtualStreamerInfo*) fStreamerInfo->At(objVer);
-         if (si) {
-            si->Destructor(p, dtorOnly);
-         } else {
-            Error("Destructor2", "No streamer info available for class '%s' version %d, cannot destruct object at addr: %p", GetName(), objVer, p);
-            Error("Destructor2", "length of fStreamerInfo is %d", fStreamerInfo->GetSize());
-            Int_t i = fStreamerInfo->LowerBound();
-            for (Int_t v = 0; v < fStreamerInfo->GetSize(); ++v, ++i) {
-               Error("Destructor2", "fStreamerInfo->At(%d): %p", i, fStreamerInfo->At(i));
-               if (fStreamerInfo->At(i) != 0) {
-                  // Do some debugging output.
-                  Error("Destructor2", "Doing Dump() ...");
-                  ((TVirtualStreamerInfo*)fStreamerInfo->At(i))->Dump();
-               }
-            }
-         }
-#endif
       }
 
       if (inRepo && verFound && p) {
@@ -4936,43 +4642,12 @@ void TClass::DeleteArray(void *ary, Bool_t dtorOnly)
          } else {
             Error("DeleteArray", "No streamer info available for class '%s' version %d at address %p, cannot destruct object!", GetName(), fClassVersion, ary);
             Error("DeleteArray", "length of fStreamerInfo is %d", fStreamerInfo->GetSize());
-            Int_t i = fStreamerInfo->LowerBound();
-            for (Int_t v = 0; v < fStreamerInfo->GetSize(); ++v, ++i) {
-               Error("DeleteArray", "fStreamerInfo->At(%d): %p", v, fStreamerInfo->At(i));
-               if (fStreamerInfo->At(i)) {
-                  Error("DeleteArray", "Doing Dump() ...");
-                  ((TVirtualStreamerInfo*)fStreamerInfo->At(i))->Dump();
-               }
-            }
          }
       } else {
          // The loaded class version is not the same as the version of the code
          // which was used to allocate this array.  The best we can do is use
          // the TVirtualStreamerInfo to try to free up some of the allocated memory.
          Error("DeleteArray", "Loaded class version %d is not registered for addr %p", fClassVersion, p);
-
-
-
-#if 0
-         TVirtualStreamerInfo* si = (TVirtualStreamerInfo*) fStreamerInfo->At(objVer);
-         if (si) {
-            si->DeleteArray(ary, dtorOnly);
-         } else {
-            Error("DeleteArray", "No streamer info available for class '%s' version %d at address %p, cannot destruct object!", GetName(), objVer, ary);
-            Error("DeleteArray", "length of fStreamerInfo is %d", fStreamerInfo->GetSize());
-            Int_t i = fStreamerInfo->LowerBound();
-            for (Int_t v = 0; v < fStreamerInfo->GetSize(); ++v, ++i) {
-               Error("DeleteArray", "fStreamerInfo->At(%d): %p", v, fStreamerInfo->At(i));
-               if (fStreamerInfo->At(i)) {
-                  // Print some debugging info.
-                  Error("DeleteArray", "Doing Dump() ...");
-                  ((TVirtualStreamerInfo*)fStreamerInfo->At(i))->Dump();
-               }
-            }
-         }
-#endif
-
-
       }
 
       // Deregister the object for special handling in the destructor.

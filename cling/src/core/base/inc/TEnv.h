@@ -163,8 +163,6 @@ public:
    virtual Int_t       WriteFile(const char *fname, EEnvLevel level = kEnvAll);
    virtual void        Save();
    virtual void        SaveLevel(EEnvLevel level);
-   virtual void        Print(Option_t *option="") const;
-   virtual void        PrintEnv(EEnvLevel level = kEnvAll) const;
    Bool_t              IgnoreDuplicates(Bool_t ignore);
 
    ClassDef(TEnv,2)  // Handle ROOT configuration resources

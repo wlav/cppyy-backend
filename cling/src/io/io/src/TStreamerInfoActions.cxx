@@ -88,64 +88,10 @@ namespace TStreamerInfoActions
       fOffset = TVirtualStreamerInfo::kMissing;
    }
 
-   void TConfiguredAction::PrintDebug(TBuffer &buf, void *addr) const
-   {
-      // Inform the user what we are about to stream.
-
-      // Idea, we should find a way to print the name of the function
-      if (fConfiguration) fConfiguration->PrintDebug(buf,addr);
-   }
-
-   void TConfiguration::Print() const
-   {
-      // Inform the user what we are about to stream.
-
-      TStreamerInfo *info = (TStreamerInfo*)fInfo;
-      TStreamerElement *aElement = fCompInfo->fElem;
-      TString sequenceType;
-      aElement->GetSequenceType(sequenceType);
-
-      printf("StreamerInfoAction, class:%s, name=%s, fType[%d]=%d,"
-             " %s, offset=%d (%s)\n",
-             info->GetClass()->GetName(), aElement->GetName(), fElemId, fCompInfo->fType,
-             aElement->ClassName(), fOffset, sequenceType.Data());
-   }
-
-   void TConfiguration::PrintDebug(TBuffer &buf, void *addr) const
-   {
-      // Inform the user what we are about to stream.
-
-      if (gDebug > 1) {
-         // Idea: We should print the name of the action function.
-         TStreamerInfo *info = (TStreamerInfo*)fInfo;
-         TStreamerElement *aElement = fCompInfo->fElem;
-         TString sequenceType;
-         aElement->GetSequenceType(sequenceType);
-
-         printf("StreamerInfoAction, class:%s, name=%s, fType[%d]=%d,"
-                " %s, bufpos=%d, arr=%p, offset=%d (%s)\n",
-                info->GetClass()->GetName(), aElement->GetName(), fElemId, fCompInfo->fType,
-                aElement->ClassName(), buf.Length(), addr, fOffset, sequenceType.Data());
-      }
-   }
-
-   void TLoopConfiguration::Print() const
-   {
-      // Inform the user what we are about to stream.
-
-      printf("TLoopConfiguration: unconfigured\n");
-   }
-
-
    struct TGenericConfiguration : TConfiguration {
       // Configuration of action using the legacy code.
-      // Mostly to cancel out the PrintDebug.
    public:
       TGenericConfiguration(TVirtualStreamerInfo *info, UInt_t id, TCompInfo_t *compinfo, Int_t offset = 0) : TConfiguration(info,id,compinfo,offset) {};
-      void PrintDebug(TBuffer &, void *) const {
-         // Since we call the old code, it will print the debug statement.
-      }
-
       virtual TConfiguration *Copy() { return new TGenericConfiguration(*this); }
   };
 
@@ -158,17 +104,6 @@ namespace TStreamerInfoActions
       Int_t  fObjectOffset;  // Offset of the TObject part within the object
 
       TBitsConfiguration(TVirtualStreamerInfo *info, UInt_t id, TCompInfo_t *compinfo, Int_t offset = 0) : TConfiguration(info,id,compinfo,offset),fObjectOffset(0) {};
-      void PrintDebug(TBuffer &, void *) const {
-         TStreamerInfo *info = (TStreamerInfo*)fInfo;
-         TStreamerElement *aElement = fCompInfo->fElem;
-         TString sequenceType;
-         aElement->GetSequenceType(sequenceType);
-
-         printf("StreamerInfoAction, class:%s, name=%s, fType[%d]=%d,"
-                " %s, offset=%d (%s)\n",
-                info->GetClass()->GetName(), aElement->GetName(), fElemId, fCompInfo->fType,
-                aElement->ClassName(), fOffset, sequenceType.Data());
-      }
 
       void AddToOffset(Int_t delta)
       {
@@ -1009,12 +944,7 @@ namespace TStreamerInfoActions
       Long_t fIncrement; // Either a value to increase the cursor by and
    public:
       TVectorLoopConfig(TVirtualCollectionProxy *proxy, Long_t increment, Bool_t /* read */) : TLoopConfiguration(proxy), fIncrement(increment) {};
-      //virtual void PrintDebug(TBuffer &buffer, void *);
       virtual ~TVectorLoopConfig() {};
-      void Print() const
-      {
-         printf("TVectorLoopConfig: increment=%ld\n",fIncrement);
-      }
 
       void* GetFirstAddress(void *start, const void * /* end */) const
       {
@@ -1030,12 +960,7 @@ namespace TStreamerInfoActions
       // Base class of the Configurations used in member wise streaming.
    public:
       TAssocLoopConfig(TVirtualCollectionProxy *proxy, Bool_t /* read */) : TLoopConfiguration(proxy) {};
-      //virtual void PrintDebug(TBuffer &buffer, void *);
       virtual ~TAssocLoopConfig() {};
-      void Print() const
-      {
-         printf("TAssocLoopConfig: proxy=%s\n",fProxy->GetCollectionClass()->GetName());
-      }
       virtual TLoopConfiguration* Copy() const { return new TAssocLoopConfig(*this); }
 
       void* GetFirstAddress(void *start, const void * /* end */) const
@@ -1079,10 +1004,6 @@ namespace TStreamerInfoActions
          Init(read);
       }
       virtual ~TGenericLoopConfig() {};
-      void Print() const
-      {
-         printf("TGenericLoopConfig: proxy=%s\n",fProxy->GetCollectionClass()->GetName());
-      }
       virtual TLoopConfiguration* Copy() const { return new TGenericLoopConfig(*this); }
 
       void* GetFirstAddress(void *start_collection, const void *end_collection) const
@@ -1454,24 +1375,6 @@ namespace TStreamerInfoActions
       TConfigurationPushDataCache(TVirtualStreamerInfo *info, TVirtualArray *onfileObject, Int_t offset) :
          TConfiguration(info, -1, nullptr, offset), fOnfileObject(onfileObject)
       {}
-
-      virtual void Print() const {
-         TStreamerInfo *info = (TStreamerInfo*)fInfo;
-         if (fOnfileObject)
-            printf("StreamerInfoAction, class:%s, PushDataCache offset=%d\n",
-                   info->GetClass()->GetName(), fOffset);
-         else
-            printf("StreamerInfoAction, class:%s, PopDataCache offset=%d\n",
-                   info->GetClass()->GetName(), fOffset);
-      }
-      virtual void PrintDebug(TBuffer &buffer, void *object) const {
-         if (gDebug > 1) {
-            TStreamerInfo *info = (TStreamerInfo*)fInfo;
-            printf("StreamerInfoAction, class:%s, %sDataCache, bufpos=%d, arr=%p, offset=%d, onfileObject=%p\n",
-                  info->GetClass()->GetName(), fOnfileObject ? "Push" : "Pop", buffer.Length(), object, fOffset, fOnfileObject);
-
-         }
-      }
    };
 
    Int_t PushDataCache(TBuffer &b, void *, const TConfiguration *conf)
@@ -1519,19 +1422,6 @@ namespace TStreamerInfoActions
 
       TConfigurationUseCache(TVirtualStreamerInfo *info, TConfiguredAction &action, Bool_t repeat) :
               TConfiguration(info,action.fConfiguration->fElemId,action.fConfiguration->fCompInfo,action.fConfiguration->fOffset),fAction(action),fNeedRepeat(repeat) {};
-      virtual void PrintDebug(TBuffer &b, void *addr) const
-      {
-         if (gDebug > 1) {
-            // Idea: We should print the name of the action function.
-            TStreamerInfo *info = (TStreamerInfo*)fInfo;
-            TStreamerElement *aElement = fCompInfo->fElem;
-            fprintf(stdout,"StreamerInfoAction, class:%s, name=%s, fType[%d]=%d,"
-                   " %s, bufpos=%d, arr=%p, eoffset=%d, Redirect=%p\n",
-                   info->GetClass()->GetName(),aElement->GetName(),fElemId,fCompInfo->fType,
-                   aElement->ClassName(),b.Length(),addr, 0,b.PeekDataCache() ? b.PeekDataCache()->GetObjectAt(0) : 0);
-         }
-
-      }
       virtual ~TConfigurationUseCache() {};
       virtual TConfiguration *Copy() {
          TConfigurationUseCache *copy = new TConfigurationUseCache(*this);
@@ -3184,10 +3074,6 @@ void TStreamerInfo::Compile()
 
    fOptimized = isOptimized;
    SetIsCompiled();
-
-   if (gDebug > 0) {
-      ls();
-   }
 }
 
 template <typename From>
@@ -4299,66 +4185,6 @@ TStreamerInfoActions::TActionSequence *TStreamerInfoActions::TActionSequence::Cr
       }
    }
    return sequence;
-}
-
-#if !defined(R__WIN32) && !defined(_AIX)
-
-#include <dlfcn.h>
-
-#endif
-
-typedef void (*voidfunc)();
-static const char *R__GetSymbolName(voidfunc func)
-{
-#if defined(R__WIN32) || defined(__CYGWIN__) || defined(_AIX)
-   return "not available on this platform";
-#if 0
-   MEMORY_BASIC_INFORMATION mbi;
-   if (!VirtualQuery (func, &mbi, sizeof (mbi)))
-   {
-      return 0;
-   }
-
-   HMODULE hMod = (HMODULE) mbi.AllocationBase;
-   static char moduleName[MAX_PATH];
-
-   if (!GetModuleFileNameA (hMod, moduleName, sizeof (moduleName)))
-   {
-      return 0;
-   }
-   return moduleName;
-#endif
-#else
-   Dl_info info;
-   if (dladdr((void*)func,&info)==0) {
-      // Not in a known share library, let's give up
-      return "name not found";
-   } else {
-      //fprintf(stdout,"Found address in %s\n",info.dli_fname);
-      return info.dli_sname;
-   }
-#endif
-}
-
-void TStreamerInfoActions::TActionSequence::Print(Option_t *opt) const
-{
-   // Add the (potentially negative) delta to all the configuration's offset.  This is used by
-   // TTBranchElement in the case of split sub-object.
-   // If opt contains 'func', also print the (mangled) name of the function that will be executed.
-
-   if (fLoopConfig) {
-      fLoopConfig->Print();
-   }
-   TStreamerInfoActions::ActionContainer_t::const_iterator end = fActions.end();
-   for(TStreamerInfoActions::ActionContainer_t::const_iterator iter = fActions.begin();
-       iter != end;
-       ++iter)
-   {
-      iter->fConfiguration->Print();
-      if (strstr(opt,"func")) {
-         printf("StreamerInfoAction func: %s\n",R__GetSymbolName((voidfunc)iter->fAction));
-      }
-   }
 }
 
 } // namespace CppyyLegacy

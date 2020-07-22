@@ -266,14 +266,6 @@ Int_t TDatime::GetTime() const
 }
 
 ////////////////////////////////////////////////////////////////////////////////
-/// Print date and time.
-
-void TDatime::Print(Option_t *) const
-{
-   printf("Date/Time = %s\n", AsString());
-}
-
-////////////////////////////////////////////////////////////////////////////////
 /// Decode Date/Time from output buffer, used by I/O system.
 
 void TDatime::ReadBuffer(char *&buffer)

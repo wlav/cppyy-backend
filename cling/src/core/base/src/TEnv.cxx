@@ -557,41 +557,6 @@ TEnvRec *TEnv::Lookup(const char *name) const
 }
 
 ////////////////////////////////////////////////////////////////////////////////
-/// Print all resources or the global, user or local resources separately.
-
-void TEnv::Print(Option_t *opt) const
-{
-   if (!opt || !opt[0]) {
-      PrintEnv();
-      return;
-   }
-
-   if (!strcmp(opt, "global"))
-      PrintEnv(kEnvGlobal);
-   if (!strcmp(opt, "user"))
-      PrintEnv(kEnvUser);
-   if (!strcmp(opt, "local"))
-      PrintEnv(kEnvLocal);
-}
-
-////////////////////////////////////////////////////////////////////////////////
-/// Print all resources for a certain level (global, user, local, changed).
-
-void TEnv::PrintEnv(EEnvLevel level) const
-{
-   if (!fTable) return;
-
-   TIter next(fTable);
-   TEnvRec *er;
-   static const char *lc[] = { "Global", "User", "Local", "Changed", "All" };
-
-   while ((er = (TEnvRec*) next()))
-      if (er->fLevel == level || level == kEnvAll)
-         Printf("%-25s %-30s [%s]", Form("%s:", er->fName.Data()),
-                er->fValue.Data(), lc[er->fLevel]);
-}
-
-////////////////////////////////////////////////////////////////////////////////
 /// Read and parse the resource file for a certain level.
 /// Returns -1 on case of error, 0 in case of success.
 

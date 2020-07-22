@@ -262,19 +262,6 @@ Int_t TCollection::Compare(const TObject *obj) const
 }
 
 ////////////////////////////////////////////////////////////////////////////////
-/// Dump all objects in this collection.
-
-void TCollection::Dump() const
-{
-   TIter next(this);
-   TObject *object;
-
-   while ((object = next())) {
-      object->Dump();
-   }
-}
-
-////////////////////////////////////////////////////////////////////////////////
 /// Find an object in this collection using its name. Requires a sequential
 /// scan till the object has been found. Returns 0 if object with specified
 /// name is not found.
@@ -345,50 +332,12 @@ Bool_t  TCollection::IsArgNull(const char *where, const TObject *obj) const
 }
 
 ////////////////////////////////////////////////////////////////////////////////
-/// List (ls) all objects in this collection.
-/// Wildcarding supported, eg option="xxx*" lists only objects
-/// with names xxx*.
-
-void TCollection::ls(Option_t *option) const
-{
-   TROOT::IndentLevel();
-   std::cout <<"OBJ: " << IsA()->GetName() << "\t" << GetName() << "\t" << GetTitle() << " : "
-        << Int_t(TestBit(kCanDelete)) << std::endl;
-
-   TRegexp re(option,kTRUE);
-   TIter next(this);
-   TObject *object;
-   char *star = 0;
-   if (option) star = (char*)strchr(option,'*');
-
-   TROOT::IncreaseDirLevel();
-   while ((object = next())) {
-      if (star) {
-         TString s = object->GetName();
-         if (s != option && s.Index(re) == kNPOS) continue;
-      }
-      object->ls(option);
-   }
-   TROOT::DecreaseDirLevel();
-}
-
-////////////////////////////////////////////////////////////////////////////////
 /// 'Notify' all objects in this collection.
 Bool_t TCollection::Notify()
 {
    Bool_t success = true;
    for (auto obj : *this) success &= obj->Notify();
    return success;
-}
-
-////////////////////////////////////////////////////////////////////////////////
-/// Print the collection header.
-
-void TCollection::PrintCollectionHeader(Option_t*) const
-{
-   TROOT::IndentLevel();
-   printf("Collection name='%s', class='%s', size=%d\n",
-          GetName(), ClassName(), GetSize());
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -399,104 +348,6 @@ void TCollection::PrintCollectionHeader(Option_t*) const
 const char* TCollection::GetCollectionEntryName(TObject* entry) const
 {
    return entry->GetName();
-}
-
-////////////////////////////////////////////////////////////////////////////////
-/// Print the collection entry.
-
-void TCollection::PrintCollectionEntry(TObject* entry, Option_t* option, Int_t recurse) const
-{
-   TCollection* coll = dynamic_cast<TCollection*>(entry);
-   if (coll) {
-      coll->Print(option, recurse);
-   } else {
-      TROOT::IndentLevel();
-      entry->Print(option);
-   }
-}
-
-////////////////////////////////////////////////////////////////////////////////
-/// Default print for collections, calls Print(option, 1).
-/// This will print the collection header and Print() methods of
-/// all the collection entries.
-///
-/// If you want to override Print() for a collection class, first
-/// see if you can accomplish it by overriding the following protected
-/// methods:
-/// ~~~ {.cpp}
-///   void        PrintCollectionHeader(Option_t* option) const;
-///   const char* GetCollectionEntryName(TObject* entry) const;
-///   void        PrintCollectionEntry(TObject* entry, Option_t* option, Int_t recurse) const;
-/// ~~~
-/// Otherwise override the `Print(Option_t *option, Int_t)`
-/// variant. Remember to declare:
-/// ~~~ {.cpp}
-///   using TCollection::Print;
-/// ~~~
-/// somewhere close to the method declaration.
-
-void TCollection::Print(Option_t *option) const
-{
-   Print(option, 1);
-}
-
-////////////////////////////////////////////////////////////////////////////////
-/// Print the collection header and its elements.
-///
-/// If recurse is non-zero, descend into printing of
-/// collection-entries with recurse - 1.
-/// This means, if recurse is negative, the recursion is infinite.
-///
-/// Option is passed recursively.
-
-void TCollection::Print(Option_t *option, Int_t recurse) const
-{
-   PrintCollectionHeader(option);
-
-   if (recurse != 0)
-   {
-      TIter next(this);
-      TObject *object;
-
-      TROOT::IncreaseDirLevel();
-      while ((object = next())) {
-         PrintCollectionEntry(object, option, recurse - 1);
-      }
-      TROOT::DecreaseDirLevel();
-   }
-}
-
-////////////////////////////////////////////////////////////////////////////////
-/// Print the collection header and its elements that match the wildcard.
-///
-/// If recurse is non-zero, descend into printing of
-/// collection-entries with recurse - 1.
-/// This means, if recurse is negative, the recursion is infinite.
-///
-/// Option is passed recursively, but wildcard is only used on the
-/// first level.
-
-void TCollection::Print(Option_t *option, const char* wildcard, Int_t recurse) const
-{
-   PrintCollectionHeader(option);
-
-   if (recurse != 0)
-   {
-      if (!wildcard) wildcard = "";
-      TRegexp re(wildcard, kTRUE);
-      Int_t nch = strlen(wildcard);
-      TIter next(this);
-      TObject *object;
-
-      TROOT::IncreaseDirLevel();
-      while ((object = next())) {
-         TString s = GetCollectionEntryName(object);
-         if (nch == 0 || s == wildcard || s.Index(re) != kNPOS) {
-            PrintCollectionEntry(object, option, recurse - 1);
-         }
-      }
-      TROOT::DecreaseDirLevel();
-   }
 }
 
 ////////////////////////////////////////////////////////////////////////////////

@@ -46,23 +46,6 @@ TSchemaRuleSet::~TSchemaRuleSet()
 }
 
 ////////////////////////////////////////////////////////////////////////////////
-/// The ls function lists the contents of a class on stdout. Ls output
-/// is typically much less verbose then Dump().
-
-void TSchemaRuleSet::ls(Option_t *) const
-{
-   TROOT::IndentLevel();
-   std::cout << "TSchemaRuleSet for " << fClassName << ":\n";
-   TROOT::IncreaseDirLevel();
-   TObject *object = 0;
-   TIter next(fPersistentRules);
-   while ((object = next())) {
-      object->ls(fClassName);
-   }
-   TROOT::DecreaseDirLevel();
-}
-
-////////////////////////////////////////////////////////////////////////////////
 
 Bool_t TSchemaRuleSet::AddRules( TSchemaRuleSet* /* rules */, EConsistencyCheck /* checkConsistency */, TString * /* errmsg */ )
 {

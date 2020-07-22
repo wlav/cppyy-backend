@@ -93,7 +93,6 @@ namespace CppyyLegacy {
          Bool_t           Conflicts( const TSchemaRule* rule ) const;
 
          void             AsString( TString &out, const char *options = "" ) const;
-         void             ls(Option_t *option="") const;
 
          ClassDef( TSchemaRule, 1 );
 

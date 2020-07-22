@@ -541,14 +541,6 @@ void TTimeStamp::Add(const TTimeStamp &offset)
 }
 
 ////////////////////////////////////////////////////////////////////////////////
-/// Print date and time.
-
-void TTimeStamp::Print(Option_t *option) const
-{
-   printf("Date/Time = %s\n", AsString(option));
-}
-
-////////////////////////////////////////////////////////////////////////////////
 /// Set Date/Time to current time as reported by the system.
 /// No accounting for nanoseconds with std ANSI functions,
 /// ns part faked so that subsequent calls simply add 1 to it

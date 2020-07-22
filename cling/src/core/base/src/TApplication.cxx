@@ -250,22 +250,6 @@ void TApplication::CreateApplication()
 }
 
 ////////////////////////////////////////////////////////////////////////////////
-/// Show available sessions
-
-void TApplication::ls(Option_t *opt) const
-{
-   if (fgApplications) {
-      TIter nxa(fgApplications);
-      TApplication *a = 0;
-      while ((a = (TApplication *) nxa())) {
-         a->Print(opt);
-      }
-   } else {
-      Print(opt);
-   }
-}
-
-////////////////////////////////////////////////////////////////////////////////
 /// Static method returning the list of available applications
 
 TList *TApplication::GetApplications()

@@ -18,10 +18,8 @@
 //                                                                      //
 // This class registers all instances of TObject and its derived        //
 // classes in a hash table. The Add() and Remove() members are called   //
-// from the TObject ctor and dtor, repectively. Using the Print()       //
-// member one can see all currently active objects in the system.       //
-// Using the runtime flag: Root.ObjectStat one can toggle this feature  //
-// on or off.                                                           //
+// from the TObject ctor and dtor, repectively. Using the runtime       //
+// flag: Root.ObjectStat one can toggle this feature on or off.         //
 //                                                                      //
 //////////////////////////////////////////////////////////////////////////
 
@@ -58,11 +56,9 @@ public:
    Int_t     GetSize() const { return fSize; }
    Int_t     Instances() const { return fTally; }
    void      InstanceStatistics() const;
-   void      Print(Option_t *option="") const;
    Bool_t    PtrIsValid(TObject *obj);
    void      Remove(TObject *obj);
    void      RemoveQuietly(TObject *obj);
-   void      Statistics() { Print(); }
    void      Terminate();
    void      UpdateInstCount() const;
 

@@ -253,9 +253,6 @@ Bool_t TProtoClass::FillTClass(TClass* cl) {
       }
    }
 
-
-   //this->Dump();
-
    // Copy only the TClass bits.
    // not bit 13 and below and not bit 24 and above, just Bits 14 - 23
    UInt_t newbits = TestBits(0x00ffc000);
@@ -526,7 +523,6 @@ Int_t TProtoClass::DataMemberIndex(TClass * cl, const char * name)
       index++;
    }
    ::CppyyLegacy::Error("TProtoClass::DataMemberIndex","data member %s is not found in class %s",name, cl->GetName());
-   dmList->ls();
    return -1;
 }
 ////////////////////////////////////////////////////////////////////////////////

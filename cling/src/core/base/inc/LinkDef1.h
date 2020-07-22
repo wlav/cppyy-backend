@@ -60,7 +60,6 @@
 #pragma link C++ function CppyyLegacy::Error;
 #pragma link C++ function CppyyLegacy::SysError;
 #pragma link C++ function CppyyLegacy::Fatal;
-#pragma link C++ function CppyyLegacy::Obsolete;
 #pragma link C++ function CppyyLegacy::Form;
 #pragma link C++ function CppyyLegacy::Printf;
 #pragma link C++ function CppyyLegacy::Strip;

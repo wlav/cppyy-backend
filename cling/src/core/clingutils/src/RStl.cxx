@@ -178,16 +178,6 @@ void Internal::RStl::GenerateTClassFor(const char *requestedName, const clang::C
 
 }
 
-void Internal::RStl::Print()
-{
-   // Print the content of the object
-   fprintf(stderr,"Internal::RStl singleton\n");
-   list_t::iterator iter;
-   for(iter = fList.begin(); iter != fList.end(); ++iter) {
-      fprintf(stderr, "need TClass for %s\n", TMetaUtils::GetQualifiedName(*(*iter)).c_str());
-   }
-}
-
 void Internal::RStl::WriteClassInit(std::ostream &ostr,
                                 const cling::Interpreter &interp,
                                 const TMetaUtils::TNormalizedCtxt &normCtxt,

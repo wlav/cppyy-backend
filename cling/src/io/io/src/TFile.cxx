@@ -1166,22 +1166,6 @@ TList *TFile::GetStreamerInfoList()
 }
 
 ////////////////////////////////////////////////////////////////////////////////
-/// List file contents.
-///
-/// Indentation is used to identify the file tree.
-/// Subdirectories are listed first, then objects in memory,
-/// then objects on the file.
-
-void TFile::ls(Option_t *option) const
-{
-   TROOT::IndentLevel();
-   std::cout <<ClassName()<<"**\t\t"<<GetName()<<"\t"<<GetTitle()<<std::endl;
-   TROOT::IncreaseDirLevel();
-   TDirectoryFile::ls(option);
-   TROOT::DecreaseDirLevel();
-}
-
-////////////////////////////////////////////////////////////////////////////////
 /// Returns kTRUE in case file is open and kFALSE if file is not open.
 
 Bool_t TFile::IsOpen() const
@@ -1359,15 +1343,6 @@ void TFile::Map(Option_t *opt)
       Printf("%d/%06d  At:%-*lld  N=%-8d  %-14s",date,time, nDigits+1, idcur,1,"END");
    else
       Printf("At:%-*lld  N=%-8d K=    O=          %-14s", nDigits+1, idcur,1,"END");
-}
-
-////////////////////////////////////////////////////////////////////////////////
-/// Print all objects in the file.
-
-void TFile::Print(Option_t *option) const
-{
-   Printf("TFile: name=%s, title=%s, option=%s", GetName(), GetTitle(), GetOption());
-   GetList()->R__FOR_EACH(TObject,Print)(option);
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -2303,11 +2278,6 @@ Bool_t TFile::GetReadStreamerInfo()
 
 void TFile::ShowStreamerInfo()
 {
-   TList *list = GetStreamerInfoList();
-   if (!list) return;
-
-   list->ls();
-   delete list;
 }
 
 ////////////////////////////////////////////////////////////////////////////////

@@ -55,7 +55,6 @@ public:
    TCollection        *GetListOfFolders() const { return fFolders; }
    Bool_t              IsFolder() const { return kTRUE; }
    Bool_t              IsOwner()  const;
-   virtual void        ls(Option_t *option="") const;  // *MENU*
    virtual Int_t       Occurence(const TObject *obj) const;
    virtual void        RecursiveRemove(TObject *obj);
    virtual void        Remove(TObject *obj);

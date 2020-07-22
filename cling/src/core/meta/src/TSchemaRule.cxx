@@ -173,45 +173,6 @@ Bool_t TSchemaRule::operator == ( const TSchemaRule& rhs ) const
 }
 
 ////////////////////////////////////////////////////////////////////////////////
-/// The ls function lists the contents of a class on stdout. Ls output
-/// is typically much less verbose then Dump().
-
-void TSchemaRule::ls(Option_t *targetname) const
-{
-   TROOT::IndentLevel();
-   std::cout << "Schema Evolution Rule: ";
-   if (fRuleType==kReadRule) std::cout <<  "read ";
-   else if (fRuleType==kReadRawRule) std::cout << "readraw ";
-   std::cout << "\n";
-   TROOT::IncreaseDirLevel();
-   TROOT::IndentLevel();
-   std::cout << "sourceClass=\"" << fSourceClass << "\" ";
-   if (fVersion.Length())  std::cout << "version=\"" << fVersion << "\" ";
-   if (fChecksum.Length()) std::cout << "checksum=\"" << fChecksum << "\" ";
-   if (targetname && targetname[0]) std::cout << "targetClass=\"" << targetname << "\" ";
-   else std::cout << "targetClass\"" << fTargetClass << "\" ";
-   std::cout << "\n";
-   TROOT::IndentLevel();
-   std::cout << "source=\"" << fSource << "\" ";
-   std::cout << "target=\"" << fTarget << "\" ";
-   std::cout << "\n";
-   if (fInclude.Length()) {
-      TROOT::IndentLevel();
-      std::cout << "include=\"" << fInclude << "\" " << "\n";
-   }
-   if (fAttributes.Length()) {
-      TROOT::IndentLevel();
-      std::cout << "attributes=\"" << fAttributes << "\"" << "\n";
-   }
-   if (fCode.Length()) {
-      TROOT::IndentLevel();
-      std::cout << "code=\"{" << fCode << "}\" "
-      << "\n";
-   }
-   TROOT::DecreaseDirLevel();
-}
-
-////////////////////////////////////////////////////////////////////////////////
 /// Add to the string 'out' the string representation of the rule.
 /// if options contains:
 ///  's' : add the short form of the rule is possible

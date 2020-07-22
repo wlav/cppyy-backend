@@ -255,24 +255,6 @@ const char *TFunction::GetPrototype() const
 }
 
 ////////////////////////////////////////////////////////////////////////////////
-/// List TFunction name and title.
-
-void TFunction::ls(Option_t *options /* ="" */) const
-{
-   TDictionary::ls(options);
-   TROOT::IndentLevel();
-   std::cout << "     " << GetPrototype() << '\n';
-}
-
-////////////////////////////////////////////////////////////////////////////////
-/// Print TFunction name and title.
-
-void TFunction::Print(Option_t *options /* ="" */) const
-{
-   TDictionary::Print(options);
-}
-
-////////////////////////////////////////////////////////////////////////////////
 /// Update the TFunction to reflect the new info.
 ///
 /// This can be used to implement unloading (info == 0) and then reloading

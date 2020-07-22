@@ -60,7 +60,6 @@ namespace Detail {
       void                RemoveRules( TObjArray* rules );
       void                SetClass( TClass* cls );
 
-      void                ls(Option_t *option="") const;
       void                AsString(TString &out) const;
 
       ClassDef( TSchemaRuleSet, 1 )

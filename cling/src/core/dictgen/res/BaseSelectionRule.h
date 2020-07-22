@@ -96,7 +96,6 @@ public:
 
    virtual ~BaseSelectionRule() = default;
 
-   virtual void DebugPrint() const;
    virtual void Print(std::ostream &out) const = 0;
 
    long    GetIndex() const { return fIndex; }

@@ -1336,9 +1336,6 @@ Int_t TStreamerInfo::ReadBuffer(TBuffer &b, const T &arr,
             }
             if (pstreamer == 0) {
                Error("ReadBuffer","Streamer for %s is null\n",aElement->GetName());
-               if (gDebug > 0) {
-                  aElement->ls(); continue;
-               }
             } else {
                DOLOOP {(*pstreamer)(b,arr[k]+ioffset,compinfo[i]->fLength);}
             }

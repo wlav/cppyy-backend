@@ -40,7 +40,6 @@ public:
    const char *GetName() const { return fString; }
    ULong_t     Hash() const { return fString.Hash(); }
    void        FillBuffer(char *&buffer) { fString.FillBuffer(buffer); }
-   void        Print(Option_t *) const { TStringPrintf("TObjString = %s", (const char*)fString); }
    Bool_t      IsSortable() const { return kTRUE; }
    Bool_t      IsEqual(const TObject *obj) const;
    void        ReadBuffer(char *&buffer) { fString.ReadBuffer(buffer); }

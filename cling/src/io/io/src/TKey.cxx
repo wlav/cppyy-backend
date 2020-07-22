@@ -640,23 +640,6 @@ void TKey::Keep()
 }
 
 ////////////////////////////////////////////////////////////////////////////////
-/// List Key contents.
-
-void TKey::ls(Option_t *) const
-{
-   TROOT::IndentLevel();
-   std::cout <<"KEY: "<<fClassName<<"\t"<<GetName()<<";"<<GetCycle()<<"\t"<<GetTitle()<<std::endl;
-}
-
-////////////////////////////////////////////////////////////////////////////////
-/// Print key contents.
-
-void TKey::Print(Option_t *) const
-{
-   printf("TKey Name = %s, Title = %s, Cycle = %d\n",GetName(),GetTitle(),GetCycle());
-}
-
-////////////////////////////////////////////////////////////////////////////////
 /// To read a TObject* from the file.
 ///
 /// The object associated to this key is read from the file into memory

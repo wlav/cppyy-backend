@@ -641,7 +641,6 @@ Int_t TStreamerInfo::WriteBufferAux(TBuffer &b, const T &arr,
             UInt_t pos = b.WriteVersion(this->IsA(),kTRUE);
             if (pstreamer == 0) {
                printf("ERROR, Streamer is null\n");
-               aElement->ls();continue;
             } else {
                DOLOOP{(*pstreamer)(b,arr[k]+ioffset,compinfo[i]->fLength);}
             }

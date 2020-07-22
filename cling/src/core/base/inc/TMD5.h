@@ -70,7 +70,6 @@ public:
    void        Update(const UChar_t *buf, UInt_t len);
    void        Final();
    void        Final(UChar_t digest[16]);
-   void        Print() const;
    const char *AsString() const;
 
    Int_t       SetDigest(const char *md5ascii);

@@ -130,12 +130,6 @@ TClassTable::IdMap_t *TClassTable::fgIdMap;
 
       void Remove(const key_type &key) { fMap.erase(key); }
 
-      void Print() {
-         Info("TMapTypeToClassRec::Print", "printing the typeinfo map in TClassTable");
-         for (const_iterator iter = fMap.begin(); iter != fMap.end(); ++iter) {
-            printf("Key: %40s 0x%td\n", iter->first.c_str(), (uintptr_t)iter->second);
-         }
-      }
 #else
    private:
       TMap fMap;
@@ -163,21 +157,6 @@ TClassTable::IdMap_t *TClassTable::fgIdMap;
          delete actual;
       }
 
-      void Print() {
-         // Print the content of the map.
-         Info("TMapTypeToClassRec::Print", "printing the typeinfo map in TClassTable");
-         TIter next(&fMap);
-         TObjString *key;
-         while((key = (TObjString*)next())) {
-            printf("Key: %s\n",key->String().Data());
-            TClassRec *data = (TClassRec*)fMap.GetValue(key);
-            if (data) {
-               printf("  class: %s %d\n",data->fName,data->fId);
-            } else {
-               printf("  no class: \n");
-            }
-         }
-      }
 #endif
    };
 
@@ -261,45 +240,6 @@ inline Bool_t TClassTable::CheckClassTableInit() {
       return kFALSE;
    }
    return kTRUE;
-}
-
-////////////////////////////////////////////////////////////////////////////////
-/// Print the class table. Before printing the table is sorted
-/// alphabetically. Only classes specified in option are listed.
-/// The default is to list all classes.
-/// Standard wildcarding notation supported.
-
-void TClassTable::Print(Option_t *option) const
-{
-   if (fgTally == 0 || !fgTable)
-      return;
-
-   SortTable();
-
-   int n = 0, ninit = 0, nl = 0;
-
-   int nch = strlen(option);
-   TRegexp re(option, kTRUE);
-
-   Printf("\nDefined classes");
-   Printf("class                                 version  bits  initialized");
-   Printf("================================================================");
-   for (UInt_t i = 0; i < fgTally; i++) {
-      TClassRec *r = fgSortedTable[i];
-      if (!r) break;
-      n++;
-      TString s = r->fName;
-      if (nch && strcmp(option,r->fName) && s.Index(re) == kNPOS) continue;
-      nl++;
-      if (TClass::GetClass(r->fName, kFALSE)) {
-         ninit++;
-         Printf("%-35s %6d %7d       Yes", r->fName, r->fId, r->fBits);
-      } else
-         Printf("%-35s %6d %7d       No",  r->fName, r->fId, r->fBits);
-   }
-   Printf("----------------------------------------------------------------");
-   Printf("Listed Classes: %4d  Total classes: %4d   initialized: %4d",nl, n, ninit);
-   Printf("================================================================\n");
 }
 
 //---- static members --------------------------------------------------------
@@ -562,11 +502,6 @@ Int_t TClassTable::GetPragmaBits(const char *cname)
 
 DictFuncPtr_t TClassTable::GetDict(const char *cname)
 {
-   if (gDebug > 9) {
-      ::CppyyLegacy::Info("GetDict", "searches for %s", cname);
-      fgIdMap->Print();
-   }
-
    TClassRec *r = FindElement(cname);
    if (r) return r->fDict;
    return 0;
@@ -580,11 +515,6 @@ DictFuncPtr_t TClassTable::GetDict(const std::type_info& info)
 {
    if (!CheckClassTableInit()) return nullptr;
 
-   if (gDebug > 9) {
-      ::CppyyLegacy::Info("GetDict", "searches for %s at 0x%td", info.name(), (intptr_t)&info);
-      fgIdMap->Print();
-   }
-
    TClassRec *r = fgIdMap->Find(info.name());
    if (r) return r->fDict;
    return 0;
@@ -597,11 +527,6 @@ DictFuncPtr_t TClassTable::GetDict(const std::type_info& info)
 DictFuncPtr_t TClassTable::GetDictNorm(const char *cname)
 {
    if (!CheckClassTableInit()) return nullptr;
-
-   if (gDebug > 9) {
-      ::CppyyLegacy::Info("GetDict", "searches for %s", cname);
-      fgIdMap->Print();
-   }
 
    TClassRec *r = FindElementImpl(cname,kFALSE);
    if (r) return r->fDict;
@@ -620,11 +545,6 @@ TProtoClass *TClassTable::GetProto(const char *cname)
 
    if (!CheckClassTableInit()) return nullptr;
 
-   if (gDebug > 9) {
-      ::CppyyLegacy::Info("GetDict", "searches for %s", cname);
-      fgIdMap->Print();
-   }
-
    TClassRec *r = FindElement(cname);
    if (r) return r->fProto;
    return 0;
@@ -641,10 +561,6 @@ TProtoClass *TClassTable::GetProtoNorm(const char *cname)
    }
 
    if (!CheckClassTableInit()) return nullptr;
-
-   if (gDebug > 9) {
-      fgIdMap->Print();
-   }
 
    TClassRec *r = FindElementImpl(cname,kFALSE);
    if (r) return r->fProto;
@@ -674,39 +590,6 @@ char *TClassTable::Next()
       return r->fName;
    } else
       return 0;
-}
-
-////////////////////////////////////////////////////////////////////////////////
-/// Print the class table. Before printing the table is sorted
-/// alphabetically.
-
-void TClassTable::PrintTable()
-{
-   if (fgTally == 0 || !fgTable)
-      return;
-
-   SortTable();
-
-   int n = 0, ninit = 0;
-
-   Printf("\nDefined classes");
-   Printf("class                                 version  bits  initialized");
-   Printf("================================================================");
-   UInt_t last = fgTally;
-   for (UInt_t i = 0; i < last; i++) {
-      TClassRec *r = fgSortedTable[i];
-      if (!r) break;
-      n++;
-      // Do not use TClass::GetClass to avoid any risk of autoloading.
-      if (gROOT->GetListOfClasses()->FindObject(r->fName)) {
-         ninit++;
-         Printf("%-35s %6d %7d       Yes", r->fName, r->fId, r->fBits);
-      } else
-         Printf("%-35s %6d %7d       No",  r->fName, r->fId, r->fBits);
-   }
-   Printf("----------------------------------------------------------------");
-   Printf("Total classes: %4d   initialized: %4d", n, ninit);
-   Printf("================================================================\n");
 }
 
 ////////////////////////////////////////////////////////////////////////////////

@@ -1,7 +1,6 @@
 # Author: Fons Rademakers  22/09/95
 
-# ROOT Environment settings are handled via the class TEnv. To see
-# which values are active do: gEnv->Print().
+# ROOT Environment settings are handled via the class TEnv.
 
 # Path where to look for TrueType fonts.
 Unix.*.Root.UseTTFonts:     true

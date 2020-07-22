@@ -4740,12 +4740,6 @@ int RootClingMain(int argc,
    selectionRules.FillCache();
    selectionRules.Optimize();
 
-   if (isGenreflex){
-      if (0 != selectionRules.CheckDuplicates()){
-         return 1;
-      }
-   }
-
    // If we want to validate the selection only, we just quit.
    if (gOptCheckSelectionSyntax)
       return 0;

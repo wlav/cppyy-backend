@@ -173,53 +173,6 @@ void SelectionRules::ClearSelectionRules()
    fEnumSelectionRules.clear();
 }
 
-template<class RULE>
-static bool HasDuplicate(RULE* rule,
-                         std::unordered_map<std::string,RULE*>& storedRules,
-                         const std::string& attrName){
-   auto itRetCodePair = storedRules.emplace( attrName, rule );
-
-   auto storedRule = storedRules[attrName];
-
-   if (itRetCodePair.second ||
-       storedRule->GetSelected() != rule->GetSelected())  return false;
-   auto areEqual = SelectionRulesUtils::areEqual(storedRule,rule);
-
-   std::stringstream sstr; sstr << "Rule:\n";
-   rule->Print(sstr);
-   sstr << (areEqual ? "Identical " : "Conflicting ");
-   sstr << "rule already stored:\n";
-   storedRule->Print(sstr);
-   CppyyLegacy::TMetaUtils::Warning("SelectionRules::CheckDuplicates",
-                             "Duplicated rule found.\n%s",sstr.str().c_str());
-   return !areEqual;
-}
-
-template<class RULESCOLLECTION, class RULE = typename RULESCOLLECTION::value_type>
-static int CheckDuplicatesImp(RULESCOLLECTION& rules){
-   int nDuplicates = 0;
-   std::unordered_map<std::string, RULE*> patterns,names;
-   for (auto&& rule : rules){
-      if (rule.HasAttributeName() && HasDuplicate(&rule,names,rule.GetAttributeName())) nDuplicates++;
-      if (rule.HasAttributePattern() && HasDuplicate(&rule,patterns,rule.GetAttributePattern())) nDuplicates++;
-   }
-   return nDuplicates;
-}
-
-int SelectionRules::CheckDuplicates(){
-
-   int nDuplicates = 0;
-   nDuplicates += CheckDuplicatesImp(fClassSelectionRules);
-   nDuplicates += CheckDuplicatesImp(fFunctionSelectionRules);
-   nDuplicates += CheckDuplicatesImp(fVariableSelectionRules);
-   nDuplicates += CheckDuplicatesImp(fEnumSelectionRules);
-   if (0 != nDuplicates){
-      CppyyLegacy::TMetaUtils::Error("SelectionRules::CheckDuplicates",
-            "Duplicates in rules were found.\n");
-   }
-   return nDuplicates;
-}
-
 static bool Implies(const ClassSelectionRule& patternRule, const ClassSelectionRule& nameRule){
 
    // Check if these both select or both exclude

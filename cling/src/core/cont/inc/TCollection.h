@@ -147,9 +147,7 @@ protected:
 
    TCollection() : fName(), fSize(0) { }
 
-   virtual void        PrintCollectionHeader(Option_t* option) const;
    virtual const char* GetCollectionEntryName(TObject* entry) const;
-   virtual void        PrintCollectionEntry(TObject* entry, Option_t* option, Int_t recurse) const;
 
 public:
    enum { kInitCapacity = 16, kInitHashTableCapacity = 17 };
@@ -166,7 +164,6 @@ public:
    Bool_t             Contains(const char *name) const { return FindObject(name) != 0; }
    Bool_t             Contains(const TObject *obj) const { return FindObject(obj) != 0; }
    virtual void       Delete(Option_t *option="") = 0;
-   virtual void       Dump() const ;
    virtual TObject   *FindObject(const char *name) const;
    TObject           *operator()(const char *name) const;
    virtual TObject   *FindObject(const TObject *obj) const;
@@ -183,13 +180,9 @@ public:
    virtual Bool_t     IsFolder() const { return kTRUE; }
    Bool_t             IsOwner() const { return TestBit(kIsOwner); }
    Bool_t             IsSortable() const { return kTRUE; }
-   virtual void       ls(Option_t *option="") const ;
    virtual Bool_t     Notify();
    virtual TIterator *MakeIterator(Bool_t dir = kIterForward) const = 0;
    virtual TIterator *MakeReverseIterator() const { return MakeIterator(kIterBackward); }
-   virtual void       Print(Option_t *option="") const;
-   virtual void       Print(Option_t *option, Int_t recurse) const;
-   virtual void       Print(Option_t *option, const char* wildcard, Int_t recurse=1) const;
    virtual void       RecursiveRemove(TObject *obj);
    virtual TObject   *Remove(TObject *obj) = 0;
    virtual void       RemoveAll(TCollection *col);

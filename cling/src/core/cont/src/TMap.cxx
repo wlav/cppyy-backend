@@ -262,26 +262,6 @@ TIterator *TMap::MakeIterator(Bool_t dir) const
 }
 
 ////////////////////////////////////////////////////////////////////////////////
-/// Print the collection entry.
-
-void TMap::PrintCollectionEntry(TObject* entry, Option_t* option, Int_t recurse) const
-{
-   TObject* val = GetValue(entry);
-
-   TROOT::IndentLevel();
-   printf("Key:   ");
-   entry->Print();
-   TROOT::IndentLevel();
-   printf("Value: ");
-   TCollection* coll = dynamic_cast<TCollection*>(val);
-   if (coll) {
-     coll->Print(option, recurse);
-   } else {
-     val->Print(option);
-   }
-}
-
-////////////////////////////////////////////////////////////////////////////////
 /// Rehash the underlaying THashTable (see THashTable::Rehash()).
 
 void TMap::Rehash(Int_t newCapacity, Bool_t checkObjValidity)

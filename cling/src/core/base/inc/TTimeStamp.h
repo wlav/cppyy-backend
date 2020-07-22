@@ -170,8 +170,6 @@ public:
 
    void         Add(const TTimeStamp &offset);
 
-   void         Print(const Option_t *option="") const;
-
    operator double() const { return AsDouble(); }
 
    // Utility functions

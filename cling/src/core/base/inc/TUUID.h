@@ -74,7 +74,6 @@ public:
    const char  *AsString() const;
    Int_t        Compare(const TUUID &u) const;
    UShort_t     Hash() const;
-   void         Print() const;
    TInetAddress GetHostAddress() const;
    TDatime      GetTime() const;
    void         GetUUID(UChar_t uuid[16]) const;

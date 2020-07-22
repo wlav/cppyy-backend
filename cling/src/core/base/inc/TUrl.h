@@ -95,8 +95,6 @@ public:
    Bool_t      IsSortable() const { return kTRUE; }
    Int_t       Compare(const TObject *obj) const;
 
-   void        Print(Option_t *option="") const;
-
    static TObjArray *GetSpecialProtocols();
 
    ClassDef(TUrl,1)  //Represents an URL

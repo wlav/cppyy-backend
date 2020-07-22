@@ -550,14 +550,6 @@ void TUUID::GetRandomInfo(UChar_t seed[16])
 }
 
 ////////////////////////////////////////////////////////////////////////////////
-/// Print UUID.
-
-void TUUID::Print() const
-{
-   printf("%s\n", AsString());
-}
-
-////////////////////////////////////////////////////////////////////////////////
 /// Return UUID as string. Copy string immediately since it will be reused.
 
 const char *TUUID::AsString() const

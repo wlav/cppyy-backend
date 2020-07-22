@@ -140,7 +140,6 @@ public:
    Bool_t  operator==(const TBits &other) const;
    Bool_t  operator!=(const TBits &other) const { return !(*this==other); }
 
-   void    Print(Option_t *option="") const;  // to show the list of active bits
    void    Output(std::ostream &) const;
 
    ClassDef(TBits,1)        // Bit container

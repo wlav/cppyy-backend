@@ -122,35 +122,6 @@ const char *TInetAddress::GetHostAddress() const
 }
 
 ////////////////////////////////////////////////////////////////////////////////
-/// Print internet address as string.
-
-void TInetAddress::Print(Option_t *) const
-{
-   if (fPort == -1)
-      Printf("%s/%s (not connected)", GetHostName(), GetHostAddress());
-   else
-      Printf("%s/%s (port %d)", GetHostName(), GetHostAddress(), fPort);
-
-   int i = 0;
-   AddressList_t::const_iterator ai;
-   for (ai = fAddresses.begin(); ai != fAddresses.end(); ++ai) {
-      if (!i) printf("%s:", fAddresses.size() == 1 ? "Address" : "Addresses");
-      printf(" %s", GetHostAddress(*ai));
-      i++;
-   }
-   if (i) printf("\n");
-
-   i = 0;
-   AliasList_t::const_iterator ali;
-   for (ali = fAliases.begin(); ali != fAliases.end(); ++ali) {
-      if (!i) printf("%s:", fAliases.size() == 1 ? "Alias" : "Aliases");
-      printf(" %s", ali->Data());
-      i++;
-   }
-   if (i) printf("\n");
-}
-
-////////////////////////////////////////////////////////////////////////////////
 /// Add alternative address to list of addresses.
 
 void TInetAddress::AddAddress(UInt_t addr)

@@ -3963,92 +3963,6 @@ void TStreamerInfo::InsertArtificialElements(std::vector<const CppyyLegacy::TSch
 }
 
 ////////////////////////////////////////////////////////////////////////////////
-///  List the TStreamerElement list and also the precomputed tables
-///  if option contains the string "incOrig", also prints the original
-///  (non-optimized elements in the list of compiled elements.
-
-void TStreamerInfo::ls(Option_t *option) const
-{
-   if (fClass && (fName != fClass->GetName())) {
-      if (fClass->IsVersioned()) {
-         Printf("\nStreamerInfo for conversion to %s from: %s, version=%d, checksum=0x%x",fClass->GetName(),GetName(),fClassVersion,GetCheckSum());
-      } else {
-         Printf("\nStreamerInfo for conversion to %s from: %s, checksum=0x%x",fClass->GetName(),GetName(),GetCheckSum());
-      }
-   } else {
-      if (!fClass || fClass->IsVersioned()) {
-         Printf("\nStreamerInfo for class: %s, version=%d, checksum=0x%x",GetName(),fClassVersion,GetCheckSum());
-      } else {
-         Printf("\nStreamerInfo for class: %s, checksum=0x%x",GetName(),GetCheckSum());
-      }
-   }
-
-   if (fElements) {
-      TIter    next(fElements);
-      TObject *obj;
-      while ((obj = next()))
-         obj->ls(option);
-   }
-   if (strstr(option,"full") != 0) {
-      for (Int_t i=0; i < fNfulldata; ++i) {
-         TStreamerElement *element = (TStreamerElement*)fCompFull[i]->fElem;
-         TString sequenceType;
-         element->GetSequenceType(sequenceType);
-         // by definition of the loop (i+1) <= fNdata
-         if (sequenceType.Length()) {
-            sequenceType.Prepend(" [");
-            sequenceType += "]";
-         }
-         Printf("   i=%2d, %-15s type=%3d, offset=%3d, len=%d, method=%ld%s",
-                i,element->GetName(),fCompFull[i]->fType,fCompFull[i]->fOffset,fCompFull[i]->fLength,fCompFull[i]->fMethod,
-                sequenceType.Data());
-      }
-
-   } else {
-      Bool_t wantOrig = strstr(option,"incOrig") != 0;
-      Bool_t optimized = kFALSE;
-      for (Int_t i=0,j=0;i < fNdata;++i,++j) {
-         TStreamerElement *element = (TStreamerElement*)fCompOpt[i]->fElem;
-         TString sequenceType;
-         element->GetSequenceType(sequenceType);
-         // by definition of the loop (i+1) <= fNdata
-         optimized = TStreamerInfo::kOffsetL < fCompOpt[i]->fType && fCompOpt[i]->fType < TStreamerInfo::kOffsetP && fCompOpt[i]->fLength > fCompOpt[i]->fElem->GetArrayLength();
-         if (optimized) {
-            // This was optimized.
-            if (sequenceType.Length() != 0) {
-               sequenceType += ',';
-            }
-            sequenceType += "optimized";
-         }
-         if (sequenceType.Length()) {
-            sequenceType.Prepend(" [");
-            sequenceType += "]";
-         }
-         Printf("   i=%2d, %-15s type=%3d, offset=%3d, len=%d, method=%ld%s",
-                i,element->GetName(),fCompOpt[i]->fType,fCompOpt[i]->fOffset,fCompOpt[i]->fLength,fCompOpt[i]->fMethod,
-                sequenceType.Data());
-         if (optimized && wantOrig) {
-            Bool_t done;
-            do {
-               element = (TStreamerElement*)fCompFull[j]->fElem;
-               element->GetSequenceType(sequenceType);
-               if (sequenceType.Length()) {
-                  sequenceType.Prepend(" [");
-                  sequenceType += "]";
-               }
-               Printf("      j=%2d, %-15s type=%3d, offset=%3d, len=%d, method=%ld%s",
-                      j,element->GetName(),fCompFull[j]->fType,fCompFull[j]->fOffset,fCompFull[j]->fLength,fCompFull[j]->fMethod,
-                      sequenceType.Data());
-               ++j;
-               done = j >= fNfulldata || ( (i+1 < fNdata) && fCompOpt[i+1]->fElem == fCompFull[j+1]->fElem );
-            } while (!done);
-
-         }
-      }
-   }
-}
-
-////////////////////////////////////////////////////////////////////////////////
 /// An emulated object is created at address obj, if obj is null we
 /// allocate memory for the object.
 
@@ -4795,15 +4709,6 @@ void TStreamerInfo::PrintValueAux(char *ladd, Int_t atype, TStreamerElement *aEl
       case kOffsetL + kObjectP:
       case kAny:     {
          printf("printing kAny case (%d)",atype);
-//         if (aElement) {
-//            TMemberStreamer *pstreamer = aElement->GetStreamer();
-//            if (pstreamer == 0) {
-//               //printf("ERROR, Streamer is null\n");
-//               //aElement->ls();
-//               break;
-//            }
-//            //(*pstreamer)(b,ladd,0);
-//         }
          break;
       }
       // Base Class
@@ -4819,32 +4724,11 @@ void TStreamerInfo::PrintValueAux(char *ladd, Int_t atype, TStreamerElement *aEl
       case kOffsetL + kTNamed:
       case kStreamer: {
          printf("printing kStreamer case (%d)",atype);
-//         TMemberStreamer *pstreamer = aElement->GetStreamer();
-//         if (pstreamer == 0) {
-//            //printf("ERROR, Streamer is null\n");
-//            //aElement->ls();
-//            break;
-//         }
-//         //UInt_t start,count;
-//         //b.ReadVersion(&start, &count);
-//         //(*pstreamer)(b,ladd,0);
-//         //b.CheckByteCount(start,count,IsA());
          break;
       }
 
       case kStreamLoop: {
          printf("printing kStreamLoop case (%d)",atype);
-//         TMemberStreamer *pstreamer = aElement->GetStreamer();
-//         if (pstreamer == 0) {
-//            //printf("ERROR, Streamer is null\n");
-//            //aElement->ls();
-//            break;
-//         }
-         //Int_t *counter = (Int_t*)(count);
-         //UInt_t start,count;
-         ///b.ReadVersion(&start, &count);
-         //(*pstreamer)(b,ladd,*counter);
-         //b.CheckByteCount(start,count,IsA());
          break;
       }
       case kSTL: {

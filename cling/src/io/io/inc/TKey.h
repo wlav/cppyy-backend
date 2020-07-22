@@ -89,8 +89,6 @@ protected:
    virtual void        IncrementPidOffset(UShort_t offset);
            Bool_t      IsFolder() const;
    virtual void        Keep();
-   virtual void        ls(Option_t *option="") const;
-   virtual void        Print(Option_t *option="") const;
    virtual Int_t       Read(TObject *obj);
    virtual TObject    *ReadObj();
    virtual TObject    *ReadObjWithBuffer(char *bufferRead);

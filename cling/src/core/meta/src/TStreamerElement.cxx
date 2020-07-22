@@ -436,25 +436,6 @@ Bool_t TStreamerElement::IsTransient() const
 }
 
 ////////////////////////////////////////////////////////////////////////////////
-/// Print the content of the element.
-
-void TStreamerElement::ls(Option_t *) const
-{
-   TString temp(GetTypeName());
-   if (IsaPointer() && !fTypeName.Contains("*")) temp += "*";
-
-   TString sequenceType;
-   GetSequenceType(sequenceType);
-   if (sequenceType.Length()) {
-      sequenceType.Prepend(" (");
-      sequenceType += ") ";
-   }
-   printf("  %-14s %-15s offset=%3d type=%2d %s%-20s\n",
-          temp.Data(),GetFullName(),fOffset,fType,sequenceType.Data(),
-          GetTitle());
-}
-
-////////////////////////////////////////////////////////////////////////////////
 /// Set number of array dimensions.
 
 void TStreamerElement::SetArrayDim(Int_t dim)
@@ -719,20 +700,6 @@ const char *TStreamerBase::GetInclude() const
       IncludeNameBuffer().Form("\"%s.h\"",shortname.c_str());
    }
    return IncludeNameBuffer();
-}
-
-////////////////////////////////////////////////////////////////////////////////
-/// Print the content of the element.
-
-void TStreamerBase::ls(Option_t *) const
-{
-   TString sequenceType;
-   GetSequenceType(sequenceType);
-   if (sequenceType.Length()) {
-      sequenceType.Prepend(" (");
-      sequenceType += ") ";
-   }
-   printf("  %-14s %-15s offset=%3d type=%2d %s%-20s\n",GetFullName(),GetTypeName(),fOffset,fType,sequenceType.Data(),GetTitle());
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -1892,29 +1859,6 @@ Int_t TStreamerSTL::GetSize() const
 
    if (fArrayLength) return fArrayLength*size;
    return size;
-}
-
-////////////////////////////////////////////////////////////////////////////////
-/// Print the content of the element.
-
-void TStreamerSTL::ls(Option_t *) const
-{
-   TString name(kMaxLen);
-   TString cdim;
-   name = GetName();
-   for (Int_t i=0;i<fArrayDim;i++) {
-      cdim.Form("[%d]",fMaxIndex[i]);
-      name += cdim;
-   }
-   TString sequenceType;
-   GetSequenceType(sequenceType);
-   if (sequenceType.Length()) {
-      sequenceType.Prepend(" (");
-      sequenceType += ") ";
-   }
-   printf("  %-14s %-15s offset=%3d type=%2d %s,stl=%d, ctype=%d, %-20s\n",
-          GetTypeName(),name.Data(),fOffset,fType,sequenceType.Data(),
-          fSTLtype,fCtype,GetTitle());
 }
 
 ////////////////////////////////////////////////////////////////////////////////

@@ -52,8 +52,6 @@ public:
    virtual void     SetName(const char *name); // *MENU*
    virtual void     SetNameTitle(const char *name, const char *title);
    virtual void     SetTitle(const char *title=""); // *MENU*
-   virtual void     ls(Option_t *option="") const;
-   virtual void     Print(Option_t *option="") const;
    virtual Int_t    Sizeof() const;
 
    ClassDef(TNamed,1)  //The basis for a named object (name, title)

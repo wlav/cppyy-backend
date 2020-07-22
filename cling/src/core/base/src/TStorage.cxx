@@ -112,37 +112,6 @@ void TStorage::Dealloc(void *ptr)
 }
 
 ////////////////////////////////////////////////////////////////////////////////
-/// Reallocate (i.e. resize) block of memory. Don't use if size is larger
-/// than old size, use ReAlloc(void *, size_t, size_t) instead.
-
-void *TStorage::ReAlloc(void *ovp, size_t size)
-{
-   ::CppyyLegacy::Obsolete("ReAlloc(void*,size_t)", "v5-34-00", "v6-02-00");
-   ::CppyyLegacy::Info("ReAlloc(void*,size_t)", "please use ReAlloc(void*,size_t,size_t)");
-
-   static const char *where = "TStorage::ReAlloc";
-
-#ifndef WIN32
-   void *vp = ::operator new[](size);
-#else
-   void *vp = ::operator new(size);
-#endif
-   if (vp == 0)
-      Fatal(where, "%s", gSpaceErr);
-
-   if (ovp == 0)
-      return vp;
-
-   memmove(vp, ovp, size);
-#ifndef WIN32
-   ::operator delete[](ovp);
-#else
-   ::operator delete(ovp);
-#endif
-   return vp;
-}
-
-////////////////////////////////////////////////////////////////////////////////
 /// Reallocate (i.e. resize) block of memory. Checks if current size is
 /// equal to oldsize. If not memory was overwritten.
 

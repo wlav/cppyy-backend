@@ -78,7 +78,6 @@ friend TROOT *CppyyLegacy::Internal::GetROOT2();
 private:
    Int_t           fLineIsProcessing;     //To synchronize multi-threads
 
-   static Int_t    fgDirLevel;            //Indentation level for ls()
    static Bool_t   fgRootInit;            //Singleton initialization flag
 
    TROOT(const TROOT&);                   //Not implemented
@@ -149,8 +148,6 @@ public:
    TClass           *FindSTLClass(const char *name, Bool_t load, Bool_t silent = kFALSE) const;
    TApplication     *GetApplication() const { return fApplication; }
    TInterpreter     *GetInterpreter() const { return fInterpreter; }
-   TClass           *GetClass(const char *name, Bool_t load = kTRUE, Bool_t silent = kFALSE) const;
-   TClass           *GetClass(const std::type_info &typeinfo, Bool_t load = kTRUE, Bool_t silent = kFALSE) const;
    const char       *GetConfigOptions() const { return fConfigOptions; }
    const char       *GetConfigFeatures() const { return fConfigFeatures; }
    Int_t             GetVersionDate() const { return fVersionDate; }
@@ -191,7 +188,6 @@ public:
    Bool_t            IsFolder() const { return kTRUE; }
    Bool_t            IsLineProcessing() const { return fLineIsProcessing ? kTRUE : kFALSE; }
    Bool_t            IsRootFile(const char *filename) const;
-   void              ls(Option_t *option = "") const;
    Int_t             LoadClass(const char *classname, const char *libname, Bool_t check = kFALSE);
    TClass           *LoadClass(const char *name, Bool_t silent = kFALSE) const;
    Bool_t            MustClean() const { return fMustClean; }
@@ -220,13 +216,8 @@ public:
    Int_t             Timer() const { return fTimer; }
 
    //---- static functions
-   static Int_t       DecreaseDirLevel();
-   static Int_t       GetDirLevel();
-   static Int_t       IncreaseDirLevel();
-   static void        IndentLevel();
    static void        Initialize();
    static Bool_t      Initialized();
-   static void        SetDirLevel(Int_t level = 0);
    static Int_t       ConvertVersionCode2Int(Int_t code);
    static Int_t       ConvertVersionInt2Code(Int_t v);
    static Int_t       RootVersionCode();

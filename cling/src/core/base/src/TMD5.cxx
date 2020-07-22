@@ -204,19 +204,6 @@ void TMD5::Final()
 }
 
 ////////////////////////////////////////////////////////////////////////////////
-/// Print digest in ascii hex form.
-
-void TMD5::Print() const
-{
-   if (!fFinalized) {
-      Error("TMD5::Print", "Final() has not yet been called");
-      return;
-   }
-
-   printf("%s\n", AsString());
-}
-
-////////////////////////////////////////////////////////////////////////////////
 /// Return message digest as string. Returns "" in case Final() has
 /// not yet been called.
 

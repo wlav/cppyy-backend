@@ -154,7 +154,6 @@ public:
    void SetHasFileNameRule(bool file_rule) { fHasFileNameRule = file_rule; }
    bool GetHasFileNameRule() const { return fHasFileNameRule; }
 
-   int CheckDuplicates();
    void Optimize();
 
    // These method are called from clr-scan and return true if the Decl selected, false otherwise

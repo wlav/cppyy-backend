@@ -157,14 +157,6 @@ TFree *TFree::GetBestFree(TList *lfree, Int_t nbytes)
 }
 
 ////////////////////////////////////////////////////////////////////////////////
-/// List free segment contents.
-
-void TFree::ls(Option_t *) const
-{
-   std::cout <<"Free Segment: "<<fFirst<<"\t"<<fLast<<std::endl;
-}
-
-////////////////////////////////////////////////////////////////////////////////
 /// Decode one free structure from input buffer
 
 void TFree::ReadBuffer(char *&buffer)
