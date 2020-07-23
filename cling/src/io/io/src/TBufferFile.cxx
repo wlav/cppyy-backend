@@ -17,8 +17,6 @@
 The concrete implementation of TBuffer for writing/reading to/from a ROOT file or socket.
 */
 
-#include <iostream>
-
 #include <string.h>
 #include <typeinfo>
 #include <string>
@@ -3520,13 +3518,10 @@ Int_t TBufferFile::WriteClassBuffer(const TClass *cl, void *pointer)
 Int_t TBufferFile::ApplySequence(const TStreamerInfoActions::TActionSequence &sequence, void *obj)
 {
    //loop on all active members
-   std::cerr << " STEP 1 " << std::endl;
    TStreamerInfoActions::ActionContainer_t::const_iterator end = sequence.fActions.end();
-   std::cerr << " STEP 2 " << std::endl;
    for(TStreamerInfoActions::ActionContainer_t::const_iterator iter = sequence.fActions.begin();
        iter != end;
        ++iter) {
-      std::cerr << " ITER! " << std::endl;
       (*iter)(*this,obj);
    }
 
