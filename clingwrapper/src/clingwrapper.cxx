@@ -679,7 +679,7 @@ void Cppyy::Destruct(TCppType_t type, TCppObject_t instance)
         else {
             auto ib = sHasOperatorDelete.find(type);
             if (ib == sHasOperatorDelete.end()) {
-                TFunction* f = (TFunction*)cr->GetListOfMethods()->FindObject("operator delete");
+                TFunction* f = (TFunction*)cr->GetMethodAllAny("operator delete");
                 sHasOperatorDelete[type] = (bool)(f && (f->Property() & kIsPublic));
                 ib = sHasOperatorDelete.find(type);
             }
