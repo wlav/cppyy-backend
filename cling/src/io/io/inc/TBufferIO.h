@@ -98,9 +98,6 @@ public:
 
    // Utilities for TStreamerInfo
    void ForceWriteInfo(TVirtualStreamerInfo *info, Bool_t force) override;
-   void ForceWriteInfoClones(TClonesArray *a) override;
-   Int_t ReadClones(TClonesArray *a, Int_t nobjects, Version_t objvers) override;
-   Int_t WriteClones(TClonesArray *a, Int_t nobjects) override;
    void TagStreamerInfo(TVirtualStreamerInfo *info) override;
 
    // Special basic ROOT objects and collections

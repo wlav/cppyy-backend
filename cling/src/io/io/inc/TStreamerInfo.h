@@ -28,7 +28,6 @@ namespace CppyyLegacy {
 
 class TFile;
 class TClass;
-class TClonesArray;
 class TDataMember;
 class TMemberStreamer;
 class TStreamerElement;
@@ -225,11 +224,9 @@ public:
    TStreamerElement   *GetStreamerElement(const char*datamember, Int_t& offset) const;
    Int_t               GetType(Int_t id)   const {return fComp[id].fType;}
    template <typename T> T GetTypedValue(char *pointer, Int_t i, Int_t j, Int_t len) const;
-   template <typename T> T GetTypedValueClones(TClonesArray *clones, Int_t i, Int_t j, Int_t k, Int_t eoffset) const;
    template <typename T> T GetTypedValueSTL(TVirtualCollectionProxy *cont, Int_t i, Int_t j, Int_t k, Int_t eoffset) const;
    template <typename T> T GetTypedValueSTLP(TVirtualCollectionProxy *cont, Int_t i, Int_t j, Int_t k, Int_t eoffset) const;
    Double_t            GetValue(char *pointer, Int_t i, Int_t j, Int_t len) const { return GetTypedValue<Double_t>(pointer, i, j, len); }
-   Double_t            GetValueClones(TClonesArray *clones, Int_t i, Int_t j, Int_t k, Int_t eoffset) const { return GetTypedValueClones<Double_t>(clones, i, j, k, eoffset); }
    Double_t            GetValueSTL(TVirtualCollectionProxy *cont, Int_t i, Int_t j, Int_t k, Int_t eoffset) const { return GetTypedValueSTL<Double_t>(cont, i, j, k, eoffset); }
    Double_t            GetValueSTLP(TVirtualCollectionProxy *cont, Int_t i, Int_t j, Int_t k, Int_t eoffset) const { return GetTypedValueSTLP<Double_t>(cont, i, j, k, eoffset); }
    Bool_t              MatchLegacyCheckSum(UInt_t checksum) const;
@@ -239,7 +236,6 @@ public:
    void                Destructor(void* p, Bool_t dtorOnly = kFALSE);
    void                DeleteArray(void* p, Bool_t dtorOnly = kFALSE);
    void                PrintValue(const char *name, char *pointer, Int_t i, Int_t len, Int_t lenmax=1000) const;
-   void                PrintValueClones(const char *name, TClonesArray *clones, Int_t i, Int_t eoffset, Int_t lenmax=1000) const;
    void                PrintValueSTL(const char *name, TVirtualCollectionProxy *cont, Int_t i, Int_t eoffset, Int_t lenmax=1000) const;
 
    template <class T>
@@ -251,7 +247,6 @@ public:
    template <class T>
    Int_t               ReadBufferArtificial(TBuffer &b, const T &arrptr, TStreamerElement *aElement, Int_t narr, Int_t eoffset);
 
-   Int_t               ReadBufferClones(TBuffer &b, TClonesArray *clones, Int_t nc, Int_t first, Int_t eoffset);
    Int_t               ReadBufferSTL(TBuffer &b, TVirtualCollectionProxy *cont, Int_t nc, Int_t eoffset, Bool_t v7 = kTRUE );
    void                SetCheckSum(UInt_t checksum) {fCheckSum = checksum;}
    void                SetClass(TClass *cl) {fClass = cl;}
@@ -260,7 +255,6 @@ public:
 private:
    // Try to remove those functions from the public interface.
    Int_t               WriteBuffer(TBuffer &b, char *pointer, Int_t first);
-   Int_t               WriteBufferClones(TBuffer &b, TClonesArray *clones, Int_t nc, Int_t first, Int_t eoffset);
    Int_t               WriteBufferSTL   (TBuffer &b, TVirtualCollectionProxy *cont,   Int_t nc);
    Int_t               WriteBufferSTLPtrs( TBuffer &b, TVirtualCollectionProxy *cont, Int_t nc, Int_t first, Int_t eoffset);
 public:

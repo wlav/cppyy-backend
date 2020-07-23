@@ -3514,7 +3514,6 @@ Int_t TBufferFile::WriteClassBuffer(const TClass *cl, void *pointer)
 
 ////////////////////////////////////////////////////////////////////////////////
 /// Read one collection of objects from the buffer using the StreamerInfoLoopAction.
-/// The collection needs to be a split TClonesArray or a split vector of pointers.
 
 Int_t TBufferFile::ApplySequence(const TStreamerInfoActions::TActionSequence &sequence, void *obj)
 {
@@ -3542,7 +3541,6 @@ Int_t TBufferFile::ApplySequence(const TStreamerInfoActions::TActionSequence &se
 
 ////////////////////////////////////////////////////////////////////////////////
 /// Read one collection of objects from the buffer using the StreamerInfoLoopAction.
-/// The collection needs to be a split TClonesArray or a split vector of pointers.
 
 Int_t TBufferFile::ApplySequenceVecPtr(const TStreamerInfoActions::TActionSequence &sequence, void *start_collection, void *end_collection)
 {

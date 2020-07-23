@@ -17,20 +17,7 @@
 
 namespace CppyyLegacy {
 
-class TVirtualCollectionProxy;
-class TGenCollectionStreamer;
 class TClassStreamer;
-
-class TConvertClonesArrayToProxy : public TMemberStreamer {
-   Bool_t  fIsPointer;
-   Bool_t  fIsPrealloc;
-   UInt_t  fOffset;
-   TClass *fCollectionClass;
-public:
-   TConvertClonesArrayToProxy(TVirtualCollectionProxy *proxy, Bool_t isPointer, Bool_t isPrealloc);
-   ~TConvertClonesArrayToProxy();
-   void operator()(TBuffer &b, void *pmember, Int_t size=0);
-};
 
 class TConvertMapToProxy : public TMemberStreamer {
    Bool_t  fIsPointer;

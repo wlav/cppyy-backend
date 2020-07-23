@@ -107,7 +107,6 @@ In order to access the name of a class within the ROOT type system, the method T
 #include "TViewPubDataMembers.h"
 #include "TViewPubFunctions.h"
 #include "TArray.h"
-#include "TClonesArray.h"
 #define Printf TStringPrintf
 using namespace std;
 
@@ -1501,7 +1500,6 @@ Bool_t TClass::CanSplitBaseAllow()
    }
 
    if (this == TArray::Class()) { fCanSplit = 2; return kFALSE; }
-   if (this == TClonesArray::Class()) { fCanSplit = 1; return kTRUE; }
    if (this == TCollection::Class()) { fCanSplit = 2; return kFALSE; }
 
    if (!HasDataMemberInfo()) {
@@ -1567,7 +1565,6 @@ Bool_t TClass::CanSplit() const
    TClass *This = const_cast<TClass*>(this);
 
    if (this == TObject::Class())  { This->fCanSplit = 1; return kTRUE; }
-   if (fName == "CppyyLegacy::TClonesArray")   { This->fCanSplit = 1; return kTRUE; }
    if (fName.Contains("string"))      { This->fCanSplit = 0; return kFALSE; }
    if (fName.Contains("std::string")) { This->fCanSplit = 0; return kFALSE; }
 
@@ -4876,14 +4873,6 @@ Long_t TClass::Property() const
       }
 
       if (GetClassInfo()) {
-         // In the case where the TClass for one of ROOT's core class
-         // (eg TClonesArray for map<int,TClonesArray*>) is requested
-         // during the execution of rootcling, we could end up in a situation
-         // where we should have the information (since TClonesArray has
-         // a dictionary as part of libCoreLegacy) but do not because the user
-         // only include a forward declaration of TClonesArray and we do not
-         // forcefully load the header file either (because the autoparsing
-         // is intentionally disabled).
          kl->fClassProperty = gCling->ClassInfo_ClassProperty(fClassInfo);
          // Must set this last since other threads may read fProperty
          // and think all test bits have been properly set.

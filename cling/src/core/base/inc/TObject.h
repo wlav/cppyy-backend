@@ -191,8 +191,6 @@ public:
    static Long_t    GetDtorOnly();
    static void      SetDtorOnly(void *obj);
 
-   friend class TClonesArray; // needs to reset kNotDeleted in fBits
-
    ClassDef(TObject,1)  //Basic ROOT object
 };
 

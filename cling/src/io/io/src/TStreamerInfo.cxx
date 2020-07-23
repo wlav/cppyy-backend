@@ -35,7 +35,6 @@ element type.
 #include "TStreamerInfo.h"
 #include "TFile.h"
 #include "TROOT.h"
-#include "TClonesArray.h"
 #include "TStreamerElement.h"
 #include "TClass.h"
 #include "TClassEdit.h"
@@ -833,9 +832,6 @@ void TStreamerInfo::BuildCheck(TFile *file /* = 0 */)
 
       // NOTE: Should we check if the already existing info is the same as
       // the current one? Yes
-      // In case a class (eg Event.h) has a TClonesArray of Tracks, it could be
-      // that the old info does not have the class name (Track) in the data
-      // member title. Set old title to new title
       if (info) {
          // We found an existing TStreamerInfo for our ClassVersion
          Bool_t match = kTRUE;
@@ -1394,16 +1390,6 @@ static TString UpdateAssociativeToVector(const char *name)
          }
       }
       return 0;
-   }
-
-   Bool_t ContainerMatchTClonesArray(TClass *newClass)
-   {
-      // Return true if newClass is a likely valid conversion from
-      // a TClonesArray
-
-      return newClass->GetCollectionProxy()
-             && newClass->GetCollectionProxy()->GetValueClass()
-             && !newClass->GetCollectionProxy()->HasPointers();
    }
 
    Bool_t CollectionMatch(const TClass *oldClass, const TClass* newClass)
@@ -2152,28 +2138,6 @@ void TStreamerInfo::BuildOld()
                   Warning("BuildOld", "element: %s::%s %s has new type %s", GetName(), element->GetTypeName(), element->GetName(), newClass->GetName());
                }
             }
-         } else if (oldClass == TClonesArray::Class()) {
-            if (ContainerMatchTClonesArray(newClass.GetClass())) {
-               Int_t elemType = element->GetType();
-               Bool_t isPrealloc = (elemType == kObjectp) || (elemType == kAnyp) || (elemType == (kObjectp + kOffsetL)) || (elemType == (kAnyp + kOffsetL));
-               element->Update(oldClass, newClass.GetClass());
-               TVirtualCollectionProxy *cp = newClass->GetCollectionProxy();
-               TConvertClonesArrayToProxy *ms = new TConvertClonesArrayToProxy(cp, element->IsaPointer(), isPrealloc);
-               element->SetStreamer(ms);
-
-               // When the type is kObject, the TObject::Streamer is used instead
-               // of the TStreamerElement's streamer.  So let force the usage
-               // of our streamer
-               if (element->GetType() == kObject) {
-                  element->SetNewType(kAny);
-                  element->SetType(kAny);
-               }
-               if (gDebug > 0) {
-                  Warning("BuildOld","element: %s::%s %s has new type %s", GetName(), element->GetTypeName(), element->GetName(), newClass->GetName());
-               }
-            } else {
-               element->SetNewType(-2);
-            }
          } else if (oldClass && oldClass->GetCollectionProxy() && newClass->GetCollectionProxy()) {
             {
                TClass *oldFixedClass = FixCollectionV5(GetClass(),oldClass,newClass);
@@ -2292,23 +2256,19 @@ void TStreamerInfo::BuildOld()
                   newType = element->GetType();
                }
             }
-            if (element->GetType() == kSTL
-                || ((element->GetType() == kObject || element->GetType() == kAny || element->GetType() == kObjectp || element->GetType() == kAnyp)
-                    && oldClass == TClonesArray::Class()))
+            if (element->GetType() == kSTL)
             {
                cannotConvert = (newType != kSTL && newType != kObject && newType != kAny && newType != kSTLp && newType != kObjectp && newType != kAnyp);
 
-            } else if (element->GetType() == kSTLp  || ((element->GetType() == kObjectP || element->GetType() == kAnyP) && oldClass == TClonesArray::Class()) )
+            } else if (element->GetType() == kSTLp)
             {
                cannotConvert = (newType != kSTL && newType != kObject && newType != kAny && newType != kSTLp && newType != kObjectP && newType != kAnyP);
 
-            } else if (element->GetType() == kSTL + kOffsetL
-                || ((element->GetType() == kObject + kOffsetL|| element->GetType() == kAny + kOffsetL|| element->GetType() == kObjectp+ kOffsetL || element->GetType() == kAnyp+ kOffsetL)
-                    && oldClass == TClonesArray::Class()))
+            } else if (element->GetType() == kSTL + kOffsetL)
             {
                cannotConvert = (newType != kSTL + kOffsetL && newType != kObject+ kOffsetL && newType != kAny+ kOffsetL && newType != kSTLp+ kOffsetL && newType != kObjectp+ kOffsetL && newType != kAnyp+ kOffsetL);
 
-            } else if (element->GetType() == kSTLp + kOffsetL || ((element->GetType() == kObjectP+ kOffsetL || element->GetType() == kAnyP+ kOffsetL) && oldClass == TClonesArray::Class()) )
+            } else if (element->GetType() == kSTLp + kOffsetL)
             {
                cannotConvert = (newType != kSTL+ kOffsetL && newType != kObject+ kOffsetL && newType != kAny+ kOffsetL && newType != kSTLp + kOffsetL&& newType != kObjectP+ kOffsetL && newType != kAnyP+ kOffsetL);
 
@@ -3514,31 +3474,11 @@ T TStreamerInfo::GetTypedValue(char *pointer, Int_t i, Int_t j, Int_t len) const
 
 ////////////////////////////////////////////////////////////////////////////////
 
-template Double_t TStreamerInfo::GetTypedValueClones<Double_t>(TClonesArray *clones, Int_t i, Int_t j, int k, Int_t eoffset) const;
-template Long64_t TStreamerInfo::GetTypedValueClones(TClonesArray *clones, Int_t i, Int_t j, int k, Int_t eoffset) const;
-template LongDouble_t TStreamerInfo::GetTypedValueClones(TClonesArray *clones, Int_t i, Int_t j, int k, Int_t eoffset) const;
-
-template <typename T>
-T TStreamerInfo::GetTypedValueClones(TClonesArray *clones, Int_t i, Int_t j, int k, Int_t eoffset) const
-{
-   //  return value of element i in object number j in a TClonesArray and eventually
-   // element k in a sub-array.
-
-   Int_t nc = clones->GetEntriesFast();
-   if (j >= nc) return 0;
-
-   char *pointer = (char*)clones->UncheckedAt(j);
-   char *ladd    = pointer + eoffset + fCompFull[i]->fOffset;
-   return GetTypedValueAux<T>(fCompFull[i]->fType,ladd,k,((TStreamerElement*)fCompFull[i]->fElem)->GetArrayLength());
-}
-
 template Double_t TStreamerInfo::GetTypedValueSTL(TVirtualCollectionProxy *cont, Int_t i, Int_t j, int k, Int_t eoffset) const;
 template Long64_t TStreamerInfo::GetTypedValueSTL(TVirtualCollectionProxy *cont, Int_t i, Int_t j, int k, Int_t eoffset) const;
 template LongDouble_t TStreamerInfo::GetTypedValueSTL(TVirtualCollectionProxy *cont, Int_t i, Int_t j, int k, Int_t eoffset) const;
 
 ////////////////////////////////////////////////////////////////////////////////
-/// Return value of element i in object number j in a TClonesArray and eventually
-/// element k in a sub-array.
 
 template <typename T>
 T TStreamerInfo::GetTypedValueSTL(TVirtualCollectionProxy *cont, Int_t i, Int_t j, int k, Int_t eoffset) const
@@ -3556,8 +3496,6 @@ template Long64_t TStreamerInfo::GetTypedValueSTLP(TVirtualCollectionProxy *cont
 template LongDouble_t TStreamerInfo::GetTypedValueSTLP(TVirtualCollectionProxy *cont, Int_t i, Int_t j, int k, Int_t eoffset) const;
 
 ////////////////////////////////////////////////////////////////////////////////
-/// Return value of element i in object number j in a TClonesArray and eventually
-/// element k in a sub-array.
 
 template <typename T>
 T TStreamerInfo::GetTypedValueSTLP(TVirtualCollectionProxy *cont, Int_t i, Int_t j, int k, Int_t eoffset) const
@@ -3634,31 +3572,8 @@ void* TStreamerInfo::New(void *obj)
             // If the option "->" is given in the data member comment field
             // it is assumed that the object exists before reading data in,
             // so we create an object.
-            if (cle != TClonesArray::Class()) {
-               void** r = (void**) eaddr;
-               *r = cle->New();
-            } else {
-               // In the case of a TClonesArray, the class name of
-               // the contained objects must be specified in the
-               // data member comment in this format:
-               //    TClonesArray* myVar; //->(className)
-               const char* title = element->GetTitle();
-               const char* bracket1 = strrchr(title, '(');
-               const char* bracket2 = strrchr(title, ')');
-               if (bracket1 && bracket2 && (bracket2 != (bracket1 + 1))) {
-                  Int_t len = bracket2 - (bracket1 + 1);
-                  char* clonesClass = new char[len+1];
-                  clonesClass[0] = '\0';
-                  strncat(clonesClass, bracket1 + 1, len);
-                  void** r = (void**) eaddr;
-                  *r = (void*) new TClonesArray(clonesClass);
-                  delete[] clonesClass;
-               } else {
-                  //Warning("New", "No class name found for TClonesArray initializer in data member comment (expected \"//->(className)\"");
-                  void** r = (void**) eaddr;
-                  *r = (void*) new TClonesArray();
-               }
-            }
+            void** r = (void**) eaddr;
+            *r = cle->New();
          }
          break;
 
@@ -4008,33 +3923,9 @@ void TStreamerInfo::PrintValue(const char *name, char *pointer, Int_t i, Int_t l
    printf("\n");
 }
 
-////////////////////////////////////////////////////////////////////////////////
-/// Print value of element i in a TClonesArray.
-
-void TStreamerInfo::PrintValueClones(const char *name, TClonesArray *clones, Int_t i, Int_t eoffset, Int_t lenmax) const
-{
-   if (!clones) {printf(" %-15s = \n",name); return;}
-   printf(" %-15s = ",name);
-   Int_t nc = clones->GetEntriesFast();
-   if (nc > lenmax) nc = lenmax;
-
-   Int_t offset = eoffset + fCompFull[i]->fOffset;
-   TStreamerElement *aElement  = (TStreamerElement*)fCompFull[i]->fElem;
-   int aleng = fCompFull[i]->fLength;
-   if (aleng > lenmax) aleng = lenmax;
-
-   for (Int_t k=0;k < nc;k++) {
-      char *pointer = (char*)clones->UncheckedAt(k);
-      char *ladd = pointer+offset;
-      Int_t *count = (Int_t*)(pointer+fCompFull[i]->fMethod);
-      PrintValueAux(ladd,fCompFull[i]->fNewType,aElement, aleng, count);
-      if (k < nc-1) printf(", ");
-   }
-   printf("\n");
-}
 
 ////////////////////////////////////////////////////////////////////////////////
-/// Print value of element i in a TClonesArray.
+/// Print value of element i in a STL container.
 
 void TStreamerInfo::PrintValueSTL(const char *name, TVirtualCollectionProxy *cont, Int_t i, Int_t eoffset, Int_t lenmax) const
 {

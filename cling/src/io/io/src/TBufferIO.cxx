@@ -23,7 +23,6 @@ Direct subclass of TBuffer, implements common methods for TBufferFile
 #include "TClass.h"
 #include "TFile.h"
 #include "TError.h"
-#include "TClonesArray.h"
 #include "TStreamerInfo.h"
 #include "TStreamerElement.h"
 #include "TArrayC.h"
@@ -331,18 +330,6 @@ void TBufferIO::ForceWriteInfo(TVirtualStreamerInfo *info, Bool_t force)
 }
 
 ////////////////////////////////////////////////////////////////////////////////
-/// Make sure TStreamerInfo is not optimized, otherwise it will not be
-/// possible to support schema evolution in read mode.
-/// In case the StreamerInfo has already been computed and optimized,
-/// one must disable the option BypassStreamer.
-
-void TBufferIO::ForceWriteInfoClones(TClonesArray *a)
-{
-   TStreamerInfo *sinfo = (TStreamerInfo *)a->GetClass()->GetStreamerInfo();
-   ForceWriteInfo(sinfo, kFALSE);
-}
-
-////////////////////////////////////////////////////////////////////////////////
 /// Mark the classindex of the current file as using this TStreamerInfo
 
 void TBufferIO::TagStreamerInfo(TVirtualStreamerInfo *info)
@@ -362,33 +349,6 @@ void TBufferIO::TagStreamerInfo(TVirtualStreamerInfo *info)
          cindex->fArray[number] = 1;
       }
    }
-}
-
-////////////////////////////////////////////////////////////////////////////////
-/// Interface to TStreamerInfo::ReadBufferClones.
-
-Int_t TBufferIO::ReadClones(TClonesArray *a, Int_t nobjects, Version_t objvers)
-{
-   char **arr = (char **)a->GetObjectRef(0);
-   char **end = arr + nobjects;
-   // a->GetClass()->GetStreamerInfo()->ReadBufferClones(*this,a,nobjects,-1,0);
-   TStreamerInfo *info = (TStreamerInfo *)a->GetClass()->GetStreamerInfo(objvers);
-   // return info->ReadBuffer(*this,arr,-1,nobjects,0,1);
-   return ApplySequenceVecPtr(*(info->GetReadMemberWiseActions(kTRUE)), arr, end);
-}
-
-////////////////////////////////////////////////////////////////////////////////
-/// Interface to TStreamerInfo::WriteBufferClones.
-
-Int_t TBufferIO::WriteClones(TClonesArray *a, Int_t nobjects)
-{
-   char **arr = reinterpret_cast<char **>(a->GetObjectRef(0));
-   // a->GetClass()->GetStreamerInfo()->WriteBufferClones(*this,(TClonesArray*)a,nobjects,-1,0);
-   TStreamerInfo *info = (TStreamerInfo *)a->GetClass()->GetStreamerInfo();
-   // return info->WriteBufferAux(*this,arr,-1,nobjects,0,1);
-   char **end = arr + nobjects;
-   // No need to tell call ForceWriteInfo as it by ForceWriteInfoClones.
-   return ApplySequenceVecPtr(*(info->GetWriteMemberWiseActions(kTRUE)), arr, end);
 }
 
 ////////////////////////////////////////////////////////////////////////////////

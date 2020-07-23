@@ -147,10 +147,7 @@ void TObjectTable::Remove(TObject *op)
 }
 
 ////////////////////////////////////////////////////////////////////////////////
-/// Remove an object from the object table. If op is 0 or not in the table
-/// don't complain. Currently only used by the TClonesArray dtor. Should not
-/// be used anywhere else, except in places where "special" allocation and
-/// de-allocation tricks are performed.
+/// Remove an object from the object table.
 
 void TObjectTable::RemoveQuietly(TObject *op)
 {

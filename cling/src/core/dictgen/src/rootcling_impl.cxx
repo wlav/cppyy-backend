@@ -1673,25 +1673,21 @@ void WriteStreamer(const TMetaUtils::AnnotatedRecordDecl &cl,
                         dictStream << "      //R__b.WriteArray(" << field_iter->getName().str() << ", __COUNTER__);";
                      }
                   } else {
-                     if (TMetaUtils::GetQualifiedName(*TMetaUtils::GetUnderlyingType(field_iter->getType()), **field_iter) == "CppyyLegacy::TClonesArray") {
-                        dictStream << "      " << field_iter->getName().str() << "->Streamer(R__b);" << std::endl;
+                     if (i == 0) {
+                        // The following:
+                        //    if (strncmp(m.Title(),"->",2) != 0) fprintf(fp, "      delete %s;\n", GetNonConstMemberName(**field_iter).c_str());
+                        // could be used to prevent a memory leak since the next statement could possibly create a new object.
+                        // In the TStreamerInfo based I/O we made the previous statement conditional on TStreamerInfo::CanDelete
+                        // to allow the user to prevent some inadvisable deletions.  So we should be offering this flexibility
+                        // here to and should not (technically) rely on TStreamerInfo for it, so for now we leave it as is.
+                        // Note that the leak should happen from here only if the object is stored in an unsplit object
+                        // and either the user request an old branch or the streamer has been customized.
+                        dictStream << "      R__b >> " << GetNonConstMemberName(**field_iter) << ";" << std::endl;
                      } else {
-                        if (i == 0) {
-                           // The following:
-                           //    if (strncmp(m.Title(),"->",2) != 0) fprintf(fp, "      delete %s;\n", GetNonConstMemberName(**field_iter).c_str());
-                           // could be used to prevent a memory leak since the next statement could possibly create a new object.
-                           // In the TStreamerInfo based I/O we made the previous statement conditional on TStreamerInfo::CanDelete
-                           // to allow the user to prevent some inadvisable deletions.  So we should be offering this flexibility
-                           // here to and should not (technically) rely on TStreamerInfo for it, so for now we leave it as is.
-                           // Note that the leak should happen from here only if the object is stored in an unsplit object
-                           // and either the user request an old branch or the streamer has been customized.
-                           dictStream << "      R__b >> " << GetNonConstMemberName(**field_iter) << ";" << std::endl;
-                        } else {
-                           if (TMetaUtils::IsBase(**field_iter, "CppyyLegacy::TObject", interp) && TMetaUtils::IsBase(**field_iter, "CppyyLegacy::TArray", interp))
-                              dictStream << "      R__b << (::CppyyLegacy::TObject*)" << field_iter->getName().str() << ";" << std::endl;
-                           else
-                              dictStream << "      R__b << " << GetNonConstMemberName(**field_iter) << ";" << std::endl;
-                        }
+                        if (TMetaUtils::IsBase(**field_iter, "CppyyLegacy::TObject", interp) && TMetaUtils::IsBase(**field_iter, "CppyyLegacy::TArray", interp))
+                           dictStream << "      R__b << (::CppyyLegacy::TObject*)" << field_iter->getName().str() << ";" << std::endl;
+                        else
+                           dictStream << "      R__b << " << GetNonConstMemberName(**field_iter) << ";" << std::endl;
                      }
                   }
                } else if (const clang::ConstantArrayType *arrayType = llvm::dyn_cast<clang::ConstantArrayType>(type.getTypePtr())) {

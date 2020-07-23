@@ -13,7 +13,6 @@
 #include "TFile.h"
 #include "TClass.h"
 #include "TBufferFile.h"
-#include "TClonesArray.h"
 #include "TError.h"
 #include "TProcessID.h"
 #include "TStreamer.h"
@@ -184,8 +183,6 @@ Int_t TStreamerInfo::ReadBufferSkip(TBuffer &b, const T &arr, const TCompInfo *c
                                     Int_t eoffset)
 {
    TStreamerInfo* thisVar = this;
-
-   //  Skip elements in a TClonesArray
 
    Int_t imethod = compinfo->fMethod+eoffset;
 
@@ -513,7 +510,6 @@ Int_t TStreamerInfo::ReadBufferSkip(TBuffer &b, const T &arr, const TCompInfo *c
    }
 
 ////////////////////////////////////////////////////////////////////////////////
-///  Convert elements of a TClonesArray
 
 template <class T>
 Int_t TStreamerInfo::ReadBufferConv(TBuffer &b, const T &arr,  const TCompInfo *compinfo, Int_t kase,
@@ -1625,17 +1621,6 @@ Int_t TStreamerInfo::ReadBufferSTL(TBuffer &b, TVirtualCollectionProxy *cont,
    if (!nc && v7) return 0; // in version 6 of TStreamerInfo and below, we were calling ReadBuffer for empty collection.
    int ret = ReadBuffer(b, *cont,fCompFull,0,fNfulldata,nc,eoffset,1);
    return ret;
-}
-
-////////////////////////////////////////////////////////////////////////////////
-/// Read for TClonesArray.
-/// Note: This is no longer used.
-
-Int_t TStreamerInfo::ReadBufferClones(TBuffer &b, TClonesArray *clones,
-                                      Int_t nc, Int_t first, Int_t eoffset)
-{
-   char **arr = (char **)clones->GetObjectRef(0);
-   return ReadBuffer(b,arr,fCompFull,first==-1?0:first,first==-1?fNfulldata:first+1,nc,eoffset,1);
 }
 
 } // namespace CppyyLegacy

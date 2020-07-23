@@ -39,7 +39,6 @@ class TObjArrayIter;
 class TObjArray : public TSeqCollection {
 
 friend class TObjArrayIter;
-friend class TClonesArray;
 
 protected:
    TObject     **fCont;        //!Array contents

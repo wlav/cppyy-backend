@@ -13,7 +13,6 @@ set(Cont_dict_headers
   TArray.h
   TBits.h
   TClassTable.h
-  TClonesArray.h
   TCollection.h
   TCollectionProxyInfo.h
   TExMap.h
@@ -36,7 +35,6 @@ ROOT_OBJECT_LIBRARY(Cont
   src/TArray.cxx
   src/TBits.cxx
   src/TClassTable.cxx
-  src/TClonesArray.cxx
   src/TCollection.cxx
   src/TExMap.cxx
   src/THashList.cxx

@@ -138,7 +138,7 @@ private:
 protected:
    enum EStatusBits {
       kIsOwner   = BIT(14),
-      // BIT(15) is used by TClonesArray and TMap
+      // BIT(15) is used by TMap
       kUseRWLock = BIT(16)
    };
 
@@ -308,16 +308,6 @@ namespace Detail {
 /// This requires the collection to contains elements of the type requested
 /// (or a derived class).  Any deviation from this expectation
 /// will only be caught/reported by an assert in debug builds.
-///
-/// This is best used with a TClonesArray, for other cases prefered TRangeDynCast.
-///
-/// The typical use is:
-/// ```{.cpp}
-///    TTypedIter<TBaseClass> next(tbaseClassClonesArrayPtr);
-///    while(auto bcl = next()) {
-///       ... use bcl as a TBaseClass*
-///    }
-/// ```
 template <class Containee> // Containee must derive from TObject.
 class TTypedIter : public TIter {
    static_assert(std::is_base_of<TObject, Containee>::value, "Containee type must inherit from TObject");
@@ -350,20 +340,6 @@ public:
 /// through a TCollection.  This requires the collection to contains element
 /// of the type requested (or a derived class).  Any deviation from this expectation
 /// will only be caught/reported by an assert in debug builds.
-///
-/// This is best used with a TClonesArray, for other cases prefered TRangeDynCast.
-///
-/// The typical use is:
-/// ```{.cpp}
-///    for(auto bcl : TRangeStaticCast<TBaseClass>( *tbaseClassClonesArrayPtr )) {
-///        assert(bcl && bcl->IsA()->InheritsFrom(TBaseClass::Class()));
-///        ... use bcl as a TBaseClass*
-///    }
-///    for(auto bcl : TRangeStaticCast<TBaseClass>( tbaseClassClonesArrayPtr )) {
-///        assert(bcl && bcl->IsA()->InheritsFrom(TBaseClass::Class()));
-///        ... use bcl as a TBaseClass*
-///    }
-/// ```
 template <class T>
 class TRangeStaticCast {
    const TCollection &fCollection;

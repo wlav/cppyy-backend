@@ -34,7 +34,6 @@ class TVirtualStreamerInfo;
 class TStreamerElement;
 class TString;
 class TProcessID;
-class TClonesArray;
 class TVirtualArray;
 namespace TStreamerInfoActions {
    class TActionSequence;
@@ -73,7 +72,7 @@ public:
    enum EMode { kRead = 0, kWrite = 1 };
    enum EStatusBits {
      kIsOwner = BIT(16), //if set TBuffer owns fBuffer
-     kCannotHandleMemberWiseStreaming = BIT(17) //if set TClonesArray should not use member wise streaming
+     kCannotHandleMemberWiseStreaming = BIT(17)
    };
    enum { kInitialSize = 1024, kMinimalSize = 128 };
 
@@ -317,9 +316,6 @@ public:
 
    // Utilities for TStreamerInfo
    virtual   void     ForceWriteInfo(TVirtualStreamerInfo *info, Bool_t force) = 0;
-   virtual   void     ForceWriteInfoClones(TClonesArray *a) = 0;
-   virtual   Int_t    ReadClones (TClonesArray *a, Int_t nobjects, Version_t objvers) = 0;
-   virtual   Int_t    WriteClones(TClonesArray *a, Int_t nobjects) = 0;
 
    // Utilities for TClass
    virtual   Int_t    ReadClassEmulated(const TClass *cl, void *object, const TClass *onfile_class = 0) = 0;

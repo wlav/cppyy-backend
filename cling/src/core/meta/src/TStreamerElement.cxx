@@ -270,8 +270,7 @@ Bool_t TStreamerElement::CannotSplit() const
    TClass *cl = GetClassPointer();
    if (!cl) return kFALSE;  //basic type
 
-   static TClassRef clonesArray("CppyyLegacy::TClonesArray");
-   if (IsaPointer() && cl != clonesArray && !cl->GetCollectionProxy()) return kTRUE;
+   if (IsaPointer() && !cl->GetCollectionProxy()) return kTRUE;
 
    switch(fType) {
       case TVirtualStreamerInfo::kAny    +TVirtualStreamerInfo::kOffsetL:

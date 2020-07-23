@@ -24,7 +24,6 @@
 #pragma link C++ class CppyyLegacy::TBits+;
 #pragma link C++ class CppyyLegacy::TCollection-;
 #pragma link C++ class CppyyLegacy::TClassTable;
-#pragma link C++ class CppyyLegacy::TClonesArray-;
 #pragma link C++ class CppyyLegacy::THashTable;
 #pragma link C++ class CppyyLegacy::THashTableIter;
 #pragma link C++ class CppyyLegacy::TIter;

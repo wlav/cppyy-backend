@@ -11,7 +11,6 @@
 
 #include "TBuffer.h"
 #include "TClass.h"
-#include "TClonesArray.h"
 #include "TError.h"
 #include "TProcessID.h"
 #include "TStreamer.h"
@@ -824,17 +823,6 @@ Int_t TStreamerInfo::WriteBufferSTLPtrs(TBuffer &b, TVirtualCollectionProxy *con
 Int_t TStreamerInfo::WriteBuffer(TBuffer &b, char *ipointer, Int_t first)
 {
    return WriteBufferAux(b,&ipointer,fCompOpt,first==-1?0:first,first==-1?fNdata:first+1,1,0,0);
-}
-
-////////////////////////////////////////////////////////////////////////////////
-/// Write for ClonesArray ('first' is an id between -1 and fNfulldata).
-/// Note: This is no longer used.
-
-Int_t TStreamerInfo::WriteBufferClones(TBuffer &b, TClonesArray *clones,
-                                       Int_t nc, Int_t first, Int_t eoffset)
-{
-   char **arr = reinterpret_cast<char**>(clones->GetObjectRef(0));
-   return WriteBufferAux(b,arr,fCompFull,first==-1?0:first,first==-1?fNfulldata:first+1,nc,eoffset,1);
 }
 
 } // namespace CppyyLegacy

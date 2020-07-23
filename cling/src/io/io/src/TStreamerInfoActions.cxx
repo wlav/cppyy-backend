@@ -3395,7 +3395,6 @@ void TStreamerInfo::AddReadTextAction(TStreamerInfoActions::TActionSequence *rea
 
 ////////////////////////////////////////////////////////////////////////////////
 /// Add a read action for the given element.
-/// This is for streaming via a TClonesArray (or a vector of pointers of this type).
 
 void TStreamerInfo::AddReadMemberWiseVecPtrAction(TStreamerInfoActions::TActionSequence *readSequence, Int_t i, TStreamerInfo::TCompInfo *compinfo)
 {
@@ -3713,7 +3712,6 @@ void TStreamerInfo::AddWriteTextAction(TStreamerInfoActions::TActionSequence *wr
 }
 
 ////////////////////////////////////////////////////////////////////////////////
-/// This is for streaming via a TClonesArray (or a vector of pointers of this type).
 
 void TStreamerInfo::AddWriteMemberWiseVecPtrAction(TStreamerInfoActions::TActionSequence *writeSequence, Int_t i, TStreamerInfo::TCompInfo *compinfo)
 {
