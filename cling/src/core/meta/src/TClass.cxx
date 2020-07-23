@@ -104,8 +104,6 @@ In order to access the name of a class within the ROOT type system, the method T
 #include "TListOfFunctionTemplates.h"
 #include "TListOfEnums.h"
 #include "TListOfEnumsWithLock.h"
-#include "TViewPubDataMembers.h"
-#include "TViewPubFunctions.h"
 #include "TArray.h"
 #define Printf TStringPrintf
 using namespace std;
@@ -641,15 +639,13 @@ TClass::TClass() :
    TDictionary(),
    fPersistentRef(0),
    fStreamerInfo(0), fConversionStreamerInfo(0), fRealData(0),
-   fBase(0), fData(0), fEnums(0), fFuncTemplate(0), fMethod(0), fAllPubData(0),
-   fAllPubMethod(0),
+   fBase(0), fData(0), fEnums(0), fFuncTemplate(0), fMethod(0),
    fDeclFileName(""), fImplFileName(""), fDeclFileLine(0), fImplFileLine(0),
-   fInstanceCount(0), fOnHeap(0),
    fCheckSum(0), fCollectionProxy(0), fClassVersion(0), fClassInfo(0),
    fTypeInfo(0), fShowMembers(0),
    fStreamer(0), fIsA(0), fGlobalIsA(0),
    fNew(0), fNewArray(0), fDelete(0), fDeleteArray(0),
-   fDestructor(0), fDirAutoAdd(0), fStreamerFunc(0), fConvStreamerFunc(0), fSizeof(-1),
+   fDestructor(0), fStreamerFunc(0), fConvStreamerFunc(0), fSizeof(-1),
    fCanSplit(-1), fProperty(0), fClassProperty(0), fHasRootPcmInfo(kFALSE), fCanLoadClassInfo(kFALSE),
    fIsOffsetStreamerSet(kFALSE), fVersionUsed(kFALSE), fRuntimeProperties(0), fOffsetStreamer(0), fStreamerType(TClass::kDefault),
    fState(kNoInfo), fCurrentInfo(0), fLastReadInfo(0), fStreamerImpl(&TClass::StreamerDefault)
@@ -676,15 +672,13 @@ TClass::TClass(const char *name, Bool_t silent) :
    TDictionary(name),
    fPersistentRef(0),
    fStreamerInfo(0), fConversionStreamerInfo(0), fRealData(0),
-   fBase(0), fData(0), fEnums(0), fFuncTemplate(0), fMethod(0), fAllPubData(0),
-   fAllPubMethod(0),
+   fBase(0), fData(0), fEnums(0), fFuncTemplate(0), fMethod(0),
    fDeclFileName(""), fImplFileName(""), fDeclFileLine(0), fImplFileLine(0),
-   fInstanceCount(0), fOnHeap(0),
    fCheckSum(0), fCollectionProxy(0), fClassVersion(0), fClassInfo(0),
    fTypeInfo(0), fShowMembers(0),
    fStreamer(0), fIsA(0), fGlobalIsA(0),
    fNew(0), fNewArray(0), fDelete(0), fDeleteArray(0),
-   fDestructor(0), fDirAutoAdd(0), fStreamerFunc(0), fConvStreamerFunc(0), fSizeof(-1),
+   fDestructor(0), fStreamerFunc(0), fConvStreamerFunc(0), fSizeof(-1),
    fCanSplit(-1), fProperty(0), fClassProperty(0), fHasRootPcmInfo(kFALSE), fCanLoadClassInfo(kFALSE),
    fIsOffsetStreamerSet(kFALSE), fVersionUsed(kFALSE), fRuntimeProperties(0), fOffsetStreamer(0), fStreamerType(TClass::kDefault),
    fState(kNoInfo), fCurrentInfo(0), fLastReadInfo(0), fStreamerImpl(&TClass::StreamerDefault)
@@ -720,15 +714,13 @@ TClass::TClass(const char *name, Version_t cversion, Bool_t silent) :
    TDictionary(name),
    fPersistentRef(0),
    fStreamerInfo(0), fConversionStreamerInfo(0), fRealData(0),
-   fBase(0), fData(0), fEnums(0), fFuncTemplate(0), fMethod(0), fAllPubData(0),
-   fAllPubMethod(0),
+   fBase(0), fData(0), fEnums(0), fFuncTemplate(0), fMethod(0),
    fDeclFileName(""), fImplFileName(""), fDeclFileLine(0), fImplFileLine(0),
-   fInstanceCount(0), fOnHeap(0),
    fCheckSum(0), fCollectionProxy(0), fClassVersion(0), fClassInfo(0),
    fTypeInfo(0), fShowMembers(0),
    fStreamer(0), fIsA(0), fGlobalIsA(0),
    fNew(0), fNewArray(0), fDelete(0), fDeleteArray(0),
-   fDestructor(0), fDirAutoAdd(0), fStreamerFunc(0), fConvStreamerFunc(0), fSizeof(-1),
+   fDestructor(0), fStreamerFunc(0), fConvStreamerFunc(0), fSizeof(-1),
    fCanSplit(-1), fProperty(0), fClassProperty(0), fHasRootPcmInfo(kFALSE), fCanLoadClassInfo(kFALSE),
    fIsOffsetStreamerSet(kFALSE), fVersionUsed(kFALSE), fRuntimeProperties(0), fOffsetStreamer(0), fStreamerType(TClass::kDefault),
    fState(kNoInfo), fCurrentInfo(0), fLastReadInfo(0), fStreamerImpl(&TClass::StreamerDefault)
@@ -745,15 +737,13 @@ TClass::TClass(const char *name, Version_t cversion, EState theState, Bool_t sil
    TDictionary(name),
    fPersistentRef(0),
    fStreamerInfo(0), fConversionStreamerInfo(0), fRealData(0),
-   fBase(0), fData(0), fEnums(0), fFuncTemplate(0), fMethod(0), fAllPubData(0),
-   fAllPubMethod(0),
+   fBase(0), fData(0), fEnums(0), fFuncTemplate(0), fMethod(0),
    fDeclFileName(""), fImplFileName(""), fDeclFileLine(0), fImplFileLine(0),
-   fInstanceCount(0), fOnHeap(0),
    fCheckSum(0), fCollectionProxy(0), fClassVersion(0), fClassInfo(0),
    fTypeInfo(0), fShowMembers(0),
    fStreamer(0), fIsA(0), fGlobalIsA(0),
    fNew(0), fNewArray(0), fDelete(0), fDeleteArray(0),
-   fDestructor(0), fDirAutoAdd(0), fStreamerFunc(0), fConvStreamerFunc(0), fSizeof(-1),
+   fDestructor(0), fStreamerFunc(0), fConvStreamerFunc(0), fSizeof(-1),
    fCanSplit(-1), fProperty(0), fClassProperty(0), fHasRootPcmInfo(kFALSE), fCanLoadClassInfo(kFALSE),
    fIsOffsetStreamerSet(kFALSE), fVersionUsed(kFALSE), fRuntimeProperties(0), fOffsetStreamer(0), fStreamerType(TClass::kDefault),
    fState(theState), fCurrentInfo(0), fLastReadInfo(0), fStreamerImpl(&TClass::StreamerDefault)
@@ -787,15 +777,13 @@ TClass::TClass(ClassInfo_t *classInfo, Version_t cversion,
    TDictionary(""),
    fPersistentRef(0),
    fStreamerInfo(0), fConversionStreamerInfo(0), fRealData(0),
-   fBase(0), fData(0), fEnums(0), fFuncTemplate(0), fMethod(0), fAllPubData(0),
-   fAllPubMethod(0),
+   fBase(0), fData(0), fEnums(0), fFuncTemplate(0), fMethod(0),
    fDeclFileName(""), fImplFileName(""), fDeclFileLine(0), fImplFileLine(0),
-   fInstanceCount(0), fOnHeap(0),
    fCheckSum(0), fCollectionProxy(0), fClassVersion(0), fClassInfo(0),
    fTypeInfo(0), fShowMembers(0),
    fStreamer(0), fIsA(0), fGlobalIsA(0),
    fNew(0), fNewArray(0), fDelete(0), fDeleteArray(0),
-   fDestructor(0), fDirAutoAdd(0), fStreamerFunc(0), fConvStreamerFunc(0), fSizeof(-1),
+   fDestructor(0), fStreamerFunc(0), fConvStreamerFunc(0), fSizeof(-1),
    fCanSplit(-1), fProperty(0), fClassProperty(0), fHasRootPcmInfo(kFALSE), fCanLoadClassInfo(kFALSE),
    fIsOffsetStreamerSet(kFALSE), fVersionUsed(kFALSE), fRuntimeProperties(0), fOffsetStreamer(0), fStreamerType(TClass::kDefault),
    fState(kNoInfo), fCurrentInfo(0), fLastReadInfo(0), fStreamerImpl(&TClass::StreamerDefault)
@@ -835,15 +823,13 @@ TClass::TClass(const char *name, Version_t cversion,
    TDictionary(name),
    fPersistentRef(0),
    fStreamerInfo(0), fConversionStreamerInfo(0), fRealData(0),
-   fBase(0), fData(0), fEnums(0), fFuncTemplate(0), fMethod(0), fAllPubData(0),
-   fAllPubMethod(0),
+   fBase(0), fData(0), fEnums(0), fFuncTemplate(0), fMethod(0),
    fDeclFileName(""), fImplFileName(""), fDeclFileLine(0), fImplFileLine(0),
-   fInstanceCount(0), fOnHeap(0),
    fCheckSum(0), fCollectionProxy(0), fClassVersion(0), fClassInfo(0),
    fTypeInfo(0), fShowMembers(0),
    fStreamer(0), fIsA(0), fGlobalIsA(0),
    fNew(0), fNewArray(0), fDelete(0), fDeleteArray(0),
-   fDestructor(0), fDirAutoAdd(0), fStreamerFunc(0), fConvStreamerFunc(0), fSizeof(-1),
+   fDestructor(0), fStreamerFunc(0), fConvStreamerFunc(0), fSizeof(-1),
    fCanSplit(-1), fProperty(0), fClassProperty(0), fHasRootPcmInfo(kFALSE), fCanLoadClassInfo(kFALSE),
    fIsOffsetStreamerSet(kFALSE), fVersionUsed(kFALSE), fRuntimeProperties(0), fOffsetStreamer(0), fStreamerType(TClass::kDefault),
    fState(kNoInfo), fCurrentInfo(0), fLastReadInfo(0), fStreamerImpl(&TClass::StreamerDefault)
@@ -863,15 +849,13 @@ TClass::TClass(const char *name, Version_t cversion,
    TDictionary(name),
    fPersistentRef(0),
    fStreamerInfo(0), fConversionStreamerInfo(0), fRealData(0),
-   fBase(0), fData(0), fEnums(0), fFuncTemplate(0), fMethod(0), fAllPubData(0),
-   fAllPubMethod(0),
+   fBase(0), fData(0), fEnums(0), fFuncTemplate(0), fMethod(0),
    fDeclFileName(""), fImplFileName(""), fDeclFileLine(0), fImplFileLine(0),
-   fInstanceCount(0), fOnHeap(0),
    fCheckSum(0), fCollectionProxy(0), fClassVersion(0), fClassInfo(0),
    fTypeInfo(0), fShowMembers(0),
    fStreamer(0), fIsA(0), fGlobalIsA(0),
    fNew(0), fNewArray(0), fDelete(0), fDeleteArray(0),
-   fDestructor(0), fDirAutoAdd(0), fStreamerFunc(0), fConvStreamerFunc(0), fSizeof(-1),
+   fDestructor(0), fStreamerFunc(0), fConvStreamerFunc(0), fSizeof(-1),
    fCanSplit(-1), fProperty(0), fClassProperty(0), fHasRootPcmInfo(kFALSE), fCanLoadClassInfo(kFALSE),
    fIsOffsetStreamerSet(kFALSE), fVersionUsed(kFALSE), fRuntimeProperties(0), fOffsetStreamer(0), fStreamerType(TClass::kDefault),
    fState(kHasTClassInit), fCurrentInfo(0), fLastReadInfo(0), fStreamerImpl(&TClass::StreamerDefault)
@@ -937,8 +921,6 @@ void TClass::Init(const char *name, Version_t cversion,
    fStreamerInfo   = new TObjArray(fClassVersion+2+10,-1); // +10 to read new data by old
    fProperty       = -1;
    fClassProperty  = 0;
-
-   ResetInstanceCount();
 
    TClass *oldcl = (TClass*)gROOT->GetListOfClasses()->FindObject(fName.Data());
 
@@ -1205,8 +1187,6 @@ TClass::~TClass()
    // But this still need to be done first because the TList destructor
    // does access the object contained (via GetObject()->TestBit(kCanDelete))
    delete fStreamer;       fStreamer    =0;
-   delete fAllPubData;     fAllPubData  =0;
-   delete fAllPubMethod;   fAllPubMethod=0;
 
    delete fPersistentRef.load();
 
@@ -1683,7 +1663,6 @@ TObject *TClass::Clone(const char *new_name) const
    copy->SetDelete(fDelete);
    copy->SetDeleteArray(fDeleteArray);
    copy->SetDestructor(fDestructor);
-   copy->SetDirectoryAutoAdd(fDirAutoAdd);
    copy->fStreamerFunc = fStreamerFunc;
    copy->fConvStreamerFunc = fConvStreamerFunc;
    if (fStreamer) {
@@ -2934,44 +2913,6 @@ TCollection *TClass::GetListOfMethodOverloads(const char* name) const
 
 
 ////////////////////////////////////////////////////////////////////////////////
-/// Returns a list of all public methods of this class and its base classes.
-/// Refers to a subset of the methods in GetListOfMethods() so don't do
-/// GetListOfAllPublicMethods()->Delete().
-/// Algorithm used to get the list is:
-/// - put all methods of the class in the list (also protected and private
-///   ones).
-/// - loop over all base classes and add only those methods not already in the
-///   list (also protected and private ones).
-/// - once finished, loop over resulting list and remove all private and
-///   protected methods.
-
-const TList *TClass::GetListOfAllPublicMethods(Bool_t load /* = kTRUE */)
-{
-   R__LOCKGUARD(gInterpreterMutex);
-
-   if (!fAllPubMethod) fAllPubMethod = new TViewPubFunctions(this);
-   if (load) {
-      if (gDebug>0) Info("GetListOfAllPublicMethods","Header Parsing - Asking for all the methods of class %s: this can involve parsing.",GetName());
-      fAllPubMethod->Load();
-   }
-   return fAllPubMethod;
-}
-
-////////////////////////////////////////////////////////////////////////////////
-/// Returns a list of all public data members of this class and its base
-/// classes. Refers to a subset of the data members in GetListOfDatamembers()
-/// so don't do GetListOfAllPublicDataMembers()->Delete().
-
-TList *TClass::GetListOfAllPublicDataMembers(Bool_t load /* = kTRUE */)
-{
-   R__LOCKGUARD(gInterpreterMutex);
-
-   if (!fAllPubData) fAllPubData = new TViewPubDataMembers(this);
-   if (load) fAllPubData->Load();
-   return fAllPubData;
-}
-
-////////////////////////////////////////////////////////////////////////////////
 /// Check whether a class has a dictionary or not.
 /// This is equivalent to ask if a class is coming from a bootstrapping
 /// procedure initiated during the loading of a library.
@@ -3301,8 +3242,6 @@ void TClass::ResetCaches()
       (*fEnums).Unload();
    if (fMethod.load())
       (*fMethod).Unload();
-
-   delete fAllPubData; fAllPubData = 0;
 
    if (fBase.load())
       (*fBase).Delete();
@@ -5576,17 +5515,6 @@ void TClass::SetDestructor(DesFunc_t destructorFunc)
 }
 
 ////////////////////////////////////////////////////////////////////////////////
-/// Install a new wrapper around the directory auto add function..
-/// The function autoAddFunc has the signature void (*)(void *obj, TDirectory dir)
-/// and should register 'obj' to the directory if dir is not null
-/// and unregister 'obj' from its current directory if dir is null
-
-void TClass::SetDirectoryAutoAdd(DirAutoAdd_t autoAddFunc)
-{
-   fDirAutoAdd = autoAddFunc;
-}
-
-////////////////////////////////////////////////////////////////////////////////
 /// Find the TVirtualStreamerInfo in the StreamerInfos corresponding to checksum
 
 TVirtualStreamerInfo *TClass::FindStreamerInfo(UInt_t checksum) const
@@ -5980,14 +5908,6 @@ DelArrFunc_t TClass::GetDeleteArray() const
 DesFunc_t TClass::GetDestructor() const
 {
    return fDestructor;
-}
-
-////////////////////////////////////////////////////////////////////////////////
-/// Return the wrapper around the directory auto add function.
-
-DirAutoAdd_t TClass::GetDirectoryAutoAdd() const
-{
-   return fDirAutoAdd;
 }
 
 } // namespace CppyyLegacy

@@ -199,12 +199,7 @@ void TDirectory::Append(TObject *obj, Bool_t replace /* = kFALSE */)
       while (nullptr != (old = GetList()->FindObject(obj->GetName()))) {
          Warning("Append","Replacing existing %s: %s (Potential memory leak).",
                  obj->IsA()->GetName(),obj->GetName());
-         DirAutoAdd_t func = old->IsA()->GetDirectoryAutoAdd();
-         if (func) {
-            func(old,nullptr);
-         } else {
-            Remove(old);
-         }
+         Remove(old);
       }
    }
 
@@ -304,13 +299,8 @@ static TBuffer* R__CreateBuffer()
 /// Clone an object.
 /// This function is called when the directory is not a TDirectoryFile.
 /// This version has to load the I/O package, hence via Cling.
-///
-/// If autoadd is true and if the object class has a
-/// DirectoryAutoAdd function, it will be called at the end of the
-/// function with the parameter gDirector.  This usually means that
-/// the object will be appended to the current ROOT directory.
 
-TObject *TDirectory::CloneObject(const TObject *obj, Bool_t autoadd /* = kTRUE */)
+TObject *TDirectory::CloneObject(const TObject *obj, Bool_t /* autoadd */ /* = kTRUE */)
 {
    // if no default ctor return immediately (error issued by New())
    char *pobj = (char*)obj->IsA()->New();
@@ -350,12 +340,7 @@ TObject *TDirectory::CloneObject(const TObject *obj, Bool_t autoadd /* = kTRUE *
    newobj->ResetBit(kCanDelete);
 
    delete buffer;
-   if (autoadd) {
-      DirAutoAdd_t func = obj->IsA()->GetDirectoryAutoAdd();
-      if (func) {
-         func(newobj,this);
-      }
-   }
+
    return newobj;
 }
 

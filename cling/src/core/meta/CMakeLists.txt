@@ -71,8 +71,6 @@ ROOT_OBJECT_LIBRARY(Meta
   src/TProtoClass.cxx
   src/TRealData.cxx
   src/TStreamerElement.cxx
-  src/TViewPubDataMembers.cxx
-  src/TViewPubFunctions.cxx
   src/TVirtualStreamerInfo.cxx
 )
 

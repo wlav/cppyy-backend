@@ -161,7 +161,7 @@ TObject *TObjArray::operator[](Int_t i) const
 ////////////////////////////////////////////////////////////////////////////////
 /// Add object in the first slot of the array. This will overwrite the
 /// first element that might have been there. To have insertion semantics
-/// use either a TList or a TOrdCollection.
+/// use a TList.
 
 void TObjArray::AddFirst(TObject *obj)
 {
@@ -186,7 +186,7 @@ void TObjArray::AddLast(TObject *obj)
 /// Add object in the slot before object before. If before=0 add object
 /// in the first slot. Note that this will overwrite any object that
 /// might have already been in this slot. For insertion semantics use
-/// either a TList or a TOrdCollection.
+/// a TList.
 
 void TObjArray::AddBefore(const TObject *before, TObject *obj)
 {
@@ -212,7 +212,7 @@ void TObjArray::AddBefore(const TObject *before, TObject *obj)
 /// Add object in the slot after object after. If after=0 add object in
 /// the last empty slot. Note that this will overwrite any object that
 /// might have already been in this slot. For insertion semantics use
-/// either a TList or a TOrdCollection.
+/// a TList.
 
 void TObjArray::AddAfter(const TObject *after, TObject *obj)
 {

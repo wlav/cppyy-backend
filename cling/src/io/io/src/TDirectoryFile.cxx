@@ -312,13 +312,8 @@ void TDirectoryFile::CleanTargets()
 /// If the object derives from TNamed, this function is called
 /// by TNamed::Clone. TNamed::Clone uses the optional argument newname to set
 /// a new name to the newly created object.
-///
-/// If autoadd is true and if the object class has a
-/// DirectoryAutoAdd function, it will be called at the end of the
-/// function with the parameter gDirectory.  This usually means that
-/// the object will be appended to the current ROOT directory.
 
-TObject *TDirectoryFile::CloneObject(const TObject *obj, Bool_t autoadd /* = kTRUE */)
+TObject *TDirectoryFile::CloneObject(const TObject *obj, Bool_t /* autoadd */ /* = kTRUE */)
 {
    // if no default ctor return immediately (error issued by New())
    char *pobj = (char*)obj->IsA()->New();
@@ -364,12 +359,6 @@ TObject *TDirectoryFile::CloneObject(const TObject *obj, Bool_t autoadd /* = kTR
       gFile = filsav;
    }
 
-   if (autoadd) {
-      CppyyLegacy::DirAutoAdd_t func = obj->IsA()->GetDirectoryAutoAdd();
-      if (func) {
-         func(newobj,this);
-      }
-   }
    return newobj;
 }
 

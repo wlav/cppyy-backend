@@ -27,7 +27,6 @@
 #include "TWinNTSystem.h"
 #include "TROOT.h"
 #include "TError.h"
-#include "TOrdCollection.h"
 #include "TRegexp.h"
 #include "TException.h"
 #include "TEnv.h"

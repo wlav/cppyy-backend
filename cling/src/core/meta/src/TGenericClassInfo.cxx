@@ -90,10 +90,8 @@ namespace Internal {
       : fAction(action), fClass(0), fClassName(fullClassname),
         fDeclFileName(declFileName), fDeclFileLine(declFileLine),
         fDictionary(dictionary), fInfo(info),
-        fImplFileName(0), fImplFileLine(0),
-        fIsA(isa),
-        fVersion(1),
-        fNew(0),fNewArray(0),fDelete(0),fDeleteArray(0),fDestructor(0), fDirAutoAdd(0), fStreamer(0),
+        fImplFileName(0), fImplFileLine(0), fIsA(isa), fVersion(1),
+        fNew(0),fNewArray(0),fDelete(0),fDeleteArray(0),fDestructor(0), fStreamer(0),
         fStreamerFunc(0), fConvStreamerFunc(0), fCollectionProxy(0), fSizeof(sizof), fPragmaBits(pragmabits),
         fCollectionProxyInfo(0), fCollectionStreamerInfo(0)
    {
@@ -110,10 +108,8 @@ namespace Internal {
       : fAction(action), fClass(0), fClassName(fullClassname),
         fDeclFileName(declFileName), fDeclFileLine(declFileLine),
         fDictionary(dictionary), fInfo(info),
-        fImplFileName(0), fImplFileLine(0),
-        fIsA(isa),
-        fVersion(version),
-        fNew(0),fNewArray(0),fDelete(0),fDeleteArray(0),fDestructor(0), fDirAutoAdd(0), fStreamer(0),
+        fImplFileName(0), fImplFileLine(0), fIsA(isa), fVersion(version),
+        fNew(0),fNewArray(0),fDelete(0),fDeleteArray(0),fDestructor(0), fStreamer(0),
         fStreamerFunc(0), fConvStreamerFunc(0), fCollectionProxy(0), fSizeof(sizof), fPragmaBits(pragmabits),
         fCollectionProxyInfo(0), fCollectionStreamerInfo(0)
 
@@ -132,10 +128,8 @@ namespace Internal {
       : fAction(action), fClass(0), fClassName(fullClassname),
         fDeclFileName(declFileName), fDeclFileLine(declFileLine),
         fDictionary(dictionary), fInfo(typeid(TForNamespace)),
-        fImplFileName(0), fImplFileLine(0),
-        fIsA(0),
-        fVersion(version),
-        fNew(0),fNewArray(0),fDelete(0),fDeleteArray(0),fDestructor(0), fDirAutoAdd(0), fStreamer(0),
+        fImplFileName(0), fImplFileLine(0), fIsA(0), fVersion(version),
+        fNew(0),fNewArray(0),fDelete(0),fDeleteArray(0),fDestructor(0), fStreamer(0),
         fStreamerFunc(0), fConvStreamerFunc(0), fCollectionProxy(0), fSizeof(0), fPragmaBits(pragmabits),
         fCollectionProxyInfo(0), fCollectionStreamerInfo(0)
 
@@ -144,54 +138,6 @@ namespace Internal {
 
       Init(pragmabits);
    }
-
-  /*  TGenericClassInfo::TGenericClassInfo(const TGenericClassInfo& gci) :
-    fAction(gci.fAction),
-    fClass(gci.fClass),
-    fClassName(gci.fClassName),
-    fDeclFileName(gci.fDeclFileName),
-    fDeclFileLine(gci.fDeclFileLine),
-    fDictionary(gci.fDictionary),
-    fInfo(gci.fInfo),
-    fImplFileName(gci.fImplFileName),
-    fImplFileLine(gci.fImplFileLine),
-    fIsA(gci.fIsA),
-    fVersion(gci.fVersion),
-    fNew(gci.fNew),
-    fNewArray(gci.fNewArray),
-    fDelete(gci.fDelete),
-    fDeleteArray(gci.fDeleteArray),
-    fDestructor(gci.fDestructor),
-    fStreamer(gci.fStreamer),
-    fCollectionProxy(gci.fCollectionProxy),
-    fSizeof(gci.fSizeof)
-   { }
-
-  TGenericClassInfo& TGenericClassInfo::operator=(const TGenericClassInfo& gci)
-   {
-     if(this!=&gci) {
-       fAction=gci.fAction;
-       fClass=gci.fClass;
-       fClassName=gci.fClassName;
-       fDeclFileName=gci.fDeclFileName;
-       fDeclFileLine=gci.fDeclFileLine;
-       fDictionary=gci.fDictionary;
-       fInfo=gci.fInfo;
-       fImplFileName=gci.fImplFileName;
-       fImplFileLine=gci.fImplFileLine;
-       fIsA=gci.fIsA;
-       fVersion=gci.fVersion;
-       fNew=gci.fNew;
-       fNewArray=gci.fNewArray;
-       fDelete=gci.fDelete;
-       fDeleteArray=gci.fDeleteArray;
-       fDestructor=gci.fDestructor;
-       fStreamer=gci.fStreamer;
-       fCollectionProxy=gci.fCollectionProxy;
-       fSizeof=gci.fSizeof;
-     } return *this;
-   }
-  */
 
    void TGenericClassInfo::Init(Int_t pragmabits)
    {
@@ -263,7 +209,6 @@ namespace Internal {
          fClass->SetDelete(fDelete);
          fClass->SetDeleteArray(fDeleteArray);
          fClass->SetDestructor(fDestructor);
-         fClass->SetDirectoryAutoAdd(fDirAutoAdd);
          fClass->SetStreamerFunc(fStreamerFunc);
          fClass->SetConvStreamerFunc(fConvStreamerFunc);
          fClass->AdoptStreamer(fStreamer); fStreamer = 0;
@@ -512,14 +457,6 @@ namespace Internal {
       if (fClass) fClass->SetDestructor(fDestructor);
    }
 
-   void TGenericClassInfo::SetDirectoryAutoAdd(DirAutoAdd_t func)
-   {
-      // Install a new wrapper around SetDirectoryAutoAdd.
-
-      fDirAutoAdd = func;
-      if (fClass) fClass->SetDirectoryAutoAdd(fDirAutoAdd);
-   }
-
    NewFunc_t TGenericClassInfo::GetNew() const
    {
       // Get the wrapper around 'new'.
@@ -553,13 +490,6 @@ namespace Internal {
       // Get the wrapper around the destructor.
 
       return fDestructor;
-   }
-
-   DirAutoAdd_t  TGenericClassInfo::GetDirectoryAutoAdd() const
-   {
-      // Get the wrapper around the directory-auto-add function .
-
-      return fDirAutoAdd;
    }
 
 } // namespace CppyyLegacy

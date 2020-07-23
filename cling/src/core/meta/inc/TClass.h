@@ -51,8 +51,6 @@ class TListOfFunctions;
 class TListOfFunctionTemplates;
 class TListOfDataMembers;
 class TListOfEnums;
-class TViewPubFunctions;
-class TViewPubDataMembers;
 class TFunctionTemplate;
 class TProtoClass;
 
@@ -174,15 +172,10 @@ private:
    TListOfFunctionTemplates  *fFuncTemplate; //linked list for function templates [Not public until implemented as active list]
    std::atomic<TListOfFunctions*> fMethod;   //linked list for methods
 
-   TViewPubDataMembers*fAllPubData;     //all public data members (including from base classes)
-   TViewPubFunctions *fAllPubMethod;    //all public methods (including from base classes)
-
    const char        *fDeclFileName;    //name of class declaration file
    const char        *fImplFileName;    //name of class implementation file
    Short_t            fDeclFileLine;    //line of class declaration
    Short_t            fImplFileLine;    //line of class implementation
-   UInt_t             fInstanceCount;   //number of instances of this class
-   UInt_t             fOnHeap;          //number of instances on heap
    mutable std::atomic<UInt_t>  fCheckSum;        //checksum of data members and base classes
    TVirtualCollectionProxy *fCollectionProxy; //Collection interface
    Version_t          fClassVersion;    //Class version Identifier
@@ -201,7 +194,6 @@ private:
    CppyyLegacy::DelFunc_t     fDelete;         //pointer to a function deleting one object.
    CppyyLegacy::DelArrFunc_t  fDeleteArray;    //pointer to a function deleting an array of objects.
    CppyyLegacy::DesFunc_t     fDestructor;     //pointer to a function call an object's destructor.
-   CppyyLegacy::DirAutoAdd_t  fDirAutoAdd;     //pointer which implements the Directory Auto Add feature for this class.']'
    ClassStreamerFunc_t fStreamerFunc;   //Wrapper around this class custom Streamer member function.
    ClassConvStreamerFunc_t fConvStreamerFunc;   //Wrapper around this class custom conversion Streamer member function.
    Int_t               fSizeof;         //Sizeof the class.
@@ -338,7 +330,6 @@ public:
           Int_t dl, Int_t il, Bool_t silent = kFALSE);
    virtual           ~TClass();
 
-   void               AddInstance(Bool_t heap = kFALSE) { fInstanceCount++; if (heap) fOnHeap++; }
    void               AddImplFile(const char *filename, int line);
    void               BuildRealData(void *pointer=0, Bool_t isTransient = kFALSE);
    void               BuildEmulatedRealData(const char *name, intptr_t offset, TClass *cl);
@@ -398,7 +389,6 @@ public:
    TCollection       *GetListOfMethodOverloads(const char* name) const;
    TList             *GetListOfRealData() const { return fRealData; }
    const TList       *GetListOfAllPublicMethods(Bool_t load = kTRUE);
-   TList             *GetListOfAllPublicDataMembers(Bool_t load = kTRUE);
    const char        *GetImplFileName() const { return fImplFileName; }
    Short_t            GetImplFileLine() const { return fImplFileLine; }
    TClass            *GetActualClass(const void *object) const;
@@ -407,10 +397,7 @@ public:
    intptr_t           GetBaseClassOffset(const TClass *toBase, void *address = 0, bool isDerivedObject = true);
    TClass            *GetBaseDataMember(const char *datamember);
    CppyyLegacy::ESTLType     GetCollectionType() const;
-   CppyyLegacy::DirAutoAdd_t GetDirectoryAutoAdd() const;
    TFunctionTemplate *GetFunctionTemplate(const char *name);
-   UInt_t             GetInstanceCount() const { return fInstanceCount; }
-   UInt_t             GetHeapInstanceCount() const { return fOnHeap; }
    TMethod           *GetMethod(const char *method, const char *params, Bool_t objectIsConst = kFALSE);
    TMethod *GetMethodWithPrototype(const char *method, const char *proto, Bool_t objectIsConst = kFALSE,
                                    CppyyLegacy::EFunctionMatchMode mode = CppyyLegacy::kConversionMatch);
@@ -474,7 +461,6 @@ public:
    void               ResetCaches();
    void               ResetClassInfo(Long_t tagnum);
    void               ResetClassInfo();
-   void               ResetInstanceCount() { fInstanceCount = fOnHeap = 0; }
    Int_t              Size() const;
    void               SetCanSplit(Int_t splitmode);
    void               SetCollectionProxy(const CppyyLegacy::Detail::TCollectionProxyInfo&);
@@ -484,7 +470,6 @@ public:
    void               SetDeclFile(const char *name, int line) { fDeclFileName = name; fDeclFileLine = line; }
    void               SetDelete(CppyyLegacy::DelFunc_t deleteFunc);
    void               SetDeleteArray(CppyyLegacy::DelArrFunc_t deleteArrayFunc);
-   void               SetDirectoryAutoAdd(CppyyLegacy::DirAutoAdd_t dirAutoAddFunc);
    void               SetDestructor(CppyyLegacy::DesFunc_t destructorFunc);
    void               SetImplFileName(const char *implFileName) { fImplFileName = implFileName; }
    void               SetNew(CppyyLegacy::NewFunc_t newFunc);

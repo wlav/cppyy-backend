@@ -415,8 +415,6 @@ void TList::Delete(Option_t *option)
 
    Bool_t slow = option ? (!strcmp(option, "slow") ? kTRUE : kFALSE) : kFALSE;
 
-   TList removeDirectory; // need to deregister these from their directory
-
    if (slow) {
 
       // In some case, for example TParallelCoord, a list (the pad's list of
@@ -447,8 +445,6 @@ void TList::Delete(Option_t *option)
                   obj, GetName());
          else if (obj && obj->IsOnHeap())
             TCollection::GarbageCollect(obj);
-         else if (obj && obj->IsA()->GetDirectoryAutoAdd())
-            removeDirectory.Add(obj);
 
          // delete tlk;
       }
@@ -476,39 +472,14 @@ void TList::Delete(Option_t *option)
                   obj, GetName());
          else if (obj && obj->IsOnHeap())
             TCollection::GarbageCollect(obj);
-         else if (obj && obj->IsA()->GetDirectoryAutoAdd())
-            removeDirectory.Add(obj);
 
          // The formerly first token, when tlk goes out of scope has no more references
          // because of the fFirst.reset()
       }
    }
 
-   // These objects cannot expect to have a valid TDirectory anymore;
-   // e.g. because *this is the TDirectory's list of objects. Even if
-   // not, they are supposed to be deleted, so we can as well unregister
-   // them from their directory, even if they are stack-based:
-   TIter iRemDir(&removeDirectory);
-   TObject* dirRem = 0;
-   while ((dirRem = iRemDir())) {
-      (*dirRem->IsA()->GetDirectoryAutoAdd())(dirRem, 0);
-   }
    Changed();
 }
-
-#if 0
-////////////////////////////////////////////////////////////////////////////////
-/// Delete a TObjLink object.
-
-void TList::DeleteLink(TObjLink *lnk)
-{
-   R__COLLECTION_WRITE_GUARD();
-
-   lnk->fNext = lnk->fPrev = 0;
-   lnk->fObject = 0;
-   delete lnk;
-}
-#endif
 
 ////////////////////////////////////////////////////////////////////////////////
 /// Find an object in this list using its name. Requires a sequential

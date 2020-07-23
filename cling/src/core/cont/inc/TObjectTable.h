@@ -55,12 +55,10 @@ public:
    void      Delete(Option_t *opt = "");
    Int_t     GetSize() const { return fSize; }
    Int_t     Instances() const { return fTally; }
-   void      InstanceStatistics() const;
    Bool_t    PtrIsValid(TObject *obj);
    void      Remove(TObject *obj);
    void      RemoveQuietly(TObject *obj);
    void      Terminate();
-   void      UpdateInstCount() const;
 
    static void AddObj(TObject *obj);
 

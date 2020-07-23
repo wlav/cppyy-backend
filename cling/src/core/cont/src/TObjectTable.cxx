@@ -172,7 +172,6 @@ void TObjectTable::RemoveQuietly(TObject *op)
 
 void TObjectTable::Terminate()
 {
-   InstanceStatistics();
    delete [] fTable; fTable = 0;
 }
 
@@ -240,62 +239,6 @@ void TObjectTable::Expand(Int_t newSize)
       if ((op = oldTable[i]))
          Add(op);
    delete [] oldTable;
-}
-
-////////////////////////////////////////////////////////////////////////////////
-/// Print the object table.
-
-void TObjectTable::InstanceStatistics() const
-{
-   int n, h, s, ncum = 0, hcum = 0, scum = 0, tcum = 0, thcum = 0;
-
-   if (fTally == 0 || !fTable)
-      return;
-
-   UpdateInstCount();
-
-   Printf("\nObject statistics");
-   Printf("class                         cnt    on heap     size    total size    heap size");
-   Printf("================================================================================");
-   TIter next(gROOT->GetListOfClasses());
-   TClass *cl;
-   while ((cl = (TClass*) next())) {
-      n = cl->GetInstanceCount();
-      h = cl->GetHeapInstanceCount();
-      s = cl->Size();
-      if (n > 0) {
-         Printf("%-24s %8d%11d%9d%14d%13d", cl->GetName(), n, h, s, n*s, h*s);
-         ncum  += n;
-         hcum  += h;
-         scum  += s;
-         tcum  += n*s;
-         thcum += h*s;
-      }
-   }
-   Printf("--------------------------------------------------------------------------------");
-   Printf("Total:                   %8d%11d%9d%14d%13d", ncum, hcum, scum, tcum, thcum);
-   Printf("================================================================================\n");
-}
-
-////////////////////////////////////////////////////////////////////////////////
-/// Histogram all objects according to their classes.
-
-void TObjectTable::UpdateInstCount() const
-{
-   TObject *op;
-
-   if (!fTable || !TROOT::Initialized())
-      return;
-
-   gROOT->GetListOfClasses()->R__FOR_EACH(TClass,ResetInstanceCount)();
-
-   for (int i = 0; i < fSize; i++)
-      if ((op = fTable[i])) {                // attention: no ==
-         if (op->TestBit(TObject::kNotDeleted))
-            op->IsA()->AddInstance(op->IsOnHeap());
-         else
-            Error("UpdateInstCount", "oops 0x%td\n", (intptr_t)op);
-      }
 }
 
 ////////////////////////////////////////////////////////////////////////////////

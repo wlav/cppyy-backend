@@ -50,7 +50,6 @@ clang/LLVM technology.
 #include "TObjString.h"
 #include "TString.h"
 #include "THashList.h"
-#include "TOrdCollection.h"
 #include "TSystem.h"
 #include "TVirtualMutex.h"
 #include "TError.h"

@@ -28,6 +28,7 @@ size(), clear(), resize(). resize() may be a void operation.
 #include "TROOT.h"
 #include "TStreamerInfo.h"
 #include "TStreamerElement.h"
+#include "TVirtualCollectionIterators.h"
 #include "Riostream.h"
 
 

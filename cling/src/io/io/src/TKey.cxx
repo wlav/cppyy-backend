@@ -775,14 +775,6 @@ TObject *TKey::ReadObj()
       fMotherDir->Append(dir);
    }
 
-   // Append the object to the directory if requested:
-   {
-      CppyyLegacy::DirAutoAdd_t addfunc = cl->GetDirectoryAutoAdd();
-      if (addfunc) {
-         addfunc(pobj, fMotherDir);
-      }
-   }
-
 CLEAR:
    delete fBufferRef;
    fBufferRef = 0;
@@ -900,14 +892,6 @@ TObject *TKey::ReadObjWithBuffer(char *bufferRead)
       dir->SetTitle(GetTitle());
       dir->SetMother(fMotherDir);
       fMotherDir->Append(dir);
-   }
-
-   // Append the object to the directory if requested:
-   {
-      CppyyLegacy::DirAutoAdd_t addfunc = cl->GetDirectoryAutoAdd();
-      if (addfunc) {
-         addfunc(pobj, fMotherDir);
-      }
    }
 
 CLEAR:
@@ -1044,14 +1028,6 @@ void *TKey::ReadObjectAny(const TClass* expectedClass)
       }
    }
 
-   {
-      // Append the object to the directory if requested:
-      CppyyLegacy::DirAutoAdd_t addfunc = cl->GetDirectoryAutoAdd();
-      if (addfunc) {
-         addfunc(pobj, fMotherDir);
-      }
-   }
-
    CLEAR:
    delete fBufferRef;
    fBufferRef = 0;
@@ -1106,14 +1082,6 @@ Int_t TKey::Read(TObject *obj)
       delete [] fBuffer;
    } else {
       obj->Streamer(*fBufferRef);
-   }
-
-   // Append the object to the directory if requested:
-   {
-      CppyyLegacy::DirAutoAdd_t addfunc = obj->IsA()->GetDirectoryAutoAdd();
-      if (addfunc) {
-         addfunc(obj, fMotherDir);
-      }
    }
 
    delete fBufferRef;

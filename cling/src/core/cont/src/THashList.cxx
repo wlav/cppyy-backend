@@ -216,8 +216,6 @@ void THashList::Delete(Option_t *option)
       fTable->Clear("nodelete");     // clear table so no more lookups
       TList::Delete(option);         // this deletes the objects
    } else {
-      TList removeDirectory; // need to deregister these from their directory
-
       while (fFirst) {
          auto tlk = fFirst;
          fFirst = fFirst->NextSP();
@@ -234,8 +232,6 @@ void THashList::Delete(Option_t *option)
                   obj, GetName());
          else if (obj && obj->IsOnHeap())
             TCollection::GarbageCollect(obj);
-         else if (obj && obj->IsA()->GetDirectoryAutoAdd())
-            removeDirectory.Add(obj);
 
          // tlk reference count goes down 1.
       }
@@ -244,15 +240,6 @@ void THashList::Delete(Option_t *option)
       fCache.reset();
       fSize  = 0;
 
-      // These objects cannot expect to have a valid TDirectory anymore;
-      // e.g. because *this is the TDirectory's list of objects. Even if
-      // not, they are supposed to be deleted, so we can as well unregister
-      // them from their directory, even if they are stack-based:
-      TIter iRemDir(&removeDirectory);
-      TObject* dirRem = 0;
-      while ((dirRem = iRemDir())) {
-            (*dirRem->IsA()->GetDirectoryAutoAdd())(dirRem, 0);
-      }
       Changed();
    }
 }
