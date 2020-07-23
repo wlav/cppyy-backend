@@ -40,7 +40,6 @@
 #pragma link C++ class CppyyLegacy::TOrdCollection;
 #pragma link C++ class CppyyLegacy::TOrdCollectionIter;
 #pragma link C++ class CppyyLegacy::TSeqCollection;
-#pragma link C++ class CppyyLegacy::TSortedList;
 #pragma link C++ class CppyyLegacy::TExMap-;
 #pragma link C++ class CppyyLegacy::TExMapIter;
 #pragma link C++ class CppyyLegacy::TVirtualCollectionProxy-;

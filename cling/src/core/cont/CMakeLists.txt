@@ -25,7 +25,6 @@ set(Cont_dict_headers
   TObjectTable.h
   TOrdCollection.h
   TSeqCollection.h
-  TSortedList.h
   TVirtualCollectionProxy.h
   PARENT_SCOPE
 )
@@ -46,7 +45,6 @@ ROOT_OBJECT_LIBRARY(Cont
   src/TObjectTable.cxx
   src/TOrdCollection.cxx
   src/TSeqCollection.cxx
-  src/TSortedList.cxx
 )
 
 target_include_directories(Cont PRIVATE res ../foundation/res)

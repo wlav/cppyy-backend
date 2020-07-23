@@ -436,9 +436,6 @@ public:
    ClassDef(TStreamerSTLstring,2)  //Streamer element of type  C++ string
 };
 
-class TVirtualObject;
-class TBuffer;
-
 } // namespace CppyyLegacy
 
 #endif

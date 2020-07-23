@@ -29,7 +29,6 @@ size(), clear(), resize(). resize() may be a void operation.
 #include "TStreamerInfo.h"
 #include "TStreamerElement.h"
 #include "Riostream.h"
-#include "TVirtualCollectionIterators.h"
 
 
 namespace CppyyLegacy {

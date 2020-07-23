@@ -22,7 +22,6 @@
 #pragma link C++ class CppyyLegacy::TFile-;
 #pragma link C++ class CppyyLegacy::TFree;
 #pragma link C++ class CppyyLegacy::TKey-;
-#pragma link C++ class CppyyLegacy::TMapRec;
 #pragma link C++ class CppyyLegacy::TMemFile;
 #pragma link C++ class CppyyLegacy::TStreamerInfo-;
 #pragma link C++ class CppyyLegacy::TCollectionProxyFactory-;
@@ -34,7 +33,6 @@
 #pragma link C++ class CppyyLegacy::TCollectionStreamer-;
 #pragma link C++ class CppyyLegacy::TCollectionClassStreamer-;
 #pragma link C++ class CppyyLegacy::TCollectionMemberStreamer-;
-#pragma link C++ options=version(0) class CppyyLegacy::TVirtualObject-;
 #pragma link C++ options=version(0) class CppyyLegacy::TVirtualArray-;
 #pragma link C++ namespace CppyyLegacy::TStreamerInfoActions;
 #pragma link C++ class CppyyLegacy::TStreamerInfoActions::TConfiguredAction+;

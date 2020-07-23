@@ -21,7 +21,6 @@
 #include "TVirtualCollectionProxy.h"
 #include "TContainerConverters.h"
 #include "TVirtualArray.h"
-#include "TVirtualObject.h"
 
 
 namespace CppyyLegacy {

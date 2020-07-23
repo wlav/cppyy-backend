@@ -54,7 +54,6 @@ ROOT_GENERATE_DICTIONARY(G__RIOLegacy
   TStreamerInfoActions.h
   TVirtualCollectionIterators.h
   TStreamerInfo.h
-  TVirtualObject.h
   TVirtualArray.h
   ${RIOLegacy_EXTRA_HEADERS}
   STAGE1
