@@ -3223,13 +3223,15 @@ Int_t TBufferFile::ReadClassEmulated(const TClass *cl, void *object, const TClas
       }
 
       sinfo = (TStreamerInfo*)cl->GetStreamerInfo(v);
-      ApplySequence(*(sinfo->GetReadObjectWiseActions()), object);
+      if (sinfo->GetReadObjectWiseActions())
+          ApplySequence(*(sinfo->GetReadObjectWiseActions()), object);
       if (sinfo->IsRecovered()) count=0;
       CheckByteCount(start,count,cl);
    } else {
       SetBufferOffset(start);
       TStreamerInfo *sinfo = ((TStreamerInfo*)cl->GetStreamerInfo());
-      ApplySequence(*(sinfo->GetReadObjectWiseActions()), object);
+      if (sinfo->GetReadObjectWiseActions())
+          ApplySequence(*(sinfo->GetReadObjectWiseActions()), object);
    }
    return 0;
 }
@@ -3316,7 +3318,8 @@ Int_t TBufferFile::ReadClassBuffer(const TClass *cl, void *pointer, Int_t versio
    }
 
    // Deserialize the object.
-   ApplySequence(*(sinfo->GetReadObjectWiseActions()), (char*)pointer);
+   if (sinfo->GetReadObjectWiseActions())
+       ApplySequence(*(sinfo->GetReadObjectWiseActions()), (char*)pointer);
    if (sinfo->IsRecovered()) count=0;
 
    // Check that the buffer position corresponds to the byte count.
@@ -3455,7 +3458,8 @@ Int_t TBufferFile::ReadClassBuffer(const TClass *cl, void *pointer, const TClass
    }
 
    //deserialize the object
-   ApplySequence(*(sinfo->GetReadObjectWiseActions()), (char*)pointer );
+   if (sinfo->GetReadObjectWiseActions())
+       ApplySequence(*(sinfo->GetReadObjectWiseActions()), (char*)pointer );
    if (sinfo->TStreamerInfo::IsRecovered()) R__c=0; // 'TStreamerInfo::' avoids going via a virtual function.
 
    // Check that the buffer position corresponds to the byte count.
@@ -3503,7 +3507,8 @@ Int_t TBufferFile::WriteClassBuffer(const TClass *cl, void *pointer)
 
    //NOTE: In the future Philippe wants this to happen via a custom action
    TagStreamerInfo(sinfo);
-   ApplySequence(*(sinfo->GetWriteObjectWiseActions()), (char*)pointer);
+   if (sinfo->GetWriteObjectWiseActions())
+       ApplySequence(*(sinfo->GetWriteObjectWiseActions()), (char*)pointer);
 
    //write the byte count at the start of the buffer
    SetByteCount(R__c, kTRUE);

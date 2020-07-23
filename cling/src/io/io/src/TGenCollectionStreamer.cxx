@@ -531,10 +531,12 @@ void TGenCollectionStreamer::ReadPairFromMap(int nElements, TBuffer &b)
          }
          switch (fVal->fCase) {
             case kIsClass:
-               DOLOOP(
-                  char **where = (char**)(void*) & i;
-                  b.ApplySequence(*(pinfo->GetReadObjectWiseActions()), where);
-               );
+               if (pinfo->GetReadObjectWiseActions()) {
+                  DOLOOP(
+                      char **where = (char**)(void*) & i;
+                      b.ApplySequence(*(pinfo->GetReadObjectWiseActions()), where);
+                  );
+               }
          }
 #undef DOLOOP
          break;
@@ -550,10 +552,12 @@ void TGenCollectionStreamer::ReadPairFromMap(int nElements, TBuffer &b)
          fConstruct(itm,nElements);
          switch (fVal->fCase) {
             case kIsClass:
-               DOLOOP(
-                  char **where = (char**)(void*) & i;
-                  b.ApplySequence(*(pinfo->GetReadObjectWiseActions()), where);
-               );
+               if (pinfo->GetReadObjectWiseActions()) {
+                  DOLOOP(
+                     char **where = (char**)(void*) & i;
+                     b.ApplySequence(*(pinfo->GetReadObjectWiseActions()), where);
+                  );
+               }
                fFeed(fEnv->fStart,fEnv->fObject,fEnv->fSize);
                fDestruct(fEnv->fStart,fEnv->fSize);
                break;

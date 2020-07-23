@@ -238,7 +238,6 @@ void TStreamerInfo::Build()
 
    fCheckSum = fClass->GetCheckSum();
 
-   Bool_t needAllocClass = kFALSE;
    Bool_t wasCompiled = fComp != 0;
 
    //
@@ -538,79 +537,8 @@ void TStreamerInfo::Build()
          }
       }
 
-      if ( !wasCompiled  ) {
-         needAllocClass = kTRUE;
-
-         // If this is optimized to re-use TStreamerElement(s) in case of variable renaming,
-         // then we must revisit the code in TBranchElement::InitInfo that recalculate the
-         // fID (i.e. the index of the TStreamerElement to be used for streaming).
-
-         TStreamerElement *cached = element;
-         // Now that we are caching the unconverted element, we do not assign it to the real type even if we could have!
-         if (element->GetNewType()>0) /* intentionally not including base class for now */
-         {
-            TStreamerElement *copy = (TStreamerElement*)element->Clone();
-            fElements->Add(copy);
-            copy->SetBit(TStreamerElement::kRepeat);
-            cached = copy;
-
-            // Warning("BuildOld","%s::%s is not set from the version %d of %s (You must add a rule for it)\n",GetName(), element->GetName(), GetClassVersion(), GetName() );
-         } else {
-            // If the element is just cached and not repeat, we need to inject an element
-            // to insure the writing.
-            TStreamerElement *writecopy = (TStreamerElement*)element->Clone();
-            fElements->Add(element);
-            writecopy->SetBit(TStreamerElement::kWrite);
-            writecopy->SetNewType( writecopy->GetType() );
-            writecopy->SetOffset( element->GetOffset() );
-            // Put the write element after the read element (that does caching).
-            element = writecopy;
-         }
-         cached->SetBit(TStreamerElement::kCache);
-         cached->SetNewType( cached->GetType() );
-      }
-
       fElements->Add(element);
    } // end of member loop
-
-   if (needAllocClass) {
-      TStreamerInfo *infoalloc  = (TStreamerInfo *)Clone(TString::Format("%s@@%d",GetName(),GetClassVersion()));
-      if (!infoalloc) {
-         Error("Build","Could you create a TStreamerInfo for %s\n",TString::Format("%s@@%d",GetName(),GetClassVersion()).Data());
-      } else {
-         // Tell clone we should rerun BuildOld
-         infoalloc->SetBit(kBuildOldUsed,false);
-         // Temporarily mark it as built to avoid the BuildCheck from removing
-         // Technically we only need to do this for the 'current' StreamerInfo
-         fIsBuilt = kTRUE;
-         infoalloc->BuildCheck();
-         infoalloc->BuildOld();
-         fIsBuilt = kFALSE;
-
-         {
-            TIter next(fElements);
-            TStreamerElement* element;
-            while ((element = (TStreamerElement*) next())) {
-               if (element->TestBit(TStreamerElement::kRepeat) && element->IsaPointer()) {
-                  TStreamerElement *other = (TStreamerElement*) infoalloc->GetElements()->FindObject(element->GetName());
-                  if (other) {
-                     other->SetBit(TStreamerElement::kDoNotDelete);
-                  }
-               }
-            }
-            infoalloc->GetElements()->Compress();
-         }
-         {
-            TIter next(fElements);
-            TStreamerElement* element;
-            while ((element = (TStreamerElement*) next())) {
-            if (element->TestBit(TStreamerElement::kCache)) {
-               element->SetOffset(infoalloc->GetOffset(element->GetName()));
-            }
-            }
-         }
-      }
-   }
 
    //
    // Make a more compact version.
@@ -1167,7 +1095,7 @@ void TStreamerInfo::BuildEmulated(TFile *file)
       if (ty <= kULong)                         continue;
       duName = element->GetName();
       duName.Append("QWERTY");
-      TStreamerBasicType *bt = new TStreamerBasicType(duName, "", 0, kInt,"CppyyLegacy::Int_t");
+      TStreamerBasicType *bt = new TStreamerBasicType(duName, "", 0, kInt, "CppyyLegacy::Int_t");
       {for (int j=ndata-1;j>=i;j--) {elements->AddAtAndExpand(elements->At(j),j+1);}}
       elements->AddAt(bt,i);
       ndata++;
