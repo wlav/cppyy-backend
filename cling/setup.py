@@ -333,9 +333,8 @@ setup(
     long_description=long_description,
     url='https://root.cern.ch/cling',
 
-    # Author details
-    author='ROOT Developers',
-    author_email='rootdev@cern.ch',
+    maintainer='Wim Lavrijsen',
+    maintainer_email='WLavrijsen@lbl.gov',
 
     version='6.21.1',
 

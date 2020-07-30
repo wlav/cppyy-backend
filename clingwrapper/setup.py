@@ -210,8 +210,8 @@ setup(
     url='http://pypy.org',
 
     # Author details
-    author='PyPy Developers',
-    author_email='pypy-dev@python.org',
+    author='Wim Lavrijsen',
+    author_email='WLavrijsen@lbl.gov',
 
     version='1.13.0',
 
