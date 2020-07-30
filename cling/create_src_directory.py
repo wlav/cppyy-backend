@@ -108,7 +108,8 @@ except ImportError:
 
 
 for fdiff in ('typedef_of_private', 'optlevel2_forced', 'explicit_template', 'alias_template',
-              'incomplete_types', 'clang_printing', 'pch', 'win64rtti', 'win64', 'win64s2'):
+              'incomplete_types', 'clang_printing', 'pch', 'win64rtti', 'win64', 'win64s2',
+              'locales'):
     fpatch = os.path.join('patches', fdiff+'.diff')
     print(' ==> applying patch:', fpatch)
     pset = patch.fromfile(fpatch)
