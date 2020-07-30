@@ -13,3 +13,16 @@ index f4a61b6640..9956a11bdf 100644
  
      if (Verbose)
        cling::log() << "Looking for C++ headers with:\n  " << CppInclQuery << "\n";
+diff --git a/src/interpreter/cling/lib/Interpreter/CMakeLists.txt b/src/interpreter/cling/lib/Interpreter/CMakeLists.txt
+index 94179a90c6..86be44437b 100644
+--- a/src/interpreter/cling/lib/Interpreter/CMakeLists.txt
++++ b/src/interpreter/cling/lib/Interpreter/CMakeLists.txt
+@@ -255,7 +255,7 @@ if (UNIX)
+ 
+     execute_process(
+       COMMAND echo ${CLING_CXX_HEADERS}
+-      COMMAND sed -n -e /^.include/,\$\{ -e /^\\\ \\\/.*++/p -e \}
++      COMMAND sed -n -e /^.*include/,\$\{ -e /^\\\ \\\/.*++/p -e \}
+       OUTPUT_VARIABLE CLING_CXX_HEADERS)
+ 
+     stripNewLine("${CLING_CXX_HEADERS}" CLING_CXX_HEADERS)
