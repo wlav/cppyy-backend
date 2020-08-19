@@ -623,8 +623,10 @@ size_t Cppyy::SizeOf(const std::string& type_name)
 
 bool Cppyy::IsBuiltin(const std::string& type_name)
 {
-    TDataType* dt = gROOT->GetType(TClassEdit::CleanType(type_name.c_str(), 1).c_str());
+    const std::string& tclean = TClassEdit::CleanType(type_name.c_str(), 1);
+    TDataType* dt = gROOT->GetType(tclean.c_str());
     if (dt) return dt->GetType() != kOther_t;
+    if (strstr(tclean.c_str(), "std::complex")) return true;
     return false;
 }
 
