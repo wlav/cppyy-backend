@@ -2145,6 +2145,14 @@ size_t cppyy_size_of_type(const char* type_name) {
     return Cppyy::SizeOf(type_name);
 }
 
+int cppyy_is_builtin(const char* type_name) {
+    return (int)Cppyy::IsBuiltin(type_name);
+}
+
+int cppyy_is_complete(const char* type_name) {
+    return (int)Cppyy::IsComplete(type_name);
+}
+
 
 /* memory management ------------------------------------------------------ */
 cppyy_object_t cppyy_allocate(cppyy_type_t type) {
@@ -2483,15 +2491,15 @@ char* cppyy_method_prototype(cppyy_scope_t scope, cppyy_method_t method, int sho
 }
 
 int cppyy_is_const_method(cppyy_method_t method) {
-    return (int)Cppyy::IsConstMethod(method);
+    return (int)Cppyy::IsConstMethod((Cppyy::TCppMethod_t)method);
 }
 
 int cppyy_get_num_templated_methods(cppyy_scope_t scope) {
-    return (int)Cppyy::GetNumTemplatedMethods(scope);
+    return (int)Cppyy::GetNumTemplatedMethods((Cppyy::TCppScope_t)scope);
 }
 
 char* cppyy_get_templated_method_name(cppyy_scope_t scope, cppyy_index_t imeth) {
-    return cppstring_to_cstring(Cppyy::GetTemplatedMethodName(scope, imeth));
+    return cppstring_to_cstring(Cppyy::GetTemplatedMethodName((Cppyy::TCppScope_t)scope, (Cppyy::TCppIndex_t)imeth));
 }
 
 int cppyy_is_templated_constructor(cppyy_scope_t scope, cppyy_index_t imeth) {
@@ -2499,15 +2507,15 @@ int cppyy_is_templated_constructor(cppyy_scope_t scope, cppyy_index_t imeth) {
 }
 
 int cppyy_exists_method_template(cppyy_scope_t scope, const char* name) {
-    return (int)Cppyy::ExistsMethodTemplate(scope, name);
+    return (int)Cppyy::ExistsMethodTemplate((Cppyy::TCppScope_t)scope, name);
 }
 
 int cppyy_method_is_template(cppyy_scope_t scope, cppyy_index_t idx) {
-    return (int)Cppyy::IsMethodTemplate(scope, idx);
+    return (int)Cppyy::IsMethodTemplate((Cppyy::TCppScope_t)scope, idx);
 }
 
 cppyy_method_t cppyy_get_method_template(cppyy_scope_t scope, const char* name, const char* proto) {
-    return cppyy_method_t(Cppyy::GetMethodTemplate(scope, name, proto));
+    return cppyy_method_t(Cppyy::GetMethodTemplate((Cppyy::TCppScope_t)scope, name, proto));
 }
 
 cppyy_index_t cppyy_get_global_operator(cppyy_scope_t scope, cppyy_scope_t lc, cppyy_scope_t rc, const char* op) {
@@ -2583,6 +2591,24 @@ int cppyy_is_enum_data(cppyy_scope_t scope, cppyy_index_t idata) {
 
 int cppyy_get_dimension_size(cppyy_scope_t scope, cppyy_index_t idata, int dimension) {
     return Cppyy::GetDimensionSize(scope, idata, dimension);
+}
+
+
+/* enum properties -------------------------------------------------------- */
+cppyy_enum_t cppyy_get_enum(cppyy_scope_t scope, const char* enum_name) {
+    return Cppyy::GetEnum(scope, enum_name);
+}
+
+cppyy_index_t cppyy_get_num_enum_data(cppyy_enum_t e) {
+    return Cppyy::GetNumEnumData(e);
+}
+
+const char* cppyy_get_enum_data_name(cppyy_enum_t e, cppyy_index_t idata) {
+    return cppstring_to_cstring(Cppyy::GetEnumDataName(e, idata));
+}
+
+long long cppyy_get_enum_data_value(cppyy_enum_t e, cppyy_index_t idata) {
+    return Cppyy::GetEnumDataValue(e, idata);
 }
 
 

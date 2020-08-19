@@ -97,6 +97,7 @@ namespace Cppyy {
     double        CallD(TCppMethod_t method, TCppObject_t self, size_t nargs, void* args);
     RPY_EXPORTED
     PY_LONG_DOUBLE CallLD(TCppMethod_t method, TCppObject_t self, size_t nargs, void* args);
+
     RPY_EXPORTED
     void*         CallR(TCppMethod_t method, TCppObject_t self, size_t nargs, void* args);
     RPY_EXPORTED

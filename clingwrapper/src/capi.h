@@ -11,6 +11,7 @@ extern "C" {
 
     typedef size_t        cppyy_scope_t;
     typedef cppyy_scope_t cppyy_type_t;
+    typedef void*         cppyy_enum_t;
     typedef void*         cppyy_object_t;
     typedef intptr_t      cppyy_method_t;
 
@@ -36,6 +37,11 @@ extern "C" {
     size_t cppyy_size_of_klass(cppyy_type_t klass);
     RPY_EXPORTED
     size_t cppyy_size_of_type(const char* type_name);
+
+    RPY_EXPORTED
+    int cppyy_is_builtin(const char* type_name);
+    RPY_EXPORTED
+    int cppyy_is_complete(const char* type_name);
 
     /* memory management ------------------------------------------------------ */
     RPY_EXPORTED
@@ -163,7 +169,7 @@ extern "C" {
     RPY_EXPORTED
     int cppyy_method_req_args(cppyy_method_t);
     RPY_EXPORTED
-    char* cppyy_method_arg_name(cppyy_method_t,int arg_index);
+    char* cppyy_method_arg_name(cppyy_method_t, int arg_index);
     RPY_EXPORTED
     char* cppyy_method_arg_type(cppyy_method_t, int arg_index);
     RPY_EXPORTED
@@ -181,6 +187,8 @@ extern "C" {
     int cppyy_get_num_templated_methods(cppyy_scope_t scope);
     RPY_EXPORTED
     char* cppyy_get_templated_method_name(cppyy_scope_t scope, cppyy_index_t imeth);
+    RPY_EXPORTED
+    int cppyy_is_templated_constructor(cppyy_scope_t scope, cppyy_index_t imeth);
     RPY_EXPORTED
     int cppyy_exists_method_template(cppyy_scope_t scope, const char* name);
     RPY_EXPORTED
@@ -229,6 +237,16 @@ extern "C" {
     int cppyy_is_enum_data(cppyy_scope_t scope, cppyy_index_t idata);
     RPY_EXPORTED
     int cppyy_get_dimension_size(cppyy_scope_t scope, cppyy_index_t idata, int dimension);
+
+    /* enum properties -------------------------------------------------------- */
+    RPY_EXPORTED
+    cppyy_enum_t  cppyy_get_enum(cppyy_scope_t scope, const char* enum_name);
+    RPY_EXPORTED
+    cppyy_index_t cppyy_get_num_enum_data(cppyy_enum_t);
+    RPY_EXPORTED
+    const char*   cppyy_get_enum_data_name(cppyy_enum_t, cppyy_index_t idata);
+    RPY_EXPORTED
+    long long     cppyy_get_enum_data_value(cppyy_enum_t, cppyy_index_t idata);
 
     /* misc helpers ----------------------------------------------------------- */
     RPY_EXPORTED
