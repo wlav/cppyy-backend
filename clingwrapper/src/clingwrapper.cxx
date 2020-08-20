@@ -1091,10 +1091,10 @@ void Cppyy::GetAllCppNames(TCppScope_t scope, std::set<std::string>& cppnames)
 // add (global) data members
     if (scope == GLOBAL_HANDLE) {
         coll = gROOT->GetListOfGlobals();
-        FILL_COLL(TGlobal, kIsEnum | kIsPrivate | kIsProtected)
+        FILL_COLL(TGlobal, kIsPrivate | kIsProtected)
     } else {
         coll = cr->GetListOfDataMembers();
-        FILL_COLL(TDataMember, kIsEnum | kIsPrivate | kIsProtected)
+        FILL_COLL(TDataMember, kIsPrivate | kIsProtected)
     }
 
 // add enums values only for user classes/namespaces
