@@ -41,12 +41,15 @@ def getCppFlags(cppflagsFilename):
    ifile = open(cppflagsFilename)
    lines = ifile.readlines()
    ifile.close()
-   if "std" in os.environ.get("EXTRA_CLING_ARGS", ""):
+   stdcxx = os.environ.get("STDCXX", "")
+   if stdcxx or "std" in os.environ.get("EXTRA_CLING_ARGS", ""):
       keep = []
       for line in lines:
          if not "std" in line:
              keep.append(line)
       lines = keep
+   if stdcxx:
+      cppFlags += " -std=c++"+stdcxx
    cppFlags = " ".join(map(lambda line: line[:-1], lines))
    return cppFlags
 
