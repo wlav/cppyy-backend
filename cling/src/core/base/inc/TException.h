@@ -12,7 +12,6 @@
 #ifndef ROOT_TException
 #define ROOT_TException
 
-
 //////////////////////////////////////////////////////////////////////////
 //                                                                      //
 // Exception Handling                                                   //
@@ -32,6 +31,7 @@ struct jmp_buf;
 #include <ROOT/RConfig.hxx>
 #include "DllImport.h"
 
+
 namespace CppyyLegacy {
 
 struct ExceptionContext_t {
@@ -43,32 +43,32 @@ struct ExceptionContext_t {
 };
 
 #ifdef NEED_SIGJMP
-# define SETJMP(buf) sigsetjmp(buf,1)
+#define CLING_EXCEPTION_SETJMP(buf) sigsetjmp(buf,1)
 #else
-#define SETJMP(buf) setjmp(buf)
+#define CLING_EXCEPTION_SETJMP(buf) setjmp(buf)
 #endif
 
-#define RETRY \
+#define CLING_EXCEPTION_RETRY \
    { \
       static ExceptionContext_t R__curr, *R__old = gException; \
       int R__code; \
       gException = &R__curr; \
-      R__code = SETJMP(gException->fBuf); if (R__code) { }; {
+      R__code = CLING_EXCEPTION_SETJMP(gException->fBuf); if (R__code) { }; {
 
-#define TRY \
+#define CLING_EXCEPTION_TRY \
    { \
       static ExceptionContext_t R__curr, *R__old = gException; \
       int R__code; \
       gException = &R__curr; \
-      if ((R__code = SETJMP(gException->fBuf)) == 0) {
+      if ((R__code = CLING_EXCEPTION_SETJMP(gException->fBuf)) == 0) {
 
-#define CATCH(n) \
+#define CLING_EXCEPTION_CATCH(n) \
          gException = R__old; \
       } else { \
          int n = R__code; \
          gException = R__old;
 
-#define ENDTRY \
+#define CLING_EXCEPTION_ENDTRY \
       } \
       gException = R__old; \
    }
