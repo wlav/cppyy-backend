@@ -223,6 +223,13 @@ public:
     // add a dummy global to refer to as null at index 0
         g_globalvars.push_back(nullptr);
 
+    // fill out the builtins
+        std::set<std::string> bi{g_builtins};
+        for (const auto& name : bi) {
+            for (const char* a : {"*", "&", "*&", "[]", "*[]"})
+                g_builtins.insert(name+a);
+        }
+
     // disable fast path if requested
         if (getenv("CPPYY_DISABLE_FASTPATH")) gEnableFastPath = false;
 
@@ -366,8 +373,7 @@ std::string Cppyy::ResolveName(const std::string& cppitem_name)
 
 // check data types list (accept only builtins as typedefs will
 // otherwise not be resolved)
-    TDataType* dt = gROOT->GetType(tclean.c_str());
-    if (dt && dt->GetType() != kOther_t) return dt->GetFullTypeName();
+    if (IsBuiltin(tclean)) return tclean;
 
 // special case for enums
     if (IsEnum(cppitem_name))
@@ -623,10 +629,16 @@ size_t Cppyy::SizeOf(const std::string& type_name)
 
 bool Cppyy::IsBuiltin(const std::string& type_name)
 {
+    if (g_builtins.find(type_name) != g_builtins.end())
+        return true;
+
     const std::string& tclean = TClassEdit::CleanType(type_name.c_str(), 1);
-    TDataType* dt = gROOT->GetType(tclean.c_str());
-    if (dt) return dt->GetType() != kOther_t;
-    if (strstr(tclean.c_str(), "std::complex")) return true;
+    if (g_builtins.find(tclean) != g_builtins.end())
+        return true;
+
+    if (strstr(tclean.c_str(), "std::complex"))
+        return true;
+
     return false;
 }
 
