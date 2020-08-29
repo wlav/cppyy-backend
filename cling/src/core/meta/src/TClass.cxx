@@ -229,29 +229,11 @@ static RepoCont_t gObjectVersionRepository;
 static void RegisterAddressInRepository(const char * /*where*/, void *location, const TClass *what)
 {
    // Register the object for special handling in the destructor.
-
    Version_t version = what->GetClassVersion();
-//    if (!gObjectVersionRepository.count(location)) {
-//       Info(where, "Registering address %p of class '%s' version %d", location, what->GetName(), version);
-//    } else {
-//       Warning(where, "Registering address %p again of class '%s' version %d", location, what->GetName(), version);
-//    }
    {
       R__LOCKGUARD2(gOVRMutex);
       gObjectVersionRepository.insert(RepoCont_t::value_type(location, RepoCont_t::mapped_type(what,version)));
    }
-#if 0
-   // This code could be used to prevent an address to be registered twice.
-   std::pair<RepoCont_t::iterator, Bool_t> tmp = gObjectVersionRepository.insert(RepoCont_t::value_type>(location, RepoCont_t::mapped_type(what,version)));
-   if (!tmp.second) {
-      Warning(where, "Reregistering an object of class '%s' version %d at address %p", what->GetName(), version, p);
-      gObjectVersionRepository.erase(tmp.first);
-      tmp = gObjectVersionRepository.insert(RepoCont_t::value_type>(location, RepoCont_t::mapped_type(what,version)));
-      if (!tmp.second) {
-         Warning(where, "Failed to reregister an object of class '%s' version %d at address %p", what->GetName(), version, location);
-      }
-   }
-#endif
 }
 
 static void UnregisterAddressInRepository(const char * /*where*/, void *location, const TClass *what)
@@ -3345,13 +3327,7 @@ TMethod *TClass::GetMethod(const char *method, const char *params,
    if (!decl) return 0;
 
    // search recursively in this class or its base classes
-   TMethod* f = FindClassOrBaseMethodWithId(decl);
-   if (f) return f;
-
-   //Error("GetMethod",
-   //      "\nDid not find matching TMethod <%s> with \"%s\" %sfor %s",
-   //      method,params,objectIsConst ? "const " : "", GetName());
-   return 0;
+   return FindClassOrBaseMethodWithId(decl);
 }
 
 
@@ -3463,7 +3439,6 @@ TMethod *TClass::GetClassMethodWithPrototype(const char *name, const char* proto
    if (!decl) return 0;
 
    TFunction *f = GetMethodList()->Get(decl);
-
    return (TMethod*)f; // Could be zero if the decl is actually in a base class.
 }
 
