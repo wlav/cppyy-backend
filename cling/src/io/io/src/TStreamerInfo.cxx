@@ -238,8 +238,6 @@ void TStreamerInfo::Build()
 
    fCheckSum = fClass->GetCheckSum();
 
-   Bool_t wasCompiled = fComp != 0;
-
    //
    // Iterate over base classes.
    //
