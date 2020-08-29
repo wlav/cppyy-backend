@@ -49,8 +49,6 @@ namespace CppyyLegacy {
 // value of pointer to this types to the correct type (possibly
 // distinct from these)
 class CallFunc_t;
-class ClassInfo_t;
-class BaseClassInfo_t;
 class DataMemberInfo_t;
 class FuncTempInfo_t;
 class MethodInfo_t;

@@ -32,6 +32,8 @@
 
 namespace CppyyLegacy {
 
+class BaseClassInfo_t;
+class ClassInfo_t;
 class TClass;
 class TEnv;
 class TFunction;

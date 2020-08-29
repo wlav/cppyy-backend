@@ -79,17 +79,9 @@ void TClingTypedefInfo::Init(const char *name)
    clang::QualType QT = lh.findType(name,
                                     gDebug > 5 ? cling::LookupHelper::WithDiagnostics
                                     : cling::LookupHelper::NoDiagnostics);
-   if (QT.isNull()) {
-      std::string buf = TClassEdit::InsertStd(name);
-      if (buf != name) {
-         QT = lh.findType(buf,
-                          gDebug > 5 ? cling::LookupHelper::WithDiagnostics
-                          : cling::LookupHelper::NoDiagnostics);
-      }
-      if (QT.isNull()) {
-         return;
-      }
-   }
+   if (QT.isNull())
+      return;
+
    const clang::TypedefType *td = QT->getAs<clang::TypedefType>();
    // if (fDecl && !llvm::isa<clang::TypedefDecl>(fDecl)) {
    if (!td) {

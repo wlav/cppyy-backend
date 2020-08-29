@@ -1628,13 +1628,6 @@ string TClassEdit::ResolveTypedef(const char *tname, bool /* resolveAll */)
 
 
 ////////////////////////////////////////////////////////////////////////////////
-
-string TClassEdit::InsertStd(const char *tname)
-{
-   return tname;
-}
-
-////////////////////////////////////////////////////////////////////////////////
 /// An helper class to dismount the name and remount it changed whenever
 /// necessary
 

@@ -37,6 +37,7 @@
 
 namespace CppyyLegacy {
 
+class ClassInfo_t;
 class TBaseClass;
 class TCling;
 class TDataMember;

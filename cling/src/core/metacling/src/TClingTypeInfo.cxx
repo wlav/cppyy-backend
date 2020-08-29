@@ -71,25 +71,6 @@ void TClingTypeInfo::Init(const char *name)
          fprintf(stderr,
                  "TClingTypeInfo::Init(name): clang type not found: %s", name);
       }
-      std::string buf = TClassEdit::InsertStd(name);
-      QT = lh.findType(buf,
-                       gDebug > 5 ? cling::LookupHelper::WithDiagnostics
-                       : cling::LookupHelper::NoDiagnostics);
-      if (QT.isNull()) {
-         if (gDebug > 0) {
-            fprintf(stderr,
-                    "TClingTypeInfo::Init(name):  "
-                    "clang type not found name: %s\n", buf.c_str());
-         }
-      }
-      else {
-         fQualType = QT;
-         if (gDebug > 0) {
-            fprintf(stderr,
-                    "TClingTypeInfo::Init(name): found clang type name: %s\n",
-                    buf.c_str());
-         }
-      }
    }
    else {
       fQualType = QT;

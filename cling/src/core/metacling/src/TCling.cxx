@@ -3872,14 +3872,6 @@ TCling::CheckClassInfo(const char *name, Bool_t autoload, Bool_t isClassOrNamesp
       }
    }
 
-   if (!decl) {
-      std::string buf = TClassEdit::InsertStd(classname);
-      decl = lh.findScope(buf,
-                          gDebug > 5 ? cling::LookupHelper::WithDiagnostics
-                          : cling::LookupHelper::NoDiagnostics,
-                          &type,false);
-   }
-
    if (type) {
       // If decl==0 and the type is valid, then we have a forward declaration.
       if (!decl) {
@@ -3951,28 +3943,8 @@ TCling::CheckClassInfo(const char *name, Bool_t autoload, Bool_t isClassOrNamesp
    SetClassAutoloading(storeAutoload);
    if (decl)
       return kKnown;
-   else
-      return kUnknown;
 
-   // Setting up iterator part of TClingTypedefInfo is too slow.
-   // Copy the lookup code instead:
-   /*
-   TClingTypedefInfo t(fInterpreter, name);
-   if (t.IsValid() && !(t.Property() & kIsFundamental)) {
-      delete[] classname;
-      SetClassAutoloading(storeAutoload);
-      return kTRUE;
-   }
-   */
-
-//   const clang::Decl *decl = lh.findScope(name);
-//   if (!decl) {
-//      std::string buf = TClassEdit::InsertStd(name);
-//      decl = lh.findScope(buf);
-//   }
-
-//   SetClassAutoloading(storeAutoload);
-//   return (decl);
+   return kUnknown;
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -4230,7 +4202,6 @@ TClass *TCling::GenerateTClass(const char *classname, Bool_t emulation, Bool_t s
    }
 
    return cl;
-
 //   } else {
 //      return GenerateTClass(&tci,silent);
 //   }
@@ -4252,21 +4223,6 @@ TClass *TCling::GenerateTClass(ClassInfo_t *classinfo, Bool_t silent /* = kFALSE
    std::string classname;
    info->FullName(classname,*fNormalizedCtxt); // Could we use Name()?
    if (TClassEdit::IsSTLCont(classname)) {
-#if 0
-      Info("GenerateTClass","Will (try to) generate the compiled TClass for %s.",classname.c_str());
-      // We need to build up the list of required headers, by
-      // looking at each template arguments.
-      TString includes;
-      GenerateTClass_GatherInnerIncludes(fInterpreter,includes,info);
-
-      if (0 == GenerateDictionary(classname.c_str(),includes)) {
-         // 0 means success.
-         cl = TClass::LoadClass(classnam.c_str(), silent);
-         if (cl == 0) {
-            Error("GenerateTClass","Even though the dictionary generation for %s seemed successful we can't find the TClass bootstrap!",classname.c_str());
-         }
-      }
-#endif
       if (cl == 0) {
          int version = TClass::GetClass("CppyyLegacy::TVirtualStreamerInfo")->GetClassVersion();
          cl = new TClass(classinfo, version, 0, 0, -1, -1, silent);
@@ -4496,7 +4452,7 @@ TInterpreter::DeclId_t TCling::GetDeclId( const llvm::GlobalValue *gv ) const
          dataname = scopename;
       }
    }
-   //fprintf(stderr, "name: '%s'\n", name.c_str());
+
    // Now we have the class or namespace name, so do the lookup.
 
 
@@ -4774,19 +4730,11 @@ void TCling::GetInterpreterTypeName(const char* name, std::string &output, Bool_
    R__LOCKGUARD(gInterpreterMutex);
 
    TClingClassInfo cl(GetInterpreterImpl(), name);
-   if (!cl.IsValid()) {
-      return ;
-   }
-   if (full) {
-      cl.FullName(output,*fNormalizedCtxt);
+   if (!cl.IsValid())
       return;
-   }
-   // Well well well, for backward compatibility we need to act a bit too
-   // much like CINT.
-   //TClassEdit::TSplitType splitname( cl.Name(), 0);//(TClassEdit::EModType)(TClassEdit::kLong64));
-   //splitname.ShortType(output, 0); //TClassEdit::kDropStlDefault);
 
-   return;
+   if (full)
+      cl.FullName(output,*fNormalizedCtxt);
 }
 
 ////////////////////////////////////////////////////////////////////////////////

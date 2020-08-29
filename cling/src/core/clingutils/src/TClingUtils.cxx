@@ -568,10 +568,6 @@ bool TClingLookupHelper::GetPartiallyDesugaredNameWithScopeHandling(const std::s
    // ... which requires access to libCoreLegacy or libCling ...
    const cling::LookupHelper& lh = fInterpreter->getLookupHelper();
    clang::QualType t = lh.findType(tname.c_str(), ToLHDS(WantDiags()));
-   // Technically we ought to try:
-   //   if (t.isNull()) t =  lh.findType(TClassEdit::InsertStd(tname), ToLHDS(WantDiags()));
-   // at least until the 'normalized name' contains the std:: prefix.
-
    if (!t.isNull()) {
       clang::QualType dest = TMetaUtils::GetNormalizedType(t, *fInterpreter, *fNormalizedCtxt);
       if (!dest.isNull() && dest != t) {

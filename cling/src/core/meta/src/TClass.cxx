@@ -111,6 +111,11 @@ using namespace std;
 // Mutex to protect CINT and META operations
 // (exported to be used for similar cases in related classes)
 
+// builtin types
+static std::set<std::string> g_builtins =
+    {"bool", "char", "signed char", "unsigned char", "wchar_t", "short", "unsigned short",
+     "int", "unsigned int", "long", "unsigned long", "long long", "unsigned long long",
+     "float", "double", "long double", "void", "void*"};
 
 namespace CppyyLegacy {
 
@@ -2091,6 +2096,9 @@ TClass *TClass::GetClass(const char *name, Bool_t load, Bool_t silent)
 {
    if (!name || !name[0]) return 0;
 
+   if (g_builtins.find(name) != g_builtins.end())
+       return 0;        // we get here for template arg lookups of emulated STL containers
+
    //if (strstr(name, "(anonymous)")) return 0;
    if (strncmp(name,"class ",6)==0) name += 6;
    if (strncmp(name,"struct ",7)==0) name += 7;
@@ -2187,14 +2195,6 @@ TClass *TClass::GetClass(const char *name, Bool_t load, Bool_t silent)
 // i.e missing the addition of the default parameter.  This is because TClingLookupHelper
 // uses only 'part' of TMetaUtils::GetNormalizedName.
 
-//   if (!cl) {
-//      TDataType* dataType = (TDataType*)gROOT->GetListOfTypes()->FindObject(name);
-//      TClass *altcl = dataType ? (TClass*)gROOT->GetListOfClasses()->FindObject(dataType->GetFullTypeName()) : 0;
-//      if (altcl && normalizedName != altcl->GetName())
-//         ::CppyyLegacy::Fatal("TClass::GetClass","The existing name (%s) for %s is different from the normalized name: %s\n",
-//                 altcl->GetName(), name, normalizedName.c_str());
-//   }
-
    TClass *loadedcl = 0;
    if (checkTable) {
       loadedcl = LoadClassDefault(normalizedName.c_str(),silent);
@@ -2286,7 +2286,8 @@ TClass *TClass::GetClass(const char *name, Bool_t load, Bool_t silent)
                // two different space layout.  To avoid an infinite recursion, we also
                // add the test on (altname != name)
 
-               return GetClass(altname, load);
+               TClass* altcl = GetClass(altname, load);
+               if (altcl) return altcl;
             }
          }
 
@@ -2326,17 +2327,6 @@ TClass *TClass::GetClass(const std::type_info& typeinfo, Bool_t load, Bool_t /* 
       if (cl->IsLoaded()) return cl;
       //we may pass here in case of a dummy class created by TVirtualStreamerInfo
       load = kTRUE;
-   } else {
-     // Note we might need support for typedefs and simple types!
-
-     //      TDataType *objType = GetType(name, load);
-     //if (objType) {
-     //    const char *typdfName = objType->GetTypeName();
-     //    if (typdfName && strcmp(typdfName, name)) {
-     //       cl = GetClass(typdfName, load);
-     //       return cl;
-     //    }
-     // }
    }
 
    if (!load) return 0;
@@ -5144,12 +5134,6 @@ UInt_t TClass::GetCheckSum(ECheckSum code, Bool_t &isvalid) const
                   if (type=="signed char") type = "char";
                }
             }
-         } else {
-            type = tdm->GetFullTypeName();
-            // GetFullTypeName uses GetFullyQualifiedName which already drops
-            // the default template parameter, so we no longer need to do this.
-            //if (TClassEdit::IsSTLCont(type))
-            //   type = TClassEdit::ShortType( type, TClassEdit::kDropStlDefault );
          }
 
          il = type.Length();

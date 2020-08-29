@@ -174,7 +174,6 @@ namespace TClassEdit {
    int         STLArgs   (int kind);            //Min number of arguments without allocator
    std::string ResolveTypedef(const char *tname, bool resolveAll = false);
    std::string ShortType (const char *typeDesc, int mode);
-   std::string InsertStd(const char *tname);
    const char* GetUnqualifiedName(const char*name);
    inline bool IsUniquePtr(std::string_view name) {return 0 == name.compare(0, 16, "std::unique_ptr<");}
    inline bool IsStdArray(std::string_view name) {return 0 == name.compare(0, 11, "std::array<");}

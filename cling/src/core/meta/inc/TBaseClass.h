@@ -28,6 +28,7 @@
 
 namespace CppyyLegacy {
 
+class BaseClassInfo_t;
 class TClass;
 
 class TBaseClass : public TDictionary {
