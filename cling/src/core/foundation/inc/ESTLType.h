@@ -43,7 +43,9 @@ namespace CppyyLegacy {
       kSTLunorderedmultiset = 11,
       kSTLunorderedmap      = 12,
       kSTLunorderedmultimap = 13,
-      kSTLend               = 14,
+      kSTLstream            = 14,
+      kSTLios               = 15,
+      kSTLend               = 16,
       kSTLany               = 300 /* TVirtualStreamerInfo::kSTL */,
       kSTLstring            = 365 /* TVirtualStreamerInfo::kSTLstring */
    };

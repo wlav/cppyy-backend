@@ -28,6 +28,7 @@
 #include "ROOT/RStringView.hxx"
 #include <algorithm>
 
+
 namespace {
    using namespace CppyyLegacy;
 
@@ -277,7 +278,6 @@ void TClassEdit::TSplitType::ShortType(std::string &answ, int mode)
       if ( mode & (kDropDefaultAlloc|kDropAlloc) ) {
          // remove allocators
 
-
          if (narg-1 == iall+1) {
             // has an allocator specified
             bool dropAlloc = false;
@@ -295,6 +295,7 @@ void TClassEdit::TSplitType::ShortType(std::string &answ, int mode)
                   case CppyyLegacy::kSTLmultiset:
                   case CppyyLegacy::kSTLunorderedset:
                   case CppyyLegacy::kSTLunorderedmultiset:
+                  case CppyyLegacy::kSTLstream:
                      dropAlloc = IsDefAlloc(fElements[iall+1].c_str(),fElements[1].c_str());
                      break;
                   case CppyyLegacy::kSTLmap:
@@ -329,6 +330,7 @@ void TClassEdit::TSplitType::ShortType(std::string &answ, int mode)
             case CppyyLegacy::kSTLlist:
             case CppyyLegacy::kSTLforwardlist:
             case CppyyLegacy::kSTLdeque:
+            case CppyyLegacy::kSTLstream:
                break;
             case CppyyLegacy::kSTLset:
             case CppyyLegacy::kSTLmultiset:
@@ -493,20 +495,24 @@ CppyyLegacy::ESTLType TClassEdit::STLKind(std::string_view type)
    //container names
    static const char *stls[] =
       { "any", "vector", "list", "deque", "map", "multimap", "set", "multiset", "bitset",
-         "forward_list", "unordered_set", "unordered_multiset", "unordered_map", "unordered_multimap", 0};
+         "forward_list", "unordered_set", "unordered_multiset", "unordered_map", "unordered_multimap",
+         "basic_stringstream", "basic_ostringstream", "basic_istringstream", "basic_ostream", "basic_istream",
+         "basic_ios", 0};
    static const size_t stllen[] =
       { 3, 6, 4, 5, 3, 8, 3, 8, 6,
-         12, 13, 18, 13, 18, 0};
+         12, 13, 18, 13, 18,
+         18, 19, 19, 13, 13, 9, 0};
    static const CppyyLegacy::ESTLType values[] =
       {  CppyyLegacy::kNotSTL, CppyyLegacy::kSTLvector,
          CppyyLegacy::kSTLlist, CppyyLegacy::kSTLdeque,
          CppyyLegacy::kSTLmap, CppyyLegacy::kSTLmultimap,
          CppyyLegacy::kSTLset, CppyyLegacy::kSTLmultiset,
          CppyyLegacy::kSTLbitset,
-         // New C++11
          CppyyLegacy::kSTLforwardlist,
          CppyyLegacy::kSTLunorderedset, CppyyLegacy::kSTLunorderedmultiset,
          CppyyLegacy::kSTLunorderedmap, CppyyLegacy::kSTLunorderedmultimap,
+         CppyyLegacy::kSTLstream, CppyyLegacy::kSTLstream, CppyyLegacy::kSTLstream,
+         CppyyLegacy::kSTLios, CppyyLegacy::kSTLios, CppyyLegacy::kSTLios,
          CppyyLegacy::kNotSTL
       };
 
@@ -534,7 +540,9 @@ int   TClassEdit::STLArgs(int kind)
       //     vector, list, deque, map, multimap, set, multiset, bitset,
       {    1,     1,    1,     1,   3,        3,   2,        2,      1,
       // forward_list, unordered_set, unordered_multiset, unordered_map, unordered_multimap
-                    1,             3,                  3,             4,                  4};
+                    1,             3,                  3,             4,                  4,
+      // basic_stringstream, basic_ostringstream, basic_istringstream,
+                                                                    2};
 
    return stln[kind];
 }
@@ -1158,6 +1166,10 @@ string TClassEdit::ShortType(const char *typeDesc, int mode)
    if (typeDesc) {
       TSplitType arglist(typeDesc, (EModType) mode);
       arglist.ShortType(answer, mode);
+
+      auto ctp = answer.find(",std::char_traits<char>");
+      if (ctp != std::string::npos)
+          answer = answer.substr(0, ctp) + answer.substr(ctp+23+(answer[ctp+23] == ' ' ? 1 : 0), std::string::npos);
    }
 
    return answer;
