@@ -2115,6 +2115,15 @@ TClass *TClass::GetClass(const char *name, Bool_t load, Bool_t silent)
    // TClass while we were waiting, so we need to do the checks again.
 
    cl = (TClass*)gROOT->GetListOfClasses()->FindObject(name);
+
+   // If still not found, attempt to find it with the "short type" name under
+   // which all classes are eventually stored, otherwise a class may be recreated
+   // twice, leading to spurious crashes as the old one is removed.
+   if (!cl) {
+       const std::string& st = TClassEdit::ShortType(name, 2); // drop std::allocator etc.
+       cl = (TClass*)gROOT->GetListOfClasses()->FindObject(st.c_str());
+   }
+
    if (cl) {
       if (cl->IsLoaded() || cl->TestBit(kUnloading)) return cl;
 
@@ -2182,13 +2191,6 @@ TClass *TClass::GetClass(const char *name, Bool_t load, Bool_t silent)
    }
 
    if (!load) return 0;
-
-// This assertion currently fails because of
-//   TClass *c1 = TClass::GetClass("basic_iostream<char,char_traits<char> >");
-//   TClass *c2 = TClass::GetClass("std::iostream");
-// where the TClassEdit normalized name of iostream is basic_iostream<char>
-// i.e missing the addition of the default parameter.  This is because TClingLookupHelper
-// uses only 'part' of TMetaUtils::GetNormalizedName.
 
    TClass *loadedcl = 0;
    if (checkTable) {
