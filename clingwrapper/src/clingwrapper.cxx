@@ -407,8 +407,11 @@ std::string Cppyy::ResolveName(const std::string& cppitem_name)
         return resolved;
     }
 
-// typedefs
-    return TClassEdit::ResolveTypedef(tclean.c_str(), true);
+// typedefs etc. (and cleanup STL classes for consistency)
+    tclean = TClassEdit::ResolveTypedef(tclean.c_str(), true);
+    if (tclean.compare(0, 6, "const ") != 0)
+        return TClassEdit::ShortType(tclean.c_str(), 2);
+    return "const " + TClassEdit::ShortType(tclean.c_str(), 2);
 }
 
 
@@ -519,8 +522,6 @@ Cppyy::TCppScope_t Cppyy::GetScope(const std::string& sname)
         result = find_memoized(scope_name);
         if (result) return result;
     }
-
-    if (result) return result;
 
 // use TClass directly, to enable auto-loading; class may be stubbed (eg. for
 // function returns) or forward declared, leading to a non-null TClass that is
