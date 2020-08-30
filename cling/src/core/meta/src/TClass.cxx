@@ -1367,11 +1367,6 @@ void TClass::BuildEmulatedRealData(const char *name, intptr_t offset, TClass *cl
          if (gDebug > 0) printf(" Class: %s, adding TRealData=%s, offset=%ld\n",cl->GetName(),rd->GetName(),rd->GetThisOffset());
          cl->GetListOfRealData()->Add(rd);
       }
-      //if (fClassInfo==0 && element->IsBase()) {
-      //   if (fBase==0) fBase = new TList;
-      //   TClass *base = element->GetClassPointer();
-      //   fBase->Add(new TBaseClass(this, cl, eoffset));
-      //}
    }
    // The base classes must added last on the list of real data (to help with ambiguous data member names)
    next.Reset();

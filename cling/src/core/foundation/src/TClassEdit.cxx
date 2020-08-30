@@ -256,7 +256,7 @@ void TClassEdit::TSplitType::ShortType(std::string &answ, int mode)
    //    fprintf(stderr,"calling ShortType %d for %s with narg %d tail %d\n",imode,typeDesc,narg,tailLoc);
 
    //kind of stl container
-   const int kind = STLKind(fElements[0]);
+   const int kind = STLKind(fElements[0], true);
    const int iall = STLArgs(kind);
 
    // Only class is needed
@@ -425,37 +425,6 @@ void TClassEdit::TSplitType::ShortType(std::string &answ, int mode)
    }
    if (!fElements[0].empty()) {answ += fElements[0]; answ +="<";}
 
-#if 0
-   // This code is no longer use, the moral equivalent would be to get
-   // the 'fixed' number of argument the user told us to ignore and drop those.
-   // However, the name we get here might be (usually) normalized enough that
-   // this is not necessary (at the very least nothing break in roottest without
-   // the aforementioned new code or this old code).
-   if (mode & kDropAllDefault) {
-      int nargNonDefault = 0;
-      std::string nonDefName = answ;
-      // "superlong" because tLong might turn fName into an even longer name
-      std::string nameSuperLong = fName;
-      if (gInterpreterHelper)
-         gInterpreterHelper->GetPartiallyDesugaredName(nameSuperLong);
-      while (++nargNonDefault < narg) {
-         // If T<a> is a "typedef" (aka default template params)
-         // to T<a,b> then we can strip the "b".
-         const char* closeTemplate = " >";
-         if (nonDefName[nonDefName.length() - 1] != '>')
-            ++closeTemplate;
-         string nondef = nonDefName + closeTemplate;
-         if (gInterpreterHelper &&
-             gInterpreterHelper->IsAlreadyPartiallyDesugaredName(nondef, nameSuperLong))
-            break;
-         if (nargNonDefault>1) nonDefName += ",";
-         nonDefName += fElements[nargNonDefault];
-      }
-      if (nargNonDefault < narg)
-         narg = nargNonDefault;
-   }
-#endif
-
    { for (int i=1;i<narg-1; i++) { answ += fElements[i]; answ+=",";} }
    if (narg>1) { answ += fElements[narg-1]; }
 
@@ -486,7 +455,7 @@ bool TClassEdit::TSplitType::IsTemplate()
 /// Converts STL container name to number. vector -> 1, etc..
 /// If len is greater than 0, only look at that many characters in the string.
 
-CppyyLegacy::ESTLType TClassEdit::STLKind(std::string_view type)
+CppyyLegacy::ESTLType TClassEdit::STLKind(std::string_view type, bool all)
 {
    size_t offset = 0;
    if (type.compare(0,6,"const ")==0) { offset += 6; }
@@ -496,8 +465,9 @@ CppyyLegacy::ESTLType TClassEdit::STLKind(std::string_view type)
    static const char *stls[] =
       { "any", "vector", "list", "deque", "map", "multimap", "set", "multiset", "bitset",
          "forward_list", "unordered_set", "unordered_multiset", "unordered_map", "unordered_multimap",
-         "basic_stringstream", "basic_ostringstream", "basic_istringstream", "basic_ostream", "basic_istream",
-         "basic_ios", 0};
+         "basic_stringstream", "basic_ostringstream", "basic_istringstream",
+         "basic_ostream", "basic_istream", "basic_ios",
+         0};
    static const size_t stllen[] =
       { 3, 6, 4, 5, 3, 8, 3, 8, 6,
          12, 13, 18, 13, 18,
@@ -520,13 +490,13 @@ CppyyLegacy::ESTLType TClassEdit::STLKind(std::string_view type)
    auto len = type.length();
    if (len) {
       len -= offset;
-      for(int k=1;stls[k];k++) {
+      for(int k=1;(all && stls[k]) || k<14;k++) {
          if (len == stllen[k]) {
             if (type.compare(offset,len,stls[k])==0) return values[k];
          }
       }
    } else {
-      for(int k=1;stls[k];k++) {if (type.compare(offset,len,stls[k])==0) return values[k];}
+      for(int k=1;(all && stls[k]) || k<14;k++) {if (type.compare(offset,len,stls[k])==0) return values[k];}
    }
    return CppyyLegacy::kNotSTL;
 }

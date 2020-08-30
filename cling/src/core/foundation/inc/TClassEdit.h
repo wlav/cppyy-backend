@@ -170,7 +170,7 @@ namespace TClassEdit {
    bool        IsVectorBool(const char *name);
    void        GetNormalizedName(std::string &norm_name, std::string_view name);
    int         GetSplit  (const char *type, std::vector<std::string> &output, int &nestedLoc, EModType mode = TClassEdit::kNone);
-   CppyyLegacy::ESTLType STLKind(std::string_view type);    //Kind of stl container
+   CppyyLegacy::ESTLType STLKind(std::string_view type, bool all=false);    //Kind of stl container
    int         STLArgs   (int kind);            //Min number of arguments without allocator
    std::string ResolveTypedef(const char *tname, bool resolveAll = false);
    std::string ShortType (const char *typeDesc, int mode);

@@ -311,10 +311,6 @@ namespace Detail {
       static void* first(void* env)  {
          PEnv_t  e = PEnv_t(env);
          PCont_t c = PCont_t(e->fObject);
-#if 0
-         // Assume iterators do not need destruction
-         ::new(e->buff) Iter_t(c->begin());
-#endif
          e->fIterator = c->begin();
          e->fSize  = SfinaeHelper::GetContainerSize(*c);
          if ( 0 == e->fSize ) return e->fStart = 0;
@@ -645,10 +641,6 @@ namespace Detail {
       static void* first(void* env)  {
          PEnv_t  e = PEnv_t(env);
          PCont_t c = PCont_t(e->fObject);
-#if 0
-         // Assume iterators do not need destruction
-         ::new(e->buff) Iter_t(c->begin());
-#endif
          e->fIterator = c->begin();
          e->fSize  = c->size();
          return 0;

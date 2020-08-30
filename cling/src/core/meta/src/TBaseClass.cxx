@@ -114,12 +114,12 @@ ESTLType TBaseClass::IsSTLContainer()
          else if (!strcmp(type, "unordered_multiset")) fSTLType = kSTLunorderedmultiset;
          else if (!strcmp(type, "unordered_map"))      fSTLType = kSTLunorderedmap;
          else if (!strcmp(type, "unordered_multimap")) fSTLType = kSTLunorderedmultimap;
-         else if (!strcmp(type, "bacic_stringstream") ||
+         /*else if (!strcmp(type, "bacic_stringstream") ||
                   !strcmp(type, "basic_ostringstream") ||
                   !strcmp(type, "basic_istringstream")) fSTLType = kSTLstream;
          else if (!strcmp(type, "basic_ostream") ||
                   !strcmp(type, "basic_istream") ||
-                  !strcmp(type, "basic_ios"))          fSTLType = kSTLios;
+                  !strcmp(type, "basic_ios"))          fSTLType = kSTLios;*/
          else                                          fSTLType = kNotSTL;
       }
    }

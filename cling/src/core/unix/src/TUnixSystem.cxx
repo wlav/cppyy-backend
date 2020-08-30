@@ -1022,18 +1022,7 @@ Bool_t TUnixSystem::CheckSignals(Bool_t sync)
 
 void TUnixSystem::CheckChilds()
 {
-#if 0  //rdm
-   int pid;
-   while ((pid = UnixWaitchild()) > 0) {
-      TIter next(zombieHandler);
-      register UnixPtty *pty;
-      while ((pty = (UnixPtty*) next()))
-         if (pty->GetPid() == pid) {
-            zombieHandler->RemovePtr(pty);
-            pty->DiedNotify();
-         }
-   }
-#endif
+
 }
 
 ////////////////////////////////////////////////////////////////////////////////
