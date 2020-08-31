@@ -1137,9 +1137,15 @@ string TClassEdit::ShortType(const char *typeDesc, int mode)
       TSplitType arglist(typeDesc, (EModType) mode);
       arglist.ShortType(answer, mode);
 
-      auto ctp = answer.find(",std::char_traits<char>");
-      if (ctp != std::string::npos)
-          answer = answer.substr(0, ctp) + answer.substr(ctp+23+(answer[ctp+23] == ' ' ? 1 : 0), std::string::npos);
+      if (32 < answer.size() && answer.back() == '>') { // "std::_<_,std::char_traits<char> >"
+         auto ctp = answer.find("std::char_traits<char>");
+         if (ctp && ctp != std::string::npos && ctp+22 < answer.size()) {
+            std::string::size_type p1 = ctp;
+            if (answer[ctp-1] == ',') p1 -= 1;
+            else if (0 < ctp-8 && answer.compare(ctp-8, 8, ",struct ", 8) == 0) p1 -= 8;
+            answer = answer.substr(0, p1) + answer.substr(ctp+22+(answer[ctp+22] == ' ' ? 1 : 0), std::string::npos);
+         }
+      }
    }
 
    return answer;
@@ -1796,27 +1802,6 @@ char* TClassEdit::DemangleTypeIdName(const std::type_info& ti, int& errorCode)
    const char* mangled_name = ti.name();
    return DemangleName(mangled_name, errorCode);
 }
-/*
-/// Result of splitting a function declaration into
-/// fReturnType fScopeName::fFunctionName<fFunctionTemplateArguments>(fFunctionParameters)
-struct FunctionSplitInfo {
-   /// Return type of the function, might be empty if the function declaration string did not provide it.
-   std::string fReturnType;
-
-   /// Name of the scope qualification of the function, possibly empty
-   std::string fScopeName;
-
-   /// Name of the function
-   std::string fFunctionName;
-
-   /// Template arguments of the function template specialization, if any; will contain one element "" for
-   /// `function<>()`
-   std::vector<std::string> fFunctionTemplateArguments;
-
-   /// Function parameters.
-   std::vector<std::string> fFunctionParameters;
-};
-*/
 
 namespace {
    /// Find the first occurrence of any of needle's characters in haystack that
