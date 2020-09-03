@@ -1648,6 +1648,14 @@ void remove_space(std::string& n) {
    n.erase(pos, n.end());
 }
 
+static inline
+bool template_compare(std::string n1, std::string n2) {
+    if (n1.back() == '>') n1 = n1.substr(0, n1.size()-1);
+    remove_space(n1);
+    remove_space(n2);
+    return n2.compare(0, n1.size(), n1) == 0;
+}
+
 Cppyy::TCppMethod_t Cppyy::GetMethodTemplate(
     TCppScope_t scope, const std::string& name, const std::string& proto)
 {
@@ -1668,9 +1676,7 @@ Cppyy::TCppMethod_t Cppyy::GetMethodTemplate(
         if (func && name.back() == '>') {
         // make sure that all template parameters match (more are okay, e.g. defaults or
         // ones derived from the arguments or variadic templates)
-            std::string n1 = name.substr(0, name.size()-1); remove_space(n1);
-            std::string n2 = func->GetName(); remove_space(n2);
-            if (n2.compare(0, n1.size(), n1) != 0)
+            if (!template_compare(name, func->GetName()))
                 func = nullptr;  // happens if implicit conversion matches the overload
         }
     } else {
@@ -1735,8 +1741,7 @@ Cppyy::TCppMethod_t Cppyy::GetMethodTemplate(
             // allow if requested template names match up to the result
                 const std::string& alt = GetMethodFullName(cppmeth);
                 if (name.size() < alt.size() && alt.find('<') == pos) {
-                    const std::string& partial = name.substr(pos, name.size()-1-pos);
-                    if (strncmp(partial.c_str(), alt.substr(pos, alt.size()-1-pos).c_str(), partial.size()) == 0)
+                    if (template_compare(name, alt))
                         return cppmeth;
                 }
             }
