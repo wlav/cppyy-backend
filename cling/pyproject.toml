@@ -1,2 +1,2 @@
 [build-system]
-requires = ["6.21<=cppyy-cling<6.22", "cmake", "setuptools", "wheel"]
+requires = ["cmake", "setuptools", "wheel"]

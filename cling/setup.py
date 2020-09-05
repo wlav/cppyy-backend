@@ -336,7 +336,7 @@ setup(
     maintainer='Wim Lavrijsen',
     maintainer_email='WLavrijsen@lbl.gov',
 
-    version='6.21.1',
+    version='6.21.2',
 
     license='LLVM: UoI-NCSA; ROOT: LGPL 2.1',
 
