@@ -133,7 +133,7 @@ class my_cmake_build(_build):
             if has_avx: extra_args += ' -mavx'
             os.putenv('EXTRA_CLING_ARGS', extra_args)
 
-        CMAKE_COMMAND = ['cmake', srcdir,
+        CMAKE_COMMAND = ['cmake', srcdir, '-Wno-dev',
                 stdcxx, '-DLLVM_ENABLE_TERMINFO=0', '-DLLVM_ENABLE_ASSERTIONS=0',
                 '-Dminimal=ON', '-Druntime_cxxmodules=OFF', '-Dbuiltin_zlib=ON']
         if 'darwin' in sys.platform:
