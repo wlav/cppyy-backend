@@ -2,20 +2,21 @@ diff --git a/src/interpreter/llvm/src/tools/clang/lib/Sema/SemaTemplateInstantia
 index 6fee23aa8b..ed30f06ca9 100644
 --- a/src/interpreter/llvm/src/tools/clang/lib/Sema/SemaTemplateInstantiateDecl.cpp
 +++ b/src/interpreter/llvm/src/tools/clang/lib/Sema/SemaTemplateInstantiateDecl.cpp
-@@ -3762,6 +3762,18 @@ void Sema::InstantiateFunctionDefinition(SourceLocation PointOfInstantiation,
+@@ -3762,6 +3762,19 @@ void Sema::InstantiateFunctionDefinition(SourceLocation PointOfInstantiation,
        !Function->getClassScopeSpecializationPattern())
      return;
- 
+
 +  // Pure extern declarations do not need an instantiation (would prefer to
 +  // verify the linker symbol availability but can't do that here
 +  if (TSK == TSK_ExplicitInstantiationDeclaration) {
++      const FunctionDecl* PFD = Function->getTemplateInstantiationPattern();
++      if (PFD && !PFD->getReturnType()->getContainedAutoType()
 +#ifdef __APPLE__
 +      // special case for Apple's choice of ABI control with extern declared inline
 +      // functions; since these are instantiated in the library but not exported
-+      const FunctionDecl* PFD = Function->getTemplateInstantiationPattern();
-+      if (PFD && (!PFD->isInlined() || PFD->isInlineDefinitionExternallyVisible()))
++          && (!PFD->isInlined() || PFD->isInlineDefinitionExternallyVisible())
 +#endif
-+      return;
++      ) return;
 +  }
 +
    // Find the function body that we'll be substituting.
