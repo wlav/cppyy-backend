@@ -185,7 +185,7 @@ setup(
     author='Wim Lavrijsen',
     author_email='WLavrijsen@lbl.gov',
 
-    version='1.13.2',
+    version='1.13.1',
 
     license='LBNL BSD',
 
