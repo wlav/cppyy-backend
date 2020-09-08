@@ -4918,13 +4918,13 @@ void TClass::SetUnloaded()
       // Don't redo the work.
       return;
    }
-   SetBit(kUnloading);
 
-   //R__ASSERT(fState == kLoaded);
    if (fState != kLoaded) {
-      Fatal("SetUnloaded","The TClass for %s is being unloaded when in state %d\n",
-            GetName(),(int)fState);
+      SetBit(kUnloaded);
+      return;
    }
+
+   SetBit(kUnloading);
 
    InsertTClassInRegistryRAII insertRAII(fState, fName, fNoInfoOrEmuOrFwdDeclNameRegistry);
 

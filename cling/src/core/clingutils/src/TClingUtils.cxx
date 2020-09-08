@@ -3732,6 +3732,24 @@ void CppyyLegacy::TMetaUtils::GetNormalizedName(std::string &norm_name, const cl
    cling::Interpreter::PushTransactionRAII clingRAII(const_cast<cling::Interpreter*>(&interpreter));
    normalizedType.getAsStringInternal(normalizedNameStep1,policy);
 
+   // The following is eternally stupid, but neither the printing policy nor
+   // getting the full qualified name is consistent in the addition of needed
+   // namespaces for template and function argument names used in the global
+   // scope from declarations in a namespace. Running this twice and picking
+   // the one with the most namespaces is empirically more robust (and faster)
+   // than type verification (since cling knows the declared name). Special
+   // dispensation is made for STL classes as their short names are massaged
+   // by TClassEdit and friends.
+   if (!(5 < normalizedNameStep1.size() && normalizedNameStep1.compare(0, 5, "std::", 5) != 0)) {
+      std::string normalizedNameStep1a;
+      GetFullyQualifiedTypeName(normalizedNameStep1a, usetype, ctxt);
+      if (normalizedNameStep1 != normalizedNameStep1a) {
+         std::string::size_type cnt1 = std::count(normalizedNameStep1.begin(),  normalizedNameStep1.end(),  ':');
+         std::string::size_type cnt2 = std::count(normalizedNameStep1a.begin(), normalizedNameStep1a.end(), ':');
+         if (cnt2 > cnt1) normalizedNameStep1 = normalizedNameStep1a;
+      }
+   }
+
    // Still remove the default template argument for STL container and
    // normalize the location and amount of white spaces.
    TClassEdit::TSplitType splitname(normalizedNameStep1.c_str(),(TClassEdit::EModType)(TClassEdit::kDropStlDefault | TClassEdit::kKeepOuterConst));
@@ -3743,7 +3761,6 @@ void CppyyLegacy::TMetaUtils::GetNormalizedName(std::string &norm_name, const cl
    if (norm_name.length()>2 && norm_name[0]==':' && norm_name[1]==':') {
       norm_name.erase(0,2);
    }
-
 }
 
 ////////////////////////////////////////////////////////////////////////////////
