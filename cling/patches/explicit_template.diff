@@ -22,3 +22,25 @@ index 6fee23aa8b..ed30f06ca9 100644
    // Find the function body that we'll be substituting.
    const FunctionDecl *PatternDecl = Function->getTemplateInstantiationPattern();
    assert(PatternDecl && "instantiating a non-template");
+diff --git a/src/interpreter/llvm/src/tools/clang/lib/AST/TemplateBase.cpp b/src/interpreter/llvm/src/tools/clang/lib/AST/TemplateBase.cpp
+index 88a554c985..5e6e53e1e7 100644
+--- a/src/interpreter/llvm/src/tools/clang/lib/AST/TemplateBase.cpp
++++ b/src/interpreter/llvm/src/tools/clang/lib/AST/TemplateBase.cpp
+@@ -392,7 +394,16 @@ void TemplateArgument::print(const PrintingPolicy &Policy,
+   case Type: {
+     PrintingPolicy SubPolicy(Policy);
+     SubPolicy.SuppressStrongLifetime = true;
+-    getAsType().print(Out, SubPolicy);
++    SubPolicy.SuppressScope = false;
++    SubPolicy.SuppressUnwrittenScope = true;
++// this is dumb, but I can't seem to figure out the exact conditions that cause the
++// "type-parameter" generic name to appear (when TemplateTypeParmType does not have
++//  any IdentifierInfo, but how to extract the TemplateTypeParmType to check?)
++    const std::string& canonical = getAsType().getCanonicalType().getAsString(SubPolicy);
++    if (canonical.compare(0, 14, "type-parameter", 14) != 0)
++      Out << canonical;
++    else
++      getAsType().print(Out, SubPolicy);
+     break;
+   }
+     
