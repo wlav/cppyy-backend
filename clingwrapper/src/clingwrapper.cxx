@@ -464,7 +464,8 @@ std::string Cppyy::ResolveEnum(const std::string& enum_type)
             ee = ((TListOfEnums*)gROOT->GetListOfEnums())->GetObject(et_short.c_str());
         else {
             TClass* cl = TClass::GetClass(scope_name.c_str());
-            if (cl) ee = ((TListOfEnums*)cl->GetListOfEnums())->GetObject(et_short.c_str());
+            if (cl) ee = ((TListOfEnums*)cl->GetListOfEnums())->GetObject(
+                et_short.substr(scope_name.size()+2, std::string::npos).c_str());
         }
 
         if (ee) {
