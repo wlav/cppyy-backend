@@ -445,17 +445,17 @@ void TCling::UpdateEnumConstants(TEnum* enumObj, TClass* cl) const {
          TClingDataMemberInfo* tcDmInfo = new TClingDataMemberInfo(GetInterpreterImpl(), *EDI, tcCInfo);
          DataMemberInfo_t* dmInfo = (DataMemberInfo_t*) tcDmInfo;
          if (TObject* encAsTObj = enumObj->GetConstants()->FindObject(constantName)){
-            ((TEnumConstant*)encAsTObj)->Update(dmInfo);
+             ((TEnumConstant*)encAsTObj)->Update(dmInfo);
          } else {
-            enumConstant = new TEnumConstant(dmInfo, constantName, value, enumObj);
+         // the following adds itself to enumObj
+             enumConstant = new TEnumConstant(dmInfo, constantName, value, enumObj);
          }
 
          // Add the global constants to the list of Globals.
-         if (!cl) {
+         if (!cl && !(enumObj->Property() & kIsScopedEnum)) {
             TCollection* globals = gROOT->GetListOfGlobals(false);
-            if (!globals->FindObject(constantName)) {
+            if (!globals->FindObject(constantName))
                globals->Add(enumConstant);
-            }
          }
       }
    }
@@ -466,7 +466,6 @@ TEnum* TCling::CreateEnum(void *VD, TClass *cl) const
    // Handle new enum declaration for either global and nested enums.
 
    // Create the enum type.
-   TEnum* enumType = 0;
    const clang::Decl* D = static_cast<const clang::Decl*>(VD);
    std::string buf;
    if (const EnumDecl* ED = llvm::dyn_cast<EnumDecl>(D)) {
@@ -481,8 +480,9 @@ TEnum* TCling::CreateEnum(void *VD, TClass *cl) const
    if (buf.empty()) {
       return 0;
    }
+
    const char* name = buf.c_str();
-   enumType = new TEnum(name, VD, cl);
+   TEnum* enumType = new TEnum(name, VD, cl);
    UpdateEnumConstants(enumType, cl);
 
    return enumType;
@@ -1667,9 +1667,8 @@ void TCling::LoadPCMImpl(TFile &pcmFile)
                listOfEnums->Add(selEnum);
             }
             for (auto enumConstant : *static_cast<TEnum *>(selEnum)->GetConstants()) {
-               if (!listOfGlobals->FindObject(enumConstant)) {
+               if (!listOfGlobals->FindObject(enumConstant))
                   listOfGlobals->Add(enumConstant);
-               }
             }
          } else {
             // This enum is in a namespace. A TClass entry is bootstrapped if

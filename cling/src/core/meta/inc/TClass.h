@@ -387,9 +387,7 @@ public:
    TList             *GetListOfFunctionTemplates(Bool_t load = kTRUE);
    TList             *GetListOfBases();
    TList             *GetListOfMethods(Bool_t load = kTRUE);
-   TCollection       *GetListOfMethodOverloads(const char* name) const;
    TList             *GetListOfRealData() const { return fRealData; }
-   const TList       *GetListOfAllPublicMethods(Bool_t load = kTRUE);
    const char        *GetImplFileName() const { return fImplFileName; }
    Short_t            GetImplFileLine() const { return fImplFileLine; }
    TClass            *GetActualClass(const void *object) const;
@@ -460,7 +458,6 @@ public:
    void               RemoveStreamerInfo(Int_t slot);
    void               ReplaceWith(TClass *newcl) const;
    void               ResetCaches();
-   void               ResetClassInfo(Long_t tagnum);
    void               ResetClassInfo();
    Int_t              Size() const;
    void               SetCanSplit(Int_t splitmode);

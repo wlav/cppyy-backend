@@ -1912,8 +1912,6 @@ ptrdiff_t TClass::GetBaseClassOffsetRecurse(const TClass *cl)
 
 ptrdiff_t TClass::GetBaseClassOffset(const TClass *toBase, void *address, bool isDerivedObject)
 {
-   // Warning("GetBaseClassOffset","Requires the use of fClassInfo for %s to %s",GetName(),toBase->GetName());
-
    if (this == toBase) return 0;
 
    if ((!address /* || !has_virtual_base */) &&
@@ -2873,15 +2871,6 @@ TList *TClass::GetListOfMethods(Bool_t load /* = kTRUE */)
 }
 
 ////////////////////////////////////////////////////////////////////////////////
-/// Return the collection of functions named "name".
-
-TCollection *TClass::GetListOfMethodOverloads(const char* name) const
-{
-   return const_cast<TClass*>(this)->GetMethodList()->GetListForObject(name);
-}
-
-
-////////////////////////////////////////////////////////////////////////////////
 /// Check whether a class has a dictionary or not.
 /// This is equivalent to ask if a class is coming from a bootstrapping
 /// procedure initiated during the loading of a library.
@@ -3152,14 +3141,6 @@ void TClass::ReplaceWith(TClass *newcl) const
       delete acl;
    }
    gInterpreter->UnRegisterTClassUpdate(this);
-}
-
-////////////////////////////////////////////////////////////////////////////////
-/// Make sure that the current ClassInfo is up to date.
-
-void TClass::ResetClassInfo(Long_t /* tagnum */)
-{
-   Warning("ResetClassInfo(Long_t tagnum)","Call to deprecated interface (does nothing)");
 }
 
 ////////////////////////////////////////////////////////////////////////////////

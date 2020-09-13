@@ -294,12 +294,14 @@ int TClingDataMemberInfo::InternalNext()
       // Valid decl, recurse into it, accept it, or reject it.
       clang::Decl::Kind DK = fIter->getKind();
       if (DK == clang::Decl::Enum) {
-         // We have an enum, recurse into these.
-         // Note: For C++11 we will have to check for a transparent context (done from TListOfDataMembers::Load())
-         fIterStack.push_back(fIter);
-         cling::Interpreter::PushTransactionRAII RAII(fInterp);
-         fIter = llvm::dyn_cast<clang::DeclContext>(*fIter)->decls_begin();
-         increment = false; // avoid the next incrementation
+         EnumDecl* ed = dyn_cast<EnumDecl>(*fIter);
+         if (ed && !ed->isScoped()) {
+            // We have an enum, expand transparent/non-scoped ones.
+            fIterStack.push_back(fIter);
+            cling::Interpreter::PushTransactionRAII RAII(fInterp);
+            fIter = llvm::dyn_cast<clang::DeclContext>(*fIter)->decls_begin();
+            increment = false; // avoid the next incrementation
+         }
          continue;
       }
       if (DK == clang::Decl::Field) {
