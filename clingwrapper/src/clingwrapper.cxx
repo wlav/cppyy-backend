@@ -963,6 +963,15 @@ bool Cppyy::IsEnum(const std::string& type_name)
     return gInterpreter->ClassInfo_IsEnum(tn_short.c_str());
 }
 
+bool Cppyy::IsPOD(TCppType_t klass)
+{
+// Test if this type is a "plain old data" type
+    TClassRef& cr = type_from_handle(klass);
+    if (cr.GetClass())
+        return cr->ClassProperty() & kClassIsPOD;
+    return false;
+}
+
 // helpers for stripping scope names
 static
 std::string outer_with_template(const std::string& name)
@@ -2372,6 +2381,10 @@ int cppyy_is_abstract(cppyy_type_t type) {
 
 int cppyy_is_enum(const char* type_name) {
     return (int)Cppyy::IsEnum(type_name);
+}
+
+int cppyy_is_pod(cppyy_type_t type) {
+    return (int)Cppyy::IsPOD(type);
 }
 
 const char** cppyy_get_all_cpp_names(cppyy_scope_t scope, size_t* count) {
