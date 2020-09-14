@@ -1900,7 +1900,7 @@ std::string Cppyy::GetDatamemberType(TCppScope_t scope, TCppIndex_t idata)
 
         if ((int)gbl->GetArrayDim() == 1) {
             std::ostringstream s;
-            s << '[' << gbl->GetMaxIndex(0) << ']' << std::ends;
+            s << '[' << gbl->GetMaxIndex(0) << ']';
             fullType.append(s.str());
         }
         return fullType;
@@ -1922,7 +1922,7 @@ std::string Cppyy::GetDatamemberType(TCppScope_t scope, TCppIndex_t idata)
 
         if ((int)m->GetArrayDim() == 1) {
             std::ostringstream s;
-            s << '[' << m->GetMaxIndex(0) << ']' << std::ends;
+            s << '[' << m->GetMaxIndex(0) << ']';
             fullType.append(s.str());
         }
         return fullType;
