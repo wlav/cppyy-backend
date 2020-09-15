@@ -341,6 +341,13 @@ bool Cppyy::Compile(const std::string& code)
     return gInterpreter->Declare(code.c_str());
 }
 
+std::string Cppyy::ToString(TCppType_t klass, TCppObject_t obj)
+{
+    if (klass && obj && !IsNamespace((TCppScope_t)klass))
+        return gInterpreter->ToString(GetScopedFinalName(klass).c_str(), (void*)obj);
+    return "";
+}
+
 
 // name to opaque C++ scope representation -----------------------------------
 std::string Cppyy::ResolveName(const std::string& cppitem_name)
@@ -2161,6 +2168,10 @@ extern "C" {
 /* direct interpreter access ---------------------------------------------- */
 int cppyy_compile(const char* code) {
     return Cppyy::Compile(code);
+}
+
+char* cppyy_to_string(cppyy_type_t klass, cppyy_object_t obj) {
+    return cppstring_to_cstring(Cppyy::ToString(klass, obj));
 }
 
 
