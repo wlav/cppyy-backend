@@ -205,8 +205,8 @@ long TClingClassInfo::ClassProperty() const
    if (CRD->isPolymorphic()) {
       property |= kClassHasVirtual;
    }
-   if (CRD->isPOD()) {
-      property |= kClassIsPOD;
+   if (CRD->isAggregate() || CRD->isPOD()) {
+      property |= kClassIsAggregate;
    }
    return property;
 }
