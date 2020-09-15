@@ -114,6 +114,7 @@ if(MSVC)
       calloc
       free
       ?EvaluateDynamicExpression@internal@runtime@cling@@YA?AVValue@3@PEAVInterpreter@3@PEAVDynamicExprInfo@123@PEAVDeclContext@clang@@@Z
+      ?printValue@cling@@YA?AV?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@std@@PEBX@Z
     )
   elseif(CMAKE_SIZEOF_VOID_P EQUAL 4)
     set(cling_exports
