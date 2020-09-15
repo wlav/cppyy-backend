@@ -869,7 +869,7 @@ namespace{
    // during its lifetime
    class clangDiagSuppr {
    public:
-      clangDiagSuppr(clang::DiagnosticsEngine& diag): fDiagEngine(diag){
+      clangDiagSuppr(clang::DiagnosticsEngine& diag) : fDiagEngine(diag) {
          fOldDiagValue = fDiagEngine.getIgnoreAllWarnings();
          fDiagEngine.setIgnoreAllWarnings(true);
       }
@@ -882,6 +882,20 @@ namespace{
       bool fOldDiagValue;
    };
 
+   class clangSilent {
+   public:
+      clangSilent(clang::DiagnosticsEngine& diag) : fDiagEngine(diag) {
+         fOldDiagValue = fDiagEngine.getSuppressAllDiagnostics();
+         fDiagEngine.setSuppressAllDiagnostics(true);
+      }
+
+      ~clangSilent() {
+         fDiagEngine.setSuppressAllDiagnostics(fOldDiagValue);
+      }
+   protected:
+      clang::DiagnosticsEngine& fDiagEngine;
+      bool fOldDiagValue;
+   };
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -1027,7 +1041,26 @@ inline bool TCling::TUniqueString::Append(const std::string& str)
 
 std::string TCling::ToString(const char* type, void* obj)
 {
-   return fInterpreter->toString(type, obj);
+   clangSilent diagSuppr(fInterpreter->getSema().getDiagnostics());
+
+// First attempt: use existing operator<< for printing
+   std::ostringstream pretty;
+   std::ostringstream pretty_eval;
+   pretty_eval << "(*((std::ostringstream*)" << (intptr_t)&pretty
+               << ")) << *(" << type << "*)" << (intptr_t)obj << ";";
+
+   TInterpreter::EErrorCode error = TInterpreter::kNoError;
+   gInterpreter->Calc(pretty_eval.str().c_str(), &error);
+   if (error == TInterpreter::kNoError)
+       return pretty.str();
+
+// Second attempt: using Cling's printValue
+   std::string pv = fInterpreter->toString(type, obj);
+   if (pv.find("@0x") == std::string::npos)
+       return pv;
+
+// Failure to print pretty ...
+   return "";
 }
 
 ////////////////////////////////////////////////////////////////////////////////
