@@ -461,7 +461,7 @@ std::string Cppyy::ResolveEnum(const std::string& enum_type)
     if (res != resolved_enum_types.end())
         return res->second;
 
-// desugar the type before resolving
+// remove qualifiers and desugar the type before resolving
     std::string et_short = TClassEdit::ShortType(enum_type.c_str(), 1);
     if (et_short.find("(anonymous") == std::string::npos) {
         TEnum* ee = nullptr;
