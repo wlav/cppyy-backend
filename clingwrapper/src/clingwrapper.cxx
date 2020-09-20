@@ -1345,10 +1345,13 @@ ptrdiff_t Cppyy::GetBaseOffset(TCppType_t derived, TCppType_t base,
 
 
 // method/function reflection information ------------------------------------
-Cppyy::TCppIndex_t Cppyy::GetNumMethods(TCppScope_t scope)
+Cppyy::TCppIndex_t Cppyy::GetNumMethods(TCppScope_t scope, bool accept_namespace)
 {
-    if (IsNamespace(scope))
+    if (!accept_namespace && IsNamespace(scope))
         return (TCppIndex_t)0;     // enforce lazy
+
+    if (scope == GLOBAL_HANDLE)
+        return gROOT->GetListOfGlobalFunctions(true)->GetSize();
 
     TClassRef& cr = type_from_handle(scope);
     if (cr.GetClass() && cr->GetListOfMethods(true)) {
@@ -1582,9 +1585,12 @@ bool Cppyy::IsConstMethod(TCppMethod_t method)
     return false;
 }
 
-Cppyy::TCppIndex_t Cppyy::GetNumTemplatedMethods(TCppScope_t scope)
+Cppyy::TCppIndex_t Cppyy::GetNumTemplatedMethods(TCppScope_t scope, bool accept_namespace)
 {
-    if (scope == (TCppScope_t)GLOBAL_HANDLE) {
+    if (!accept_namespace && IsNamespace(scope))
+        return (TCppIndex_t)0;     // enforce lazy
+
+    if (scope == GLOBAL_HANDLE) {
         TCollection* coll = gROOT->GetListOfFunctionTemplates();
         if (coll) return (TCppIndex_t)coll->GetSize();
     } else {
@@ -1863,10 +1869,13 @@ bool Cppyy::IsStaticMethod(TCppMethod_t method)
 }
 
 // data member reflection information ----------------------------------------
-Cppyy::TCppIndex_t Cppyy::GetNumDatamembers(TCppScope_t scope)
+Cppyy::TCppIndex_t Cppyy::GetNumDatamembers(TCppScope_t scope, bool accept_namespace)
 {
-    if (IsNamespace(scope))
+    if (!accept_namespace && IsNamespace(scope))
         return (TCppIndex_t)0;     // enforce lazy
+
+    if (scope == GLOBAL_HANDLE)
+        return gROOT->GetListOfGlobals(true)->GetSize();
 
     TClassRef& cr = type_from_handle(scope);
     if (cr.GetClass() && cr->GetListOfDataMembers())
@@ -2483,6 +2492,10 @@ int cppyy_num_methods(cppyy_scope_t scope) {
     return (int)Cppyy::GetNumMethods(scope);
 }
 
+int cppyy_num_methods_ns(cppyy_scope_t scope) {
+    return (int)Cppyy::GetNumMethods(scope, true);
+}
+
 cppyy_index_t* cppyy_method_indices_from_name(cppyy_scope_t scope, const char* name)
 {
     std::vector<cppyy_index_t> result = Cppyy::GetMethodIndicesFromName(scope, name);
@@ -2557,6 +2570,10 @@ int cppyy_get_num_templated_methods(cppyy_scope_t scope) {
     return (int)Cppyy::GetNumTemplatedMethods((Cppyy::TCppScope_t)scope);
 }
 
+int cppyy_get_num_templated_methods_ns(cppyy_scope_t scope) {
+    return (int)Cppyy::GetNumTemplatedMethods((Cppyy::TCppScope_t)scope, true);
+}
+
 char* cppyy_get_templated_method_name(cppyy_scope_t scope, cppyy_index_t imeth) {
     return cppstring_to_cstring(Cppyy::GetTemplatedMethodName((Cppyy::TCppScope_t)scope, (Cppyy::TCppIndex_t)imeth));
 }
@@ -2607,6 +2624,10 @@ int cppyy_is_staticmethod(cppyy_method_t method) {
 /* data member reflection information ------------------------------------- */
 int cppyy_num_datamembers(cppyy_scope_t scope) {
     return (int)Cppyy::GetNumDatamembers(scope);
+}
+
+int cppyy_num_datamembers_ns(cppyy_scope_t scope) {
+    return (int)Cppyy::GetNumDatamembers(scope, true);
 }
 
 char* cppyy_datamember_name(cppyy_scope_t scope, int datamember_index) {

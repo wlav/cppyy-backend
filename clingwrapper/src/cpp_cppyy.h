@@ -175,7 +175,7 @@ namespace Cppyy {
 
 // method/function reflection information ------------------------------------
     RPY_EXPORTED
-    TCppIndex_t GetNumMethods(TCppScope_t scope);
+    TCppIndex_t GetNumMethods(TCppScope_t scope, bool accept_namespace = false);
     RPY_EXPORTED
     std::vector<TCppIndex_t> GetMethodIndicesFromName(TCppScope_t scope, const std::string& name);
 
@@ -208,7 +208,7 @@ namespace Cppyy {
     bool        IsConstMethod(TCppMethod_t);
 
     RPY_EXPORTED
-    TCppIndex_t GetNumTemplatedMethods(TCppScope_t scope);
+    TCppIndex_t GetNumTemplatedMethods(TCppScope_t scope, bool accept_namespace = false);
     RPY_EXPORTED
     std::string GetTemplatedMethodName(TCppScope_t scope, TCppIndex_t imeth);
     RPY_EXPORTED
@@ -239,7 +239,7 @@ namespace Cppyy {
 
 // data member reflection information ----------------------------------------
     RPY_EXPORTED
-    TCppIndex_t GetNumDatamembers(TCppScope_t scope);
+    TCppIndex_t GetNumDatamembers(TCppScope_t scope, bool accept_namespace = false);
     RPY_EXPORTED
     std::string GetDatamemberName(TCppScope_t scope, TCppIndex_t idata);
     RPY_EXPORTED

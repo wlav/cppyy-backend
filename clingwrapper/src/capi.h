@@ -155,6 +155,8 @@ extern "C" {
     RPY_EXPORTED
     int cppyy_num_methods(cppyy_scope_t scope);
     RPY_EXPORTED
+    int cppyy_num_methods_ns(cppyy_scope_t scope);
+    RPY_EXPORTED
     cppyy_index_t* cppyy_method_indices_from_name(cppyy_scope_t scope, const char* name);
 
     RPY_EXPORTED
@@ -190,6 +192,8 @@ extern "C" {
     RPY_EXPORTED
     int cppyy_get_num_templated_methods(cppyy_scope_t scope);
     RPY_EXPORTED
+    int cppyy_get_num_templated_methods_ns(cppyy_scope_t scope);
+    RPY_EXPORTED
     char* cppyy_get_templated_method_name(cppyy_scope_t scope, cppyy_index_t imeth);
     RPY_EXPORTED
     int cppyy_is_templated_constructor(cppyy_scope_t scope, cppyy_index_t imeth);
@@ -219,6 +223,8 @@ extern "C" {
     /* data member reflection information ------------------------------------- */
     RPY_EXPORTED
     int cppyy_num_datamembers(cppyy_scope_t scope);
+    RPY_EXPORTED
+    int cppyy_num_datamembers_ns(cppyy_scope_t scope);
     RPY_EXPORTED
     char* cppyy_datamember_name(cppyy_scope_t scope, int datamember_index);
     RPY_EXPORTED
