@@ -48,9 +48,9 @@ def getCppFlags(cppflagsFilename):
          if not "std" in line:
              keep.append(line)
       lines = keep
+   cppFlags = " ".join(map(lambda line: line[:-1], lines))
    if stdcxx:
       cppFlags += " -std=c++"+stdcxx
-   cppFlags = " ".join(map(lambda line: line[:-1], lines))
    return cppFlags
 
 
