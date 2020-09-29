@@ -970,12 +970,21 @@ bool Cppyy::IsEnum(const std::string& type_name)
     return gInterpreter->ClassInfo_IsEnum(tn_short.c_str());
 }
 
-bool Cppyy::IsAggregate(TCppType_t klass)
+bool Cppyy::IsAggregate(TCppType_t type)
 {
 // Test if this type is a "plain old data" type
-    TClassRef& cr = type_from_handle(klass);
+    TClassRef& cr = type_from_handle(type);
     if (cr.GetClass())
         return cr->ClassProperty() & kClassIsAggregate;
+    return false;
+}
+
+bool Cppyy::IsDefaultConstructable(TCppType_t type)
+{
+// Test if this type has a default constructor or is a "plain old data" type
+    TClassRef& cr = type_from_handle(type);
+    if (cr.GetClass())
+        return cr->HasDefaultConstructor() || (cr->ClassProperty() & kClassIsAggregate);
     return false;
 }
 
@@ -2405,6 +2414,10 @@ int cppyy_is_enum(const char* type_name) {
 
 int cppyy_is_aggregate(cppyy_type_t type) {
     return (int)Cppyy::IsAggregate(type);
+}
+
+int cppyy_is_default_constructable(cppyy_type_t type) {
+    return (int)Cppyy::IsDefaultConstructable(type);
 }
 
 const char** cppyy_get_all_cpp_names(cppyy_scope_t scope, size_t* count) {
