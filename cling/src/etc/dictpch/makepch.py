@@ -46,8 +46,12 @@ def getCppFlags(cppflagsFilename):
       keep = []
       for line in lines:
          if not "std" in line:
-             keep.append(line)
+            keep.append(line)
       lines = keep
+   try:
+      lines.remove("-fno-plt\n")       # unsupported by Cling
+   except ValueError:
+      pass
    cppFlags = " ".join(map(lambda line: line[:-1], lines))
    if stdcxx:
       cppFlags += " -std=c++"+stdcxx
