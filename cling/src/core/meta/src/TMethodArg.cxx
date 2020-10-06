@@ -35,7 +35,6 @@ namespace CppyyLegacy {
 
 TMethodArg::TMethodArg(MethodArgInfo_t *info, TFunction *method) : TDictionary()
 {
-   fDataMember = 0;
    fInfo       = info;
    fMethod     = method;
    if (fInfo) {
@@ -61,20 +60,15 @@ const char *TMethodArg::GetDefault() const
 }
 
 ////////////////////////////////////////////////////////////////////////////////
-/// Get type of method argument, e.g.: "class TDirectory*" -> "TDirectory"
-/// Result needs to be used or copied immediately.
-
-const char *TMethodArg::GetTypeName() const
-{
-   return gCling->TypeName(gCling->MethodArgInfo_TypeName(fInfo));
-}
-
-////////////////////////////////////////////////////////////////////////////////
 /// Get full type description of method argument, e.g.: "class TDirectory*".
 
 const char *TMethodArg::GetFullTypeName() const
 {
-   return gCling->MethodArgInfo_TypeName(fInfo);
+   if (!fTypeName.empty())
+      return fTypeName.c_str();
+
+   const_cast<std::string&>(fTypeName) = gCling->MethodArgInfo_TypeName(fInfo);
+   return fTypeName.c_str();
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -94,33 +88,6 @@ std::string TMethodArg::GetTypeNormalizedName() const
 Long_t TMethodArg::Property() const
 {
    return gCling->MethodArgInfo_Property(fInfo);
-}
-
-////////////////////////////////////////////////////////////////////////////////
-/// Returns list of possible options - according to pointed datamember.
-/// If there is no datamember field assigned to this methodarg - returns 0.
-
-TList *TMethodArg::GetOptions() const
-{
-   return (TList*)(fDataMember ? fDataMember->GetOptions() : 0);
-}
-
-////////////////////////////////////////////////////////////////////////////////
-/// Returns TDataMember pointed by this methodarg.
-/// If you want to specify list of options or current value for your
-/// MethodArg (i.e. it is used as initial values in argument-asking dialogs
-/// popped up from context-meny),you can get this value from one of data
-/// members of the class.
-///
-/// The only restriction is, that this DataMember object must have its
-/// Getter/Setter methods set-up correctly - for details look at TDataMember.
-/// To learn how to specify the data member to which the argument should
-/// "point", look at TMethod. This is TMethod which sets up fDataMember,
-/// so it could work correctly.
-
-TDataMember *TMethodArg::GetDataMember() const
-{
-   return fDataMember;
 }
 
 ////////////////////////////////////////////////////////////////////////////////

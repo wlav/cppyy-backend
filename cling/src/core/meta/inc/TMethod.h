@@ -45,7 +45,6 @@ public:
    virtual Bool_t          IsValid();
    virtual const char     *GetCommentString();
    virtual const char     *Getter() const { return fGetter; }
-   virtual TDataMember    *FindDataMember();
    virtual TList          *GetListOfMethodArgs();
 
    virtual Bool_t          Update(MethodInfo_t *info);

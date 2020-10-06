@@ -39,20 +39,16 @@ private:
 
    MethodArgInfo_t   *fInfo;         //pointer to CINT method argument info
    TFunction         *fMethod;       //pointer to the method or global function
-   TDataMember       *fDataMember;   //TDataMember pointed by this arg,to get values and options from.
+   std::string        fTypeName;
 
 public:
    TMethodArg(MethodArgInfo_t *info = 0, TFunction *method = 0);
    virtual       ~TMethodArg();
    const char    *GetDefault() const;
    TFunction     *GetMethod() const { return fMethod; }
-   const char    *GetTypeName() const;
    const char    *GetFullTypeName() const;
    std::string    GetTypeNormalizedName() const;
    Long_t         Property() const;
-
-   TDataMember   *GetDataMember() const;
-   TList         *GetOptions() const;
 
    void           Update(MethodArgInfo_t *info);
 
