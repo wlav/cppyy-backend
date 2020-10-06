@@ -32,6 +32,8 @@ friend class TCling;
 protected:
    MethodInfo_t   *fInfo;            //pointer to Interpreter function info
    TString         fMangledName;     //Mangled name as determined by CINT.
+   std::string     fRTName;
+   std::string     fRTNormName;
    TList          *fMethodArgs;      //list of function arguments
 
 public:

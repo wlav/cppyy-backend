@@ -48,7 +48,8 @@ TFunction::TFunction(MethodInfo_t *info) : TDictionary()
 ////////////////////////////////////////////////////////////////////////////////
 /// Copy operator.
 
-TFunction::TFunction(const TFunction &orig) : TDictionary(orig)
+TFunction::TFunction(const TFunction &orig) : TDictionary(orig),
+   fRTName(orig.fRTName), fRTNormName(orig.fRTNormName)
 {
    if (orig.fInfo) {
       R__LOCKGUARD(gInterpreterMutex);
@@ -122,9 +123,13 @@ TList *TFunction::GetListOfMethodArgs()
 
 const char *TFunction::GetReturnTypeName() const
 {
+   if (!fRTName.empty())
+      return fRTName.c_str();
+
    R__LOCKGUARD(gInterpreterMutex);
    if (fInfo == 0 || gCling->MethodInfo_Type(fInfo) == 0) return "Unknown";
-   return gCling->MethodInfo_TypeName(fInfo);
+   const_cast<std::string&>(fRTName) = gCling->MethodInfo_TypeName(fInfo);
+   return fRTName.c_str();
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -136,9 +141,13 @@ const char *TFunction::GetReturnTypeName() const
 
 std::string TFunction::GetReturnTypeNormalizedName() const
 {
+   if (!fRTNormName.empty())
+      return fRTNormName.c_str();
+
    R__LOCKGUARD(gInterpreterMutex);
    if (fInfo == 0 || gCling->MethodInfo_Type(fInfo) == 0) return "Unknown";
-   return gCling->MethodInfo_TypeNormalizedName(fInfo);
+   const_cast<std::string&>(fRTNormName) = gCling->MethodInfo_TypeNormalizedName(fInfo);
+   return fRTNormName;
 }
 
 ////////////////////////////////////////////////////////////////////////////////
