@@ -64,11 +64,7 @@ const char *TMethodArg::GetDefault() const
 
 const char *TMethodArg::GetFullTypeName() const
 {
-   if (!fTypeName.empty())
-      return fTypeName.c_str();
-
-   const_cast<std::string&>(fTypeName) = gCling->MethodArgInfo_TypeName(fInfo);
-   return fTypeName.c_str();
+   return gCling->MethodArgInfo_TypeName(fInfo);
 }
 
 ////////////////////////////////////////////////////////////////////////////////

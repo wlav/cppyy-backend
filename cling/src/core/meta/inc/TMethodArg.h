@@ -39,7 +39,6 @@ private:
 
    MethodArgInfo_t   *fInfo;         //pointer to CINT method argument info
    TFunction         *fMethod;       //pointer to the method or global function
-   std::string        fTypeName;
 
 public:
    TMethodArg(MethodArgInfo_t *info = 0, TFunction *method = 0);
