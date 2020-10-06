@@ -1697,11 +1697,6 @@ Cppyy::TCppMethod_t Cppyy::GetMethodTemplate(
 // to do an explicit lookup that ignores the prototype (i.e. the full name should be
 // enough), and finally to ignore the template arguments part of the name as this fails
 // in cling if there are default parameters.
-// It would be possible to get the prototype from the created functions and use that to
-// do a new lookup, after which ROOT/meta will manage the function. However, neither
-// TFunction::GetPrototype() nor TFunction::GetSignature() is of the proper form, so
-// we'll/ manage the new TFunctions instead and will assume that they are cached on the
-// calling side to prevent multiple creations.
     TFunction* func = nullptr; ClassInfo_t* cl = nullptr;
     if (scope == (cppyy_scope_t)GLOBAL_HANDLE) {
         func = gROOT->GetGlobalFunctionWithPrototype(name.c_str(), proto.c_str());
