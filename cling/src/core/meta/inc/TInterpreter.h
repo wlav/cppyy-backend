@@ -393,7 +393,6 @@ public:
    virtual void FuncTempInfo_Title(FuncTempInfo_t * /* ft_info */, TString &title) const = 0;
 
    // MethodInfo interface
-   virtual void   MethodInfo_CreateSignature(MethodInfo_t * /* minfo */, TString & /* signature */) const {;}
    virtual void   MethodInfo_Delete(MethodInfo_t * /* minfo */) const {;}
    virtual MethodInfo_t  *MethodInfo_Factory() const {return 0;}
    virtual MethodInfo_t  *MethodInfo_Factory(ClassInfo_t * /*clinfo*/) const {return 0;}
@@ -409,7 +408,6 @@ public:
    virtual TypeInfo_t  *MethodInfo_Type(MethodInfo_t * /* minfo */) const {return 0;}
    virtual EReturnType MethodInfo_MethodCallReturnType(MethodInfo_t* minfo) const = 0;
    virtual const char *MethodInfo_GetMangledName(MethodInfo_t * /* minfo */) const {return 0;}
-   virtual const char *MethodInfo_GetPrototype(MethodInfo_t * /* minfo */) const {return 0;}
    virtual const char *MethodInfo_Name(MethodInfo_t * /* minfo */) const {return 0;}
    virtual const char *MethodInfo_TypeName(MethodInfo_t * /* minfo */) const {return 0;}
    virtual std::string MethodInfo_TypeNormalizedName(MethodInfo_t * /* minfo */) const {return "";}

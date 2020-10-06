@@ -104,26 +104,6 @@ TObject *TFunction::Clone(const char *newname) const
 }
 
 ////////////////////////////////////////////////////////////////////////////////
-/// Using the CINT method arg information to create a complete signature string.
-
-void TFunction::CreateSignature()
-{
-   R__LOCKGUARD(gInterpreterMutex);
-   gCling->MethodInfo_CreateSignature(fInfo, fSignature);
-}
-
-////////////////////////////////////////////////////////////////////////////////
-/// Return signature of function.
-
-const char *TFunction::GetSignature()
-{
-   if (fInfo && fSignature.IsNull())
-      CreateSignature();
-
-   return fSignature.Data();
-}
-
-////////////////////////////////////////////////////////////////////////////////
 /// Return list containing the TMethodArgs of a TFunction.
 
 TList *TFunction::GetListOfMethodArgs()
@@ -239,19 +219,6 @@ Bool_t TFunction::IsValid()
 const char *TFunction::GetMangledName() const
 {
    return fMangledName;
-}
-
-////////////////////////////////////////////////////////////////////////////////
-/// Returns the prototype of a function as defined by CINT, or 0 in
-/// case of error.
-
-const char *TFunction::GetPrototype() const
-{
-   if (fInfo) {
-      R__LOCKGUARD(gInterpreterMutex);
-      return gCling->MethodInfo_GetPrototype(fInfo);
-   } else
-      return 0;
 }
 
 ////////////////////////////////////////////////////////////////////////////////

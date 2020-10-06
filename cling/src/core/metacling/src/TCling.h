@@ -448,7 +448,6 @@ public: // Public Interface
 
    // MethodInfo interface
    virtual DeclId_t GetDeclId(MethodInfo_t *info) const;
-   virtual void   MethodInfo_CreateSignature(MethodInfo_t* minfo, TString& signature) const;
    virtual void   MethodInfo_Delete(MethodInfo_t* minfo) const;
    virtual MethodInfo_t*  MethodInfo_Factory() const;
    virtual MethodInfo_t*  MethodInfo_Factory(ClassInfo_t *clinfo) const;
@@ -464,7 +463,6 @@ public: // Public Interface
    virtual TypeInfo_t*  MethodInfo_Type(MethodInfo_t* minfo) const;
    virtual EReturnType MethodInfo_MethodCallReturnType(MethodInfo_t* minfo) const;
    virtual const char* MethodInfo_GetMangledName(MethodInfo_t* minfo) const;
-   virtual const char* MethodInfo_GetPrototype(MethodInfo_t* minfo) const;
    virtual const char* MethodInfo_Name(MethodInfo_t* minfo) const;
    virtual const char* MethodInfo_TypeName(MethodInfo_t* minfo) const;
    virtual std::string MethodInfo_TypeNormalizedName(MethodInfo_t* minfo) const;

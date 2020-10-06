@@ -85,7 +85,6 @@ public:
    const clang::FunctionDecl                   *GetMethodDecl() const;
    TDictionary::DeclId_t                        GetDeclId() const;
    cling::Interpreter                          *GetInterpreter() const { return fInterp; }
-   void                                         CreateSignature(TString &signature) const;
    void                                         Init(const clang::FunctionDecl*);
    void                                        *InterfaceMethod(const CppyyLegacy::TMetaUtils::TNormalizedCtxt &normCtxt) const;
 
@@ -102,7 +101,6 @@ public:
    long                                         ExtraProperty() const;
    TClingTypeInfo                              *Type() const;
    std::string                                  GetMangledName() const;
-   const char                                  *GetPrototype();
    const char                                  *Name() override;
    const char                                  *TypeName() const;
    const char                                  *Title();

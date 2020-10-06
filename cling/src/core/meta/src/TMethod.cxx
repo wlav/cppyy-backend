@@ -86,17 +86,6 @@ const char *TMethod::GetCommentString()
    return fInfo ? gCling->MethodInfo_Title(fInfo) : "";
 }
 
-
-////////////////////////////////////////////////////////////////////////////////
-/// Using the CINT method arg information create a complete signature string.
-
-void TMethod::CreateSignature()
-{
-   TFunction::CreateSignature();
-
-   if (Property() & kIsConstMethod) fSignature += " const";
-}
-
 ////////////////////////////////////////////////////////////////////////////////
 /// Tries to guess DataMember from comment string
 /// and Method's name <==(only if 1 Argument!).

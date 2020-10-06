@@ -8090,14 +8090,6 @@ void TCling::MethodInfo_Delete(MethodInfo_t* minfo) const
 
 ////////////////////////////////////////////////////////////////////////////////
 
-void TCling::MethodInfo_CreateSignature(MethodInfo_t* minfo, TString& signature) const
-{
-   TClingMethodInfo* info = (TClingMethodInfo*) minfo;
-   info->CreateSignature(signature);
-}
-
-////////////////////////////////////////////////////////////////////////////////
-
 MethodInfo_t* TCling::MethodInfo_Factory() const
 {
    R__LOCKGUARD(gInterpreterMutex);
@@ -8201,14 +8193,6 @@ const char* TCling::MethodInfo_GetMangledName(MethodInfo_t* minfo) const
    TTHREAD_TLS_DECL(TString, mangled_name);
    mangled_name = info->GetMangledName();
    return mangled_name;
-}
-
-////////////////////////////////////////////////////////////////////////////////
-
-const char* TCling::MethodInfo_GetPrototype(MethodInfo_t* minfo) const
-{
-   TClingMethodInfo* info = (TClingMethodInfo*) minfo;
-   return info->GetPrototype();
 }
 
 ////////////////////////////////////////////////////////////////////////////////

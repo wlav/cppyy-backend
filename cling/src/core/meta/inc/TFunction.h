@@ -32,10 +32,7 @@ friend class TCling;
 protected:
    MethodInfo_t   *fInfo;            //pointer to Interpreter function info
    TString         fMangledName;     //Mangled name as determined by CINT.
-   TString         fSignature;       //string containing function signature
    TList          *fMethodArgs;      //list of function arguments
-
-   virtual void    CreateSignature();
 
 public:
    TFunction(MethodInfo_t *info = 0);
@@ -44,8 +41,6 @@ public:
    virtual            ~TFunction();
    virtual TObject    *Clone(const char *newname="") const;
    virtual const char *GetMangledName() const;
-   virtual const char *GetPrototype() const;
-   const char         *GetSignature();
    const char         *GetReturnTypeName() const;
    std::string         GetReturnTypeNormalizedName() const;
    TList              *GetListOfMethodArgs();

@@ -35,7 +35,6 @@ private:
    TClass                 *fClass;           //pointer to the class
    TString                 fGetter;          //state getter in case this is a *TOGGLE method
 
-   void                    CreateSignature();
 public:
                            TMethod(MethodInfo_t *info = 0, TClass *cl = 0);
                            TMethod(const TMethod &org);

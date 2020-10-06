@@ -206,40 +206,6 @@ const clang::FunctionDecl *TClingMethodInfo::GetMethodDecl() const
    return cast_or_null<FunctionDecl>(GetDecl());
 }
 
-void TClingMethodInfo::CreateSignature(TString &signature) const
-{
-   signature = "(";
-   if (!IsValid()) {
-      signature += ")";
-      return;
-   }
-
-   R__LOCKGUARD(gInterpreterMutex);
-   TClingMethodArgInfo arg(fInterp, this);
-
-   int idx = 0;
-   while (arg.Next()) {
-      if (idx) {
-         signature += ", ";
-      }
-      signature += arg.Type()->Name();
-      if (arg.Name() && strlen(arg.Name())) {
-         signature += " ";
-         signature += arg.Name();
-      }
-      if (arg.DefaultValue()) {
-         signature += " = ";
-         signature += arg.DefaultValue();
-      }
-      ++idx;
-   }
-   auto decl = GetMethodDecl();
-   if (decl && decl->isVariadic())
-      signature += ",...";
-
-   signature += ")";
-}
-
 void TClingMethodInfo::Init(const clang::FunctionDecl *decl)
 {
    fContexts.clear();
@@ -707,45 +673,6 @@ std::string TClingMethodInfo::GetMangledName() const
 
    cling::utils::Analyze::maybeMangleDeclName(GD, mangled_name);
    return mangled_name;
-}
-
-const char *TClingMethodInfo::GetPrototype()
-{
-   if (!IsValid()) {
-      return 0;
-   }
-   TTHREAD_TLS_DECL( std::string, buf );
-   buf.clear();
-   buf += Type()->Name();
-   buf += ' ';
-   if (const clang::TypeDecl *td = llvm::dyn_cast<clang::TypeDecl>(GetMethodDecl()->getDeclContext())) {
-      std::string name;
-      clang::QualType qualType(td->getTypeForDecl(),0);
-      CppyyLegacy::TMetaUtils::GetFullyQualifiedTypeName(name,qualType,*fInterp);
-      buf += name;
-      buf += "::";
-   } else if (const clang::NamedDecl *nd = llvm::dyn_cast<clang::NamedDecl>(GetMethodDecl()->getDeclContext())) {
-      std::string name;
-      clang::PrintingPolicy policy(GetMethodDecl()->getASTContext().getPrintingPolicy());
-      llvm::raw_string_ostream stream(name);
-      nd->getNameForDiagnostic(stream, policy, /*Qualified=*/true);
-      stream.flush();
-      buf += name;
-      buf += "::";
-   }
-   buf += Name();
-
-   TString signature;
-   CreateSignature(signature);
-   buf += signature;
-
-   if (const clang::CXXMethodDecl *md =
-       llvm::dyn_cast<clang::CXXMethodDecl>( GetMethodDecl())) {
-      if (md->getTypeQualifiers() & clang::Qualifiers::Const) {
-         buf += " const";
-      }
-   }
-   return buf.c_str();
 }
 
 const char *TClingMethodInfo::Name()
