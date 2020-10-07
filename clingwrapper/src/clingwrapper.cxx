@@ -414,8 +414,14 @@ std::string Cppyy::ResolveName(const std::string& cppitem_name)
         return resolved;
     }
 
-// typedefs etc. (and cleanup STL classes for consistency)
+// typedefs etc. (and a couple of hacks around TClassEdit-isms, fixing of which
+// in ResolveTypedef itself is a TODO ...)
     tclean = TClassEdit::ResolveTypedef(tclean.c_str(), true);
+    pos = 0;
+    while ((pos = tclean.find("::::", pos)) != std::string::npos) {
+        tclean.replace(pos, 4, "::");
+        pos += 2;
+    }
     if (tclean.compare(0, 6, "const ") != 0)
         return TClassEdit::ShortType(tclean.c_str(), 2);
     return "const " + TClassEdit::ShortType(tclean.c_str(), 2);
