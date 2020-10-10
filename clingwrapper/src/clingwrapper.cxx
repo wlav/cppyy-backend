@@ -666,7 +666,7 @@ bool Cppyy::IsComplete(const std::string& type_name)
 
     int oldEIL = gErrorIgnoreLevel;
     gErrorIgnoreLevel = 3000;
-    TClass* klass = TClass::GetClass(TClassEdit::ShortType(type_name.c_str(), 1).c_str());
+    TClass* klass = TClass::GetClass(type_name.c_str());
     if (klass && klass->GetClassInfo())     // works for normal case w/ dict
         b = gInterpreter->ClassInfo_IsLoaded(klass->GetClassInfo());
     else {    // special case for forward declared classes
