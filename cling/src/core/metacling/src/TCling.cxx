@@ -3274,18 +3274,8 @@ Int_t TCling::Load(const char* filename, Bool_t system)
    std::string canonLib = DLM->lookupLibrary(filename);
    cling::DynamicLibraryManager::LoadLibResult res
       = cling::DynamicLibraryManager::kLoadLibNotFound;
-   if (!canonLib.empty()) {
-      if (system)
-         res = DLM->loadLibrary(filename, system);
-      else {
-         // For the non system libs, we'd like to be able to unload them.
-         // FIXME: Here we lose the information about kLoadLibAlreadyLoaded case.
-         cling::Interpreter::CompilationResult compRes;
-         HandleInterpreterException(GetMetaProcessorImpl(), Form(".L %s", canonLib.c_str()), compRes, /*cling::Value*/0);
-         if (compRes == cling::Interpreter::kSuccess)
-            res = cling::DynamicLibraryManager::kLoadLibSuccess;
-      }
-   }
+   if (!canonLib.empty())
+      res = DLM->loadLibrary(filename, system);
 
    if (res == cling::DynamicLibraryManager::kLoadLibSuccess) {
       UpdateListOfLoadedSharedLibraries();
