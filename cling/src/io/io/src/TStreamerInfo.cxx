@@ -72,8 +72,6 @@ namespace CppyyLegacy {
 
 std::atomic<Int_t> TStreamerInfo::fgCount{0};
 
-const Int_t kMaxLen = 1024;
-
 enum class EUniquePtrOffset : char
    {
       kNA = 0,
