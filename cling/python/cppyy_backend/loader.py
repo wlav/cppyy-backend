@@ -115,7 +115,13 @@ def _warn_no_pch(msg, pchname=None):
         warnings.warn('Precompiled header may be out of date (%s).' % msg)
 
 def _is_uptodate(pchname, incpath):
-  # test whether the pch is older than the include directory
+  # test whether the pch is older than the include directory as a crude way
+  # to find if it's up to date; if however, this is a frozen bundle, then
+  # it's unlikely there's a C++ compiler available, so accept the PCH if any
+    if getattr(sys, 'frozen', False):
+      # okay if PCH is available, no point to rebuild if include dir is not
+        return os.path.exists(pchname) or not os.path.exists(incpath)
+
     try:
         return os.stat(pchname).st_mtime >= os.stat(incpath).st_mtime
     except Exception:
@@ -154,7 +160,10 @@ def ensure_precompiled_header(pchdir = '', pchname = ''):
              if os.access(pchdir, os.R_OK|os.W_OK):
                  print('(Re-)building pre-compiled headers (options:%s); this may take a minute ...' % os.environ.get('EXTRA_CLING_ARGS', ' none'))
                  makepch = os.path.join(pkgpath, 'etc', 'dictpch', 'makepch.py')
-                 if subprocess.call([sys.executable, makepch, full_pchname, '-I'+incpath]) != 0:
+                 pyexe = sys.executable
+                 if getattr(sys, 'frozen', False):
+                     pyexe = 'python'
+                 if subprocess.call([pyexe, makepch, full_pchname, '-I'+incpath]) != 0:
                      _warn_no_pch('failed to build', full_pchname)
              else:
                  _warn_no_pch('%s not writable' % pchdir, full_pchname)
