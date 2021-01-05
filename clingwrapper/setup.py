@@ -22,6 +22,10 @@ here = os.path.abspath(os.path.dirname(__file__))
 with codecs.open(os.path.join(here, 'README.rst'), encoding='utf-8') as f:
     long_description = f.read()
 
+if 'win32' in sys.platform:
+    soext = '.dll'
+else:
+    soext = '.so'
 
 #
 # platform-dependent helpers
@@ -86,7 +90,7 @@ class my_build_cpplib(_build_ext):
         ext_path = self.get_ext_fullpath(ext.name)
         output_dir = os.path.dirname(ext_path)
         libname_base = 'libcppyy_backend'
-        libname = libname_base+self.compiler.shared_lib_extension
+        libname = libname_base+soext   # not: self.compiler.shared_lib_extension
         extra_postargs = list()
         if 'linux' in sys.platform:
             extra_postargs.append('-Wl,-Bsymbolic-functions')
