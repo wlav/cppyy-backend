@@ -1,0 +1,26 @@
+diff --git a/src/interpreter/cling/lib/Interpreter/DynamicLibraryManager.cpp b/src/interpreter/cling/lib/Interpreter/DynamicLibraryManager.cpp
+index c49f06e411..5a8ad3566d 100644
+--- a/src/interpreter/cling/lib/Interpreter/DynamicLibraryManager.cpp
++++ b/src/interpreter/cling/lib/Interpreter/DynamicLibraryManager.cpp
+@@ -191,8 +191,9 @@ namespace cling {
+           return kLoadLibSuccess;
+       }
+ 
+-      cling::errs() << "cling::DynamicLibraryManager::loadLibrary(): " << errMsg
+-                    << '\n';
++      cling::errs() << "cling::DynamicLibraryManager::loadLibrary() ["
++                    << libStem << " -> " << canonicalLoadedLib << "]: "
++                    << errMsg << '\n';
+       return kLoadLibLoadError;
+     }
+     else if (InterpreterCallbacks* C = getCallbacks())
+@@ -226,7 +227,8 @@ namespace cling {
+     std::string errMsg;
+     platform::DLClose(dyLibHandle, &errMsg);
+     if (!errMsg.empty()) {
+-      cling::errs() << "cling::DynamicLibraryManager::unloadLibrary(): "
++      cling::errs() << "cling::DynamicLibraryManager::unloadLibrary() ["
++                    << libStem << " -> " << canonicalLoadedLib << "]: "
+                     << errMsg << '\n';
+     }
+ 
