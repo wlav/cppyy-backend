@@ -81,6 +81,15 @@ diff --git a/src/interpreter/cling/lib/Utils/PlatformWin.cpp b/src/interpreter/c
 index 6135f838e4..d4c5c39227 100644
 --- a/src/interpreter/cling/lib/Utils/PlatformWin.cpp
 +++ b/src/interpreter/cling/lib/Utils/PlatformWin.cpp
+@@ -20,6 +20,8 @@
+ #include "llvm/Support/FileSystem.h"
+ #include "llvm/Support/Path.h"
+ 
++#include <locale>
++#include <codecvt>
+ #include <map>
+ #include <sstream>
+ #include <stdlib.h>
 @@ -529,9 +529,18 @@ std::string GetCwd() {
  }
  
