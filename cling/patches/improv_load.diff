@@ -1,0 +1,113 @@
+diff --git a/src/interpreter/cling/include/cling/Interpreter/DynamicLibraryManager.h b/src/interpreter/cling/include/cling/Interpreter/DynamicLibraryManager.h
+index d6e1006334..d982cb61d6 100644
+--- a/src/interpreter/cling/include/cling/Interpreter/DynamicLibraryManager.h
++++ b/src/interpreter/cling/include/cling/Interpreter/DynamicLibraryManager.h
+@@ -119,9 +119,9 @@ namespace cling {
+     /// other error was encountered.
+     ///
+     LoadLibResult loadLibrary(const std::string& libStem, bool permanent,
+-                              bool resolved = false);
++                              bool resolved = false, bool silent = false);
+ 
+-    void unloadLibrary(llvm::StringRef libStem);
++    void unloadLibrary(llvm::StringRef libStem, bool silent = false);
+ 
+     ///\brief Returns true if the file was a dynamic library and it was already
+     /// loaded.
+diff --git a/src/interpreter/cling/lib/Interpreter/DynamicLibraryManager.cpp b/src/interpreter/cling/lib/Interpreter/DynamicLibraryManager.cpp
+index c49f06e411..f51530567e 100644
+--- a/src/interpreter/cling/lib/Interpreter/DynamicLibraryManager.cpp
++++ b/src/interpreter/cling/lib/Interpreter/DynamicLibraryManager.cpp
+@@ -168,7 +170,7 @@ namespace cling {
+ 
+   DynamicLibraryManager::LoadLibResult
+   DynamicLibraryManager::loadLibrary(const std::string& libStem,
+-                                     bool permanent, bool resolved) {
++                                     bool permanent, bool resolved, bool silent) {
+     std::string lResolved;
+     const std::string& canonicalLoadedLib = resolved ? libStem : lResolved;
+     if (!resolved) {
+@@ -191,8 +193,11 @@ namespace cling {
+           return kLoadLibSuccess;
+       }
+ 
+-      cling::errs() << "cling::DynamicLibraryManager::loadLibrary(): " << errMsg
+-                    << '\n';
++      if (!silent) {
++          cling::errs() << "cling::DynamicLibraryManager::loadLibrary() ["
++                        << libStem << " -> " << canonicalLoadedLib << "]: "
++                        << errMsg << '\n';
++      }
+       return kLoadLibLoadError;
+     }
+     else if (InterpreterCallbacks* C = getCallbacks())
+@@ -207,7 +212,7 @@ namespace cling {
+     return kLoadLibSuccess;
+   }
+ 
+-  void DynamicLibraryManager::unloadLibrary(llvm::StringRef libStem) {
++  void DynamicLibraryManager::unloadLibrary(llvm::StringRef libStem, bool silent) {
+     std::string canonicalLoadedLib = lookupLibrary(libStem);
+     if (!isLibraryLoaded(canonicalLoadedLib))
+       return;
+@@ -225,8 +230,9 @@ namespace cling {
+ 
+     std::string errMsg;
+     platform::DLClose(dyLibHandle, &errMsg);
+-    if (!errMsg.empty()) {
+-      cling::errs() << "cling::DynamicLibraryManager::unloadLibrary(): "
++    if (!errMsg.empty() && !silent) {
++      cling::errs() << "cling::DynamicLibraryManager::unloadLibrary() ["
++                    << libStem << " -> " << canonicalLoadedLib << "]: "
+                     << errMsg << '\n';
+     }
+ 
+diff --git a/src/interpreter/cling/lib/Utils/CMakeLists.txt b/src/interpreter/cling/lib/Utils/CMakeLists.txt
+index 327c9fffb7..81de8a1d67 100644
+--- a/src/interpreter/cling/lib/Utils/CMakeLists.txt
++++ b/src/interpreter/cling/lib/Utils/CMakeLists.txt
+@@ -47,6 +47,10 @@ if (DL_LIBRARY_PATH)
+   list(APPEND LIBS dl)
+ endif()
+ 
++if ( MSVC )
++  list(APPEND LIBS Pathcch.lib)
++endif()
++
+ add_cling_library(clingUtils OBJECT
+   AST.cpp
+   Diagnostics.cpp
+diff --git a/src/interpreter/cling/lib/Utils/PlatformWin.cpp b/src/interpreter/cling/lib/Utils/PlatformWin.cpp
+index 6135f838e4..d4c5c39227 100644
+--- a/src/interpreter/cling/lib/Utils/PlatformWin.cpp
++++ b/src/interpreter/cling/lib/Utils/PlatformWin.cpp
+@@ -529,9 +529,18 @@ std::string GetCwd() {
+ }
+ 
+ std::string NormalizePath(const std::string& Path) {
+-  char Buf[MAX_PATHC];
+-  if (const char* Result = ::_fullpath(Buf, Path.c_str(), sizeof(Buf)))
+-    return std::string(Result);
++  wchar_t WBuf[MAX_PATHC];
++  char* Buf = (char*)WBuf;
++
++  if (const char* Result = ::_fullpath(Buf, Path.c_str(), sizeof(Buf))) {
++    std::wstring_convert<std::codecvt_utf8_utf16<wchar_t>> cnv;
++    std::wstring FPUtf16 = cnv.from_bytes(Result);
++    if (PathCchCanonicalizeEx(WBuf, MAX_PATH, FPUtf16.c_str(), PATHCCH_NONE) == S_OK)
++      return cnv.to_bytes(WBuf);
++
++    ReportLastError("PathCchCanonicalizeEx");
++    return std::string();
++  }
+ 
+   ReportLastError("_fullpath");
+   return std::string();
+@@ -634,6 +643,7 @@ const void* DLSym(const std::string& Name, std::string* Err) {
+ }
+ 
+ void DLClose(const void* Lib, std::string* Err) {
++  if (!Lib) return;
+   if (::FreeLibrary(reinterpret_cast<HMODULE>(const_cast<void*>(Lib))) == 0) {
+     if (Err)
+       GetLastErrorAsString(*Err, "FreeLibrary");
