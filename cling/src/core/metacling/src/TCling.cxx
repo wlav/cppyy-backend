@@ -3195,7 +3195,12 @@ void TCling::RegisterLoadedSharedLibrary(const char* filename)
    // used to resolve symbols.
    cling::DynamicLibraryManager* DLM = fInterpreter->getDynamicLibraryManager();
    if (!DLM->isLibraryLoaded(filename)) {
-      DLM->loadLibrary(filename, true /*permanent*/);
+      auto lr = DLM->loadLibrary(filename,
+          true /*permanent*/, false /* resolved */, true /* silent */);
+      if (lr != cling::DynamicLibraryManager::kLoadLibSuccess && \
+          lr != cling::DynamicLibraryManager::kLoadLibAlreadyLoaded) {
+          return;  /* silently ignored b/c it rarely matters */
+      }
    }
 
 #if defined(R__MACOSX)
