@@ -90,6 +90,14 @@ index 6135f838e4..d4c5c39227 100644
  #include <map>
  #include <sstream>
  #include <stdlib.h>
+@@ -40,6 +40,7 @@
+ #include <Psapi.h>   // EnumProcessModulesEx
+ #include <direct.h>  // _getcwd
+ #include <shlobj.h>  // SHGetFolderPath
++#include <pathcch.h> // PathCchCanonicalizeEx
+ #pragma comment(lib, "Advapi32.lib")
+ 
+ extern "C" char* __unDName(char *demangled, const char *mangled, int out_len,
 @@ -529,9 +529,18 @@ std::string GetCwd() {
  }
  
