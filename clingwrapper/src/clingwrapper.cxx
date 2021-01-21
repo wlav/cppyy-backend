@@ -1777,7 +1777,7 @@ Cppyy::TCppMethod_t Cppyy::GetMethodTemplate(
 static inline
 std::string type_remap(const std::string& n1, const std::string& n2)
 {
-// Operator lookups of (C++ string, Python str) should succeeded, for the combos of
+// Operator lookups of (C++ string, Python str) should succeed for the combos of
 // string/str, wstring/str, string/unicode and wstring/unicode; since C++ does not have a
 // operator+(std::string, std::wstring), we'll have to look up the same type and rely on
 // the converters in CPyCppyy/_cppyy.
