@@ -68,9 +68,10 @@ public:
    UsingIterator(cling::Interpreter* interp, Iterator begin, Iterator end) : fInterp(interp), fIter(begin), fEnd(end) {}
    explicit UsingIterator(cling::Interpreter* interp, clang::UsingDecl *decl) :
       fInterp(interp), fIter(decl->shadow_begin()), fEnd(decl->shadow_end()) {}
+   UsingIterator(const UsingIterator& s) : fInterp(s.fInterp), fIter(s.fIter), fEnd(s.fEnd) {}
 
    FunctionDecl *operator* () const {
-      if (!(*fIter)) { /* why? */ return nullptr; }
+      if (!(*fIter)) return nullptr;   // first iter is not checked in InternalNext()
       clang::ConstructorUsingShadowDecl* shadow_ctor = llvm::dyn_cast<clang::ConstructorUsingShadowDecl>(*fIter);
       if (shadow_ctor) {
          clang::CXXConstructorDecl* base_ctor = llvm::dyn_cast<clang::CXXConstructorDecl>(shadow_ctor->getTargetDecl());
@@ -234,7 +235,8 @@ const clang::Decl* TClingMethodInfo::GetDeclSlow() const
 {
    if (fTemplateSpec) {
       return fTemplateSpec;
-   }  else if (fUsingIter && *fUsingIter) {
+   } else if (fUsingIter) {
+      if (!(*fUsingIter)) return nullptr;   // first iter is not checked in InternalNext()
       R__LOCKGUARD(gInterpreterMutex);
       cling::Interpreter::PushTransactionRAII RAII(fInterp);
       return *(*fUsingIter);
@@ -411,9 +413,6 @@ int TClingMethodInfo::InternalNext()
       // to the next decl.
       fTemplateSpec = nullptr;
 
-      // same for fAccessDecl; otherwise it propgates onto the other methods
-      fAccessDecl = nullptr;
-
       // Advance to the next decl.
       if (fFirstTime) {
          // The cint semantics are weird.
@@ -422,11 +421,10 @@ int TClingMethodInfo::InternalNext()
       else {
          if (fUsingIter && *fUsingIter) {
             while (++(*fUsingIter)) {
-               fAccessDecl = *(*fUsingIter);
-               if (fAccessDecl)
+               if (*(*fUsingIter))
                   return 1;
             }
-            delete fUsingIter; fUsingIter = nullptr;
+            delete fUsingIter; fUsingIter = nullptr; fAccessDecl = nullptr;
             ++fIter;
          } else
             ++fIter;
