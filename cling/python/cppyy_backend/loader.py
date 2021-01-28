@@ -16,7 +16,9 @@ else:
     soext = '.so'
 
 soabi = sysconfig.get_config_var("SOABI")
-soext2 = sysconfig.get_config_var("SO")
+soext2 = sysconfig.get_config_var("EXT_SUFFIX")
+if not soext2:
+    soext2 = sysconfig.get_config_var("SO")
 
 
 def _load_helper(bkname):
