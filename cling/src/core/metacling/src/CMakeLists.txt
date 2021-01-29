@@ -138,10 +138,6 @@ if(MSVC)
       ??_7type_info@@6B@
       ?__type_info_root_node@@3U__type_info_node@@A
       ?nothrow@std@@3Unothrow_t@1@B
-      ??6?$basic_ostream@DU?$char_traits@D@std@@@std@@QAEAAV01@H@Z
-      ??6?$basic_ostream@DU?$char_traits@D@std@@@std@@QAEAAV01@M@Z
-      ??6?$basic_ostream@DU?$char_traits@D@std@@@std@@QAEAAV01@N@Z
-      ??$?6U?$char_traits@D@std@@@std@@YAAAV?$basic_ostream@DU?$char_traits@D@std@@@0@AAV10@D@Z
       cling_runtime_internal_throwIfInvalidPointer
       ?_Facet_Register@std@@YAXPAV_Facet_base@1@@Z
       ??1Value@cling@@QAE@XZ
