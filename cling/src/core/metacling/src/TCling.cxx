@@ -1410,6 +1410,14 @@ TCling::TCling(const char *name, const char *title, const char* const argv[])
    if (!EnvOpt.hasValue())
       extensions.push_back(std::make_shared<TClingRdictModuleFileExtension>());
 
+   // Filter -fno-plt, if any, which is added by compilation in anaconda
+   for (auto i = interpArgs.begin(); i != interpArgs.end(); ++i) {
+       if (strcmp(*i, "-fno-plt") == 0) {
+           interpArgs.erase(i);
+           break;
+       }
+   }
+
    fInterpreter = llvm::make_unique<cling::Interpreter>(interpArgs.size(),
                                                         &(interpArgs[0]),
                                                         llvmResourceDir, extensions);
