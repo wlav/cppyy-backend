@@ -284,8 +284,6 @@ public: // Public Interface
    virtual std::string ToString(const char* type, void *obj);
    TString GetMangledName(TClass* cl, const char* method, const char* params, Bool_t objectIsConst = kFALSE);
    TString GetMangledNameWithPrototype(TClass* cl, const char* method, const char* proto, Bool_t objectIsConst = kFALSE, CppyyLegacy::EFunctionMatchMode mode = CppyyLegacy::kConversionMatch);
-   void*   GetInterfaceMethod(TClass* cl, const char* method, const char* params, Bool_t objectIsConst = kFALSE);
-   void*   GetInterfaceMethodWithPrototype(TClass* cl, const char* method, const char* proto, Bool_t objectIsConst = kFALSE, CppyyLegacy::EFunctionMatchMode mode = CppyyLegacy::kConversionMatch);
    DeclId_t GetFunction(ClassInfo_t *cl, const char *funcname);
    DeclId_t GetFunctionWithPrototype(ClassInfo_t *cl, const char* method, const char* proto, Bool_t objectIsConst = kFALSE, CppyyLegacy::EFunctionMatchMode mode = CppyyLegacy::kConversionMatch);
    DeclId_t GetFunctionWithValues(ClassInfo_t *cl, const char* method, const char* params, Bool_t objectIsConst = kFALSE);
@@ -344,17 +342,17 @@ public: // Public Interface
    virtual bool DiagnoseIfInterpreterException(const std::exception &e) const;
 
    // CallFunc interface
-   virtual DeclId_t GetDeclId(CallFunc_t *info) const;
+   virtual DeclId_t GetDeclId(CallFunc_t* info) const;
    virtual void   CallFunc_Delete(CallFunc_t* func) const;
    virtual CallFunc_t*   CallFunc_Factory() const;
    virtual CallFunc_t*   CallFunc_FactoryCopy(CallFunc_t* func) const;
    virtual MethodInfo_t* CallFunc_FactoryMethod(CallFunc_t* func) const;
    virtual void   CallFunc_Init(CallFunc_t* func) const;
    virtual bool   CallFunc_IsValid(CallFunc_t* func) const;
-   virtual CallFuncIFacePtr_t CallFunc_IFacePtr(CallFunc_t * func) const;
+   virtual CallFuncIFacePtr_t CallFunc_IFacePtr(CallFunc_t* func, bool as_iface) const;
    virtual void   CallFunc_SetFunc(CallFunc_t* func, MethodInfo_t* info) const;
 
-   virtual std::string CallFunc_GetWrapperCode(CallFunc_t *func) const;
+   virtual std::string CallFunc_GetWrapperCode(CallFunc_t* func, bool as_iface) const;
 
    // ClassInfo interface
    virtual DeclId_t GetDeclId(ClassInfo_t *info) const;
@@ -447,13 +445,13 @@ public: // Public Interface
    virtual void FuncTempInfo_Title(FuncTempInfo_t * /* ft_info */, TString& name) const;
 
    // MethodInfo interface
-   virtual DeclId_t GetDeclId(MethodInfo_t *info) const;
+   virtual DeclId_t GetDeclId(MethodInfo_t* info) const;
    virtual void   MethodInfo_Delete(MethodInfo_t* minfo) const;
    virtual MethodInfo_t*  MethodInfo_Factory() const;
-   virtual MethodInfo_t*  MethodInfo_Factory(ClassInfo_t *clinfo) const;
+   virtual MethodInfo_t*  MethodInfo_Factory(ClassInfo_t* clinfo) const;
    virtual MethodInfo_t  *MethodInfo_Factory(DeclId_t declid) const;
    virtual MethodInfo_t*  MethodInfo_FactoryCopy(MethodInfo_t* minfo) const;
-   virtual void*  MethodInfo_InterfaceMethod(MethodInfo_t* minfo) const;
+   virtual void*  MethodInfo_InterfaceMethod(MethodInfo_t* minfo, bool as_iface) const;
    virtual bool   MethodInfo_IsValid(MethodInfo_t* minfo) const;
    virtual int    MethodInfo_NArg(MethodInfo_t* minfo) const;
    virtual int    MethodInfo_NDefaultArg(MethodInfo_t* minfo) const;

@@ -86,7 +86,7 @@ public:
    TDictionary::DeclId_t                        GetDeclId() const;
    cling::Interpreter                          *GetInterpreter() const { return fInterp; }
    void                                         Init(const clang::FunctionDecl*);
-   void                                        *InterfaceMethod(const CppyyLegacy::TMetaUtils::TNormalizedCtxt &normCtxt) const;
+   void                                        *InterfaceMethod(const CppyyLegacy::TMetaUtils::TNormalizedCtxt &normCtxt, bool as_iface) const;
 
    const clang::Decl *GetDecl() const override {
      if (const clang::Decl* SingleDecl = TClingDeclInfo::GetDecl())

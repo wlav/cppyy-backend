@@ -197,9 +197,9 @@ TDictionary::DeclId_t TFunction::GetDeclId() const
 /// can find which TFunction belongs to a CINT MethodInfo object.
 /// Both need to have the same InterfaceMethod pointer.
 
-void *TFunction::InterfaceMethod() const
+void *TFunction::InterfaceMethod(bool as_iface) const
 {
-   return fInfo ? gCling->MethodInfo_InterfaceMethod(fInfo) : 0;
+   return fInfo ? gCling->MethodInfo_InterfaceMethod(fInfo, as_iface) : 0;
 }
 
 ////////////////////////////////////////////////////////////////////////////////

@@ -285,7 +285,7 @@ static TBuffer* R__CreateBuffer()
       R__LOCKGUARD(gROOTMutex);
       TClass *c = TClass::GetClass("CppyyLegacy::TBufferFile");
       TMethod *m = c->GetMethodWithPrototype("CppyyLegacy::TBufferFile","CppyyLegacy::TBuffer::EMode,Int_t",kFALSE,kExactMatch);
-      creator = (tcling_callfunc_Wrapper_t)( m->InterfaceMethod() );
+      creator = (tcling_callfunc_Wrapper_t)( m->InterfaceMethod(true) );
    }
    TBuffer::EMode mode = TBuffer::kWrite;
    Int_t size = 10000;

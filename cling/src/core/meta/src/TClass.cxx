@@ -2252,7 +2252,7 @@ TClass *TClass::GetClass(const char *name, Bool_t load, Bool_t silent)
          auto funcDecl = gInterpreter->GetFunctionWithPrototype(ci, "Dictionary", "", false, kExactMatch);
          auto method = gInterpreter->MethodInfo_Factory(funcDecl);
          typedef void (*tcling_callfunc_Wrapper_t)(void *, int, void **, void *);
-         auto funcPtr = (tcling_callfunc_Wrapper_t)gInterpreter->MethodInfo_InterfaceMethod(method);
+         auto funcPtr = (tcling_callfunc_Wrapper_t)gInterpreter->MethodInfo_InterfaceMethod(method, true);
 
          TClass *res = nullptr;
          if (funcPtr)
@@ -3352,7 +3352,7 @@ TMethod *TClass::GetClassMethod(Long_t faddr)
    TMethod *m;
    TIter    next(GetListOfMethods());
    while ((m = (TMethod *) next())) {
-      if (faddr == (intptr_t)m->InterfaceMethod())
+      if (faddr == (intptr_t)m->InterfaceMethod(true))
          return m;
    }
    return 0;

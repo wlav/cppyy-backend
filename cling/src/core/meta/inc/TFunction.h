@@ -49,7 +49,7 @@ public:
    Int_t               GetNargs() const;
    Int_t               GetNargsOpt() const;
    DeclId_t            GetDeclId() const;
-   void               *InterfaceMethod() const;
+   void               *InterfaceMethod(bool as_iface) const;
    virtual Bool_t      IsValid();
    Long_t              Property() const;
    Long_t              ExtraProperty() const;

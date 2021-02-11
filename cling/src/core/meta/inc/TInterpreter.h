@@ -92,13 +92,13 @@ public:
       typedef void (*Dtor_t)(void*, unsigned long, int);
 
       CallFuncIFacePtr_t():
-         fKind(kUninitialized), fGeneric(0) {}
-      CallFuncIFacePtr_t(Generic_t func):
-         fKind(kGeneric), fGeneric(func) {}
+         fKind(kUninitialized), fGeneric(0), fDirect(0) {}
+      CallFuncIFacePtr_t(Generic_t func, bool as_iface) :
+         fKind(kGeneric), fGeneric(as_iface ? func : 0), fDirect(as_iface ? 0 : func) {}
       CallFuncIFacePtr_t(Ctor_t func):
-         fKind(kCtor), fCtor(func) {}
+         fKind(kCtor), fCtor(func), fDirect(0) {}
       CallFuncIFacePtr_t(Dtor_t func):
-         fKind(kDtor), fDtor(func) {}
+         fKind(kDtor), fDtor(func), fDirect(0) {}
 
       EKind fKind;
       union {
@@ -106,6 +106,7 @@ public:
          Ctor_t fCtor;
          Dtor_t fDtor;
       };
+      Generic_t fDirect;
    };
 
    class SuspendAutoParsing {
@@ -224,8 +225,6 @@ public:
    virtual TString  GetMangledName(TClass *cl, const char *method, const char *params, Bool_t objectIsConst = kFALSE) = 0;
    virtual TString  GetMangledNameWithPrototype(TClass *cl, const char *method, const char *proto, Bool_t objectIsConst = kFALSE, CppyyLegacy::EFunctionMatchMode /* mode */ = CppyyLegacy::kConversionMatch) = 0;
    virtual void     GetInterpreterTypeName(const char *name, std::string &output, Bool_t full = kFALSE) = 0;
-   virtual void    *GetInterfaceMethod(TClass *cl, const char *method, const char *params, Bool_t objectIsConst = kFALSE) = 0;
-   virtual void    *GetInterfaceMethodWithPrototype(TClass *cl, const char *method, const char *proto, Bool_t objectIsConst = kFALSE, CppyyLegacy::EFunctionMatchMode /* mode */ = CppyyLegacy::kConversionMatch) = 0;
    virtual Bool_t   IsErrorMessagesEnabled() const = 0;
    virtual Bool_t   SetErrorMessages(Bool_t enable = kTRUE) = 0;
    virtual const char *TypeName(const char *s) = 0;
@@ -293,17 +292,17 @@ public:
    virtual std::vector<std::string> GetUsingNamespaces(ClassInfo_t *cl) const = 0;
 
    // CallFunc interface
-   virtual void   CallFunc_Delete(CallFunc_t * /* func */) const {;}
+   virtual void   CallFunc_Delete(CallFunc_t* /* func */) const {;}
    virtual CallFunc_t   *CallFunc_Factory() const {return 0;}
-   virtual CallFunc_t   *CallFunc_FactoryCopy(CallFunc_t * /* func */) const {return 0;}
-   virtual MethodInfo_t *CallFunc_FactoryMethod(CallFunc_t * /* func */) const {return 0;}
-   virtual void   CallFunc_Init(CallFunc_t * /* func */) const {;}
-   virtual Bool_t CallFunc_IsValid(CallFunc_t * /* func */) const {return 0;}
-   virtual CallFuncIFacePtr_t CallFunc_IFacePtr(CallFunc_t * /* func */) const {return CallFuncIFacePtr_t();}
+   virtual CallFunc_t   *CallFunc_FactoryCopy(CallFunc_t* /* func */) const {return 0;}
+   virtual MethodInfo_t *CallFunc_FactoryMethod(CallFunc_t* /* func */) const {return 0;}
+   virtual void   CallFunc_Init(CallFunc_t* /* func */) const {;}
+   virtual Bool_t CallFunc_IsValid(CallFunc_t* /* func */) const {return 0;}
+   virtual CallFuncIFacePtr_t CallFunc_IFacePtr(CallFunc_t* /* func */, bool /* as_iface */) const {return CallFuncIFacePtr_t();}
 
-   virtual void   CallFunc_SetFunc(CallFunc_t * /* func */, MethodInfo_t * /* info */) const {;}
+   virtual void   CallFunc_SetFunc(CallFunc_t* /* func */, MethodInfo_t * /* info */) const {;}
 
-   virtual std::string CallFunc_GetWrapperCode(CallFunc_t *func) const = 0;
+   virtual std::string CallFunc_GetWrapperCode(CallFunc_t* func, bool as_iface) const = 0;
 
    // ClassInfo interface
    virtual Bool_t ClassInfo_Contains(ClassInfo_t *info, DeclId_t decl) const = 0;
@@ -393,25 +392,25 @@ public:
    virtual void FuncTempInfo_Title(FuncTempInfo_t * /* ft_info */, TString &title) const = 0;
 
    // MethodInfo interface
-   virtual void   MethodInfo_Delete(MethodInfo_t * /* minfo */) const {;}
+   virtual void   MethodInfo_Delete(MethodInfo_t* /* minfo */) const {;}
    virtual MethodInfo_t  *MethodInfo_Factory() const {return 0;}
-   virtual MethodInfo_t  *MethodInfo_Factory(ClassInfo_t * /*clinfo*/) const {return 0;}
+   virtual MethodInfo_t  *MethodInfo_Factory(ClassInfo_t* /*clinfo*/) const {return 0;}
    virtual MethodInfo_t  *MethodInfo_Factory(DeclId_t declid) const = 0;
-   virtual MethodInfo_t  *MethodInfo_FactoryCopy(MethodInfo_t * /* minfo */) const {return 0;}
-   virtual void  *MethodInfo_InterfaceMethod(MethodInfo_t * /* minfo */) const {return 0;}
-   virtual Bool_t MethodInfo_IsValid(MethodInfo_t * /* minfo */) const {return 0;}
-   virtual int    MethodInfo_NArg(MethodInfo_t * /* minfo */) const {return 0;}
-   virtual int    MethodInfo_NDefaultArg(MethodInfo_t * /* minfo */) const {return 0;}
-   virtual int    MethodInfo_Next(MethodInfo_t * /* minfo */) const {return 0;}
-   virtual Long_t MethodInfo_Property(MethodInfo_t * /* minfo */) const = 0;
-   virtual Long_t MethodInfo_ExtraProperty(MethodInfo_t * /* minfo */) const = 0;
-   virtual TypeInfo_t  *MethodInfo_Type(MethodInfo_t * /* minfo */) const {return 0;}
+   virtual MethodInfo_t  *MethodInfo_FactoryCopy(MethodInfo_t* /* minfo */) const {return 0;}
+   virtual void  *MethodInfo_InterfaceMethod(MethodInfo_t* /* minfo */, bool /* as_iface */) const {return 0;}
+   virtual Bool_t MethodInfo_IsValid(MethodInfo_t* /* minfo */) const {return 0;}
+   virtual int    MethodInfo_NArg(MethodInfo_t* /* minfo */) const {return 0;}
+   virtual int    MethodInfo_NDefaultArg(MethodInfo_t* /* minfo */) const {return 0;}
+   virtual int    MethodInfo_Next(MethodInfo_t* /* minfo */) const {return 0;}
+   virtual Long_t MethodInfo_Property(MethodInfo_t* /* minfo */) const = 0;
+   virtual Long_t MethodInfo_ExtraProperty(MethodInfo_t* /* minfo */) const = 0;
+   virtual TypeInfo_t  *MethodInfo_Type(MethodInfo_t* /* minfo */) const {return 0;}
    virtual EReturnType MethodInfo_MethodCallReturnType(MethodInfo_t* minfo) const = 0;
-   virtual const char *MethodInfo_GetMangledName(MethodInfo_t * /* minfo */) const {return 0;}
-   virtual const char *MethodInfo_Name(MethodInfo_t * /* minfo */) const {return 0;}
-   virtual const char *MethodInfo_TypeName(MethodInfo_t * /* minfo */) const {return 0;}
-   virtual std::string MethodInfo_TypeNormalizedName(MethodInfo_t * /* minfo */) const {return "";}
-   virtual const char *MethodInfo_Title(MethodInfo_t * /* minfo */) const {return 0;}
+   virtual const char *MethodInfo_GetMangledName(MethodInfo_t* /* minfo */) const {return 0;}
+   virtual const char *MethodInfo_Name(MethodInfo_t* /* minfo */) const {return 0;}
+   virtual const char *MethodInfo_TypeName(MethodInfo_t* /* minfo */) const {return 0;}
+   virtual std::string MethodInfo_TypeNormalizedName(MethodInfo_t* /* minfo */) const {return "";}
+   virtual const char *MethodInfo_Title(MethodInfo_t* /* minfo */) const {return 0;}
 
    // MethodArgInfo interface
    virtual void   MethodArgInfo_Delete(MethodArgInfo_t * /* marginfo */) const {;}

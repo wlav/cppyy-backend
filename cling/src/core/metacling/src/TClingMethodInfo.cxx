@@ -220,7 +220,7 @@ void TClingMethodInfo::Init(const clang::FunctionDecl *decl)
    fDecl = decl;
 }
 
-void *TClingMethodInfo::InterfaceMethod(const CppyyLegacy::TMetaUtils::TNormalizedCtxt &normCtxt) const
+void *TClingMethodInfo::InterfaceMethod(const CppyyLegacy::TMetaUtils::TNormalizedCtxt &normCtxt, bool as_iface) const
 {
    if (!IsValid()) {
       return 0;
@@ -228,7 +228,7 @@ void *TClingMethodInfo::InterfaceMethod(const CppyyLegacy::TMetaUtils::TNormaliz
    R__LOCKGUARD(gInterpreterMutex);
    TClingCallFunc cf(fInterp,normCtxt);
    cf.SetFunc(this);
-   return cf.InterfaceMethod();
+   return cf.InterfaceMethod(as_iface);
 }
 
 const clang::Decl* TClingMethodInfo::GetDeclSlow() const

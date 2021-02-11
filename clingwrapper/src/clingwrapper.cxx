@@ -55,6 +55,12 @@ typedef CPyCppyy::Parameter Parameter;
 // small number that allows use of stack for argument passing
 const int SMALL_ARGS_N = 8;
 
+// convention to pass flag for direct calls (similar to Python's vector calls)
+#define DIRECT_CALL ((size_t)1 << (8 * sizeof(size_t) - 1))
+static inline size_t CALL_NARGS(size_t nargs) {
+    return nargs & ~DIRECT_CALL;
+}
+
 // data for life time management ---------------------------------------------
 typedef std::vector<TClassRef> ClassRefs_t;
 static ClassRefs_t g_classrefs(1);
@@ -87,7 +93,7 @@ public:
     }
 
 public:
-    TInterpreter::CallFuncIFacePtr_t   fFaceptr;
+    TInterpreter::CallFuncIFacePtr_t fFaceptr;
     DeclId_t      fDecl;
     std::string   fName;
     TFunction*    fTF;
@@ -721,7 +727,7 @@ void Cppyy::Destruct(TCppType_t type, TCppObject_t instance)
 
 
 // method/function dispatching -----------------------------------------------
-static TInterpreter::CallFuncIFacePtr_t GetCallFunc(Cppyy::TCppMethod_t method)
+static TInterpreter::CallFuncIFacePtr_t GetCallFunc(Cppyy::TCppMethod_t method, bool as_iface)
 {
 // TODO: method should be a callfunc, so that no mapping would be needed.
     CallWrapper* wrap = (CallWrapper*)method;
@@ -747,7 +753,7 @@ static TInterpreter::CallFuncIFacePtr_t GetCallFunc(Cppyy::TCppMethod_t method)
 // there is a different overload available that will do)
     auto oldErrLvl = gErrorIgnoreLevel;
     gErrorIgnoreLevel = kFatal;
-    wrap->fFaceptr = gInterpreter->CallFunc_IFacePtr(callf);
+    wrap->fFaceptr = gInterpreter->CallFunc_IFacePtr(callf, as_iface);
     gErrorIgnoreLevel = oldErrLvl;
 
     gInterpreter->CallFunc_Delete(callf);   // does not touch IFacePtr
@@ -785,25 +791,35 @@ void release_args(Parameter* args, size_t nargs) {
 }
 
 static inline
+bool is_ready(CallWrapper* wrap, bool is_direct) {
+    return (!is_direct && wrap->fFaceptr.fGeneric) || (is_direct && wrap->fFaceptr.fDirect);
+}
+
+static inline
 bool WrapperCall(Cppyy::TCppMethod_t method, size_t nargs, void* args_, void* self, void* result)
 {
     Parameter* args = (Parameter*)args_;
+    bool is_direct = nargs & DIRECT_CALL;
+    nargs = CALL_NARGS(nargs);
 
     CallWrapper* wrap = (CallWrapper*)method;
-    const TInterpreter::CallFuncIFacePtr_t& faceptr = wrap->fFaceptr.fGeneric ? wrap->fFaceptr : GetCallFunc(method);
-    if (!faceptr.fGeneric)
+    const TInterpreter::CallFuncIFacePtr_t& faceptr = \
+        is_ready(wrap, is_direct) ? wrap->fFaceptr : GetCallFunc(method, !is_direct);
+    if (!is_ready(wrap, is_direct))
         return false;        // happens with compilation error
 
+    nargs = CALL_NARGS(nargs);
     if (faceptr.fKind == TInterpreter::CallFuncIFacePtr_t::kGeneric) {
         bool runRelease = false;
+        const auto& fgen = is_direct ? faceptr.fDirect : faceptr.fGeneric;
         if (nargs <= SMALL_ARGS_N) {
             void* smallbuf[SMALL_ARGS_N];
             if (nargs) runRelease = copy_args(args, nargs, smallbuf);
-            faceptr.fGeneric(self, (int)nargs, smallbuf, result);
+            fgen(self, (int)nargs, smallbuf, result);
         } else {
             std::vector<void*> buf(nargs);
             runRelease = copy_args(args, nargs, buf.data());
-            faceptr.fGeneric(self, (int)nargs, buf.data(), result);
+            fgen(self, (int)nargs, buf.data(), result);
         }
         if (runRelease) release_args(args, nargs);
         return true;

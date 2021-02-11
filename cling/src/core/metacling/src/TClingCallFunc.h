@@ -94,21 +94,19 @@ private:
                           bool forArgument);
 
    void make_narg_call(const std::string &return_type, const unsigned N, std::ostringstream &typedefbuf,
-                       std::ostringstream &callbuf, const std::string &class_name, int indent_level);
+                       std::ostringstream &callbuf, const std::string &class_name, bool as_iface, int indent_level);
 
    void make_narg_ctor(const unsigned N, std::ostringstream& typedefbuf,
                        std::ostringstream& callbuf,
                        const std::string& class_name, int indent_level);
 
-   void make_narg_call_with_return(const unsigned N,
-                                   const std::string& class_name,
+   void make_narg_call_with_return(const unsigned N, const std::string& class_name,
+                                   std::ostringstream& buf, bool as_iface, int indent_level);
+
+   void make_narg_ctor_with_return(const unsigned N, const std::string& class_name,
                                    std::ostringstream& buf, int indent_level);
 
-   void make_narg_ctor_with_return(const unsigned N,
-                                   const std::string& class_name,
-                                   std::ostringstream& buf, int indent_level);
-
-   tcling_callfunc_Wrapper_t      make_wrapper();
+   tcling_callfunc_Wrapper_t      make_wrapper(bool as_iface);
    tcling_callfunc_ctor_Wrapper_t make_ctor_wrapper(const TClingClassInfo* info);
    tcling_callfunc_dtor_Wrapper_t make_dtor_wrapper(const TClingClassInfo* info);
 
@@ -156,16 +154,16 @@ public:
    void Init();
    void Init(const TClingMethodInfo&);
    void Init(std::unique_ptr<TClingMethodInfo>);
-   void* InterfaceMethod();
+   void* InterfaceMethod(bool as_iface);
    bool IsValid() const;
-   TInterpreter::CallFuncIFacePtr_t IFacePtr();
+   TInterpreter::CallFuncIFacePtr_t IFacePtr(bool as_iface);
    const clang::FunctionDecl *GetDecl() {
       if (!fDecl)
          fDecl = fMethod->GetMethodDecl();
       return fDecl;
    }
 
-   int get_wrapper_code(std::string &wrapper_name, std::string &wrapper);
+   int get_wrapper_code(std::string &wrapper_name, std::string &wrapper, bool as_iface);
 
    const clang::FunctionDecl* GetDecl() const {
       if (fDecl)

@@ -4569,29 +4569,6 @@ TString TCling::GetMangledNameWithPrototype(TClass* cl, const char* method,
 
 ////////////////////////////////////////////////////////////////////////////////
 /// Return pointer to cling interface function for a method of a class with
-/// parameters params (params is a string of actual arguments, not formal
-/// ones). If the class is 0 the global function list will be searched.
-
-void* TCling::GetInterfaceMethod(TClass* cl, const char* method,
-                                 const char* params, Bool_t objectIsConst /* = kFALSE */)
-{
-   R__LOCKGUARD(gInterpreterMutex);
-   TClingCallFunc func(GetInterpreterImpl(), *fNormalizedCtxt);
-   if (cl) {
-      intptr_t offset;
-      func.SetFunc((TClingClassInfo*)cl->GetClassInfo(), method, params, objectIsConst,
-                   &offset);
-   }
-   else {
-      TClingClassInfo gcl(GetInterpreterImpl());
-      intptr_t offset;
-      func.SetFunc(&gcl, method, params, &offset);
-   }
-   return (void*) func.InterfaceMethod();
-}
-
-////////////////////////////////////////////////////////////////////////////////
-/// Return pointer to cling interface function for a method of a class with
 /// a certain name.
 
 TInterpreter::DeclId_t TCling::GetFunction(ClassInfo_t *opaque_cl, const char* method)
@@ -4661,29 +4638,6 @@ void TCling::GetFunctionOverloads(ClassInfo_t *cl, const char *funcname,
          }
       }
    }
-}
-
-////////////////////////////////////////////////////////////////////////////////
-/// Return pointer to cling interface function for a method of a class with
-/// a certain prototype, i.e. "char*,int,float". If the class is 0 the global
-/// function list will be searched.
-
-void* TCling::GetInterfaceMethodWithPrototype(TClass* cl, const char* method,
-                                              const char* proto,
-                                              Bool_t objectIsConst /* = kFALSE */,
-                                              EFunctionMatchMode mode /* = kConversionMatch */)
-{
-   R__LOCKGUARD(gInterpreterMutex);
-   void* f;
-   if (cl) {
-      f = ((TClingClassInfo*)cl->GetClassInfo())->
-         GetMethod(method, proto, objectIsConst, 0 /*poffset*/, mode).InterfaceMethod(*fNormalizedCtxt);
-   }
-   else {
-      TClingClassInfo gcl(GetInterpreterImpl());
-      f = gcl.GetMethod(method, proto, objectIsConst, 0 /*poffset*/, mode).InterfaceMethod(*fNormalizedCtxt);
-   }
-   return f;
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -7204,10 +7158,10 @@ bool TCling::CallFunc_IsValid(CallFunc_t* func) const
 ////////////////////////////////////////////////////////////////////////////////
 
 TInterpreter::CallFuncIFacePtr_t
-TCling::CallFunc_IFacePtr(CallFunc_t * func) const
+TCling::CallFunc_IFacePtr(CallFunc_t* func, bool as_iface) const
 {
    TClingCallFunc* f = (TClingCallFunc*) func;
-   return f->IFacePtr();
+   return f->IFacePtr(as_iface);
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -7221,12 +7175,12 @@ void TCling::CallFunc_SetFunc(CallFunc_t* func, MethodInfo_t* info) const
 
 ////////////////////////////////////////////////////////////////////////////////
 
-std::string TCling::CallFunc_GetWrapperCode(CallFunc_t *func) const
+std::string TCling::CallFunc_GetWrapperCode(CallFunc_t* func, bool as_iface) const
 {
    TClingCallFunc *f = (TClingCallFunc *)func;
    std::string wrapper_name;
    std::string wrapper;
-   f->get_wrapper_code(wrapper_name, wrapper);
+   f->get_wrapper_code(wrapper_name, wrapper, as_iface);
    return wrapper;
 }
 
@@ -8126,10 +8080,10 @@ MethodInfo_t* TCling::MethodInfo_FactoryCopy(MethodInfo_t* minfo) const
 
 ////////////////////////////////////////////////////////////////////////////////
 
-void* TCling::MethodInfo_InterfaceMethod(MethodInfo_t* minfo) const
+void* TCling::MethodInfo_InterfaceMethod(MethodInfo_t* minfo, bool as_iface) const
 {
-   TClingMethodInfo* info = (TClingMethodInfo*) minfo;
-   return info->InterfaceMethod(*fNormalizedCtxt);
+   TClingMethodInfo* info = (TClingMethodInfo*)minfo;
+   return info->InterfaceMethod(*fNormalizedCtxt, as_iface);
 }
 
 ////////////////////////////////////////////////////////////////////////////////

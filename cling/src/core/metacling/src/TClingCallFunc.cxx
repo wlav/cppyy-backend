@@ -83,14 +83,18 @@ namespace CppyyLegacy {
 static ULong64_t gWrapperSerial = 0LL;
 static const string kIndentString("   ");
 
-static map<const FunctionDecl *, void *> gWrapperStore;
+typedef map<const FunctionDecl*, void*> WrapperStore_t;
+static WrapperStore_t gWrapperStoreInherited;
+static WrapperStore_t gWrapperStoreDirect;
+static inline WrapperStore_t& get_wrapper_store(bool as_iface) {
+   if (as_iface) return gWrapperStoreInherited;
+   return gWrapperStoreDirect;
+}
 static map<const Decl *, void *> gCtorWrapperStore;
 static map<const Decl *, void *> gDtorWrapperStore;
 
-static
-inline
-void
-indent(ostringstream &buf, int indent_level)
+static inline
+void indent(ostringstream &buf, int indent_level)
 {
    for (int i = 0; i < indent_level; ++i) {
       buf << kIndentString;
@@ -351,7 +355,7 @@ static std::map<OverloadedOperatorKind, std::string> binOperatorKinds;
 static std::map<OverloadedOperatorKind, std::string> unyOperatorKinds;
 
 void TClingCallFunc::make_narg_call(const std::string &return_type, const unsigned N, ostringstream &typedefbuf,
-                                    ostringstream &callbuf, const string &class_name, int indent_level)
+                                    ostringstream &callbuf, const string &class_name, bool as_iface, int indent_level)
 {
    //
    // Make a code string that follows this pattern:
@@ -468,12 +472,14 @@ void TClingCallFunc::make_narg_call(const std::string &return_type, const unsign
 #endif
 
    if (optype.empty() || N == 1) {
+      bool isMethod = false;
       if (const CXXMethodDecl *MD = dyn_cast<CXXMethodDecl>(FD)) {
          // This is a class, struct, or union member.
          if (MD->isConst())
             callbuf << "((const " << class_name << "*)obj)->";
          else
             callbuf << "((" << class_name << "*)obj)->";
+         isMethod = true;
       } else if (const NamedDecl *ND =
                     dyn_cast<NamedDecl>(FD->getDeclContext())) {
          // This is a namespace member.
@@ -482,7 +488,11 @@ void TClingCallFunc::make_narg_call(const std::string &return_type, const unsign
       }
       //   callbuf << fMethod->Name() << "(";
       {
-         callbuf << (optype.empty() ? function_name : "operator"+optype);
+         if (optype.empty()) {
+            if (isMethod && !as_iface) callbuf << class_name << "::";
+            callbuf << function_name;
+         } else
+            callbuf << "operator"+optype;
       }
    }
    if (ShouldCastFunction) callbuf << ")";
@@ -622,7 +632,7 @@ void TClingCallFunc::make_narg_ctor_with_return(const unsigned N, const string &
    buf << "}\n";
 }
 
-int TClingCallFunc::get_wrapper_code(std::string &wrapper_name, std::string &wrapper)
+int TClingCallFunc::get_wrapper_code(std::string &wrapper_name, std::string &wrapper, bool as_iface)
 {
    const FunctionDecl *FD = GetDecl();
    assert(FD && "generate_wrapper called without a function decl!");
@@ -984,7 +994,7 @@ int TClingCallFunc::get_wrapper_code(std::string &wrapper_name, std::string &wra
    ++indent_level;
    if (min_args == num_params) {
       // No parameters with defaults.
-      make_narg_call_with_return(num_params, class_name, buf, indent_level);
+      make_narg_call_with_return(num_params, class_name, buf, as_iface, indent_level);
    } else {
       // We need one function call clause compiled for every
       // possible number of arguments per call.
@@ -994,7 +1004,7 @@ int TClingCallFunc::get_wrapper_code(std::string &wrapper_name, std::string &wra
          }
          buf << "if (nargs == " << N << ") {\n";
          ++indent_level;
-         make_narg_call_with_return(N, class_name, buf, indent_level);
+         make_narg_call_with_return(N, class_name, buf, as_iface, indent_level);
          --indent_level;
          for (int i = 0; i < indent_level; ++i) {
             buf << kIndentString;
@@ -1010,7 +1020,7 @@ int TClingCallFunc::get_wrapper_code(std::string &wrapper_name, std::string &wra
 }
 
 void TClingCallFunc::make_narg_call_with_return(const unsigned N, const string &class_name,
-      ostringstream &buf, int indent_level)
+      ostringstream &buf, bool as_iface, int indent_level)
 {
    // Make a code string that follows this pattern:
    //
@@ -1038,7 +1048,7 @@ void TClingCallFunc::make_narg_call_with_return(const unsigned N, const string &
       for (int i = 0; i < indent_level; ++i) {
          callbuf << kIndentString;
       }
-      make_narg_call("void", N, typedefbuf, callbuf, class_name, indent_level);
+      make_narg_call("void", N, typedefbuf, callbuf, class_name, as_iface, indent_level);
       callbuf << ";\n";
       for (int i = 0; i < indent_level; ++i) {
          callbuf << kIndentString;
@@ -1091,7 +1101,7 @@ void TClingCallFunc::make_narg_call_with_return(const unsigned N, const string &
          //
          //  Write the actual function call.
          //
-         make_narg_call(type_name, N, typedefbuf, callbuf, class_name, indent_level);
+         make_narg_call(type_name, N, typedefbuf, callbuf, class_name, as_iface, indent_level);
          //
          //  End the placement new.
          //
@@ -1127,7 +1137,7 @@ void TClingCallFunc::make_narg_call_with_return(const unsigned N, const string &
          for (int i = 0; i < indent_level; ++i) {
             callbuf << kIndentString;
          }
-         make_narg_call(type_name, N, typedefbuf, callbuf, class_name, indent_level);
+         make_narg_call(type_name, N, typedefbuf, callbuf, class_name, as_iface, indent_level);
          callbuf << ";\n";
          for (int i = 0; i < indent_level; ++i) {
             callbuf << kIndentString;
@@ -1143,7 +1153,7 @@ void TClingCallFunc::make_narg_call_with_return(const unsigned N, const string &
    }
 }
 
-tcling_callfunc_Wrapper_t TClingCallFunc::make_wrapper()
+tcling_callfunc_Wrapper_t TClingCallFunc::make_wrapper(bool as_iface)
 {
    R__LOCKGUARD_CLING(gInterpreterMutex);
 
@@ -1151,7 +1161,7 @@ tcling_callfunc_Wrapper_t TClingCallFunc::make_wrapper()
    string wrapper_name;
    string wrapper;
 
-   if (get_wrapper_code(wrapper_name, wrapper) == 0) return 0;
+   if (get_wrapper_code(wrapper_name, wrapper, as_iface) == 0) return 0;
 
    //fprintf(stderr, "%s\n", wrapper.c_str());
    //
@@ -1159,7 +1169,7 @@ tcling_callfunc_Wrapper_t TClingCallFunc::make_wrapper()
    //
    void *F = compile_wrapper(wrapper_name, wrapper);
    if (F) {
-      gWrapperStore.insert(make_pair(FD, F));
+      get_wrapper_store(as_iface).insert(make_pair(FD, F));
    } else {
       ::CppyyLegacy::Error("TClingCallFunc::make_wrapper",
             "Failed to compile\n  ==== SOURCE BEGIN ====\n%s\n  ==== SOURCE END ====",
@@ -1579,7 +1589,7 @@ void TClingCallFunc::Init(std::unique_ptr<TClingMethodInfo> minfo)
    fMethod = std::move(minfo);
 }
 
-void *TClingCallFunc::InterfaceMethod()
+void *TClingCallFunc::InterfaceMethod(bool as_iface)
 {
    if (!IsValid()) {
       return 0;
@@ -1588,11 +1598,12 @@ void *TClingCallFunc::InterfaceMethod()
       const FunctionDecl *decl = GetDecl();
 
       R__LOCKGUARD_CLING(gInterpreterMutex);
-      map<const FunctionDecl *, void *>::iterator I = gWrapperStore.find(decl);
-      if (I != gWrapperStore.end()) {
+      WrapperStore_t& wstore = get_wrapper_store(as_iface);
+      WrapperStore_t::iterator I = wstore.find(decl);
+      if (I != wstore.end()) {
          fWrapper = (tcling_callfunc_Wrapper_t) I->second;
       } else {
-         fWrapper = make_wrapper();
+         fWrapper = make_wrapper(as_iface);
       }
    }
    return (void *)fWrapper;
@@ -1606,7 +1617,7 @@ bool TClingCallFunc::IsValid() const
    return fMethod->IsValid();
 }
 
-TInterpreter::CallFuncIFacePtr_t TClingCallFunc::IFacePtr()
+TInterpreter::CallFuncIFacePtr_t TClingCallFunc::IFacePtr(bool as_iface)
 {
    if (!IsValid()) {
       ::CppyyLegacy::Error("TClingCallFunc::IFacePtr(kind)",
@@ -1617,14 +1628,15 @@ TInterpreter::CallFuncIFacePtr_t TClingCallFunc::IFacePtr()
       const FunctionDecl *decl = GetDecl();
 
       R__LOCKGUARD_CLING(gInterpreterMutex);
-      map<const FunctionDecl *, void *>::iterator I = gWrapperStore.find(decl);
-      if (I != gWrapperStore.end()) {
+      WrapperStore_t& wstore = get_wrapper_store(as_iface);
+      WrapperStore_t::iterator I = wstore.find(decl);
+      if (I != wstore.end()) {
          fWrapper = (tcling_callfunc_Wrapper_t) I->second;
       } else {
-         fWrapper = make_wrapper();
+         fWrapper = make_wrapper(as_iface);
       }
    }
-   return TInterpreter::CallFuncIFacePtr_t(fWrapper);
+   return TInterpreter::CallFuncIFacePtr_t(fWrapper, as_iface);
 }
 
 void TClingCallFunc::SetFunc(const TClingClassInfo *info, const char *method, const char *arglist,
