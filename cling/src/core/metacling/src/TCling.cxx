@@ -1041,23 +1041,35 @@ inline bool TCling::TUniqueString::Append(const std::string& str)
 
 std::string TCling::ToString(const char* type, void* obj)
 {
+// TODO: this function is slow, in particular Cling's toString() has terrible
+// performance b/c it interprets printValue(), which is a template. On top, using
+// interpreter strings to do this evaluation leaks significant memory.
    clangSilent diagSuppr(fInterpreter->getSema().getDiagnostics());
 
-// First attempt: use existing operator<< for printing
+// If available, use existing operator<< for printing
    std::ostringstream pretty;
    std::ostringstream pretty_eval;
    pretty_eval << "(*((std::ostringstream*)" << (intptr_t)&pretty
                << ")) << *(" << type << "*)" << (intptr_t)obj << ";";
 
-   TInterpreter::EErrorCode error = TInterpreter::kNoError;
-   gInterpreter->Calc(pretty_eval.str().c_str(), &error);
-   if (error == TInterpreter::kNoError)
-       return pretty.str();
+   bool eval_ok = false;
+   {
+      R__LOCKGUARD_CLING(gInterpreterMutex);
+      cling::Value res;
+      auto cr = fInterpreter->evaluate(pretty_eval.str(), res);
+      eval_ok = cr == cling::Interpreter::kSuccess;
+   // res-held memory releaased, if any
+   }
+   if (eval_ok) {
+      fInterpreter->unload(1);    // drop last transaction if committed on success
+      return pretty.str();
+   }
 
-// Second attempt: using Cling's printValue
+// Otherwise use Cling's printValue (note: this is even slower and leakier, so no ...)
    std::string pv = fInterpreter->toString(type, obj);
+   // can't reliably drop the last transaction here :/
    if (pv.find("@0x") == std::string::npos)
-       return pv;
+      return pv;
 
 // Failure to print pretty ...
    return "";
