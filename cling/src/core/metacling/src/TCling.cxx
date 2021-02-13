@@ -1066,10 +1066,10 @@ std::string TCling::ToString(const char* type, void* obj)
    }
 
 // Otherwise use Cling's printValue (note: this is even slower and leakier, so no ...)
-   std::string pv = fInterpreter->toString(type, obj);
+   /* std::string pv = fInterpreter->toString(type, obj);
    // can't reliably drop the last transaction here :/
    if (pv.find("@0x") == std::string::npos)
-      return pv;
+      return pv; */
 
 // Failure to print pretty ...
    return "";
