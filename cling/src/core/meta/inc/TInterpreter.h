@@ -147,7 +147,7 @@ public:
    virtual Int_t    AutoParse(const char* cls) = 0;
    virtual void     ClearFileBusy() = 0;
    virtual void     ClearStack() = 0; // Delete existing temporary values
-   virtual Bool_t   Declare(const char* code) = 0;
+   virtual Bool_t   Declare(const char* code, bool silent = false) = 0;
    virtual void     EnableAutoLoading() = 0;
    virtual TClass  *GetClass(const std::type_info& typeinfo, Bool_t load) const = 0;
    virtual Int_t    GetExitCode() const = 0;

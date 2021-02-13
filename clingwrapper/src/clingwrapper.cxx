@@ -342,9 +342,9 @@ bool match_name(const std::string& tname, const std::string fname)
 
 
 // direct interpreter access -------------------------------------------------
-bool Cppyy::Compile(const std::string& code)
+bool Cppyy::Compile(const std::string& code, bool silent)
 {
-    return gInterpreter->Declare(code.c_str());
+    return gInterpreter->Declare(code.c_str(), silent);
 }
 
 std::string Cppyy::ToString(TCppType_t klass, TCppObject_t obj)
@@ -2192,6 +2192,10 @@ extern "C" {
 /* direct interpreter access ---------------------------------------------- */
 int cppyy_compile(const char* code) {
     return Cppyy::Compile(code);
+}
+
+int cppyy_compile_silent(const char* code) {
+    return Cppyy::Compile(code, true /* silent */);
 }
 
 char* cppyy_to_string(cppyy_type_t klass, cppyy_object_t obj) {

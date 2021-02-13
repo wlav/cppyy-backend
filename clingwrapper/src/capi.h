@@ -24,6 +24,8 @@ extern "C" {
     RPY_EXPORTED
     int cppyy_compile(const char* code);
     RPY_EXPORTED
+    int cppyy_compile_silent(const char* code);
+    RPY_EXPORTED
     char* cppyy_to_string(cppyy_type_t klass, cppyy_object_t obj);
 
     /* name to opaque C++ scope representation -------------------------------- */

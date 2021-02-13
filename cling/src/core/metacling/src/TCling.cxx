@@ -2953,7 +2953,7 @@ void TCling::ClearStack()
 /// plain #include.
 /// Returns true on success, false on failure.
 
-bool TCling::Declare(const char* code)
+bool TCling::Declare(const char* code, bool silent)
 {
    R__LOCKGUARD_CLING(gInterpreterMutex);
 
@@ -2965,7 +2965,12 @@ bool TCling::Declare(const char* code)
    bool oldRawInput = fInterpreter->isRawInputEnabled();
    fInterpreter->enableRawInput(true);
 
-   Bool_t ret = LoadText(code);
+   Bool_t ret;
+   if (!silent) ret = LoadText(code);
+   else {
+       clangSilent diagSuppr(fInterpreter->getSema().getDiagnostics());
+       ret = LoadText(code);
+   }
 
    fInterpreter->enableRawInput(oldRawInput);
    fInterpreter->enableDynamicLookup(oldDynLookup);

@@ -200,7 +200,7 @@ public: // Public Interface
    Bool_t  IsAutoLoadNamespaceCandidate(const clang::NamespaceDecl* nsDecl);
    void    ClearFileBusy();
    void    ClearStack(); // Delete existing temporary values
-   Bool_t  Declare(const char* code);
+   Bool_t  Declare(const char* code, bool silent = false);
    void    EnableAutoLoading();
    TClass *GetClass(const std::type_info& typeinfo, Bool_t load) const;
    Int_t   GetExitCode() const { return fExitCode; }

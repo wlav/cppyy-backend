@@ -42,7 +42,7 @@ namespace Cppyy {
 
 // direct interpreter access -------------------------------------------------
     RPY_EXPORTED
-    bool Compile(const std::string& code);
+    bool Compile(const std::string& code, bool silent = false);
     RPY_EXPORTED
     std::string ToString(TCppType_t klass, TCppObject_t obj);
 
