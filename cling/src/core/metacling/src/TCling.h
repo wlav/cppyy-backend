@@ -229,7 +229,7 @@ public: // Public Interface
    Int_t   ReloadAllSharedLibraryMaps();
    Int_t   UnloadAllSharedLibraryMaps();
    Int_t   UnloadLibraryMap(const char* library);
-   intptr_t ProcessLine(const char* line, EErrorCode* error = 0);
+   intptr_t ProcessLine(const char* line, int* error = 0);
    void    PrintIntro();
    bool    RegisterPrebuiltModulePath(const std::string& FullPath,
                                       const std::string& ModuleMapName = "module.modulemap") const;

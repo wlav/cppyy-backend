@@ -2351,13 +2351,15 @@ bool TCling::DiagnoseIfInterpreterException(const std::exception &e) const
 
 ////////////////////////////////////////////////////////////////////////////////
 
-intptr_t TCling::ProcessLine(const char* line, EErrorCode* error/*=0*/)
+intptr_t TCling::ProcessLine(const char* line, int* error_/*=0*/)
 {
    // Copy the passed line, it comes from a static buffer in TApplication
    // which can be reentered through the Cling evaluation routines,
    // which would overwrite the static buffer and we would forget what we
    // were doing.
    //
+   EErrorCode* error = (EErrorCode*)error_;
+
    TString sLine(line);
 
    if (gGlobalMutex && !gInterpreterMutex) {

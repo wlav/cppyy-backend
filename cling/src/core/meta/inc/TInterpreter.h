@@ -175,7 +175,7 @@ public:
    virtual Int_t    ReloadAllSharedLibraryMaps() = 0;
    virtual Int_t    UnloadAllSharedLibraryMaps() = 0;
    virtual Int_t    UnloadLibraryMap(const char *library) = 0;
-   virtual intptr_t ProcessLine(const char *line, EErrorCode *error = 0) = 0;
+   virtual intptr_t ProcessLine(const char *line, int *error = 0) = 0;
    virtual void     PrintIntro() = 0;
    virtual bool     RegisterPrebuiltModulePath(const std::string& FullPath,
                                                const std::string& ModuleMapName = "module.modulemap") const = 0;
