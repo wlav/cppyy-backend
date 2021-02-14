@@ -189,7 +189,7 @@ setup(
     author='Wim Lavrijsen',
     author_email='WLavrijsen@lbl.gov',
 
-    version='1.14.1',
+    version='1.14.2',
 
     license='LBNL BSD',
 
