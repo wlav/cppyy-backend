@@ -178,7 +178,7 @@ def ensure_precompiled_header(pchdir = '', pchname = ''):
                  if subprocess.call([pyexe, makepch, full_pchname, '-I'+incpath]) != 0:
                      _warn_no_pch('failed to build', full_pchname)
              else:
-                 _warn_no_pch('%s not writable' % pchdir, full_pchname)
+                 _warn_no_pch('%s not writable, set CLING_STANDARD_PCH' % pchdir, full_pchname)
 
      except Exception as e:
          _warn_no_pch(str(e))
