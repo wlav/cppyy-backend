@@ -90,6 +90,15 @@ if(MSVC)
     set(cling_exports
       __std_terminate
       cling_runtime_internal_throwIfInvalidPointer
+      ?kEmptyCollection@valuePrinterInternal@cling@@3QEBDEB
+      ?printValue@cling@@YA?AV?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@std@@PEBM@Z
+      ?printValue@cling@@YA?AV?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@std@@PEBN@Z
+      ?printValue@cling@@YA?AV?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@std@@PEBH@Z
+      ?printValue@cling@@YA?AV?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@std@@PEBX@Z
+      ?printValue@cling@@YA?AV?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@std@@PEB_N@Z
+      ?printValue@cling@@YA?AV?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@std@@PEAPEBX@Z
+      ?printValue@cling@@YA?AV?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@std@@PEAPEBD@Z
+      ?printValue@cling@@YA?AV?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@std@@PEBV23@@Z
       ?setValueNoAlloc@internal@runtime@cling@@YAXPEAX00D@Z
       ?setValueNoAlloc@internal@runtime@cling@@YAXPEAX00DM@Z
       ?setValueNoAlloc@internal@runtime@cling@@YAXPEAX00DN@Z
