@@ -52,9 +52,9 @@ def getCppFlags(cppflagsFilename):
       lines.remove("-fno-plt\n")       # unsupported by Cling
    except ValueError:
       pass
-   cppFlags = " ".join(map(lambda line: line[:-1], lines))
+   cppFlags = [line[:-1].strip() for line in lines]
    if stdcxx:
-      cppFlags += " -std=c++"+stdcxx
+      cppFlags.append("-std=c++"+stdcxx)
    return cppFlags
 
 
@@ -73,7 +73,6 @@ def makepch():
    cppflagsFilename = os.path.join(cfgdir,"allCppflags.txt")
 
    pchFileName, extraCppflags, extraHeadersList = getArgs()
-   extraHeaders = " ".join(extraHeadersList)
 
    rootbuildFlag=""
    loc1 = os.path.join(rootdir, allheadersFilename)
@@ -92,7 +91,7 @@ def makepch():
       rootbuildFlag="-rootbuild"
 
 
-   cppFlags = getCppFlags(cppflagsFilename).split()
+   cppFlags = getCppFlags(cppflagsFilename)
 
    if "-isystem" in cppFlags:
       idx = cppFlags.index("-isystem")
@@ -110,19 +109,21 @@ def makepch():
 
    cppflagsList.append(extraCppflags)
 
-   allCppFlags = " ".join(cppflagsList)
-
    if sys.platform == 'win32':
       allheadersFilename.replace("\\","/")
       alllinkdefsFilename.replace("\\","/")
 
    rootclingExe = os.path.join(rootdir,"bin","rootcling")
-   command = "%s %s -generate-pch -f allDict.cxx -noDictSelection %s %s %s %s" %(rootclingExe,
-                                                                                 rootbuildFlag,
-                                                                                 allCppFlags,
-                                                                                 allheadersFilename,
-                                                                                 extraHeaders,
-                                                                                 alllinkdefsFilename)
+   command = [rootclingExe,
+              rootbuildFlag,
+              "-generate-pch",
+              "-f", "allDict.cxx",
+              "-noDictSelection",
+             ]
+   command += cppflagsList
+   command.append(allheadersFilename)
+   command += extraHeadersList
+   command.append(alllinkdefsFilename)
 
    if "VERBOSE" in os.environ:
       print(command)
@@ -132,7 +133,7 @@ def makepch():
    if not existing_ldlib: existing_ldlib = ""
    my_env["LD_LIBRARY_PATH"] = os.path.join(rootdir, "lib") + ":" + existing_ldlib
 
-   ret = subprocess.call(command.split(), env=my_env)
+   ret = subprocess.call(command, env=my_env)
    if ret == 0:
       shutil.move("allDict_rdict.pch",pchFileName)
       os.unlink("allDict.cxx")
