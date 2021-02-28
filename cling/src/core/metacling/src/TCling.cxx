@@ -3155,9 +3155,8 @@ void TCling::UpdateListOfLoadedSharedLibraries()
       string path(wpath.begin(), wpath.end());
       strncpy(posixname, path.c_str(), bufsize);
 #endif
-      if (!fSharedLibs.Contains(posixname)) {
+      if (!fSharedLibs.Contains(posixname))
          RegisterLoadedSharedLibrary(posixname);
-      }
    }
 #elif defined(R__MACOSX)
    // fPrevLoadedDynLibInfo stores the *next* image index to look at
@@ -3167,7 +3166,8 @@ void TCling::UpdateListOfLoadedSharedLibraries()
       // Skip non-dylibs
       if (mh->filetype == MH_DYLIB) {
          if (const char* imageName = _dyld_get_image_name(imageIndex)) {
-            RegisterLoadedSharedLibrary(imageName);
+            if (!fSharedLibs.Contains(imageName))
+               RegisterLoadedSharedLibrary(imageName);
          }
       }
 
@@ -3191,7 +3191,8 @@ void TCling::UpdateListOfLoadedSharedLibraries()
       // 4th pointer of 4th pointer is the linkmap.
       // See http://syprog.blogspot.fr/2011/12/listing-loaded-shared-objects-in-linux.html
       LinkMap* linkMap = (LinkMap*) ((PointerNo4*)procLinkMap->fPtr)->fPtr;
-      RegisterLoadedSharedLibrary(linkMap->fName);
+      if (!fSharedLibs.Contains(linkMap->fName))
+         RegisterLoadedSharedLibrary(linkMap->fName);
       fPrevLoadedDynLibInfo = linkMap;
       // reduce use count of link map structure:
       dlclose(procLinkMap);
@@ -3200,7 +3201,8 @@ void TCling::UpdateListOfLoadedSharedLibraries()
    LinkMap* iDyLib = (LinkMap*)fPrevLoadedDynLibInfo;
    while (iDyLib->fNext) {
       iDyLib = iDyLib->fNext;
-      RegisterLoadedSharedLibrary(iDyLib->fName);
+      if (!fSharedLibs.Contains(iDyLib->fName))
+         RegisterLoadedSharedLibrary(iDyLib->fName);
    }
    fPrevLoadedDynLibInfo = iDyLib;
 #else
@@ -3220,6 +3222,10 @@ void TCling::RegisterLoadedSharedLibrary(const char* filename)
 
    // Tell the interpreter that this library is available; all libraries can be
    // used to resolve symbols.
+   // TODO: this doesn't actually do anything nor matter for Cling's symbol
+   // resolution, but it can cause havoc b/c all symbols from this library will
+   // be pulled into dld's "world", even if the library was originally local
+#if 0
    cling::DynamicLibraryManager* DLM = fInterpreter->getDynamicLibraryManager();
    if (!DLM->isLibraryLoaded(filename)) {
       auto lr = DLM->loadLibrary(filename,
@@ -3229,6 +3235,7 @@ void TCling::RegisterLoadedSharedLibrary(const char* filename)
           return;  /* silently ignored b/c it rarely matters */
       }
    }
+#endif
 
 #if defined(R__MACOSX)
    // Check that this is not a system library
