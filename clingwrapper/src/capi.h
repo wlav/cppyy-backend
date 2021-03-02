@@ -237,6 +237,8 @@ extern "C" {
     intptr_t cppyy_datamember_offset(cppyy_scope_t scope, int datamember_index);
     RPY_EXPORTED
     int cppyy_datamember_index(cppyy_scope_t scope, const char* name);
+    RPY_EXPORTED
+    int cppyy_datamember_index_enumerated(cppyy_scope_t scope, int datamember_index);
 
     /* data member properties ------------------------------------------------- */
     RPY_EXPORTED

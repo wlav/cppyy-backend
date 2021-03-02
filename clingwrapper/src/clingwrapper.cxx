@@ -120,7 +120,10 @@ CallWrapper* new_CallWrapper(CallWrapper::DeclId_t fid, const std::string& n)
 }
 
 typedef std::vector<TGlobal*> GlobalVars_t;
+typedef std::map<TGlobal*, GlobalVars_t::size_type> GlobalVarsIndices_t;
+
 static GlobalVars_t g_globalvars;
+static GlobalVarsIndices_t g_globalidx;
 
 
 // data ----------------------------------------------------------------------
@@ -228,6 +231,7 @@ public:
 
     // add a dummy global to refer to as null at index 0
         g_globalvars.push_back(nullptr);
+        g_globalidx[nullptr] = 0;
 
     // fill out the builtins
         std::set<std::string> bi{g_builtins};
@@ -1998,6 +2002,21 @@ intptr_t Cppyy::GetDatamemberOffset(TCppScope_t scope, TCppIndex_t idata)
     return (intptr_t)-1;
 }
 
+static inline
+Cppyy::TCppIndex_t gb2idx(TGlobal* gb)
+{
+    if (!gb) return (Cppyy::TCppIndex_t)-1;
+
+    auto pidx = g_globalidx.find(gb);
+    if (pidx == g_globalidx.end()) {
+        auto idx = g_globalvars.size();
+        g_globalvars.push_back(gb);
+        g_globalidx[gb] = idx;
+        return (Cppyy::TCppIndex_t)idx;
+    }
+    return (Cppyy::TCppIndex_t)pidx->second;
+}
+
 Cppyy::TCppIndex_t Cppyy::GetDatamemberIndex(TCppScope_t scope, const std::string& name)
 {
     if (scope == GLOBAL_HANDLE) {
@@ -2029,11 +2048,7 @@ Cppyy::TCppIndex_t Cppyy::GetDatamemberIndex(TCppScope_t scope, const std::strin
             if (wrap && wrap->GetAddress()) gb = wrap;
         }
 
-        if (gb) {
-        // TODO: do we ever need a reverse lookup?
-            g_globalvars.push_back(gb);
-            return TCppIndex_t(g_globalvars.size() - 1);
-        }
+        return gb2idx(gb);
 
     } else {
         TClassRef& cr = type_from_handle(scope);
@@ -2046,6 +2061,16 @@ Cppyy::TCppIndex_t Cppyy::GetDatamemberIndex(TCppScope_t scope, const std::strin
     }
 
     return (TCppIndex_t)-1;
+}
+
+Cppyy::TCppIndex_t Cppyy::GetDatamemberIndexEnumerated(TCppScope_t scope, TCppIndex_t idata)
+{
+    if (scope == GLOBAL_HANDLE) {
+        TGlobal* gb = (TGlobal*)((THashList*)gROOT->GetListOfGlobals(false /* load */))->At((int)idata);
+        return gb2idx(gb);
+    }
+
+    return idata;
 }
 
 
@@ -2669,6 +2694,9 @@ int cppyy_datamember_index(cppyy_scope_t scope, const char* name) {
     return (int)Cppyy::GetDatamemberIndex(scope, name);
 }
 
+int cppyy_datamember_index_enumerated(cppyy_scope_t scope, int datamember_index) {
+    return (int)Cppyy::GetDatamemberIndexEnumerated(scope, datamember_index);
+}
 
 
 /* data member properties ------------------------------------------------- */
