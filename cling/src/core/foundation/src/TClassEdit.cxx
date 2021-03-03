@@ -231,6 +231,7 @@ void TClassEdit::TSplitType::ShortType(std::string &answ, int mode)
       answ = fName;
       return ;
    }
+
    //      fprintf(stderr,"calling ShortType %d for %s with narg %d\n",mode,typeDesc,narg);
    //      {for (int i=0;i<narg;i++) fprintf(stderr,"calling ShortType %d for %s with %d %s \n",
    //                                        mode,typeDesc,i,arglist[i].c_str());
@@ -361,7 +362,8 @@ void TClassEdit::TSplitType::ShortType(std::string &answ, int mode)
       //          > class unordered_{map,multimap}
 
 
-      if (kind == CppyyLegacy::kSTLunorderedset || kind == CppyyLegacy::kSTLunorderedmultiset || kind == CppyyLegacy::kSTLunorderedmap || kind == CppyyLegacy::kSTLunorderedmultimap){
+      if (kind == CppyyLegacy::kSTLunorderedset || kind == CppyyLegacy::kSTLunorderedmultiset || \
+          kind == CppyyLegacy::kSTLunorderedmap || kind == CppyyLegacy::kSTLunorderedmultimap) {
 
          bool predRemoved = false;
 
@@ -396,7 +398,7 @@ void TClassEdit::TSplitType::ShortType(std::string &answ, int mode)
       }
    }
 
-   //   do the same for all inside
+   // do the same for all inside
    for (int i=1;i<narg; i++) {
       if (strchr(fElements[i].c_str(),'<')==0) {
          if (mode&kResolveTypedef) {
@@ -437,7 +439,8 @@ void TClassEdit::TSplitType::ShortType(std::string &answ, int mode)
    }
    if (fNestedLocation) {
       // Treat X pf A<B>::X
-      if (fElements[fNestedLocation] != ")") fElements[fNestedLocation] = TClassEdit::ShortType(fElements[fNestedLocation].c_str(),mode);
+      const std::string& nested = fElements[fNestedLocation];
+      if (!nested.empty() && nested.back() != ')') fElements[fNestedLocation] = TClassEdit::ShortType(nested.c_str(),mode);
       answ += fElements[fNestedLocation];
    }
    // tail is not a type name, just [2], &, * etc.
