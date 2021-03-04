@@ -1289,7 +1289,9 @@ bool Cppyy::IsSubtype(TCppType_t derived, TCppType_t base)
         return true;
     TClassRef& derived_type = type_from_handle(derived);
     TClassRef& base_type = type_from_handle(base);
-    return derived_type->GetBaseClass(base_type) != 0;
+    if (derived_type.GetClass() && base_type.GetClass())
+        return derived_type->GetBaseClass(base_type) != 0;
+    return false;
 }
 
 bool Cppyy::IsSmartPtr(TCppType_t klass)
