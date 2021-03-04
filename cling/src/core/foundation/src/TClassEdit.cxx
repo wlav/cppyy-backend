@@ -1571,7 +1571,7 @@ static void ResolveTypedefImpl(const char *tname,
             return;
          }
          case ')':
-            result += ')';
+            if (!prevScope) result += ')';
             break;
          default:
             end_of_type = 0;
