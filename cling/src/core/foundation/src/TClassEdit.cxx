@@ -1570,6 +1570,9 @@ static void ResolveTypedefImpl(const char *tname,
             if (modified) result += '>';
             return;
          }
+         case ')':
+            result += ')';
+            break;
          default:
             end_of_type = 0;
       }
