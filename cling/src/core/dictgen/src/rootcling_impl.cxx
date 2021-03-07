@@ -4218,7 +4218,7 @@ int RootClingMain(int argc,
    // FIXME: This line is from TModuleGenerator, but we can't reuse this code
    // at this point because TModuleGenerator needs a CompilerInstance (and we
    // currently create the arguments for creating said CompilerInstance).
-   bool isPCH = (dictpathname == "allDict.cxx");
+   bool isPCH = (dictpathname.rfind("allDict.cxx") != std::string::npos);
    std::string outputFile;
    // Data is in 'outputFile', therefore in the same scope.
    StringRef moduleName;

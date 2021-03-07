@@ -50,7 +50,7 @@ TModuleGenerator::TModuleGenerator(CompilerInstance *CI,
                                    const std::string &shLibFileName,
                                    bool writeEmptyRootPCM):
    fCI(CI),
-   fIsPCH(shLibFileName == "allDict.cxx"),
+   fIsPCH(shLibFileName.rfind("allDict.cxx") != std::string::npos),
    fIsInPCH(writeEmptyRootPCM),
    fInlineInputHeaders(inlineInputHeaders),
    fDictionaryName(llvm::sys::path::stem(shLibFileName)),

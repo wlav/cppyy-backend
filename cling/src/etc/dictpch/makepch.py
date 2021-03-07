@@ -20,6 +20,7 @@ import sys
 import os
 import subprocess
 import shutil
+import tempfile
 
 #-------------------------------------------------------------------------------
 def getArgs():
@@ -114,10 +115,12 @@ def makepch():
       alllinkdefsFilename.replace("\\","/")
 
    rootclingExe = os.path.join(rootdir,"bin","rootcling")
+   tmpdir = tempfile.gettempdir()
+   outf = os.path.join(tmpdir, "allDict.cxx")
    command = [rootclingExe,
               rootbuildFlag,
               "-generate-pch",
-              "-f", "allDict.cxx",
+              "-f", outf,
               "-noDictSelection",
              ]
    command += cppflagsList
@@ -135,8 +138,8 @@ def makepch():
 
    ret = subprocess.call(command, env=my_env)
    if ret == 0:
-      shutil.move("allDict_rdict.pch",pchFileName)
-      os.unlink("allDict.cxx")
+      shutil.move(os.path.join(tmpdir, "allDict_rdict.pch"), pchFileName)
+      os.unlink(outf)
 
    return ret
 
