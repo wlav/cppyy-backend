@@ -1401,7 +1401,7 @@ Cppyy::TCppIndex_t Cppyy::GetNumMethods(TCppScope_t scope, bool accept_namespace
             // instantiation, so force it
                 std::ostringstream stmt;
                 stmt << "template class " << clName << ";";
-                gInterpreter->Declare(stmt.str().c_str());
+                gInterpreter->Declare(stmt.str().c_str(), true /* silent */);
 
             // now reload the methods
                 return (TCppIndex_t)cr->GetListOfMethods(true)->GetSize();
