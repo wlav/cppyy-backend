@@ -462,6 +462,31 @@ void TClingCallFunc::make_narg_call(const std::string &return_type, const unsign
       llvm::raw_string_ostream stream(function_name);
       FD->getNameForDiagnostic(stream, FD->getASTContext().getPrintingPolicy(), /*Qualified=*/false);
    }
+
+// If a template has consecutive parameter packs, then it is impossible to use the
+// explicit name in the wrapper, since the type deduction is what determines the split
+// of the packs. Instead, we'll revert to the non-templated function name and hope that
+// the type casts in the wrapper will suffice.
+   if (FD->isTemplateInstantiation() && FD->getPrimaryTemplate()) {
+      const FunctionTemplateDecl* FTDecl = llvm::dyn_cast<FunctionTemplateDecl>(FD->getPrimaryTemplate());
+      if (FTDecl) {
+         auto templateParms = FTDecl->getTemplateParameters();
+         int numPacks = 0;
+         for (int iParam = 0, nParams = templateParms->size(); iParam < nParams; ++iParam) {
+            if (templateParms->getParam(iParam)->isTemplateParameterPack())
+               numPacks += 1;
+            else
+               numPacks  = 0;
+         }
+
+         if (1 < numPacks) {
+            function_name.clear();
+            llvm::raw_string_ostream stream(function_name);
+            FTDecl->getNameForDiagnostic(stream, FTDecl->getASTContext().getPrintingPolicy(), /*Qualified=*/false);
+         }
+      }
+   }
+
 #ifdef _WIN32
 // TODO: This is not a true solution, but make_unique is so far the only relevant
 // case: on Windows, make_unique is a variadic template and Cling finds the expanded
@@ -540,6 +565,8 @@ void TClingCallFunc::make_narg_call(const std::string &return_type, const unsign
          // information here in terms of intent. Thus, simply assume that the intent
          // is to move if there is no viable copy constructor (ie. if the code would
          // otherwise fail to even compile).
+
+         // Note: function pointers arguments are by-value.
 
          // There does not appear to be a simple way of determining whether a viable
          // copy constructor exists, so check for the most common case: the trivial
