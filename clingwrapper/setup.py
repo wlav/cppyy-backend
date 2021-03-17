@@ -13,7 +13,7 @@ except ImportError:
     has_wheel = False
 from distutils.errors import DistutilsSetupError
 
-requirements = ['cppyy-cling>=6.21.5']
+requirements = ['cppyy-cling>=6.21.6']
 setup_requirements = ['wheel']
 if 'build' in sys.argv or 'install' in sys.argv:
     setup_requirements += requirements
@@ -189,7 +189,7 @@ setup(
     author='Wim Lavrijsen',
     author_email='WLavrijsen@lbl.gov',
 
-    version='1.14.2',
+    version='1.14.3',
 
     license='LBNL BSD',
 
