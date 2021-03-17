@@ -19,7 +19,10 @@ def is_manylinux():
     _is_manylinux = False
     try:
         for line in open('/etc/redhat-release').readlines():
-            if 'CentOS release 6.10 (Final)' in line:
+          # mark manylinux1, manylinux2010, or manylinux2014
+            if 'CentOS release 5.11 (Final)' in line or \
+               'CentOS release 6.10 (Final)' in line or \
+               'CentOS Linux release 7.9.2009 (Core)' in line:
                 _is_manylinux = True
                 break
     except (OSError, IOError):
