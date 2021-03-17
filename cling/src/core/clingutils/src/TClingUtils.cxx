@@ -37,6 +37,7 @@
 #include "clang/AST/CXXInheritance.h"
 #include "clang/AST/Decl.h"
 #include "clang/AST/DeclTemplate.h"
+#include "clang/AST/Mangle.h"
 #include "clang/AST/Type.h"
 #include "clang/AST/TypeVisitor.h"
 #include "clang/Frontend/CompilerInstance.h"
@@ -1432,7 +1433,7 @@ bool CppyyLegacy::TMetaUtils::hasOpaqueTypedef(const AnnotatedRecordDecl &cl,
                                         const TNormalizedCtxt &normCtxt)
 {
    const clang::CXXRecordDecl* clxx =  llvm::dyn_cast<clang::CXXRecordDecl>(cl.GetRecordDecl());
-   if (clxx->getTemplateSpecializationKind() == clang::TSK_Undeclared) return 0;
+   if (clxx->getTemplateSpecializationKind() == clang::TSK_Undeclared) return false;
 
    clang::QualType instanceType = interp.getLookupHelper().findType(cl.GetNormalizedName(),
                                                                     cling::LookupHelper::WithDiagnostics);
@@ -3736,6 +3737,64 @@ void CppyyLegacy::TMetaUtils::GetNormalizedName(std::string &norm_name, const cl
    // normalize the location and amount of white spaces.
    TClassEdit::TSplitType splitname(normalizedNameStep1.c_str(),(TClassEdit::EModType)(TClassEdit::kDropStlDefault | TClassEdit::kKeepOuterConst));
    splitname.ShortType(norm_name, TClassEdit::kDropStlDefault);
+
+   // For templates that have template argument types that live in the same namespace,
+   // that namespace is not printed for the argument, making it impossible to find the
+   // class in the global scope. There's a fix for that to Clang, but the conda version
+   // of cppyy builds with the Clang from ROOT, which doesn't have that patch. This is
+   // a runaround the problem.
+   auto pos = norm_name.find('<');
+   if (pos != std::string::npos && norm_name.find("::", pos) == std::string::npos) {
+   // We have a templated type with no scoped arguments. Let's see whether it is
+   // findable by Cling
+      clang::QualType qtfound = interpreter.getLookupHelper().findType(
+          norm_name, cling::LookupHelper::NoDiagnostics);
+      if (qtfound.isNull()) {
+      // Meaning the name is busted. Instead, try to figure it out from the name's
+      // type_info mangled name.
+         auto* rtype = normalizedType->getAs<clang::RecordType>();
+         if (rtype) {
+            const clang::RecordDecl* rDecl = rtype->getDecl();
+            std::unique_ptr<clang::MangleContext> mangleCtx(rDecl->getASTContext().createMangleContext());
+            std::string mangledName;
+            {
+               llvm::raw_string_ostream sstr(mangledName);
+               if (const clang::TypeDecl* TD = llvm::dyn_cast<clang::TypeDecl>(rDecl)) {
+                  mangleCtx->mangleCXXRTTI(clang::QualType(TD->getTypeForDecl(), 0), sstr);
+               }
+            }
+            if (!mangledName.empty()) {
+               int errDemangle = 0;
+#ifdef WIN32
+               if (mangledName[0] == '\01')
+                  mangledName.erase(0, 1);
+               char *demangledTIName = TClassEdit::DemangleName(mangledName.c_str(), errDemangle);
+               if (!errDemangle && demangledTIName) {
+                  static const char typeinfoNameFor[] = " `RTTI Type Descriptor'";
+                  if (strstr(demangledTIName, typeinfoNameFor)) {
+                     std::string demangledName = demangledTIName;
+                     demangledName.erase(demangledName.end() - strlen(typeinfoNameFor), demangledName.end());
+                     if (demangledName.compare(0, 6, "class ") == 0)
+                        demangledName.erase(0, 6);
+                     else if (demangledName.compare(0, 7, "struct ") == 0)
+                        demangledName.erase(0, 7);
+#else
+               char* demangledTIName = TClassEdit::DemangleName(mangledName.c_str(), errDemangle);
+               if (!errDemangle && demangledTIName) {
+                  static const char typeinfoNameFor[] = "typeinfo for ";
+                  if (!strncmp(demangledTIName, typeinfoNameFor, strlen(typeinfoNameFor))) {
+                     std::string demangledName = demangledTIName + strlen(typeinfoNameFor);
+#endif
+                  // now try again ...
+                     qtfound = interpreter.getLookupHelper().findType(
+                        demangledName, cling::LookupHelper::NoDiagnostics);
+                     if (!qtfound.isNull()) norm_name = demangledName;
+                  }
+               }
+            }
+         }
+      }
+   }
 
    // The result of this routine is by definition a fully qualified name.  There is an implicit starting '::' at the beginning of the name.
    // Depending on how the user typed their code, in particular typedef declarations, we may end up with an explicit '::' being
