@@ -173,7 +173,9 @@ def ensure_precompiled_header(pchdir = '', pchname = ''):
                  print('(Re-)building pre-compiled headers (options:%s); this may take a minute ...' % os.environ.get('EXTRA_CLING_ARGS', ' none'))
                  makepch = os.path.join(pkgpath, 'etc', 'dictpch', 'makepch.py')
                  pyexe = sys.executable
-                 if getattr(sys, 'frozen', False):
+                 if getattr(sys, 'frozen', False) or not ('python' in pyexe.lower() or 'pypy' in pyexe.lower()):
+                   # either frozen, or a high chance of being embedded; and the actual version
+                   # of python used doesn't matter per se, as long as it is functional
                      pyexe = 'python'
                  if subprocess.call([pyexe, makepch, full_pchname, '-I'+incpath]) != 0:
                      _warn_no_pch('failed to build', full_pchname)
