@@ -1,4 +1,4 @@
-import codecs, multiprocessing, os, sys, subprocess, stat
+import codecs, multiprocessing, os, sys, subprocess, stat, re
 from setuptools import setup, find_packages
 from distutils import log
 
@@ -21,6 +21,19 @@ setup_requirements = ['wheel']+requirements
 here = os.path.abspath(os.path.dirname(__file__))
 with codecs.open(os.path.join(here, 'README.rst'), encoding='utf-8') as f:
     long_description = f.read()
+
+# https://packaging.python.org/guides/single-sourcing-package-version/
+def read(*parts):
+    with codecs.open(os.path.join(here, *parts), 'r') as fp:
+        return fp.read()
+
+def find_version(*file_paths):
+    version_file = read(*file_paths)
+    version_match = re.search(r"^__version__ = ['\"]([^'\"]*)['\"]",
+                              version_file, re.M)
+    if version_match:
+        return version_match.group(1)
+    raise RuntimeError("Unable to find version string.")
 
 
 #
@@ -339,7 +352,7 @@ setup(
     maintainer='Wim Lavrijsen',
     maintainer_email='WLavrijsen@lbl.gov',
 
-    version='6.21.6',
+    version=find_version('python', 'cppyy_backend', '_version.py'),
 
     license='LLVM: UoI-NCSA; ROOT: LGPL 2.1',
 
