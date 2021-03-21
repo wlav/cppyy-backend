@@ -1808,8 +1808,11 @@ std::string type_remap(const std::string& n1, const std::string& n2)
         if (n2 == "std::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >")
             return n2;                      // match like for like
         return "std::string";               // probably best bet
-    } else if (n1 == "float")
+    } else if (n1 == "float") {
         return "double";                    // debatable, but probably intended
+    } else if (n1 == "complex") {
+        return "std::complex<double>";
+    }
     return n1;
 }
 
