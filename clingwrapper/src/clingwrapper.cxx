@@ -432,6 +432,15 @@ std::string Cppyy::ResolveName(const std::string& cppitem_name)
         tclean.replace(pos, 4, "::");
         pos += 2;
     }
+
+#ifdef _WIN32
+// TODO: this is a bug somewhere deep in Clang's type printing; since we're close
+// to upgrading to Clang9, this hack will have to do.
+    pos = tclean.find("std::basic_string<char,std::allocator<char>,std::allocator<char> >");
+    if (pos != std::string::npos)
+        tclean = tclean.substr(0, pos+28) + "char_traits" + tclean.substr(pos+37, std::string::npos);
+#endif
+
     if (tclean.compare(0, 6, "const ") != 0)
         return TClassEdit::ShortType(tclean.c_str(), 2);
     return "const " + TClassEdit::ShortType(tclean.c_str(), 2);
