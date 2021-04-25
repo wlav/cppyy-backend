@@ -37,6 +37,11 @@
 #include "TRWMutexImp.h"
 
 
+extern "C" void ROOT_TThread_Initialize()
+{
+   CppyyLegacy::TThread::Initialize();
+};
+
 namespace CppyyLegacy {
 
 TThreadImp     *TThread::fgThreadImp = 0;
@@ -54,10 +59,6 @@ static void ThreadInternalUnLock() { if (gMainInternalMutex) gMainInternalMutex-
 
 static Bool_t fgIsTearDown(kFALSE);
 
-extern "C" void ROOT_TThread_Initialize()
-{
-   TThread::Initialize();
-};
 
 //------------------------------------------------------------------------------
 
