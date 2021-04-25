@@ -29,6 +29,7 @@
 #include "TMethodArg.h"
 #include "TROOT.h"
 #include "TSystem.h"
+#include "TThread.h"
 
 // Standard
 #include <assert.h>
@@ -218,6 +219,9 @@ public:
     // initialize ROOT early to guarantee proper order of shutdown later on (gROOT is a
     // macro that resolves to the ::CppyyLegacy::GetROOT() function call)
         (void)gROOT;
+
+    // create the Cling interpreter lock
+        TThread::Initialize();
 
     // setup dummy holders for global and std namespaces
         assert(g_classrefs.size() == GLOBAL_HANDLE);
@@ -1003,6 +1007,7 @@ bool Cppyy::IsEnum(const std::string& type_name)
 // variable declarations; full resolution does, but simply removing it will do:
     if (tn_short.rfind("enum ", 0) == 0)
         tn_short = tn_short.substr(5, std::string::npos);
+    R__LOCKGUARD_CLING(gInterpreterMutex);
     return gInterpreter->ClassInfo_IsEnum(tn_short.c_str());
 }
 
