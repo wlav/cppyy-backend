@@ -447,7 +447,8 @@ int TClingMethodInfo::InternalNext()
          }
       }
 
-      if (const auto templateDecl = llvm::dyn_cast<clang::FunctionTemplateDecl>(*fIter)) {
+      auto cur_decl = *fIter;
+      if (const auto templateDecl = llvm::dyn_cast<clang::FunctionTemplateDecl>(cur_decl)) {
          // Instantiation below can trigger deserialization.
          cling::Interpreter::PushTransactionRAII RAII(fInterp);
 
@@ -456,14 +457,16 @@ int TClingMethodInfo::InternalNext()
          // enable_if'ed functions.
          fTemplateSpec = GetOrInstantiateFuncTemplateWithDefaults(templateDecl, fInterp->getSema(),
                                                                   fInterp->getLookupHelper());
+
+         if (fTemplateSpec && fTemplateSpec->isDeleted())
+            fTemplateSpec = nullptr;
+
          if (fTemplateSpec)
             return 1;
       }
 
 
-      clang::UsingDecl* udecl =
-          llvm::dyn_cast<clang::UsingDecl>(*fIter);
-
+      clang::UsingDecl* udecl = llvm::dyn_cast<clang::UsingDecl>(cur_decl);
       if (udecl) {
           // A UsingDecl potentially brings in a bunch of functions, so
           // start an inner loop to catch them all
@@ -473,23 +476,26 @@ int TClingMethodInfo::InternalNext()
       }
 
       // Return if this decl is a function or method.
-      if (llvm::isa<clang::FunctionDecl>(*fIter)) {
-         // Iterator is now valid.
-         return 1;
+      if (auto *FD = llvm::dyn_cast<clang::FunctionDecl>(cur_decl)) {
+         if (!FD->isDeleted())
+            // Iterator is now valid.
+            return 1;
       }
 
       // Collect internal `__cling_N5xxx' inline namespaces; they will be traversed later
-      if (auto NS = dyn_cast<NamespaceDecl>(*fIter)) {
+      if (auto NS = dyn_cast<NamespaceDecl>(cur_decl)) {
          if (NS->getDeclContext()->isTranslationUnit() && NS->isInlineNamespace())
             fContexts.push_back(NS);
       }
-//      if (clang::FunctionDecl *fdecl = llvm::dyn_cast<clang::FunctionDecl>(*fIter)) {
+//      if (clang::FunctionDecl *fdecl = llvm::dyn_cast<clang::FunctionDecl>(cur_decl)) {
 //         if (fdecl->getAccess() == clang::AS_public || fdecl->getAccess() == clang::AS_none) {
 //            // Iterator is now valid.
 //            return 1;
 //         }
 //      }
    }
+
+   return 0;
 }
 
 int TClingMethodInfo::Next()
