@@ -151,25 +151,25 @@ def ensure_precompiled_header(pchdir = '', pchname = ''):
      try:
          pkgpath = os.path.abspath(os.path.dirname(__file__))
          if 'CLING_STANDARD_PCH' in os.environ:
-             stdpch = os.environ['CLING_STANDARD_PCH']
-             if stdpch.lower() == 'none':   # magic keyword to disable pch
+             pchname = os.environ['CLING_STANDARD_PCH']
+             if pchname.lower() == 'none':  # magic keyword to disable pch
                  _disable_pch()
                  os.chdir(olddir)
                  return                     # quiet
-             pchdir = os.path.dirname(stdpch)
-             pchname = os.path.basename(stdpch)
+             pchdir = os.path.dirname(pchname)
          else:
              if not pchdir:
                  pchdir = os.path.join(pkgpath, 'etc')
              if not pchname:
                  from ._version import __version__
                  pchname = 'allDict.cxx.pch.'+str(__version__)
+             pchname = os.path.join(pchdir, pchname)
+             os.environ['CLING_STANDARD_PCH'] = pchname
 
          os.chdir(pkgpath)
-         full_pchname = os.path.join(pchdir, pchname)
          incpath = os.path.join(pkgpath, 'include')
-         pch_exists = os.path.exists(full_pchname)
-         if not pch_exists or not _is_uptodate(full_pchname, incpath):
+         pch_exists = os.path.exists(pchname)
+         if not pch_exists or not _is_uptodate(pchname, incpath):
              if os.access(pchdir, os.R_OK|os.W_OK):
                  print('(Re-)building pre-compiled headers (options:%s); this may take a minute ...' % os.environ.get('EXTRA_CLING_ARGS', ' none'))
                  makepch = os.path.join(pkgpath, 'etc', 'dictpch', 'makepch.py')
@@ -178,13 +178,13 @@ def ensure_precompiled_header(pchdir = '', pchname = ''):
                    # either frozen, or a high chance of being embedded; and the actual version
                    # of python used doesn't matter per se, as long as it is functional
                      pyexe = 'python'
-                 if subprocess.call([pyexe, makepch, full_pchname, '-I'+incpath]) != 0:
-                     _warn_no_pch('failed to build', full_pchname)
+                 if subprocess.call([pyexe, makepch, pchname, '-I'+incpath]) != 0:
+                     _warn_no_pch('failed to build', pchname)
              elif not pch_exists:
                # accept that the file may be out of date; since the location is not writable,
                # the most likely cause is that it is managed by some packager, which in that
                # case is responsible for the PCH, so only warn if it doesn't exist
-                 _warn_no_pch('%s not writable, set CLING_STANDARD_PCH' % pchdir, full_pchname)
+                 _warn_no_pch('%s not writable, set CLING_STANDARD_PCH' % pchdir, pchname)
 
      except Exception as e:
          _warn_no_pch(str(e))
