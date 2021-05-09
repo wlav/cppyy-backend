@@ -54,6 +54,7 @@
 #include <list>
 #include <shlobj.h>
 #include <conio.h>
+#include <time.h>
 #define Printf TStringPrintf
 #if defined (_MSC_VER) && (_MSC_VER >= 1400)
    #include <intrin.h>
