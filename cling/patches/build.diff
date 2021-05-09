@@ -1,0 +1,14 @@
+diff --git a/src/interpreter/CMakeLists.txt b/src/interpreter/CMakeLists.txt
+index 39dc895cce..6d616cb354 100644
+--- a/src/interpreter/CMakeLists.txt
++++ b/src/interpreter/CMakeLists.txt
+@@ -441,7 +441,8 @@ else()
+   set(Clang_DIR "${LLVM_BINARY_DIR}/lib/cmake/clang/")
+ endif()
+ 
+-add_custom_target(CLING)
++# Custuom target "CLING" is already defined in src/cmake/modules/SearchInstalledSoftware.cmake
++# add_custom_target(CLING)
+ set(CLING_LIBRARIES clingInterpreter;clingMetaProcessor;clingUtils CACHE STRING "")
+ if (builtin_cling)
+ 
