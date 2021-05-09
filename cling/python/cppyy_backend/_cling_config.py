@@ -26,6 +26,8 @@ def main():
                     true_flags = None
                     if req == '17':
                         true_flags = '-std=c++1z'
+                    elif req == '20':
+                        true_flags = '-std=c++2a'
                     else:
                         true_flags = '-std=c++'+req
                     if true_flags:
@@ -54,15 +56,16 @@ def main():
                     else:
                         for line in open(rcfg):
                             if 'cxxversion' in line:
-                                if 'cxx11' in line:
+                                if '11' in line:
                                     return flags+'/std:c++11'
-                                elif 'cxx14' in line:
+                                elif '14' in line:
                                     return flags+'/std:c++14'
-                                elif 'cxx17' in line:
+                                elif '17' in line:
                                     return flags+'/std:c++17'
                                 else:
-                                    # return flags+'/std:c++latest'
-                                    return flags+'/std:c++14'
+                                  # includes C++20, which won't get it's own flag until
+                                  # it is feature-complete
+                                    return flags+'/std:c++latest'
                         raise
 
                 if options == '--incdir':

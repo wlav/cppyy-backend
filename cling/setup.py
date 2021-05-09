@@ -119,13 +119,11 @@ class my_cmake_build(_build):
         except KeyError:
             if is_manylinux():
                 stdcxx = '11'
-            elif 'win32' in sys.platform:
-                stdcxx = '14'     # current cmake claims MSVC'17 does not support C++17 yet
             else:
                 stdcxx = '17'
 
-        if not stdcxx in ['11', '14', '17']:
-            log.fatal('FATAL: envar STDCXX should be one of 11, 14, or 17')
+        if not stdcxx in ['11', '14', '17', '20']:
+            log.fatal('FATAL: envar STDCXX should be one of 11, 14, 17, or 20')
             sys.exit(1)
 
         stdcxx='-DCMAKE_CXX_STANDARD='+stdcxx
