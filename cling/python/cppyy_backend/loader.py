@@ -112,6 +112,11 @@ def set_cling_compile_options(add_defaults = False):
                 pass
         CURRENT_ARGS += ' -O2'
         if has_avx: CURRENT_ARGS += ' -mavx'
+
+      # py2.7 uses the register storage class, which is no longer allowed with C++17
+        if sys.hexversion < 0x3000000:
+            CURRENT_ARGS += ' -Wno-register'
+
         os.putenv('EXTRA_CLING_ARGS', CURRENT_ARGS)
         os.environ['EXTRA_CLING_ARGS'] = CURRENT_ARGS
 
