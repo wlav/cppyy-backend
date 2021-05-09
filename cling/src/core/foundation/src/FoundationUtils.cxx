@@ -22,6 +22,7 @@
 
 #include <algorithm>
 #include <cassert>
+#include <cctype>
 
 #include <errno.h>
 #include <string.h>
