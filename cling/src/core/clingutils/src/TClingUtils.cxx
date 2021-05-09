@@ -1355,12 +1355,12 @@ long CppyyLegacy::TMetaUtils::GetLineNumber(const clang::Decl *decl)
    clang::SourceLocation sourceLocation = decl->getLocation();
    clang::SourceManager& sourceManager = decl->getASTContext().getSourceManager();
 
-  if (!sourceLocation.isValid() ) {
+   if (!sourceLocation.isValid() ) {
       return -1;
    }
 
    if (!sourceLocation.isFileID()) {
-      sourceLocation = sourceManager.getExpansionRange(sourceLocation).second;
+      sourceLocation = sourceManager.getExpansionRange(sourceLocation).getEnd();
    }
 
    if (sourceLocation.isValid() && sourceLocation.isFileID()) {
@@ -2986,7 +2986,7 @@ getFinalSpellingLoc(clang::SourceManager& sourceManager,
                     clang::SourceLocation sourceLoc) {
    // Follow macro expansion until we hit a source file.
    if (!sourceLoc.isFileID()) {
-      return sourceManager.getExpansionRange(sourceLoc).second;
+      return sourceManager.getExpansionRange(sourceLoc).getEnd();
    }
    return sourceLoc;
 }
@@ -3052,7 +3052,8 @@ llvm::StringRef CppyyLegacy::TMetaUtils::GetFileName(const clang::Decl& decl,
                                 true /*isAngled*/, 0/*FromDir*/, foundDir,
                                 ArrayRef<std::pair<const FileEntry *, const DirectoryEntry *>>(),
                                 0/*Searchpath*/, 0/*RelPath*/,
-                                0/*IsMapped*/, 0/*RequestingModule*/, 0/*SuggestedModule*/,
+                                0/*SuggestedModule*/, 0/*RequestingModule*/,
+                                0/*IsMapped*/, nullptr /*IsFrameworkFound*/,
                                 false /*SkipCache*/,
                                 false /*BuildSystemModule*/,
                                 false /*OpenFile*/, true /*CacheFailures*/);
@@ -3106,8 +3107,9 @@ llvm::StringRef CppyyLegacy::TMetaUtils::GetFileName(const clang::Decl& decl,
       FELong = HdrSearch.LookupFile(trailingPart, SourceLocation(),
                                     true /*isAngled*/, 0/*FromDir*/, FoundDir,
                                     ArrayRef<std::pair<const FileEntry *, const DirectoryEntry *>>(),
-                                    0/*IsMapped*/, 0/*Searchpath*/, 0/*RelPath*/,
-                                    0/*RequestingModule*/, 0/*SuggestedModule*/);
+                                    0/*Searchpath*/, 0/*RelPath*/,
+                                    0/*SuggestedModule*/, 0/*RequestingModule*/,
+                                    0/*IsMapped*/, nullptr /*IsFrameworkFound*/);
    }
 
    if (!FELong) {
@@ -3131,10 +3133,9 @@ llvm::StringRef CppyyLegacy::TMetaUtils::GetFileName(const clang::Decl& decl,
       if (HdrSearch.LookupFile(trailingPart, SourceLocation(),
                                true /*isAngled*/, 0/*FromDir*/, FoundDir,
                                ArrayRef<std::pair<const FileEntry *, const DirectoryEntry *>>(),
-                               0/*IsMapped*/,
-                               0/*Searchpath*/,
-                               0/*RelPath*/,
-                               0/*RequestingModule*/, 0 /*SuggestedModule*/) == FELong) {
+                               0/*Searchpath*/, 0/*RelPath*/,
+                               0/*SuggestedModule*/, 0/*RequestingModule*/,
+                               0/*IsMapped*/, nullptr /*IsFrameworkFound*/) == FELong) {
          return trailingPart;
       }
    }
@@ -3917,10 +3918,10 @@ int dumpDeclForAssert(const clang::Decl& D, const char* commentStart) {
 llvm::StringRef CppyyLegacy::TMetaUtils::GetComment(const clang::Decl &decl, clang::SourceLocation *loc)
 {
    clang::SourceManager& sourceManager = decl.getASTContext().getSourceManager();
-   clang::SourceLocation sourceLocation = decl.getLocEnd();
+   clang::SourceLocation sourceLocation = decl.getEndLoc();
 
    // If the location is a macro get the expansion location.
-   sourceLocation = sourceManager.getExpansionRange(sourceLocation).second;
+   sourceLocation = sourceManager.getExpansionRange(sourceLocation).getEnd();
    // FIXME: We should optimize this routine instead making it do the wrong thing
    // returning an empty comment if the decl came from the AST.
    // In order to do that we need to: check if the decl has an attribute and
@@ -5234,11 +5235,12 @@ int CppyyLegacy::TMetaUtils::AST2SourceTools::GetDefArg(const clang::ParmVarDecl
 
    // The value is an integer
    if (defArgType->isIntegerType()){
-      llvm::APSInt result;
-      defArgExprPtr->EvaluateAsInt(result,ctxt);
+      clang::Expr::EvalResult evalResult;
+      defArgExprPtr->EvaluateAsInt(evalResult, ctxt);
+      llvm::APSInt result = evalResult.Val.getInt();
       auto uintVal = *result.getRawData();
       if (result.isNegative()){
-         Long64_t intVal=uintVal*-1;
+         long long int intVal=uintVal*-1;
          valAsString=std::to_string(intVal);
       } else {
          valAsString=std::to_string(uintVal);

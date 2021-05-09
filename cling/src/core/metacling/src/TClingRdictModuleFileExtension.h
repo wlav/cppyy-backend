@@ -19,7 +19,7 @@
 #define ROOT_CLING_RDICT_MODULE_FILE_EXTENSION_H
 
 #include "clang/Serialization/ModuleFileExtension.h"
-#include "llvm/Bitcode/BitstreamReader.h"
+#include "llvm/Bitstream/BitstreamReader.h"
 
 
 namespace CppyyLegacy {

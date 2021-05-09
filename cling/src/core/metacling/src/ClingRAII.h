@@ -10,6 +10,7 @@
  *************************************************************************/
 
 #include "clang/Sema/Sema.h"
+#include "clang/Sema/ScopeInfo.h"
 #include "cling/Utils/ParserStateRAII.h"
 #include "clang/Lex/Preprocessor.h"
 

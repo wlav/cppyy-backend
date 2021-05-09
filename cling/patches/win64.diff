@@ -2,7 +2,7 @@ diff --git a/src/interpreter/CMakeLists.txt b/src/interpreter/CMakeLists.txt
 index 3752a6e423..40b2cf2a81 100644
 --- a/src/interpreter/CMakeLists.txt
 +++ b/src/interpreter/CMakeLists.txt
-@@ -82,6 +82,8 @@ elseif(ROOT_ARCHITECTURE MATCHES macosx)
+@@ -88,6 +88,8 @@ elseif(ROOT_ARCHITECTURE MATCHES macosx)
    set(ROOT_CLING_TARGET "X86")
  elseif(ROOT_ARCHITECTURE MATCHES win32)
    set(ROOT_CLING_TARGET "X86")

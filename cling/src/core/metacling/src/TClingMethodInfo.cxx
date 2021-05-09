@@ -77,7 +77,7 @@ public:
          clang::CXXConstructorDecl* base_ctor = llvm::dyn_cast<clang::CXXConstructorDecl>(shadow_ctor->getTargetDecl());
          if (base_ctor) {
             if (base_ctor->isImplicit()) return nullptr; // skip as Cling will generate these anyway
-            return fInterp->getSema().findInheritingConstructor(base_ctor->getLocStart(), base_ctor, shadow_ctor);
+            return fInterp->getSema().findInheritingConstructor(base_ctor->getSourceRange().getBegin(), base_ctor, shadow_ctor);
          }
       } else {
          clang::UsingShadowDecl* shadow_decl = llvm::dyn_cast<clang::UsingShadowDecl>(*fIter);
@@ -572,7 +572,7 @@ long TClingMethodInfo::Property() const
    }
    if (const clang::CXXMethodDecl *md =
             llvm::dyn_cast<clang::CXXMethodDecl>(fd)) {
-      if (md->getTypeQualifiers() & clang::Qualifiers::Const) {
+      if (md->getMethodQualifiers().hasConst()) {
          property |= kIsConstant | kIsConstMethod;
       }
       if (md->isVirtual()) {

@@ -27,11 +27,14 @@
 #include "clang/Serialization/Module.h"
 
 #include "llvm/ADT/Hashing.h"
-#include "llvm/Bitcode/BitstreamWriter.h"
+#include "llvm/Bitstream/BitstreamWriter.h"
 #include "llvm/Support/FileSystem.h"
 #include "llvm/Support/MemoryBuffer.h"
 #include "llvm/Support/Path.h"
 #include "llvm/Support/raw_ostream.h"
+
+#include <fstream>
+#include <sstream>
 
 
 namespace CppyyLegacy {
@@ -86,11 +89,14 @@ void TClingRdictModuleFileExtension::Writer::writeExtensionContents(clang::Sema 
          Stream.EmitRecordWithBlob(Abbrev, Record, FileName);
 
          uint64_t Record1[] = {FIRST_EXTENSION_RECORD_ID + 1};
-         auto MBOrErr = MemoryBuffer::getFile(FilePath);
-         MemoryBuffer &MB = *MBOrErr.get();
-         Stream.EmitRecordWithBlob(Abbrev1, Record1, MB.getBuffer());
+         std::ifstream fp(FilePath, std::ios::binary);
+         std::ostringstream os;
+         os << fp.rdbuf();
+         Stream.EmitRecordWithBlob(Abbrev1, Record1, StringRef(os.str()));
+         fp.close();
 
-         llvm::sys::fs::remove(FilePath);
+         EC = llvm::sys::fs::remove(FilePath);
+         assert(!EC && "Unable to close _rdict file");
       }
    }
 }
@@ -106,7 +112,7 @@ TClingRdictModuleFileExtension::Reader::Reader(clang::ModuleFileExtension *Ext, 
    llvm::SmallVector<uint64_t, 4> Record;
    llvm::StringRef CurrentRdictName;
    while (true) {
-      llvm::BitstreamEntry Entry = Stream.advanceSkippingSubblocks();
+      llvm::BitstreamEntry Entry = llvm::cantFail(Stream.advanceSkippingSubblocks());
       switch (Entry.Kind) {
       case llvm::BitstreamEntry::SubBlock:
       case llvm::BitstreamEntry::EndBlock:
@@ -117,7 +123,7 @@ TClingRdictModuleFileExtension::Reader::Reader(clang::ModuleFileExtension *Ext, 
 
       Record.clear();
       llvm::StringRef Blob;
-      unsigned RecCode = Stream.readRecord(Entry.ID, Record, &Blob);
+      unsigned RecCode = llvm::cantFail(Stream.readRecord(Entry.ID, Record, &Blob));
       using namespace clang::serialization;
       switch (RecCode) {
       case FIRST_EXTENSION_RECORD_ID: {
@@ -127,7 +133,7 @@ TClingRdictModuleFileExtension::Reader::Reader(clang::ModuleFileExtension *Ext, 
       case FIRST_EXTENSION_RECORD_ID + 1: {
          // FIXME: Remove the string copy in fPendingRdicts.
          std::string ResolvedFileName
-            = CppyyLegacy::TMetaUtils::GetRealPath(Mod.FileName);
+            = TMetaUtils::GetRealPath(Mod.FileName);
          llvm::StringRef ModDir = llvm::sys::path::parent_path(ResolvedFileName);
          llvm::SmallString<255> FullRdictName = ModDir;
          llvm::sys::path::append(FullRdictName, CurrentRdictName);

@@ -22,7 +22,7 @@ diff --git a/src/interpreter/cling/lib/Interpreter/LookupHelper.cpp b/src/interp
 index a863eb7db1..5dacfdc59f 100644
 --- a/src/interpreter/cling/lib/Interpreter/LookupHelper.cpp
 +++ b/src/interpreter/cling/lib/Interpreter/LookupHelper.cpp
-@@ -894,6 +894,148 @@ namespace cling {
+@@ -907,6 +907,148 @@ namespace cling {
      return 0;
    }
  
@@ -128,7 +128,7 @@ index a863eb7db1..5dacfdc59f 100644
 +                  if (!QT.isNull() && QT.getTypePtr()) {
 +                     if (auto TST = dyn_cast<TemplateSpecializationType>(QT.getTypePtr()))
 +                        return TST->getTemplateName().getAsTemplateDecl();
-+                     if (auto DPT = dyn_cast<DependentNameType>(QT.getTypePtr()))
++                     if (dyn_cast<DependentNameType>(QT.getTypePtr()))
 +                        return true;
 +                 }
 +              }
@@ -158,7 +158,7 @@ index a863eb7db1..5dacfdc59f 100644
 +                 if (!QT.isNull() && QT.getTypePtr()) {
 +                    if (auto TST = dyn_cast<TemplateSpecializationType>(QT.getTypePtr()))
 +                       return TST->getTemplateName().getAsTemplateDecl();
-+                    if (auto DPT = dyn_cast<DependentNameType>(QT.getTypePtr()))
++                    if (dyn_cast<DependentNameType>(QT.getTypePtr()))
 +                       return true;
 +                 }
 +             }

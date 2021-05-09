@@ -2,7 +2,7 @@ diff --git a/src/interpreter/llvm/src/tools/clang/lib/CodeGen/MicrosoftCXXABI.cp
 index 1bd2937e47..108b5d6e66 100644
 --- a/src/interpreter/llvm/src/tools/clang/lib/CodeGen/MicrosoftCXXABI.cpp
 +++ b/src/interpreter/llvm/src/tools/clang/lib/CodeGen/MicrosoftCXXABI.cpp
-@@ -506,10 +506,11 @@ public:
+@@ -508,10 +508,11 @@ public:
          getImageRelativeType(CGM.Int8PtrTy),
          getImageRelativeType(getClassHierarchyDescriptorType()->getPointerTo()),
          getImageRelativeType(CompleteObjectLocatorType),
@@ -15,7 +15,7 @@ index 1bd2937e47..108b5d6e66 100644
      CompleteObjectLocatorType->setBody(FieldTypesRef);
      return CompleteObjectLocatorType;
    }
-@@ -3662,17 +3663,18 @@ MSRTTIBuilder::getCompleteObjectLocator(const VPtrInfo &Info) {
+@@ -3722,17 +3723,18 @@ MSRTTIBuilder::getCompleteObjectLocator(const VPtrInfo &Info) {
  
    // Initialize the CompleteObjectLocator.
    llvm::Constant *Fields[] = {

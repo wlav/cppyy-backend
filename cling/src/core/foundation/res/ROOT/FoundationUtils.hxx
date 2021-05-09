@@ -75,8 +75,14 @@ namespace FoundationUtils {
    ///\returns the sysconfig directory in the installation.
    const std::string& GetEtcDir();
 
-   } // namespace FoundationUtils
+   ///\returns true if lowercase \c value is 1, on, true, 0, off, false
+   bool CanConvertEnvValueToBool(const std::string& value);
 
+   ///\returns true if the lowercase string is 1, on, true; false if 0, off,
+   /// false
+   bool ConvertEnvValueToBool(const std::string& value);
+
+   } // namespace FoundationUtils
 } // namespace CppyyLegacy
 
 #endif // ROOT_CORE_FOUNDATION_FOUNDATIONUTILS_HXX

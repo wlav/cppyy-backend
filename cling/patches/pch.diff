@@ -2,8 +2,8 @@ diff --git a/src/interpreter/cling/lib/Interpreter/CIFactory.cpp b/src/interpret
 index 80d1b1c52a..58edb8c26d 100644
 --- a/src/interpreter/cling/lib/Interpreter/CIFactory.cpp
 +++ b/src/interpreter/cling/lib/Interpreter/CIFactory.cpp
-@@ -52,6 +52,8 @@
- #include <ctime>
+@@ -53,6 +53,8 @@
+ #include <limits>
  #include <memory>
  
 +#include <sys/stat.h>
@@ -11,7 +11,7 @@ index 80d1b1c52a..58edb8c26d 100644
  using namespace clang;
  using namespace cling;
  
-@@ -337,7 +339,27 @@ namespace {
+@@ -342,7 +344,27 @@ namespace {
        }
  
    #ifdef CLING_OSX_SYSROOT

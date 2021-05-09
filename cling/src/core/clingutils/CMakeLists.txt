@@ -78,6 +78,7 @@ foreach(file libc.modulemap cuda.modulemap std.modulemap module.modulemap.build
         Interpreter/DynamicLookupRuntimeUniverse.h
         Interpreter/DynamicLookupLifetimeHandler.h
         Interpreter/Exception.h
+        Interpreter/RuntimeOptions.h
         Interpreter/RuntimePrintValue.h
         Interpreter/RuntimeUniverse.h
         Interpreter/Value.h)

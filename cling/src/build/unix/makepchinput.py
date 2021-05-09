@@ -49,7 +49,6 @@ def getParams():
                                                 or flag[0:4] == '-Wno']
    if '-Wno-noexcept-type' in cxxflagsNoW:
       cxxflagsNoW.remove('-Wno-noexcept-type')
-   #print (', '.join(cxxflagsNoW))
 
    return rootSrcDir, modules, expPyROOT == 'ON', clingetpchList, cxxflagsNoW
 

@@ -29,6 +29,7 @@
 #include "clang/Parse/Parser.h"
 #include "clang/Sema/Lookup.h"
 #include "clang/Sema/Scope.h"
+#include "clang/Sema/ScopeInfo.h"
 
 #include "llvm/Support/FileSystem.h"
 #include "llvm/Support/Path.h"
@@ -100,7 +101,8 @@ void TClingCallbacks::InclusionDirective(clang::SourceLocation sLoc/*HashLoc*/,
                                          const clang::FileEntry *FE,
                                          llvm::StringRef /*SearchPath*/,
                                          llvm::StringRef /*RelativePath*/,
-                                         const clang::Module * Imported) {
+                                         const clang::Module * Imported,
+                                         clang::SrcMgr::CharacteristicKind FileType) {
    // We found a module. Do not try to do anything else.
    Sema &SemaR = m_Interpreter->getSema();
    if (Imported) {
@@ -805,7 +807,7 @@ void TCling__FindLoadedLibraries(std::vector<std::pair<uint32_t, std::string>> &
    static std::unordered_set<std::string> alreadyLookedPath;
    cling::DynamicLibraryManager* dyLibManager = interpreter.getDynamicLibraryManager();
 
-   const auto &searchPaths = dyLibManager->getSearchPath();
+   const auto &searchPaths = dyLibManager->getSearchPaths();
    for (const cling::DynamicLibraryManager::SearchPathInfo &Info : searchPaths) {
       if (!Info.IsUser && !searchSystem)
          continue;

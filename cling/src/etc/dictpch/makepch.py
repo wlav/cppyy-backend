@@ -91,14 +91,7 @@ def makepch():
    else:
       rootbuildFlag="-rootbuild"
 
-
-   cppFlags = getCppFlags(cppflagsFilename)
-
-   if "-isystem" in cppFlags:
-      idx = cppFlags.index("-isystem")
-      del cppFlags[idx: idx+2]
-
-   cppflagsList=["-D__CLING__",
+   macrosList=["-D__CLING__",
                  "-D__STDC_LIMIT_MACROS",
                  "-D__STDC_CONSTANT_MACROS",
                  "-DROOT_PCH",
@@ -106,9 +99,9 @@ def makepch():
                  "-I%s" %os.path.join(rootdir,"etc"),
                  "-I%s" %os.path.join(rootdir,cfgdir),
                  "-I%s" %os.path.join(rootdir,"etc","cling"),
-                ] + cppFlags
+                ]
 
-   cppflagsList.append(extraCppflags)
+   macrosList.append(extraCppflags)
 
    if sys.platform == 'win32':
       allheadersFilename.replace("\\","/")
@@ -123,7 +116,16 @@ def makepch():
               "-f", outf,
               "-noDictSelection",
              ]
-   command += cppflagsList
+   command += macrosList
+   cppFlagsList = getCppFlags(cppflagsFilename)
+   try:
+      cppFlagsList.remove("-isystem")
+   except ValueError:   # "-isystem" not in list
+      pass
+
+   command.append("-cxxflags")
+   command.append(" ".join(cppFlagsList))
+
    command.append(allheadersFilename)
    command += extraHeadersList
    command.append(alllinkdefsFilename)

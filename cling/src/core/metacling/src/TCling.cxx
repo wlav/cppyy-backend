@@ -94,7 +94,10 @@ clang/LLVM technology.
 #include "clang/Lex/PreprocessorOptions.h"
 #include "clang/Sema/Lookup.h"
 #include "clang/Sema/Sema.h"
+#include "clang/Sema/ScopeInfo.h"
 #include "clang/Parse/Parser.h"
+#include "clang/Serialization/ASTReader.h"
+#include "clang/Serialization/GlobalModuleIndex.h"
 
 #include "cling/Interpreter/ClangInternalState.h"
 #include "cling/Interpreter/DynamicLibraryManager.h"
@@ -1107,25 +1110,129 @@ static bool IsFromRootCling() {
   return foundSymbol;
 }
 
-static std::string GetModuleNameAsString(clang::Module *M, const clang::Preprocessor &PP)
+static bool FileExists(const char *file)
+{
+   struct stat buf;
+   return (stat(file, &buf) == 0);
+}
+
+/// Checks if there is an ASTFile on disk for the given module \c M.
+static bool HasASTFileOnDisk(clang::Module *M, const clang::Preprocessor &PP, std::string *FullFileName = nullptr)
 {
    const HeaderSearchOptions &HSOpts = PP.getHeaderSearchInfo().getHeaderSearchOpts();
 
    std::string ModuleFileName;
    if (!HSOpts.PrebuiltModulePaths.empty())
       // Load the module from *only* in the prebuilt module path.
-      ModuleFileName = PP.getHeaderSearchInfo().getModuleFileName(M->Name, /*ModuleMapPath*/"", /*UsePrebuiltPath*/ true);
-   if (ModuleFileName.empty()) return "";
+      ModuleFileName = PP.getHeaderSearchInfo().getPrebuiltModuleFileName(M->Name);
+   if (FullFileName)
+      *FullFileName = ModuleFileName;
 
-   std::string ModuleName = llvm::sys::path::filename(ModuleFileName);
-   // Return stem of the filename
-   return std::string(llvm::sys::path::stem(ModuleName));
+   return !ModuleFileName.empty();
 }
 
-static bool FileExists(const char *file)
+static bool HaveFullGlobalModuleIndex = false;
+static GlobalModuleIndex *loadGlobalModuleIndex(cling::Interpreter &interp)
 {
-   struct stat buf;
-   return (stat(file, &buf) == 0);
+   CompilerInstance &CI = *interp.getCI();
+   Preprocessor &PP = CI.getPreprocessor();
+   auto ModuleManager = CI.getModuleManager();
+   assert(ModuleManager);
+   // StringRef ModuleIndexPath = HSI.getModuleCachePath();
+   // HeaderSearch& HSI = PP.getHeaderSearchInfo();
+   // HSI.setModuleCachePath(TROOT::GetLibDir().Data());
+   std::string ModuleIndexPath = TROOT::GetLibDir().Data();
+   if (ModuleIndexPath.empty())
+      return nullptr;
+   // Get an existing global index. This loads it if not already loaded.
+   ModuleManager->resetForReload();
+   ModuleManager->loadGlobalIndex();
+   GlobalModuleIndex *GlobalIndex = ModuleManager->getGlobalIndex();
+
+   // For finding modules needing to be imported for fixit messages,
+   // we need to make the global index cover all modules, so we do that here.
+   if (!GlobalIndex && !HaveFullGlobalModuleIndex) {
+      ModuleMap &MMap = PP.getHeaderSearchInfo().getModuleMap();
+      bool RecreateIndex = false;
+      for (ModuleMap::module_iterator I = MMap.module_begin(), E = MMap.module_end(); I != E; ++I) {
+         Module *TheModule = I->second;
+         // We want the index only of the prebuilt modules.
+         if (!HasASTFileOnDisk(TheModule, PP))
+            continue;
+         LoadModule(TheModule->Name, interp);
+         RecreateIndex = true;
+      }
+      if (RecreateIndex) {
+         cling::Interpreter::PushTransactionRAII deserRAII(&interp);
+         clang::GlobalModuleIndex::UserDefinedInterestingIDs IDs;
+
+         struct DefinitionFinder : public RecursiveASTVisitor<DefinitionFinder> {
+            DefinitionFinder(clang::GlobalModuleIndex::UserDefinedInterestingIDs& IDs,
+                             clang::TranslationUnitDecl* TU) : DefinitionIDs(IDs) {
+               TraverseDecl(TU);
+            }
+            bool VisitNamedDecl(NamedDecl *ND) {
+               if (!ND->isFromASTFile())
+                  return true;
+               if (!ND->getIdentifier())
+                  return true;
+
+               if (ND->getAccess() == AS_protected || ND->getAccess() == AS_private)
+                  return true;
+
+               if (TagDecl *TD = llvm::dyn_cast<TagDecl>(ND)) {
+                  if (TD->isCompleteDefinition())
+                     Register(TD);
+               } else if (NamespaceDecl *NSD = llvm::dyn_cast<NamespaceDecl>(ND)) {
+                  Register(NSD, /*AddSingleEntry=*/ false);
+               }
+               else if (TypedefNameDecl *TND = dyn_cast<TypedefNameDecl>(ND))
+                  Register(TND);
+               // FIXME: Add the rest...
+               return true; // continue decending
+            }
+         private:
+            clang::GlobalModuleIndex::UserDefinedInterestingIDs &DefinitionIDs;
+            void Register(const NamedDecl* ND, bool AddSingleEntry = true) {
+               assert(ND->isFromASTFile());
+               // FIXME: All decls should have an owning module once rootcling
+               // updates its generated decls from within the LookupHelper & co.
+               if (!ND->hasOwningModule()) {
+#ifndef NDEBUG
+                  SourceManager &SM = ND->getASTContext().getSourceManager();
+                  SourceLocation Loc = ND->getLocation();
+                  const FileEntry *FE = SM.getFileEntryForID(SM.getFileID(Loc));
+                  (void)FE;
+                  assert(FE->getName().contains("input_line_"));
+#endif
+                  return;
+               }
+
+               Module *OwningModule = ND->getOwningModule()->getTopLevelModule();
+               assert(OwningModule);
+               assert(!ND->getName().empty() && "Empty name");
+               if (AddSingleEntry && DefinitionIDs.count(ND->getName()))
+                  return;
+               // FIXME: The FileEntry in not stable to serialize.
+               // FIXME: We might end up with many times with the same module.
+               // FIXME: We might end up two modules containing a definition.
+               // FIXME: What do we do if no definition is found.
+               DefinitionIDs[ND->getName()].push_back(OwningModule->getASTFile());
+            }
+         };
+         DefinitionFinder defFinder(IDs, CI.getASTContext().getTranslationUnitDecl());
+
+         llvm::cantFail(GlobalModuleIndex::writeIndex(CI.getFileManager(),
+                                                      CI.getPCHContainerReader(),
+                                                      ModuleIndexPath,
+                                                      &IDs));
+         ModuleManager->resetForReload();
+         ModuleManager->loadGlobalIndex();
+         GlobalIndex = ModuleManager->getGlobalIndex();
+      }
+      HaveFullGlobalModuleIndex = true;
+   }
+   return GlobalIndex;
 }
 
 static void RegisterCxxModules(cling::Interpreter &clingInterp)
@@ -1135,6 +1242,12 @@ static void RegisterCxxModules(cling::Interpreter &clingInterp)
       // Setup core C++ modules if we have any to setup.
 
       // Load libc and stl first.
+      // Load vcruntime module for windows
+#ifdef R__WIN32
+   LoadModule("vcruntime", clingInterp);
+   LoadModule("services", clingInterp);
+#endif
+
 #ifdef R__MACOSX
    LoadModule("Darwin", clingInterp);
 #else
@@ -1153,56 +1266,100 @@ static void RegisterCxxModules(cling::Interpreter &clingInterp)
                                            "CoreLegacy",
                                            "RIOLegacy"};
 
-   // FIXME: Reducing those will let us be less dependent on rootmap files
-   static constexpr std::array<const char *, 3> ExcludeModules = {
-      {"Rtools", "RSQLite", "RInterface"}};
-
    LoadModules(CoreModules, clingInterp);
 
    // Take this branch only from ROOT because we don't need to preload modules in rootcling
    if (!IsFromRootCling()) {
-      // Dynamically get all the modules and load them if they are not in core modules
       clang::CompilerInstance &CI = *clingInterp.getCI();
-      clang::ModuleMap &moduleMap = CI.getPreprocessor().getHeaderSearchInfo().getModuleMap();
+      GlobalModuleIndex *GlobalIndex = nullptr;
+      // Conservatively enable platform by platform.
+      bool supportedPlatform =
+#ifdef R__LINUX
+         true
+#elif defined(R__MACOSX)
+         true
+#else // Windows
+         false
+#endif
+         ;
+      // Allow forcefully enabling/disabling the GMI.
+      llvm::Optional<std::string> envUseGMI = llvm::sys::Process::GetEnv("ROOT_USE_GMI");
+      if (envUseGMI.hasValue()) {
+         if (!envUseGMI->empty() && !CppyyLegacy::FoundationUtils::CanConvertEnvValueToBool(*envUseGMI))
+            CppyyLegacy::Warning("TCling__RegisterCxxModules",
+                      "Cannot convert '%s' to bool, setting to false!",
+                      envUseGMI->c_str());
+
+         bool value = envUseGMI->empty() || CppyyLegacy::FoundationUtils::ConvertEnvValueToBool(*envUseGMI);
+
+         if (supportedPlatform == value)
+            CppyyLegacy::Warning("TCling__RegisterCxxModules", "Global module index is%sused already!",
+                     (value) ? " " :" not ");
+         supportedPlatform = value;
+      }
+
+      if (supportedPlatform) {
+         loadGlobalModuleIndex(clingInterp);
+         // FIXME: The ASTReader still calls loadGlobalIndex and loads the file
+         // We should investigate how to suppress it completely.
+         GlobalIndex = CI.getModuleManager()->getGlobalIndex();
+      }
+
+      llvm::StringSet<> KnownModuleFileNames;
+      if (GlobalIndex)
+         GlobalIndex->getKnownModuleFileNames(KnownModuleFileNames);
+
       clang::Preprocessor &PP = CI.getPreprocessor();
-      std::vector<std::string> ModulesPreloaded;
-      for (auto I = moduleMap.module_begin(), E = moduleMap.module_end(); I != E; ++I) {
+      std::vector<std::string> PendingModules;
+      PendingModules.reserve(256);
+      ModuleMap &MMap = PP.getHeaderSearchInfo().getModuleMap();
+      for (auto I = MMap.module_begin(), E = MMap.module_end(); I != E; ++I) {
          clang::Module *M = I->second;
          assert(M);
 
-         std::string ModuleName = GetModuleNameAsString(M, PP);
-         if (!ModuleName.empty() &&
-             std::find(CoreModules.begin(), CoreModules.end(), ModuleName) == CoreModules.end() &&
-             std::find(ExcludeModules.begin(), ExcludeModules.end(), ModuleName) ==
-                ExcludeModules.end()) {
-            if (M->IsSystem && !M->IsMissingRequirement)
-               LoadModule(ModuleName, clingInterp);
-            else if (!M->IsSystem && !M->IsMissingRequirement)
-               ModulesPreloaded.push_back(ModuleName);
+         // We want to load only already created modules.
+         std::string FullASTFilePath;
+         if (!HasASTFileOnDisk(M, PP, &FullASTFilePath))
+            continue;
+
+         if (GlobalIndex && KnownModuleFileNames.count(FullASTFilePath))
+            continue;
+
+         if (M->IsMissingRequirement)
+            continue;
+
+         if (GlobalIndex)
+            LoadModule(M->Name, clingInterp);
+         else {
+            // FIXME: We may be able to remove those checks as cling::loadModule
+            // checks if a module was alredy loaded.
+            if (std::find(CoreModules.begin(), CoreModules.end(), M->Name) != CoreModules.end())
+               continue; // This is a core module which was already loaded.
+
+            // Load system modules now and delay the other modules after we have
+            // loaded all system ones.
+            if (M->IsSystem)
+               LoadModule(M->Name, clingInterp);
+            else
+               PendingModules.push_back(M->Name);
          }
       }
-      LoadModules(ModulesPreloaded, clingInterp);
+      LoadModules(PendingModules, clingInterp);
    }
 
    // Check that the gROOT macro was exported by any core module.
    assert(clingInterp.getMacro("gROOT") && "Couldn't load gROOT macro?");
 
-   // C99 decided that it's a very good idea to name a macro `I` (the letter I).
-   // This seems to screw up nearly all the template code out there as `I` is
-   // common template parameter name and iterator variable name.
-   // Let's follow the GCC recommendation and undefine `I` in case any of the
-   // core modules have defined it:
-   // https://www.gnu.org/software/libc/manual/html_node/Complex-Numbers.html
-   clingInterp.declare("#ifdef I\n #undef I\n #endif\n");
-
-   // libc++ complex.h has #define complex _Complex. Give preference to the one
-   // in std.
-   clingInterp.declare("#ifdef complex\n #undef complex\n #endif\n");
-
-   // These macros are from loading R related modules, which conflict with
+   // `ERROR` and `PI` are from loading R related modules, which conflict with
    // user's code.
-   clingInterp.declare("#ifdef PI\n #undef PI\n #endif\n");
-   clingInterp.declare("#ifdef ERROR\n #undef ERROR\n #endif\n");
+   clingInterp.declare(R"CODE(
+#ifdef PI
+# undef PI
+#endif
+#ifdef ERROR
+# undef ERROR
+#endif
+                       )CODE");
 }
 
 static void RegisterPreIncludedHeaders(cling::Interpreter &clingInterp)
@@ -1477,7 +1634,7 @@ TCling::TCling(const char *name, const char *title, const char* const argv[])
    }
 
    // Enable ClinG's DefinitionShadower for ROOT.
-   fInterpreter->allowRedefinition();
+   fInterpreter->getRuntimeOptions().AllowRedefinition = 1;
 
    // Attach cling callbacks last; they might need TROOT::fInterpreter
    // and should thus not be triggered during the equivalent of
@@ -1487,7 +1644,7 @@ TCling::TCling(const char *name, const char *title, const char* const argv[])
    fClingCallbacks = clingCallbacks.get();
    fClingCallbacks->SetAutoParsingSuspended(fIsAutoParsingSuspended);
    fInterpreter->setCallbacks(std::move(clingCallbacks));
- 
+
    // helper for lambdas
    if (!fromRootCling) { fInterpreter->declare(
       "#ifndef CLING_INTERNAL_DECLARE_FT\n"
@@ -3102,6 +3259,7 @@ Bool_t TCling::IsLoaded(const char* filename) const
                                               /*RequestingModule*/ 0,
                                               /*SuggestedModule*/ 0,
                                               /*IsMapped*/ 0,
+                                              /*IsFrameworkFound*/ nullptr,
                                               /*SkipCache*/ false,
                                               /*BuildSystemModule*/ false,
                                               /*OpenFile*/ false,
@@ -4397,7 +4555,7 @@ TInterpreter::DeclId_t TCling::GetDataMember(ClassInfo_t *opaque_cl, const char 
    DeclarationName DName = &SemaR.Context.Idents.get(name);
 
    LookupResult R(SemaR, DName, SourceLocation(), Sema::LookupOrdinaryName,
-                  Sema::ForRedeclaration);
+                  Sema::ForExternalRedeclaration);
 
    // Could trigger deserialization of decls.
    cling::Interpreter::PushTransactionRAII RAII(GetInterpreterImpl());
@@ -4649,8 +4807,10 @@ void TCling::GetFunctionOverloads(ClassInfo_t *cl, const char *funcname,
       DName = &Ctx.Idents.get(funcname);
    }
 
+   // NotForRedeclaration: we want to find names in inline namespaces etc.
    clang::LookupResult R(S, DName, clang::SourceLocation(),
-                         Sema::LookupOrdinaryName, clang::Sema::ForRedeclaration);
+                         Sema::LookupOrdinaryName, clang::Sema::NotForRedeclaration);
+   R.suppressDiagnostics(); // else lookup with NotForRedeclaration will check access etc
    S.LookupQualifiedName(R, const_cast<DeclContext*>(DeclCtx));
    if (R.empty()) return;
    R.resolveKind();
@@ -4661,6 +4821,11 @@ void TCling::GetFunctionOverloads(ClassInfo_t *cl, const char *funcname,
           = llvm::dyn_cast<const clang::FunctionDecl>(*IR)) {
          if (!FD->getDescribedFunctionTemplate()) {
             res.push_back(FD);
+         }
+      } else if (const auto *USD = llvm::dyn_cast<const clang::UsingShadowDecl>(*IR)) {
+         // FIXME: multi-level using
+         if (llvm::isa<clang::FunctionDecl>(USD->getTargetDecl())) {
+            res.push_back(USD);
          }
       }
    }
@@ -5762,8 +5927,7 @@ static StringRef GetGnuHashSection(llvm::object::ObjectFile *file) {
       StringRef name;
       S.getName(name);
       if (name == ".gnu.hash") {
-         StringRef content;
-         S.getContents(content);
+         StringRef content = *(S.getContents());
          return content;
       }
    }
@@ -7966,7 +8130,7 @@ Long_t TCling::FuncTempInfo_Property(FuncTempInfo_t *ft_info) const
    const clang::FunctionDecl *fd = ft->getTemplatedDecl();
    if (const clang::CXXMethodDecl *md =
        llvm::dyn_cast<clang::CXXMethodDecl>(fd)) {
-      if (md->getTypeQualifiers() & clang::Qualifiers::Const) {
+      if (md->getMethodQualifiers().hasConst()) {
          property |= kIsConstant | kIsConstMethod;
       }
       if (md->isVirtual()) {

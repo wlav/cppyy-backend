@@ -72,7 +72,6 @@ const char *shortHelp =
 #include "clang/AST/CXXInheritance.h"
 #include "clang/AST/Mangle.h"
 #include "clang/Basic/Diagnostic.h"
-#include "clang/Basic/MemoryBufferCache.h"
 #include "clang/Frontend/CompilerInstance.h"
 #include "clang/Frontend/FrontendActions.h"
 #include "clang/Frontend/FrontendDiagnostic.h"
@@ -84,7 +83,8 @@ const char *shortHelp =
 #include "clang/Serialization/ASTWriter.h"
 #include "cling/Utils/AST.h"
 
-#include "llvm/Bitcode/BitstreamWriter.h"
+#include "llvm/ADT/StringRef.h"
+
 #include "llvm/Support/CommandLine.h"
 #include "llvm/Support/Path.h"
 #include "llvm/Support/PrettyStackTrace.h"
@@ -1964,13 +1964,13 @@ static bool InjectModuleUtilHeader(const char *argv0,
 /// If module is not a null pointer, we only write the given module to the
 /// given file and not the whole AST.
 /// Returns true if the AST was successfully written.
-static bool WriteAST(StringRef fileName, clang::CompilerInstance *compilerInstance, StringRef iSysRoot,
+static bool WriteAST(llvm::StringRef fileName, clang::CompilerInstance *compilerInstance, llvm::StringRef iSysRoot,
                      clang::Module *module = nullptr)
 {
    // From PCHGenerator and friends:
    llvm::SmallVector<char, 128> buffer;
    llvm::BitstreamWriter stream(buffer);
-   clang::ASTWriter writer(stream, buffer, compilerInstance->getPCMCache(), /*Extensions=*/{});
+   clang::ASTWriter writer(stream, buffer, compilerInstance->getModuleCache(), /*Extensions=*/{});
    std::unique_ptr<llvm::raw_ostream> out =
       compilerInstance->createOutputFile(fileName, /*Binary=*/true,
                                          /*RemoveFileOnSignal=*/false, /*InFile*/ "",
@@ -3481,7 +3481,8 @@ public:
    virtual void InclusionDirective(clang::SourceLocation /*HashLoc*/, const clang::Token & /*IncludeTok*/,
                                    llvm::StringRef FileName, bool IsAngled, clang::CharSourceRange /*FilenameRange*/,
                                    const clang::FileEntry * /*File*/, llvm::StringRef /*SearchPath*/,
-                                   llvm::StringRef /*RelativePath*/, const clang::Module * /*Imported*/)
+                                   llvm::StringRef /*RelativePath*/, const clang::Module * /*Imported*/,
+                                   clang::SrcMgr::CharacteristicKind /*FileType*/)
    {
       if (isLocked) return;
       if (IsAngled) return;
@@ -3706,9 +3707,6 @@ gOptDictionaryFileName(llvm::cl::Positional, llvm::cl::Required,
 static llvm::cl::opt<bool>
 gOptC("c", llvm::cl::desc("Deprecated, legacy flag which is ignored."),
      llvm::cl::cat(gRootclingOptions));
-static llvm::cl::opt<bool>
-gOptP("p", llvm::cl::desc("Deprecated, legacy flag which is ignored."),
-     llvm::cl::cat(gRootclingOptions));
 static llvm::cl::list<std::string>
 gOptRootmapLibNames("rml", llvm::cl::ZeroOrMore,
                    llvm::cl::desc("Generate rootmap file."),
@@ -3869,7 +3867,7 @@ static bool ModuleContainsHeaders(TModuleGenerator &modGen, clang::Module *modul
 ////////////////////////////////////////////////////////////////////////////////
 /// Check moduleName validity from modulemap. Check if this module is defined or not.
 static bool CheckModuleValid(TModuleGenerator &modGen, const std::string &resourceDir, cling::Interpreter &interpreter,
-                           StringRef LinkdefPath, const std::string &moduleName)
+                           llvm::StringRef LinkdefPath, const std::string &moduleName)
 {
 #ifdef __APPLE__
 
@@ -3882,7 +3880,7 @@ static bool CheckModuleValid(TModuleGenerator &modGen, const std::string &resour
    headerSearch.loadTopLevelSystemModules();
 
    // Actually lookup the module on the computed module name.
-   clang::Module *module = headerSearch.lookupModule(StringRef(moduleName));
+   clang::Module *module = headerSearch.lookupModule(llvm::StringRef(moduleName));
 
    // Inform the user and abort if we can't find a module with a given name.
    if (!module) {
@@ -4040,8 +4038,6 @@ int RootClingMain(int argc,
       fprintf(stderr, "warning: Please remove the deprecated flag -gccxml.\n");
    if (gOptC)
       fprintf(stderr, "warning: Please remove the deprecated flag -c.\n");
-   if (gOptP)
-      fprintf(stderr, "warning: Please remove the deprecated flag -p.\n");
    if (gOptIgnoreExistingDict)
       fprintf(stderr, "warning: Please remove the deprecated flag -r.\n");
 
@@ -4221,7 +4217,7 @@ int RootClingMain(int argc,
    bool isPCH = (dictpathname.rfind("allDict.cxx") != std::string::npos);
    std::string outputFile;
    // Data is in 'outputFile', therefore in the same scope.
-   StringRef moduleName;
+   llvm::StringRef moduleName;
    std::string vfsArg;
    // Adding -fmodules to the args will break lexing with __CINT__ defined,
    // and we actually do lex with __CINT__ and reuse this variable later,
@@ -4415,9 +4411,9 @@ int RootClingMain(int argc,
    // Process externally passed arguments if present.
    llvm::Optional<std::string> EnvOpt = llvm::sys::Process::GetEnv("EXTRA_CLING_ARGS");
    if (EnvOpt.hasValue()) {
-      StringRef Env(*EnvOpt);
+      llvm::StringRef Env(*EnvOpt);
       while (!Env.empty()) {
-         StringRef Arg;
+         llvm::StringRef Arg;
          std::tie(Arg, Env) = Env.split(' ');
          clingArgs.push_back(Arg.str());
       }
@@ -4528,7 +4524,7 @@ int RootClingMain(int argc,
       IgnoringPragmaHandler(const char* pragma):
          clang::PragmaNamespace(pragma) {}
       void HandlePragma(clang::Preprocessor &PP,
-                        clang::PragmaIntroducerKind Introducer,
+                        clang::PragmaIntroducer Introducer,
                         clang::Token &tok) {
          PP.DiscardUntilEndOfDirective();
       }

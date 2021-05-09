@@ -34,7 +34,7 @@ DEBUG_TESTBUILD = False
 TARBALL_CACHE_DIR = 'releases'
 ERR_RELEASE_NOT_FOUND = 2
 
-ROOT_VERSION = '6.20.04'
+ROOT_VERSION = '6.24.00'
 
 #
 ## released source pull and copy of Cling
@@ -109,10 +109,9 @@ except ImportError:
             res = os.system('patch -p1 < ' + self.fdiff)
             return res == 0
 
-
 for fdiff in ('typedef_of_private', 'optlevel2_forced', 'explicit_template', 'alias_template',
               'incomplete_types', 'clang_printing', 'luhelper', 'improv_load',
-              'pch', 'win64rtti', 'win64', 'win64s2', 'locales', 'gcc10'):
+              'pch', 'win64rtti', 'win64', 'win64s2', 'locales'):
     fpatch = os.path.join('patches', fdiff+'.diff')
     print(' ==> applying patch:', fpatch)
     pset = patch.fromfile(fpatch)

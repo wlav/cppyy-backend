@@ -738,13 +738,13 @@ public:
    }
 
    void HandlePragma(clang::Preprocessor &PP,
-                     clang::PragmaIntroducerKind Introducer,
+                     clang::PragmaIntroducer Introducer,
                      clang::Token &tok) {
       // Handle a #pragma found by the Preprocessor.
 
       // check whether we care about the pragma - we are a named handler,
       // thus this could actually be transformed into an assert:
-      if (Introducer != clang::PIK_HashPragma) return; // only #pragma, not C-style.
+      if (Introducer.Kind != clang::PIK_HashPragma) return; // only #pragma, not C-style.
       if (!tok.getIdentifierInfo()) return; // must be "link"
       if (tok.getIdentifierInfo()->getName() != "extra_include") return;
 
@@ -787,13 +787,13 @@ public:
    }
 
    void HandlePragma(clang::Preprocessor &PP,
-                     clang::PragmaIntroducerKind Introducer,
+                     clang::PragmaIntroducer Introducer,
                      clang::Token &tok) {
       // Handle a #pragma found by the Preprocessor.
 
       // check whether we care about the pragma - we are a named handler,
       // thus this could actually be transformed into an assert:
-      if (Introducer != clang::PIK_HashPragma) return; // only #pragma, not C-style.
+      if (Introducer.Kind != clang::PIK_HashPragma) return; // only #pragma, not C-style.
       if (!tok.getIdentifierInfo()) return; // must be "link"
       if (tok.getIdentifierInfo()->getName() != "read") return;
 
@@ -833,13 +833,13 @@ public:
    }
 
    void HandlePragma(clang::Preprocessor &PP,
-                     clang::PragmaIntroducerKind Introducer,
+                     clang::PragmaIntroducer Introducer,
                      clang::Token &tok) {
       // Handle a #pragma found by the Preprocessor.
 
       // check whether we care about the pragma - we are a named handler,
       // thus this could actually be transformed into an assert:
-      if (Introducer != clang::PIK_HashPragma) return; // only #pragma, not C-style.
+      if (Introducer.Kind != clang::PIK_HashPragma) return; // only #pragma, not C-style.
       if (!tok.getIdentifierInfo()) return; // must be "link"
       if (tok.getIdentifierInfo()->getName() != "link") return;
 
@@ -938,13 +938,13 @@ public:
    }
 
    void HandlePragma(clang::Preprocessor &PP,
-                     clang::PragmaIntroducerKind Introducer,
+                     clang::PragmaIntroducer Introducer,
                      clang::Token &tok) {
       // Handle a #pragma found by the Preprocessor.
 
       // check whether we care about the pragma - we are a named handler,
       // thus this could actually be transformed into an assert:
-      if (Introducer != clang::PIK_HashPragma) return; // only #pragma, not C-style.
+      if (Introducer.Kind != clang::PIK_HashPragma) return; // only #pragma, not C-style.
       if (!tok.getIdentifierInfo()) return; // must be "link"
       if (tok.getIdentifierInfo()->getName() != "create") return;
 
