@@ -55,7 +55,10 @@ def getCppFlags(cppflagsFilename):
       pass
    cppFlags = [line[:-1].strip() for line in lines]
    if stdcxx:
+      if stdcxx == "20":
+         stdcxx = "2a"
       cppFlags.append("-std=c++"+stdcxx)
+
    return cppFlags
 
 
