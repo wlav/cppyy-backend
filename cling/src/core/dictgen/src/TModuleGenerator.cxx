@@ -80,7 +80,7 @@ TModuleGenerator::TModuleGenerator(CompilerInstance *CI,
 
    // Add a random string to the filename to avoid races
    llvm::SmallString<10> resultPath("%%%%%%%%%%");
-   llvm::sys::fs::createUniqueFile(resultPath.str(), resultPath);
+   llvm::sys::fs::getPotentiallyUniqueFileName(resultPath.str(), resultPath);
    fUmbrellaName = fModuleDirName + fDictionaryName + resultPath.c_str() + "_dictUmbrella.h";
    fContentName = fModuleDirName + fDictionaryName + resultPath.c_str() + "_dictContent.h";
 }
