@@ -1,3 +1,10 @@
+#ifndef WIN32
+#ifndef _CRT_SECURE_NO_WARNINGS
+// silence warnings about getenv, strncpy, etc.
+#define _CRT_SECURE_NO_WARNINGS
+#endif
+#endif
+
 // Bindings
 #include "capi.h"
 #include "cpp_cppyy.h"
@@ -2221,12 +2228,12 @@ Cppyy::TCppIndex_t Cppyy::GetNumEnumData(TCppEnum_t etype)
 
 std::string Cppyy::GetEnumDataName(TCppEnum_t etype, TCppIndex_t idata)
 {
-    return ((TEnumConstant*)((TEnum*)etype)->GetConstants()->At(idata))->GetName();
+    return ((TEnumConstant*)((TEnum*)etype)->GetConstants()->At((int)idata))->GetName();
 }
 
 long long Cppyy::GetEnumDataValue(TCppEnum_t etype, TCppIndex_t idata)
 {
-     TEnumConstant* ecst = (TEnumConstant*)((TEnum*)etype)->GetConstants()->At(idata);
+     TEnumConstant* ecst = (TEnumConstant*)((TEnum*)etype)->GetConstants()->At((int)idata);
      return (long long)ecst->GetValue();
 }
 
