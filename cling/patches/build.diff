@@ -12,3 +12,34 @@ index 39dc895cce..6d616cb354 100644
  set(CLING_LIBRARIES clingInterpreter;clingMetaProcessor;clingUtils CACHE STRING "")
  if (builtin_cling)
  
+diff --git a/src/interpreter/cling/lib/Interpreter/CIFactory.cpp b/src/interpreter/cling/lib/Interpreter/CIFactory.cpp
+index 1ab35553fa..b7c99ba281 100644
+--- a/src/interpreter/cling/lib/Interpreter/CIFactory.cpp
++++ b/src/interpreter/cling/lib/Interpreter/CIFactory.cpp
+@@ -419,7 +419,10 @@ namespace {
+       Opts.CXXExceptions = 1;
+     }
+ 
+-    //Opts.Modules = 1;
++// TODO: temporary hack, switching off modules for C++20, which is enabled
++// by default otherwise (yet not currently supported in cppyy-cling)
++    if (Opts.CPlusPlus2a)
++        Opts.Modules = 0;
+ 
+     // See test/CodeUnloading/PCH/VTables.cpp which implicitly compares clang
+     // to cling lang options. They should be the same, we should not have to
+@@ -824,12 +827,12 @@ static void stringifyPreprocSetting(PreprocessorOptions& PPOpts,
+     PPOpts.addMacroDef("__CLING__GNUC_MINOR__=" ClingStringify(__GNUC_MINOR__));
+ #elif defined(_MSC_VER)
+     PPOpts.addMacroDef("__CLING__MSVC__=" ClingStringify(_MSC_VER));
+-#if (_MSC_VER >= 1926)
++//#if (_MSC_VER >= 1926)
+     // FIXME: Silly workaround for cling not being able to parse the STL
+     //        headers anymore after the update of Visual Studio v16.7.0
+     //        To be checked/removed after the upgrade of LLVM & Clang
+     PPOpts.addMacroDef("__CUDACC__");
+-#endif
++//#endif
+ #endif
+ 
+ // https://gcc.gnu.org/onlinedocs/libstdc++/manual/using_dual_abi.html
