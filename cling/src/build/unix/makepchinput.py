@@ -508,7 +508,6 @@ def makePCHInput():
                (allLinkdefsContent, allLinkdefsFilename),
                (cppFlagsContent, cppFlagsFilename)))
 
-
    printModulesMessageOnScreen(selModules)
 
 if __name__ == "__main__":
