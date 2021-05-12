@@ -22,6 +22,18 @@ index f97c86032f..69321c5579 100644
      // Taken from a -O2 run of clang:
      CGOpts.DiscardValueNames = 1;
      CGOpts.OmitLeafFramePointer = 1;
+diff --git a/src/interpreter/llvm/src/tools/clang/lib/CodeGen/ModuleBuilder.cpp b/src/interpreter/llvm/src/tools/clang/lib/CodeGen/ModuleBuilder.cpp
+index 60cfd043da..26eae177dc 100644
+--- a/src/interpreter/llvm/src/tools/clang/lib/CodeGen/ModuleBuilder.cpp
++++ b/src/interpreter/llvm/src/tools/clang/lib/CodeGen/ModuleBuilder.cpp
+@@ -167,6 +167,7 @@ namespace clang {
+       Builder->WeakRefReferences.swap(OldBuilder->WeakRefReferences);
+ 
+       ((CXXABICtxSwapper&)*Builder->ABI).SwapCtx(*OldBuilder->ABI);
++      Builder->TBAA.swap(OldBuilder->TBAA);
+ 
+       return M.get();
+     }
 diff --git a/src/interpreter/cling/lib/Interpreter/IncrementalParser.cpp b/src/interpreter/cling/lib/Interpreter/IncrementalParser.cpp
 index 56692341b5..c21854e757 100644
 --- a/src/interpreter/cling/lib/Interpreter/IncrementalParser.cpp
