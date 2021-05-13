@@ -4957,6 +4957,8 @@ int CppyyLegacy::TMetaUtils::AST2SourceTools::PrepareArgsForFwdDecl(std::string&
             CppyyLegacy::TMetaUtils::GetFullyQualifiedTypeName(typeName,
                                                         theType,
                                                         interpreter);
+            if (nDecl->isParameterPack())
+                typeName += "... ";
          }
       }
       // Case 3: TemplateTemplate argument
