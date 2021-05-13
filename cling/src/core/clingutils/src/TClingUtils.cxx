@@ -3734,6 +3734,13 @@ void CppyyLegacy::TMetaUtils::GetNormalizedName(std::string &norm_name, const cl
    cling::Interpreter::PushTransactionRAII clingRAII(const_cast<cling::Interpreter*>(&interpreter));
    normalizedType.getAsStringInternal(normalizedNameStep1,policy);
 
+#ifdef _WIN32
+// TODO: somewhere deep inside clang printing, "char_traits" becomes "allocator"??
+    {auto apos = normalizedNameStep1.find("std::allocator<char>,std::allocator<char>");
+    if (apos != std::string::npos)
+        normalizedNameStep1.replace(5, 9, "char_traits");}
+#endif
+
    // Still remove the default template argument for STL container and
    // normalize the location and amount of white spaces.
    TClassEdit::TSplitType splitname(normalizedNameStep1.c_str(),(TClassEdit::EModType)(TClassEdit::kDropStlDefault | TClassEdit::kKeepOuterConst));
