@@ -3736,9 +3736,9 @@ void CppyyLegacy::TMetaUtils::GetNormalizedName(std::string &norm_name, const cl
 
 #ifdef _WIN32
 // TODO: somewhere deep inside clang printing, "char_traits" becomes "allocator"??
-    {auto apos = normalizedNameStep1.find("std::allocator<char>,std::allocator<char>");
+    {auto apos = normalizedNameStep1.find("std::allocator<char>, std::allocator<char>");
     if (apos != std::string::npos)
-        normalizedNameStep1.replace(5, 9, "char_traits");}
+        normalizedNameStep1.replace(apos+5, 9, "char_traits");}
 #endif
 
    // Still remove the default template argument for STL container and
