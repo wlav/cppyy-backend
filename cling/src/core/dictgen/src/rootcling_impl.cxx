@@ -2393,6 +2393,84 @@ bool ProcessAndAppendIfNotThere(const std::string &el,
 
 ////////////////////////////////////////////////////////////////////////////////
 
+static int TreatSingleTemplateArg(const clang::TemplateArgument& arg,
+                                  std::string& argFwdDecl,
+                                  const  cling::Interpreter& interpreter,
+                                  bool acceptStl=false)
+{
+   using namespace CppyyLegacy::TMetaUtils::AST2SourceTools;
+
+   // We do nothing in presence of ints, bools, templates.
+   // We should probably in presence of templates though...
+   if (clang::TemplateArgument::Type != arg.getKind()) return 0;
+
+   auto argQualType = arg.getAsType();
+
+   // Recursively remove all *
+   while (llvm::isa<clang::PointerType>(argQualType.getTypePtr())) argQualType = argQualType->getPointeeType();
+
+   auto argTypePtr = argQualType.getTypePtr();
+
+   // Bail out on enums
+   if (llvm::isa<clang::EnumType>(argTypePtr)){
+      return 1;
+   }
+
+   // If this is a built-in, just return: fwd decl not necessary.
+   if (llvm::isa<clang::BuiltinType>(argTypePtr)){
+      return 0;
+   }
+
+   // Treat typedefs which are arguments
+   if (auto tdTypePtr = llvm::dyn_cast<clang::TypedefType>(argTypePtr)) {
+      FwdDeclFromTypeDefNameDecl(*tdTypePtr->getDecl(), interpreter, argFwdDecl);
+      return 0;
+   }
+
+   if (auto argRecTypePtr = llvm::dyn_cast<clang::RecordType>(argTypePtr)){
+      // Now we cannot but have a RecordType
+      if (auto argRecDeclPtr = argRecTypePtr->getDecl()){
+         FwdDeclFromRcdDecl(*argRecDeclPtr,interpreter,argFwdDecl,acceptStl);
+      }
+      return 0;
+   }
+
+   return 1;
+}
+
+////////////////////////////////////////////////////////////////////////////////
+/// Convert a tmplt decl to its fwd decl
+
+static int FwdDeclIfTmplSpec(const clang::RecordDecl& recordDecl,
+                             const cling::Interpreter& interpreter,
+                             std::string& defString,
+                             const std::string &normalizedName)
+{
+   // If this is an explicit specialization, inject it into cling, too, such that it can have
+   // externalLexicalStorage, see TCling.cxx's ExtVisibleStorageAdder::VisitClassTemplateSpecializationDecl.
+   if (auto tmplSpecDeclPtr = llvm::dyn_cast<clang::ClassTemplateSpecializationDecl>(&recordDecl)) {
+      if (const auto *specDef = tmplSpecDeclPtr->getDefinition()) {
+         if (specDef->getTemplateSpecializationKind() != clang::TSK_ExplicitSpecialization)
+            return 0;
+         // normalizedName contains scope, no need to enclose in namespace!
+         for (auto arg : tmplSpecDeclPtr->getTemplateArgs().asArray()) {
+            std::string argFwdDecl;
+            int retCode = TreatSingleTemplateArg(arg, argFwdDecl, interpreter, /*acceptStl=*/false);
+            if (retCode != 0) { // A sign we must bail out
+               return retCode;
+            }
+            defString += argFwdDecl + '\n';
+         }
+         defString += "template <> class " + normalizedName + ';';
+         return 0;
+      }
+   }
+
+   return 0;
+}
+
+////////////////////////////////////////////////////////////////////////////////
+
 int  ExtractClassesListAndDeclLines(RScanner &scan,
       std::list<std::string> &classesList,
       std::list<std::string> &classesListForRootmap,
@@ -2453,10 +2531,15 @@ int  ExtractClassesListAndDeclLines(RScanner &scan,
       // Get template definition and put it in if not there
       if (llvm::isa<clang::ClassTemplateSpecializationDecl>(rDecl)) {
          fwdDeclaration = "";
-         retCode = TMetaUtils::AST2SourceTools::FwdDeclFromRcdDecl(*rDecl, interpreter, fwdDeclaration);
-         if (retCode == 0) ProcessAndAppendIfNotThere(fwdDeclaration, fwdDeclarationsList, availableFwdDecls);
+         retCode = CppyyLegacy::TMetaUtils::AST2SourceTools::FwdDeclFromRcdDecl(*rDecl, interpreter, fwdDeclaration);
+         if (retCode == 0) {
+            std::string fwdDeclarationTemplateSpec;
+            retCode = FwdDeclIfTmplSpec(*rDecl, interpreter, fwdDeclarationTemplateSpec, normalizedName);
+            fwdDeclaration += '\n' + fwdDeclarationTemplateSpec;
+         }
+         if (retCode == 0)
+            ProcessAndAppendIfNotThere(fwdDeclaration, fwdDeclarationsList, availableFwdDecls);
       }
-
 
       // Loop on attributes, if rootmap=false, don't put it in the list!
       for (auto ait = rDecl->attr_begin(); ait != rDecl->attr_end(); ++ait) {
