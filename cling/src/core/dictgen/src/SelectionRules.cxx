@@ -21,7 +21,11 @@ The class representing the collection of selection rules.
 #include <fnmatch.h>
 #else
 #include "Shlwapi.h"
-#define fnmatch(glob, path, dummy) PathMatchSpecA(path, glob);
+#define FNM_PATHNAME 1
+inline int fnmatch(const char *glob, const char *path, int /* flags */) {
+   if (PathMatchSpecA(path, glob)) return 0;
+   return 1;
+}
 #endif
 #include "RtypesCore.h"
 #include "SelectionRules.h"
