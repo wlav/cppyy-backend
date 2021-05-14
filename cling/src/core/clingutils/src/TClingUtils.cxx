@@ -516,7 +516,7 @@ void TClingLookupHelper::GetPartiallyDesugaredName(std::string &nameLong)
          // getAsStringInternal() appends.
          nameLong.clear();
          dest.getAsStringInternal(nameLong, fInterpreter->getCI()->getASTContext().getPrintingPolicy());
-         TOOD_fixthis(nameLong);
+         TODO_fixthis(nameLong);
       }
    }
 }
