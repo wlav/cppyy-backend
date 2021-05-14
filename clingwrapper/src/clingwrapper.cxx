@@ -444,15 +444,6 @@ std::string Cppyy::ResolveName(const std::string& cppitem_name)
         pos += 2;
     }
 
-//#ifdef _WIN32
-// TODO: somewhere deep inside clang printing, "char_traits" becomes "allocator"; note
-// that a similar code as this lives in core/clingutils/src/TClingUtils.cxx, to cover
-// wrapper generation, but the problem can escape onto this point as well ...
-    pos = tclean.find("std::allocator<char>,std::allocator<char>");
-    if (pos != std::string::npos)
-        tclean.replace(pos+5, 9, "char_traits");
-//#endif
-
     if (tclean.compare(0, 6, "const ") != 0)
         return TClassEdit::ShortType(tclean.c_str(), 2);
     return "const " + TClassEdit::ShortType(tclean.c_str(), 2);

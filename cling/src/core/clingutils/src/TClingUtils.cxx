@@ -65,8 +65,15 @@
 #ifdef _WIN32
 #define strncasecmp _strnicmp
 #include <io.h>
+static inline void TODO_fixthis(std::string& name) {
+// TODO: somewhere deep inside clang printing, "char_traits" becomes "allocator"??
+   auto pos = name.find("std::allocator<char>, std::allocator<char>");
+   if (pos != std::string::npos)
+      name.replace(pos+5, 9, "char_traits");
+}
 #else
 #include <unistd.h>
+#define TODO_fixthis(dummy)
 #endif // _WIN32
 
 
@@ -509,6 +516,7 @@ void TClingLookupHelper::GetPartiallyDesugaredName(std::string &nameLong)
          // getAsStringInternal() appends.
          nameLong.clear();
          dest.getAsStringInternal(nameLong, fInterpreter->getCI()->getASTContext().getPrintingPolicy());
+         TOOD_fixthis(nameLong);
       }
    }
 }
@@ -585,6 +593,7 @@ bool TClingLookupHelper::GetPartiallyDesugaredNameWithScopeHandling(const std::s
          // getAsStringInternal() appends.
          result.clear();
          dest.getAsStringInternal(result, policy);
+         TODO_fixthis(result);
          for(unsigned int i = 1; i<result.length(); ++i) {
             if (result[i]==' ') {
                if (result[i-1] == ',') {
@@ -3733,13 +3742,7 @@ void CppyyLegacy::TMetaUtils::GetNormalizedName(std::string &norm_name, const cl
    // getAsStringInternal can trigger deserialization
    cling::Interpreter::PushTransactionRAII clingRAII(const_cast<cling::Interpreter*>(&interpreter));
    normalizedType.getAsStringInternal(normalizedNameStep1,policy);
-
-#ifdef _WIN32
-// TODO: somewhere deep inside clang printing, "char_traits" becomes "allocator"??
-    {auto apos = normalizedNameStep1.find("std::allocator<char>, std::allocator<char>");
-    if (apos != std::string::npos)
-        normalizedNameStep1.replace(apos+5, 9, "char_traits");}
-#endif
+   TODO_fixthis(normalizedNameStep1);
 
    // Still remove the default template argument for STL container and
    // normalize the location and amount of white spaces.
