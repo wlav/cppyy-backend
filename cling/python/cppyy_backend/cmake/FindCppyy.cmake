@@ -253,7 +253,7 @@ endfunction(cppyy_generate_init)
 #
 # cppyy_add_bindings(
 #    "${PROJECT_NAME}" "${PROJECT_VERSION}" "user" "user@gmail.com"
-#    LANGUAGE_STANDARD "14"
+#    LANGUAGE_STANDARD "17"
 #    GENERATE_OPTIONS "-D__PIC__;-Wno-macro-redefined"
 #    INCLUDE_DIRS     ${PCL_INCLUDE_DIRS}
 #    LINKDEFS         LinkDef.h
@@ -318,7 +318,7 @@ function(cppyy_add_bindings pkg pkg_version author author_email)
     # Language standard.
     #
     if("${ARG_LANGUAGE_STANDARD}" STREQUAL "")
-        set(ARG_LANGUAGE_STANDARD "14")
+        set(ARG_LANGUAGE_STANDARD "17")
     endif()
 
     ################################################################
@@ -430,7 +430,7 @@ function(cppyy_add_bindings pkg pkg_version author author_email)
         #
         list(APPEND cling_args "-m" "${in_pcm}")
     endforeach(in_pcm)
-    list(APPEND cling_args "${ARG_GENERATE_OPTIONS}")
+    list(APPEND cling_args "-cxxflags='${ARG_GENERATE_OPTIONS}'")
 
     # run rootcling
     add_custom_command(OUTPUT ${cpp_file} ${pcm_file} ${rootmap_file}
@@ -439,8 +439,7 @@ function(cppyy_add_bindings pkg pkg_version author author_email)
 
     ############### cppyy-generator #######################
     find_package(LibClang REQUIRED)
-    get_filename_component(Cppyygen_EXECUTABLE ${Cppyy_EXECUTABLE} DIRECTORY)
-    set(Cppyygen_EXECUTABLE ${Cppyygen_EXECUTABLE}/cppyy-generator)
+    find_program(Cppyygen_EXECUTABLE NAMES cppyy-generator)
 
     #
     # Set up arguments for cppyy-generator.
@@ -516,7 +515,10 @@ function(cppyy_add_bindings pkg pkg_version author author_email)
     # Copy initializor
     #
     set(initializor ${CMAKE_CURRENT_BINARY_DIR}/initializor.py)
-    file(COPY ${BACKEND_PREFIX}/pkg_templates/initializor.py DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/${pkg} USE_SOURCE_PERMISSIONS)
+    message(STATUS ${BACKEND_PREFIX}/pkg_templates/initializor.py)
+    if (EXISTS ${BACKEND_PREFIX}/pkg_templates/initializor.py)
+       file(COPY ${BACKEND_PREFIX}/pkg_templates/initializor.py DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/${pkg} USE_SOURCE_PERMISSIONS)
+    endif()
 
     #
     # Copy README and LICENSE
