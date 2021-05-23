@@ -1115,7 +1115,7 @@ void TClass::Init(const char *name, Version_t cversion,
    if (fClassInfo) {
       SetTitle(gCling->ClassInfo_Title(fClassInfo));
       if ( fDeclFileName == 0 || fDeclFileName[0] == '\0' ) {
-	fDeclFileName = kUndeterminedClassInfoName;
+         fDeclFileName = kUndeterminedClassInfoName;
          // Missing interface:
          // fDeclFileLine = gInterpreter->ClassInfo_FileLine( fClassInfo );
 
@@ -2096,7 +2096,7 @@ TClass *TClass::GetClass(const char *name, Bool_t load, Bool_t silent)
    if (strncmp(name,"class ",6)==0) name += 6;
    if (strncmp(name,"struct ",7)==0) name += 7;
 
-   if (!gROOT->GetListOfClasses())  return 0;
+   if (!gROOT->GetListOfClasses()) return 0;
 
    // FindObject will take the read lock before actually getting the
    // TClass pointer so we will need not get a partially initialized
@@ -2385,10 +2385,19 @@ TClass *TClass::GetClass(ClassInfo_t *info, Bool_t load, Bool_t silent)
    // take the write guard and keep it.
    R__WRITE_LOCKGUARD(gCoreMutex);
 
-   // Get the normalized name.
+   // Try either the full (context-specific) or the normalized (clean) name.
    TString name( gCling->ClassInfo_FullName(info) );
-
    TClass *cl = (TClass*)gROOT->GetListOfClasses()->FindObject(name);
+
+   if (!cl) {
+      std::string normalizedName;
+      TInterpreter::SuspendAutoloadingRAII autoloadOff(gInterpreter);
+      TClassEdit::GetNormalizedName(normalizedName, (std::string)name);
+      if (name != normalizedName.c_str()) {
+          name = normalizedName;
+          cl = (TClass*)gROOT->GetListOfClasses()->FindObject(name);
+      }
+   }
 
    if (cl) {
       if (cl->IsLoaded()) return cl;
