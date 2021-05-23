@@ -553,10 +553,13 @@ Cppyy::TCppScope_t Cppyy::GetScope(const std::string& sname)
 // TODO: scope_name should always be final already?
 // Resolve name fully before lookup to make sure all aliases point to the same scope
     std::string scope_name = ResolveName(sname);
-    bool bHasAlias = sname != scope_name;
-    if (bHasAlias) {
+    bool bHasAlias1 = sname != scope_name;
+    if (bHasAlias1) {
         result = find_memoized(scope_name);
-        if (result) return result;
+        if (result) {
+            g_name2classrefidx[sname] = result;
+            return result;
+        }
     }
 
 // use TClass directly, to enable auto-loading; class may be stubbed (eg. for
@@ -567,9 +570,20 @@ Cppyy::TCppScope_t Cppyy::GetScope(const std::string& sname)
         return (TCppScope_t)0;
 
 // memoize found/created TClass
+    bool bHasAlias2 = cr->GetName() != scope_name;
+    if (bHasAlias2) {
+        result = find_memoized(cr->GetName());
+        if (result) {
+            g_name2classrefidx[scope_name] = result;
+            if (bHasAlias1) g_name2classrefidx[sname] = result;
+            return result;
+        }
+    }
+
     ClassRefs_t::size_type sz = g_classrefs.size();
     g_name2classrefidx[scope_name] = sz;
-    if (bHasAlias) g_name2classrefidx[sname] = sz;
+    if (bHasAlias1) g_name2classrefidx[sname] = sz;
+    if (bHasAlias2) g_name2classrefidx[cr->GetName()] = sz;
     g_classrefs.push_back(TClassRef(scope_name.c_str()));
 
     return (TCppScope_t)sz;
