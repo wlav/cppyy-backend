@@ -12,6 +12,20 @@ index 39dc895cce..6d616cb354 100644
  set(CLING_LIBRARIES clingInterpreter;clingMetaProcessor;clingUtils CACHE STRING "")
  if (builtin_cling)
  
+diff --git a/src/interpreter/CMakeLists.txt b/src/interpreter/CMakeLists.txt
+index e3884cddbb..ae370aa292 100644
+--- a/src/interpreter/CMakeLists.txt
++++ b/src/interpreter/CMakeLists.txt
+@@ -463,6 +463,9 @@ if (builtin_cling)
+   else()
+     # FIXME: Work hard to remove -Wno-shadow and -Wno-unused-parameter
+     set(CLING_CXXFLAGS " ${LLVM_DEFS} -fvisibility=hidden -fno-strict-aliasing -Wwrite-strings -Wno-shadow -Wno-unused-parameter -Wno-deprecated-declarations")
++    if(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
++      string(APPEND CLING_CXXFLAGS " -Wl,-Bsymbolic")
++    endif()
+   endif()
+ 
+   # Set the flags in the parent scope for the rest of the cling-based libraries in ROOT.
 diff --git a/src/interpreter/cling/lib/Interpreter/CIFactory.cpp b/src/interpreter/cling/lib/Interpreter/CIFactory.cpp
 index 1ab35553fa..b7c99ba281 100644
 --- a/src/interpreter/cling/lib/Interpreter/CIFactory.cpp
