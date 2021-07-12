@@ -3962,9 +3962,6 @@ llvm::StringRef CppyyLegacy::TMetaUtils::GetComment(const clang::Decl &decl, cla
       } else if (FD->doesThisDeclarationHaveABody()) {
          // commentStart is at body's '}'
          // But we might end up e.g. at the ')' of a CPP macro
-         assert((decl.getLocEnd() != sourceLocation || *commentStart == '}'
-                 || dumpDeclForAssert(*FD, commentStart))
-                && "Expected macro or end of body at '}'");
          if (*commentStart) ++commentStart;
 
          // We might still have a ';'; skip the spaces and check.

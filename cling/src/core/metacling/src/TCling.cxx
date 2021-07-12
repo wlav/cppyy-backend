@@ -3145,12 +3145,6 @@ void TCling::EnableAutoLoading()
    if (IsFromRootCling())
       return;
 
-   // Read the rules before enabling the auto loading to not inadvertently
-   // load the libraries for the classes concerned even-though the user is
-   // *not* using them.
-   // Note this call must happen before the first call to LoadLibraryMap.
-   assert(GetRootMapFiles() == 0 && "Must be called before LoadLibraryMap!");
-
    LoadLibraryMap();
    SetClassAutoloading(true);
 }
