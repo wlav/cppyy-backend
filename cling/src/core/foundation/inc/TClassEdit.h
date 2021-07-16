@@ -28,6 +28,7 @@ extern "C" {
 #else
 #include <cxxabi.h>
 #endif
+#include <typeinfo>
 #include <string>
 #include <vector>
 #include <array>
