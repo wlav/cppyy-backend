@@ -2,7 +2,7 @@ diff --git a/src/interpreter/CMakeLists.txt b/src/interpreter/CMakeLists.txt
 index 39dc895cce..6d616cb354 100644
 --- a/src/interpreter/CMakeLists.txt
 +++ b/src/interpreter/CMakeLists.txt
-@@ -441,7 +441,8 @@ else()
+@@ -445,7 +445,8 @@ else()
    set(Clang_DIR "${LLVM_BINARY_DIR}/lib/cmake/clang/")
  endif()
  
@@ -13,18 +13,20 @@ index 39dc895cce..6d616cb354 100644
  if (builtin_cling)
  
 diff --git a/src/interpreter/CMakeLists.txt b/src/interpreter/CMakeLists.txt
-index e3884cddbb..ae370aa292 100644
+index 7002e43f36..dfdf718685 100644
 --- a/src/interpreter/CMakeLists.txt
 +++ b/src/interpreter/CMakeLists.txt
-@@ -463,6 +463,9 @@ if (builtin_cling)
+@@ -466,7 +466,10 @@ if (builtin_cling)
+     set(CLING_CXXFLAGS " ${LLVM_DEFS} -DNOMINMAX -D_XKEYCHECK_H")
    else()
      # FIXME: Work hard to remove -Wno-shadow and -Wno-unused-parameter
-     set(CLING_CXXFLAGS " ${LLVM_DEFS} -fvisibility=hidden -fno-strict-aliasing -Wwrite-strings -Wno-shadow -Wno-unused-parameter -Wno-deprecated-declarations")
+-    set(CLING_CXXFLAGS " ${LLVM_DEFS} -fno-strict-aliasing -Wwrite-strings -Wno-shadow -Wno-unused-parameter -Wno-deprecated-declarations")
++    set(CLING_CXXFLAGS " ${LLVM_DEFS} -fvisibility=hidden -fno-strict-aliasing -Wwrite-strings -Wno-shadow -Wno-unused-parameter -Wno-deprecated-declarations")
 +    if(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
 +      string(APPEND CLING_CXXFLAGS " -Wl,-Bsymbolic")
 +    endif()
    endif()
- 
+
    # Set the flags in the parent scope for the rest of the cling-based libraries in ROOT.
 diff --git a/src/interpreter/cling/lib/Interpreter/CIFactory.cpp b/src/interpreter/cling/lib/Interpreter/CIFactory.cpp
 index 1ab35553fa..b7c99ba281 100644
