@@ -387,10 +387,6 @@ std::string Cppyy::ResolveName(const std::string& cppitem_name)
     tclean = TClassEdit::CleanType(tclean.c_str());
     if (tclean.empty() /* unknown, eg. an operator */) return cppitem_name;
 
-// reduce [N] to []
-    if (tclean[tclean.size()-1] == ']')
-        tclean = tclean.substr(0, tclean.rfind('[')) + "[]";
-
 // remove __restrict and __restrict__
     auto pos = tclean.rfind("__restrict");
     if (pos != std::string::npos)
@@ -1966,9 +1962,10 @@ std::string Cppyy::GetDatamemberType(TCppScope_t scope, TCppIndex_t idata)
         TGlobal* gbl = g_globalvars[idata];
         std::string fullType = gbl->GetFullTypeName();
 
-        if ((int)gbl->GetArrayDim() == 1) {
+        if ((int)gbl->GetArrayDim()) {
             std::ostringstream s;
-            s << '[' << gbl->GetMaxIndex(0) << ']';
+            for (int i = 0; i < (int)gbl->GetArrayDim(); ++i)
+                s << '[' << gbl->GetMaxIndex(i) << ']';
             fullType.append(s.str());
         }
         return fullType;
@@ -1988,9 +1985,10 @@ std::string Cppyy::GetDatamemberType(TCppScope_t scope, TCppIndex_t idata)
                 fullType = trueName;
         }
 
-        if ((int)m->GetArrayDim() == 1) {
+        if ((int)m->GetArrayDim()) {
             std::ostringstream s;
-            s << '[' << m->GetMaxIndex(0) << ']';
+            for (int i = 0; i < (int)m->GetArrayDim(); ++i)
+                s << '[' << m->GetMaxIndex(i) << ']';
             fullType.append(s.str());
         }
         return fullType;

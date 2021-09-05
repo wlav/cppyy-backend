@@ -861,7 +861,10 @@ static void R__FindTrailing(std::string &full,  /*modified*/
          } else {
             starloc--;
          }
+
+         if (!isArray) isArray = *(starloc-1)==']';
       }
+
       stars = starloc;
       if ((*(starloc-1))==' ') {
          // erase the space too.
