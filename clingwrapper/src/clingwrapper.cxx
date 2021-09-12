@@ -746,7 +746,7 @@ void Cppyy::Destruct(TCppType_t type, TCppObject_t instance)
                 sHasOperatorDelete[type] = (bool)(f && (f->Property() & kIsPublic));
                 ib = sHasOperatorDelete.find(type);
             }
-            ib->second ? cr->Destructor((void*)instance) : free((void*)instance);
+            ib->second ? cr->Destructor((void*)instance) : ::operator delete((void*)instance);
         }
     }
 }
