@@ -54,6 +54,7 @@ source code):
   Antonio Cuni
   Aditi Dutta
   Shaheed Haque
+  Dennis Hemker
   Jean Hominal
   Jonsomi
   Alvaro Moran
