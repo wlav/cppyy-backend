@@ -569,7 +569,7 @@ function(cppyy_add_bindings pkg pkg_version author author_email)
     add_custom_command(OUTPUT  ${pkg_whl}
                        COMMAND ${LibClang_PYTHON_EXECUTABLE} setup.py bdist_wheel
                        DEPENDS ${SETUP_PY_FILE} ${lib_name} ${setup_cfg}
-                       WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
+                       WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
     )
     add_custom_target(wheel ALL
                       DEPENDS ${pkg_whl}
