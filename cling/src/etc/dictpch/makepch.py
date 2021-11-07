@@ -95,8 +95,6 @@ def makepch():
       rootbuildFlag="-rootbuild"
 
    macrosList=["-D__CLING__",
-                 "-D__STDC_LIMIT_MACROS",
-                 "-D__STDC_CONSTANT_MACROS",
                  "-DROOT_PCH",
                  "-I%s" %os.path.join(rootdir,"include"),
                  "-I%s" %os.path.join(rootdir,"etc"),
