@@ -2,7 +2,7 @@ diff --git a/src/interpreter/CMakeLists.txt b/src/interpreter/CMakeLists.txt
 index 39dc895cce..6d616cb354 100644
 --- a/src/interpreter/CMakeLists.txt
 +++ b/src/interpreter/CMakeLists.txt
-@@ -445,7 +445,8 @@ else()
+@@ -449,7 +449,8 @@ else()
    set(Clang_DIR "${LLVM_BINARY_DIR}/lib/cmake/clang/")
  endif()
  
@@ -16,7 +16,7 @@ diff --git a/src/interpreter/CMakeLists.txt b/src/interpreter/CMakeLists.txt
 index 7002e43f36..dfdf718685 100644
 --- a/src/interpreter/CMakeLists.txt
 +++ b/src/interpreter/CMakeLists.txt
-@@ -466,7 +466,10 @@ if (builtin_cling)
+@@ -470,7 +470,10 @@ if (builtin_cling)
      set(CLING_CXXFLAGS " ${LLVM_DEFS} -DNOMINMAX -D_XKEYCHECK_H")
    else()
      # FIXME: Work hard to remove -Wno-shadow and -Wno-unused-parameter
