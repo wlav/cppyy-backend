@@ -302,11 +302,12 @@ namespace Internal {
       // and we can still allocate the TROOT object's memory
       // statically.
       //
-      char fHolder[sizeof(TROOT)];
+      union {
+         TROOT fObj;
+         char fHolder[sizeof(TROOT)];
+      };
    public:
-      TROOTAllocator() {
-         new(&(fHolder[0])) TROOT("root", "The ROOT of EVERYTHING");
-      }
+      TROOTAllocator(): fObj("root", "The ROOT of EVERYTHING") {}
 
       ~TROOTAllocator() {
          if (gROOTLocal) {
@@ -572,7 +573,11 @@ TROOT::~TROOT()
 
       // Turn-off the global mutex to avoid recreating mutexes that have
       // already been deleted during the destruction phase
-      gGlobalMutex = 0;
+      if (gGlobalMutex) {
+          TVirtualMutex *m = gGlobalMutex;
+          gGlobalMutex = nullptr;
+          delete m;
+      }
 
       // Return when error occurred in TCling, i.e. when setup file(s) are
       // out of date

@@ -292,10 +292,14 @@
 #   if defined(__i386__)
 #      define R__BYTESWAP
 #   endif
+#   if defined(__x86_64__)
+#      define R__BYTESWAP
+#      define R__B64      /* enable when 64 bit machine */
+#   endif
 #   if defined(__arm__)
 #      define R__BYTESWAP
 #   endif
-#   if defined(__x86_64__)
+#   if defined (__arm64__)
 #      define R__BYTESWAP
 #      define R__B64      /* enable when 64 bit machine */
 #   endif
@@ -375,15 +379,7 @@
 #   endif
 #endif
 
-#ifdef _WIN64
-#   define R__WIN64
-#   define R__WIN32
-#   ifndef WIN32
-#      define WIN32
-#   endif
-#   define R__BYTESWAP
-#   define R__ACCESS_IN_SYMBOL
-#elif _WIN32
+#ifdef _WIN32
 #   define R__WIN32
 #   ifndef WIN32
 #      define WIN32
@@ -464,87 +460,6 @@
 #   define _R__UNIQUE_(X) X
 #endif
 
-/*---- deprecation -----------------------------------------------------------*/
-#if defined(__GNUC__) || defined(__clang__) || defined(__INTEL_COMPILER)
-# if (__GNUC__ == 5 && (__GNUC_MINOR__ == 1 || __GNUC_MINOR__ == 2)) || defined(R__NO_DEPRECATION)
-/* GCC 5.1, 5.2: false positives due to https://gcc.gnu.org/bugzilla/show_bug.cgi?id=15269 
-   or deprecation turned off */
-#   define _R__DEPRECATED_LATER(REASON)
-# else
-#   define _R__DEPRECATED_LATER(REASON) __attribute__((deprecated(REASON)))
-# endif
-#elif defined(_MSC_VER) || !defined(R__NO_DEPRECATION)
-#   define _R__DEPRECATED_LATER(REASON) __pragma(deprecated(REASON))
-#else
-/* Deprecation not supported for this compiler. */
-#   define _R__DEPRECATED_LATER(REASON)
-#endif
-
-#ifdef R__WIN32
-#define _R_DEPRECATED_REMOVE_NOW(REASON)
-#else
-#define _R_DEPRECATED_REMOVE_NOW(REASON) __attribute__((REMOVE_THIS_NOW))
-#endif
-
-/* To be removed by 6.14 */
-#if ROOT_VERSION_CODE < ROOT_VERSION(6,13,0)
-# define _R__DEPRECATED_614(REASON) _R__DEPRECATED_LATER(REASON)
-#else
-# define _R__DEPRECATED_614(REASON) _R_DEPRECATED_REMOVE_NOW(REASON)
-#endif
-
-/* To be removed by 6.16 */
-#if ROOT_VERSION_CODE < ROOT_VERSION(6,15,0)
-# define _R__DEPRECATED_616(REASON) _R__DEPRECATED_LATER(REASON)
-#else
-# define _R__DEPRECATED_616(REASON) _R_DEPRECATED_REMOVE_NOW(REASON)
-#endif
-
-/* To be removed by 6.18 */
-#if ROOT_VERSION_CODE < ROOT_VERSION(6,17,0)
-# define _R__DEPRECATED_618(REASON) _R__DEPRECATED_LATER(REASON)
-#else
-# define _R__DEPRECATED_618(REASON) _R_DEPRECATED_REMOVE_NOW(REASON)
-#endif
-
-/* To be removed by 6.20 */
-#if ROOT_VERSION_CODE < ROOT_VERSION(6,19,0)
-# define _R__DEPRECATED_620(REASON) _R__DEPRECATED_LATER(REASON)
-#else
-# define _R__DEPRECATED_620(REASON) _R_DEPRECATED_REMOVE_NOW(REASON)
-#endif
-
-/* To be removed by 6.22 */
-#if ROOT_VERSION_CODE < ROOT_VERSION(6,21,0)
-# define _R__DEPRECATED_622(REASON) _R__DEPRECATED_LATER(REASON)
-#else
-# define _R__DEPRECATED_622(REASON) _R_DEPRECATED_REMOVE_NOW(REASON)
-#endif
-
-/* To be removed by 7.00 */
-#if ROOT_VERSION_CODE < ROOT_VERSION(6,99,0)
-# define _R__DEPRECATED_700(REASON) _R__DEPRECATED_LATER(REASON)
-#else
-# define _R__DEPRECATED_700(REASON) _R_DEPRECATED_REMOVE_NOW(REASON)
-#endif
-
-
-/* Spell as R__DEPRECATED(6,04, "Not threadsafe; use TFoo::Bar().") */
-#define R__DEPRECATED(MAJOR, MINOR, REASON) \
-  _R__JOIN3_(_R__DEPRECATED_,MAJOR,MINOR)("will be removed in ROOT v" #MAJOR "." #MINOR ": " REASON)
-
-/* Mechanisms to advise users to avoid legacy functions and classes that will not be removed */
-#if defined R__SUGGEST_NEW_INTERFACE
-#  define R__SUGGEST_ALTERNATIVE(ALTERNATIVE) \
-      _R__DEPRECATED_LATER("There is a superior alternative: " ALTERNATIVE)
-#else
-#  define R__SUGGEST_ALTERNATIVE(ALTERNATIVE)
-#endif
-
-#define R__ALWAYS_SUGGEST_ALTERNATIVE(ALTERNATIVE) \
-    _R__DEPRECATED_LATER("There is a superior alternative: " ALTERNATIVE)
-
-
 
 /*---- misc ------------------------------------------------------------------*/
 
@@ -597,7 +512,7 @@
 /*---- unlikely / likely expressions -----------------------------------------*/
 // These are meant to use in cases like:
 //   if (R__unlikely(expression)) { ... }
-// in performance-critical sessions.  R__unlikely / R__likely provide hints to
+// in performance-critical sections.  R__unlikely / R__likely provide hints to
 // the compiler code generation to heavily optimize one side of a conditional,
 // causing the other branch to have a heavy performance cost.
 //
