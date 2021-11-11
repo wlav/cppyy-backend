@@ -157,6 +157,10 @@ class my_cmake_build(_build):
             import platform
             if '64' in platform.architecture()[0]:
                 CMAKE_COMMAND += ['-Thost=x64', '-DCMAKE_GENERATOR_PLATFORM=x64']
+        elif 'darwin' in sys.platform:
+            import platform
+            if 'arm64' in platform.machine():
+                CMAKE_COMMAND += ['-DLLVM_TARGETS_TO_BUILD=ARM;AArch64;NVPTX']
         CMAKE_COMMAND.append('-DCMAKE_INSTALL_PREFIX='+prefix)
 
         log.info('Running cmake for cppyy-cling: %s', ' '.join(CMAKE_COMMAND))
