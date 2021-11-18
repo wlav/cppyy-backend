@@ -459,8 +459,12 @@ void TClingCallFunc::make_narg_call(const std::string &return_type, const unsign
 
    std::string function_name;
    {
+   // for an extern "C" declared function in a namespace, the context is ExternC, not the
+   // namespace, so class_name will be empty, it is therefore added by printing the qualified
+   // name; in all other cases class_name is added later
       llvm::raw_string_ostream stream(function_name);
-      FD->getNameForDiagnostic(stream, FD->getASTContext().getPrintingPolicy(), /*Qualified=*/false);
+      FD->getNameForDiagnostic(stream, FD->getASTContext().getPrintingPolicy(),
+           /*Qualified=*/ (FD->isInExternCContext() && class_name.empty()) ? true : false);
    }
 
 // If a template has consecutive parameter packs, then it is impossible to use the

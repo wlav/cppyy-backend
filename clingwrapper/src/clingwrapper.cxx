@@ -1337,10 +1337,8 @@ bool Cppyy::GetSmartPtrInfo(
         TClassRef& cr = type_from_handle(GetScope(tname));
         if (cr.GetClass()) {
             TFunction* func = cr->GetMethod("operator->", "");
-            if (!func) {
-                gInterpreter->UpdateListOfMethods(cr.GetClass());
+            if (!func)
                 func = cr->GetMethod("operator->", "");
-            }
             if (func) {
                if (deref) *deref = (TCppMethod_t)new_CallWrapper(func);
                if (raw) *raw = GetScope(TClassEdit::ShortType(
@@ -1442,13 +1440,19 @@ std::vector<Cppyy::TCppIndex_t> Cppyy::GetMethodIndicesFromName(
     std::vector<TCppIndex_t> indices;
     TClassRef& cr = type_from_handle(scope);
     if (cr.GetClass()) {
-        gInterpreter->UpdateListOfMethods(cr.GetClass());
+    // tickle deserialization (also faster if none b/c hashed lookup)
+        if (!cr->GetMethodAny(name.c_str()))
+            return indices;
+
         int imeth = 0;
         TFunction* func = nullptr;
         TIter next(cr->GetListOfMethods());
         while ((func = (TFunction*)next())) {
             if (match_name(name, func->GetName())) {
-                if (func->Property() & kIsPublic)
+            // C++ functions should be public to allow access; C functions have no access
+            // specifier and should always be accepted
+                auto prop = func->Property();
+                if ((prop & kIsPublic) || !(prop & (kIsPrivate | kIsProtected | kIsPublic)))
                     indices.push_back((TCppIndex_t)imeth);
             }
             ++imeth;
