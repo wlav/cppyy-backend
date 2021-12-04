@@ -4076,7 +4076,7 @@ TCling::CheckClassInfo(const char *name, Bool_t autoload, Bool_t isClassOrNamesp
                auto* rt = f->getType()->getAs<RecordType>();
                if (!rt) continue;
                auto* RD = rt->getDecl();
-               if (RD->isAnonymousStructOrUnion() || (RD->isUnion() && RD->getNameAsString().empty())) {
+               if (RD->isAnonymousStructOrUnion() || ((RD->isUnion() || RD->isStruct()) && RD->getNameAsString().empty())) {
                    decl = RD;
                    break;
                }
