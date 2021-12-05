@@ -4415,9 +4415,6 @@ TClass *TCling::GenerateTClass(const char *classname, Bool_t emulation, Bool_t s
    }
 
    return cl;
-//   } else {
-//      return GenerateTClass(&tci,silent);
-//   }
 }
 
 
@@ -7259,11 +7256,21 @@ TInterpreter::DeclId_t TCling::GetDeclId(ClassInfo_t* cinfo) const
 
 ////////////////////////////////////////////////////////////////////////////////
 /// Return a unique identifier of the declaration represented by the
-/// MethodInfo
+/// DataMemberInfo
 
 TInterpreter::DeclId_t TCling::GetDeclId(DataMemberInfo_t* data) const
 {
    if (data) return ((TClingDataMemberInfo*)data)->GetDeclId();
+   return 0;
+}
+
+////////////////////////////////////////////////////////////////////////////////
+/// Return a unique identifier of the declaration of the type of the
+/// field represented by the DataMemberInfo
+
+TInterpreter::DeclId_t TCling::GetTagDeclId(DataMemberInfo_t* data) const
+{
+   if (data) return ((TClingDataMemberInfo*)data)->GetTagDeclId();
    return 0;
 }
 

@@ -128,6 +128,7 @@ public:
    TClingClassInfo   *GetClassInfo() const { return fClassInfo; }
    const clang::Decl *GetDecl() const override;
    DeclId_t           GetDeclId() const;
+   DeclId_t           GetTagDeclId() const;
    int                MaxIndex(int dim) const;
    int                InternalNext();
    bool               Next() { return InternalNext(); }

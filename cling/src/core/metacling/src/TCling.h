@@ -411,6 +411,7 @@ public: // Public Interface
 
    // DataMemberInfo interface
    virtual DeclId_t GetDeclId(DataMemberInfo_t *info) const;
+   virtual DeclId_t GetTagDeclId(DataMemberInfo_t *info) const;
    virtual int    DataMemberInfo_ArrayDim(DataMemberInfo_t* dminfo) const;
    virtual void   DataMemberInfo_Delete(DataMemberInfo_t* dminfo) const;
    virtual DataMemberInfo_t*  DataMemberInfo_Factory(ClassInfo_t* clinfo = 0) const;

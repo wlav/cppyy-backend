@@ -439,6 +439,14 @@ TDictionary::DeclId_t TDataMember::GetDeclId() const
 }
 
 ////////////////////////////////////////////////////////////////////////////////
+
+TDictionary::DeclId_t TDataMember::GetTagDeclId() const
+{
+   if (fInfo) return gInterpreter->GetTagDeclId(fInfo);
+   else return 0;
+}
+
+////////////////////////////////////////////////////////////////////////////////
 /// Return maximum index for array dimension "dim".
 
 Int_t TDataMember::GetMaxIndex(Int_t dim) const

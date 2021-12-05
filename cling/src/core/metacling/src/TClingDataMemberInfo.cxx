@@ -132,6 +132,24 @@ TDictionary::DeclId_t TClingDataMemberInfo::GetDeclId() const
    return (const clang::Decl*)(GetDecl()->getCanonicalDecl());
 }
 
+TDictionary::DeclId_t TClingDataMemberInfo::GetTagDeclId() const
+{
+   if (!IsValid()) {
+      return TDictionary::DeclId_t();
+   }
+
+   const clang::Decl* decl = (const clang::Decl*)(GetDecl()->getCanonicalDecl());
+   const clang::ValueDecl* vd = llvm::dyn_cast<clang::ValueDecl>(decl);
+   if (vd) {
+      clang::QualType qt = vd->getType();
+      const clang::TagType* tt = qt->getAs<clang::TagType>();
+      if (tt)
+         return tt->getDecl();
+   }
+
+   return TDictionary::DeclId_t();
+}
+
 int TClingDataMemberInfo::ArrayDim() const
 {
    if (!IsValid()) {

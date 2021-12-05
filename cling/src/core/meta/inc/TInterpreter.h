@@ -270,6 +270,7 @@ public:
    virtual DeclId_t GetDeclId(CallFunc_t *info) const = 0;
    virtual DeclId_t GetDeclId(ClassInfo_t *info) const = 0;
    virtual DeclId_t GetDeclId(DataMemberInfo_t *info) const = 0;
+   virtual DeclId_t GetTagDeclId(DataMemberInfo_t *info) const = 0;
    virtual DeclId_t GetDeclId(FuncTempInfo_t *info) const = 0;
    virtual DeclId_t GetDeclId(MethodInfo_t *info) const = 0;
    virtual DeclId_t GetDeclId(TypedefInfo_t *info) const = 0;

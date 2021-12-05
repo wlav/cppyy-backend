@@ -1250,9 +1250,8 @@ std::string Cppyy::GetScopedFinalName(TCppType_t klass)
     if (klass == GLOBAL_HANDLE)
         return "";
     TClassRef& cr = type_from_handle(klass);
-    if (cr.GetClass())
-        return cr->GetName();
-    return "";
+    if (cr.GetClass()) return cr->GetName();
+    return "<unknown>";
 }
 
 bool Cppyy::HasVirtualDestructor(TCppType_t klass)
@@ -1994,6 +1993,29 @@ std::string Cppyy::GetDatamemberType(TCppScope_t scope, TCppIndex_t idata)
             for (int i = 0; i < (int)m->GetArrayDim(); ++i)
                 s << '[' << m->GetMaxIndex(i) << ']';
             fullType.append(s.str());
+        }
+
+    // this is the only place where anonymous structs are uniquely identified, so setup
+    // a class if needed, such that subsequent GetScope() and GetScopedFinalName() calls
+    // return the uniquely named class
+        auto declid = m->GetTagDeclId();
+        if (declid && (m->Property() & (kIsClass | kIsStruct | kIsUnion)) &&\
+                fullType.find("(anonymous)") != std::string::npos) {
+
+        // use the (fixed) tag decl address to guarantee a unique name, even when there
+        // are multiple anonymous structs in the parent scope
+            std::ostringstream fulls;
+            fulls << fullType << "@" << (void*)declid;
+            fullType = fulls.str();
+
+            if (g_name2classrefidx.find(fullType) == g_name2classrefidx.end()) {
+                ClassInfo_t* ci = gInterpreter->ClassInfo_Factory(declid);
+                TClass* cl = gInterpreter->GenerateTClass(ci, kTRUE /* silent */);
+                gInterpreter->ClassInfo_Delete(ci);
+                if (cl) cl->SetName(fullType.c_str());
+                g_name2classrefidx[fullType] = g_classrefs.size();
+                g_classrefs.emplace_back(cl);
+            }
         }
         return fullType;
     }
