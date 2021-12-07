@@ -51,10 +51,9 @@ if not os.path.exists(os.path.join(TARBALL_CACHE_DIR, fn)):
             output_fn = fn
         else:
             output_fn = bytes(fn, 'utf-8')
-        resp = urllib2.urlopen(addr, output_fn)
-        out = open(os.path.join(TARBALL_CACHE_DIR, fn), 'wb')
-        out.write(resp.read())
-        out.close()
+        with urllib2.urlopen(addr, output_fn) as resp:
+            with open(os.path.join(TARBALL_CACHE_DIR, fn), 'wb') as out:
+                shutil.copyfileobj(resp, out)
     except urllib2.HTTPError:
         print('release %s not found' % ROOT_VERSION)
         sys.exit(ERR_RELEASE_NOT_FOUND)
