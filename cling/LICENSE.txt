@@ -61,6 +61,7 @@ source code):
   Tarmo Pikaro
   Matti Picus
   Camille Scott
+  Clemens Wolff
 
 
 External code
