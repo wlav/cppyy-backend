@@ -108,9 +108,15 @@ except ImportError:
             res = os.system('patch -p1 < ' + self.fdiff)
             return res == 0
 
-for fdiff in ('typedef_of_private', 'optlevel2_forced', 'explicit_template', 'alias_template',
-              'incomplete_types', 'clang_printing', 'luhelper', 'improv_load', 'unload',
-              'pch', 'win64rtti', 'win64', 'win64s2', 'locales', 'build', 'system_dirs'):
+patch_files = ['typedef_of_private', 'optlevel2_forced', 'explicit_template',
+               'alias_template', 'incomplete_types', 'clang_printing', 'luhelper',
+               'improv_load', 'unload', 'pch', 'win64rtti', 'win64', 'win64s2',
+               'locales', 'build', 'ppc']
+
+if 'linux' in sys.platform:
+    patch_files.append('system_dirs')
+
+for fdiff in patch_files:
     fpatch = os.path.join('patches', fdiff+'.diff')
     print(' ==> applying patch:', fpatch)
     pset = patch.fromfile(fpatch)
