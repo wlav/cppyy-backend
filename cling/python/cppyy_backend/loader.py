@@ -96,6 +96,13 @@ def set_cling_compile_options(add_defaults = False):
     else:
         CURRENT_ARGS = os.environ['EXTRA_CLING_ARGS']
 
+    try:
+        enable_cuda = os.environ['CLING_ENABLE_CUDA']
+        if enable_cuda != '0' and enable_cuda.lower() != 'false':
+            CURRENT_ARGS += ' -x cuda -D__CUDA__'
+    except KeyError:
+        pass
+
     if add_defaults:
         has_avx = False
         try:
@@ -166,8 +173,13 @@ def ensure_precompiled_header(pchdir = '', pchname = ''):
              if not pchdir:
                  pchdir = os.path.join(pkgpath, 'etc')
              if not pchname:
+                 pchname = 'allDict.cxx.pch.'
+                 cling_args = os.environ['EXTRA_CLING_ARGS']
+                 if 'avx' in cling_args:     pchname += 'avx.'
+                 if 'openmp' in  cling_args: pchname += 'omp.'
+                 if 'cuda' in cling_args:    pchname += 'cuda.'
                  from ._version import __version__
-                 pchname = 'allDict.cxx.pch.'+str(__version__)
+                 pchname += str(__version__)
              pchname = os.path.join(pchdir, pchname)
              os.environ['CLING_STANDARD_PCH'] = pchname
 
