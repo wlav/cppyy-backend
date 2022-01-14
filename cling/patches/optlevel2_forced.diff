@@ -34,19 +34,37 @@ index 60cfd043da..26eae177dc 100644
  
        return M.get();
      }
-diff --git a/src/interpreter/cling/lib/Interpreter/IncrementalParser.cpp b/src/interpreter/cling/lib/Interpreter/IncrementalParser.cpp
-index 56692341b5..c21854e757 100644
+diff --git a/interpreter/cling/lib/Interpreter/IncrementalParser.cpp b/interpreter/cling/lib/Interpreter/IncrementalParser.cpp
+index 3f87b902b4..608425cd4e 100644
 --- a/src/interpreter/cling/lib/Interpreter/IncrementalParser.cpp
 +++ b/src/interpreter/cling/lib/Interpreter/IncrementalParser.cpp
-@@ -925,7 +925,7 @@ namespace cling {
-     std::vector<ASTTPtr_t> ASTTransformers;
+@@ -20,7 +20,6 @@
+ #include "DeviceKernelInliner.h"
+ #include "DynamicLookup.h"
+ #include "IncrementalExecutor.h"
+-#include "NullDerefProtectionTransformer.h"
+ #include "TransactionPool.h"
+ #include "ValueExtractionSynthesizer.h"
+ #include "ValuePrinterSynthesizer.h"
+@@ -926,15 +925,11 @@ namespace cling {
      ASTTransformers.emplace_back(new AutoSynthesizer(TheSema));
      ASTTransformers.emplace_back(new EvaluateTSynthesizer(TheSema));
--    if (hasCodeGenerator() && !m_Interpreter->getOptions().NoRuntime) {
-+    if (0 && hasCodeGenerator() && !m_Interpreter->getOptions().NoRuntime) {
-       // Don't protect against crashes if we cannot run anything.
-       // cling might also be in a PCH-generation mode; don't inject our Sema
-       // pointer into the PCH.
+     if (hasCodeGenerator() && !m_Interpreter->getOptions().NoRuntime) {
+-      // Don't protect against crashes if we cannot run anything.
+-      // cling might also be in a PCH-generation mode; don't inject our Sema
+-      // pointer into the PCH.
+-      if (!isCUDADevice)
+-        ASTTransformers.emplace_back(
+-            new NullDerefProtectionTransformer(m_Interpreter));
+-      else
++      // Don't inject our Sema pointer into the PCH.
++      if (isCUDADevice) {
+         ASTTransformers.emplace_back(
+             new DeviceKernelInliner(TheSema));
++      }
+     }
+     ASTTransformers.emplace_back(new DefinitionShadower(*TheSema, *m_Interpreter));
+
 diff --git a/src/interpreter/cling/lib/Interpreter/BackendPasses.cpp b/src/interpreter/cling/lib/Interpreter/BackendPasses.cpp
 index cb3308c360..873bc682ea 100644
 --- a/src/interpreter/cling/lib/Interpreter/BackendPasses.cpp
