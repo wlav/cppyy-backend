@@ -66,6 +66,13 @@ def getSTLIncludes():
    valarray is removed because it causes lots of compilation at startup.
    codecvt, ctgmath, and cstdbool are removed as they are deprecated in C++17
    """
+
+   cudaHeadersList = ("__clang_cuda_runtime_wrapper.h",
+                      "cuda.h",
+                      "cuda_runtime.h",
+                      "cublas_v2.h",
+                     )
+
    stlHeadersList = ("cstdlib",
                      "csignal",
                      "csetjmp",
@@ -156,7 +163,13 @@ def getSTLIncludes():
                      "filesystem",
                      )
 
-   allHeadersPartContent = "// STL headers\n"
+   # CUDA headers go first, as some redeclare standard ones
+   allHeadersPartContent = "// CUDA\n#ifdef __CUDA__\n"
+   for header in cudaHeadersList:
+       allHeadersPartContent += getGuardedStlInclude(header)
+   allHeadersPartContent += "#endif\n"
+
+   allHeadersPartContent += "// STL headers\n"
 
    for header in stlHeadersList:
       allHeadersPartContent += getGuardedStlInclude(header)
