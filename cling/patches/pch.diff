@@ -44,7 +44,7 @@ diff --git a/src/interpreter/cling/lib/Interpreter/IncrementalParser.cpp b/src/i
 index 2593c21fb2..dbe8caa04b 100644
 --- a/src/interpreter/cling/lib/Interpreter/IncrementalParser.cpp
 +++ b/src/interpreter/cling/lib/Interpreter/IncrementalParser.cpp
-@@ -91,20 +91,7 @@ namespace {
+@@ -90,20 +90,7 @@ namespace {
        "  Failed to extract C++ standard library version.\n";
      }
  
