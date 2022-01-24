@@ -89,19 +89,16 @@ def load_cpp_backend():
 
 
 def set_cling_compile_options(add_defaults = False):
- # extra optimization flags for Cling
+  # extra optimization flags for Cling
     if not 'EXTRA_CLING_ARGS' in os.environ:
         CURRENT_ARGS = ''
         add_defaults = True
     else:
         CURRENT_ARGS = os.environ['EXTRA_CLING_ARGS']
 
-    try:
-        enable_cuda = os.environ['CLING_ENABLE_CUDA']
-        if enable_cuda != '0' and enable_cuda.lower() != 'false':
-            CURRENT_ARGS += ' -x cuda -D__CUDA__'
-    except KeyError:
-        pass
+    enable_cuda = os.environ.get('CLING_ENABLE_CUDA', '')
+    if enable_cuda != '0' and enable_cuda.lower() != 'false':
+        CURRENT_ARGS += ' -x cuda -D__CUDA__'
 
     if add_defaults:
         has_avx = False
@@ -139,13 +136,19 @@ def _warn_no_pch(msg, pchname=None):
         warnings.warn('Precompiled header may be out of date (%s).' % msg)
 
 def _is_uptodate(pchname, incpath):
-  # test whether the pch is older than the include directory as a crude way
-  # to find if it's up to date; if however, this is a frozen bundle, then
-  # it's unlikely there's a C++ compiler available, so accept the PCH if any
+  # check for forced rebuild
+    force_rebuild = os.environ.get('CLING_REBUILD_PCH', '')
+    if force_rebuild == '1' or force_rebuild.lower() == 'true':
+       return False
+
+  # it's unlikely there's a C++ compiler available when distributed as a
+  # frozen bundle, so accept the PCH if any exists
     if getattr(sys, 'frozen', False):
       # okay if PCH is available, no point to rebuild if include dir is not
         return os.path.exists(pchname) or not os.path.exists(incpath)
 
+  # test whether the pch is older than the include directory as a crude way
+  # to find if it's up to date
     try:
         return os.stat(pchname).st_mtime >= os.stat(incpath).st_mtime
     except Exception:
@@ -183,25 +186,44 @@ def ensure_precompiled_header(pchdir = '', pchname = ''):
              pchname = os.path.join(pchdir, pchname)
              os.environ['CLING_STANDARD_PCH'] = pchname
 
+         specialize = [('', '')]
+         if 'cuda' in cling_args:
+             cuda_path = os.environ.get('CLING_CUDA_PATH', '')
+             if cuda_path: cuda_path = ' --cuda-path='+cuda_path
+             cuda_arch = os.environ.get('CLING_CUDA_ARCH', '')
+             if cuda_arch: cuda_arch = ' --cuda-gpu-arch='+cuda_arch
+             specialize = [('',        ' --cuda-host-only'),
+                           ('.device', ' --cuda-device-only' + cuda_path + cuda_arch)]
+
          os.chdir(pkgpath)
          incpath = os.path.join(pkgpath, 'include')
-         pch_exists = os.path.exists(pchname)
-         if not pch_exists or not _is_uptodate(pchname, incpath):
-             if os.access(pchdir, os.R_OK|os.W_OK):
-                 print('(Re-)building pre-compiled headers (options:%s); this may take a minute ...' % os.environ.get('EXTRA_CLING_ARGS', ' none'))
-                 makepch = os.path.join(pkgpath, 'etc', 'dictpch', 'makepch.py')
-                 pyexe = sys.executable
-                 if getattr(sys, 'frozen', False) or not ('python' in pyexe.lower() or 'pypy' in pyexe.lower()):
-                   # either frozen, or a high chance of being embedded; and the actual version
-                   # of python used doesn't matter per se, as long as it is functional
-                     pyexe = 'python'
-                 if subprocess.call([pyexe, makepch, pchname, '-I'+incpath]) != 0:
-                     _warn_no_pch('failed to build', pchname)
-             elif not pch_exists:
-               # accept that the file may be out of date; since the location is not writable,
-               # the most likely cause is that it is managed by some packager, which in that
-               # case is responsible for the PCH, so only warn if it doesn't exist
-                 _warn_no_pch('%s not writable, set CLING_STANDARD_PCH' % pchdir, pchname)
+
+         for ext, ext_flags in specialize:
+             pchname1 = pchname+ext
+             pch_exists = os.path.exists(pchname1)
+             if not pch_exists or not _is_uptodate(pchname1, incpath):
+                 if os.access(pchdir, os.R_OK|os.W_OK):
+                     if ext_flags:
+                         eca_old1 = eca_old = os.environ.get('EXTRA_CLING_ARGS', '')
+                         if 'device' in ext_flags:    # TODO: find cleaner way
+                             eca_old1 = eca_old1.replace(' -mavx', '')
+                         os.environ['EXTRA_CLING_ARGS'] = eca_old1 + ext_flags
+                     print('(Re-)building pre-compiled headers (options:%s); this may take a minute ...' % os.environ.get('EXTRA_CLING_ARGS', ' none'))
+                     makepch = os.path.join(pkgpath, 'etc', 'dictpch', 'makepch.py')
+                     pyexe = sys.executable
+                     if getattr(sys, 'frozen', False) or not ('python' in pyexe.lower() or 'pypy' in pyexe.lower()):
+                       # either frozen, or a high chance of being embedded; and the actual version
+                       # of python used doesn't matter per se, as long as it is functional
+                         pyexe = 'python'
+                     if subprocess.call([pyexe, makepch, pchname1, '-I'+incpath]) != 0:
+                         _warn_no_pch('failed to build', pchname1)
+                     if ext_flags:
+                        os.environ['EXTRA_CLING_ARGS'] = eca_old
+                 elif not pch_exists:
+                   # accept that the file may be out of date; since the location is not writable,
+                   # the most likely cause is that it is managed by some packager, which in that
+                   # case is responsible for the PCH, so only warn if it doesn't exist
+                      _warn_no_pch('%s not writable, set CLING_STANDARD_PCH' % pchdir, pchname1)
 
      except Exception as e:
          _warn_no_pch(str(e))
