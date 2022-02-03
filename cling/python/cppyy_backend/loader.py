@@ -8,7 +8,7 @@ __all__ = [
     'ensure_precompiled_header'   # build precompiled header as necessary
 ]
 
-import os, sys, ctypes, subprocess, sysconfig, warnings
+import os, re, sys, ctypes, subprocess, sysconfig, warnings
 
 if 'win32' in sys.platform:
     soext = '.dll'
@@ -98,7 +98,15 @@ def set_cling_compile_options(add_defaults = False):
 
     enable_cuda = os.environ.get('CLING_ENABLE_CUDA', '0')
     if enable_cuda != '0' and enable_cuda.lower() != 'false':
-        CURRENT_ARGS += ' -x cuda -D__CLING_CUDA__ -D__CUDA__'
+        try:
+            cuda_version = subprocess.check_output(['nvcc', '--version']).decode("utf-8")
+            cuda_version = re.search(r"release (\d+\.\d+)", cuda_version).groups()[0]
+            if float(cuda_version) <= 10.2:
+                CURRENT_ARGS += ' -x cuda -D__CUDA__'
+            else:
+                warnings.warn("CUDA version %s not supported" % cuda_version)
+        except Exception as e:
+            warnings.warn("CUDA requested, but no nvcc found")
 
     if add_defaults:
         has_avx = False
