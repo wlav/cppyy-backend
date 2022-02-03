@@ -164,10 +164,10 @@ def getSTLIncludes():
                      )
 
    # CUDA headers go first, as some redeclare standard ones
-   allHeadersPartContent = "// CUDA\n#ifdef __CUDA__\n"
+   allHeadersPartContent = "// CUDA\n#ifdef __CLING_CUDA__\n#ifdef __CUDA__\n"
    for header in cudaHeadersList:
        allHeadersPartContent += getGuardedStlInclude(header)
-   allHeadersPartContent += "#endif\n"
+   allHeadersPartContent += "#endif\n#endif\n"
 
    allHeadersPartContent += "// STL headers\n"
 

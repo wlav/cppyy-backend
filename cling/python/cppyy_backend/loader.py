@@ -98,7 +98,7 @@ def set_cling_compile_options(add_defaults = False):
 
     enable_cuda = os.environ.get('CLING_ENABLE_CUDA', '0')
     if enable_cuda != '0' and enable_cuda.lower() != 'false':
-        CURRENT_ARGS += ' -x cuda -D__CUDA__'
+        CURRENT_ARGS += ' -x cuda -D__CLING_CUDA__ -D__CUDA__'
 
     if add_defaults:
         has_avx = False
