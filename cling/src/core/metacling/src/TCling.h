@@ -570,11 +570,12 @@ private: // Private Utility Functions and Classes
    Bool_t HandleNewTransaction(const cling::Transaction &T);
    bool IsClassAutoloadingEnabled() const;
    void ProcessClassesToUpdate();
-   cling::Interpreter *GetInterpreterImpl() const { return fInterpreter.get(); }
    cling::MetaProcessor *GetMetaProcessorImpl() const { return fMetaProcessor.get(); }
 
    friend void TCling__RegisterRdictForLoadPCM(const std::string &pcmFileNameFullPath, llvm::StringRef *pcmContent);
    friend cling::Interpreter* TCling__GetInterpreter();
+public:
+   cling::Interpreter *GetInterpreterImpl() const { return fInterpreter.get(); }
 };
 
 } // namespace CppyyLegacy

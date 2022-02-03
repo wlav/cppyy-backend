@@ -10,6 +10,12 @@
 #include "cpp_cppyy.h"
 #include "callcontext.h"
 
+// Cling
+#include "cling/Utils/AST.h"
+#include "cling/Interpreter/Interpreter.h"
+
+#include "TCling.h"
+
 // ROOT
 #include "TBaseClass.h"
 #include "TClass.h"
@@ -59,6 +65,7 @@ using namespace CppyyLegacy;
 typedef CPyCppyy::Parameter Parameter;
 // --temp
 
+namespace cling { namespace cppyy { auto *gCling = ((TCling *)gInterpreter)->GetInterpreterImpl(); } }
 
 // small number that allows use of stack for argument passing
 const int SMALL_ARGS_N = 8;
@@ -273,15 +280,15 @@ public:
         gInterpreter->ProcessLine(code);
 
     // create helpers for comparing thingies
-        gInterpreter->Declare(
+        cling::cppyy::gCling->declare(
             "namespace __cppyy_internal { template<class C1, class C2>"
             " bool is_equal(const C1& c1, const C2& c2) { return (bool)(c1 == c2); } }");
-        gInterpreter->Declare(
+        cling::cppyy::gCling->declare(
             "namespace __cppyy_internal { template<class C1, class C2>"
             " bool is_not_equal(const C1& c1, const C2& c2) { return (bool)(c1 != c2); } }");
 
     // helper for multiple inheritance
-        gInterpreter->Declare("namespace __cppyy_internal { struct Sep; }");
+        cling::cppyy::gCling->declare("namespace __cppyy_internal { struct Sep; }");
 
     // retrieve all initial (ROOT) C++ names in the global scope to allow filtering later
         gROOT->GetListOfGlobals(true);             // force initialize

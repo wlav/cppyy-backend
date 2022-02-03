@@ -21,7 +21,7 @@ index 7002e43f36..dfdf718685 100644
    else()
      # FIXME: Work hard to remove -Wno-shadow and -Wno-unused-parameter
 -    set(CLING_CXXFLAGS " ${LLVM_DEFS} -fno-strict-aliasing -Wwrite-strings -Wno-shadow -Wno-unused-parameter -Wno-deprecated-declarations")
-+    set(CLING_CXXFLAGS " ${LLVM_DEFS} -fvisibility=hidden -fno-strict-aliasing -Wwrite-strings -Wno-shadow -Wno-unused-parameter -Wno-deprecated-declarations")
++    set(CLING_CXXFLAGS " ${LLVM_DEFS} -fno-strict-aliasing -Wwrite-strings -Wno-shadow -Wno-unused-parameter -Wno-deprecated-declarations")
 +    if(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
 +      string(APPEND CLING_CXXFLAGS " -Wl,-Bsymbolic")
 +    endif()

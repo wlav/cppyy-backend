@@ -909,6 +909,273 @@ function(ROOT_MODULE_LIBRARY library)
                              ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR} COMPONENT libraries)
 endfunction()
 
+#----------------------------------------------------------------------------
+# function ROOT_ADD_TEST( <name> COMMAND cmd [arg1... ]
+#                        [PRECMD cmd [arg1...]] [POSTCMD cmd [arg1...]]
+#                        [OUTPUT outfile] [ERROR errfile] [INPUT infile]
+#                        [ENVIRONMENT var1=val1 var2=val2 ...
+#                        [DEPENDS test1 ...]
+#                        [RUN_SERIAL]
+#                        [TIMEOUT seconds]
+#                        [DEBUG]
+#                        [SOURCE_DIR dir] [BINARY_DIR dir]
+#                        [WORKING_DIR dir] [COPY_TO_BUILDDIR files]
+#                        [BUILD target] [PROJECT project]
+#                        [PASSREGEX exp] [FAILREGEX epx]
+#                        [PASSRC code]
+#                        [RESOURCE_LOCK lock]
+#                        [FIXTURES_SETUP ...] [FIXTURES_CLEANUP ...] [FIXTURES_REQUIRED ...]
+#                        [LABELS label1 label2]
+#                        [PYTHON_DEPS numpy numba keras torch ...] # List of python packages required to run this test.
+#                                                              A fixture will be added the tries to import them before the test starts.)
+#
+function(ROOT_ADD_TEST test)
+  CMAKE_PARSE_ARGUMENTS(ARG "DEBUG;WILLFAIL;CHECKOUT;CHECKERR;RUN_SERIAL"
+                            "TIMEOUT;BUILD;INPUT;OUTPUT;ERROR;SOURCE_DIR;BINARY_DIR;WORKING_DIR;PROJECT;PASSRC;RESOURCE_LOCK"
+                            "COMMAND;COPY_TO_BUILDDIR;DIFFCMD;OUTCNV;OUTCNVCMD;PRECMD;POSTCMD;ENVIRONMENT;COMPILEMACROS;DEPENDS;PASSREGEX;OUTREF;ERRREF;FAILREGEX;LABELS;PYTHON_DEPS;FIXTURES_SETUP;FIXTURES_CLEANUP;FIXTURES_REQUIRED"
+                            ${ARGN})
+
+  #- Handle COMMAND argument
+  list(LENGTH ARG_COMMAND _len)
+  if(_len LESS 1)
+    if(NOT ARG_BUILD)
+      message(FATAL_ERROR "ROOT_ADD_TEST: command is mandatory (without build)")
+    endif()
+  else()
+    list(GET ARG_COMMAND 0 _prg)
+    list(REMOVE_AT ARG_COMMAND 0)
+
+    if(TARGET ${_prg})                                 # if command is a target, get the actual executable
+      set(_prg "$<TARGET_FILE:${_prg}>")
+      set(_cmd ${_prg} ${ARG_COMMAND})
+    else()
+      find_program(_exe ${_prg})
+      if(_exe)                                         # if the command is found in the system, use it
+        set(_cmd ${_exe} ${ARG_COMMAND})
+      elseif(NOT IS_ABSOLUTE ${_prg})                  # if not absolute, assume is found in current binary dir
+        set(_prg ${CMAKE_CURRENT_BINARY_DIR}/${_prg})
+        set(_cmd ${_prg} ${ARG_COMMAND})
+      else()                                           # take as it is
+        set(_cmd ${_prg} ${ARG_COMMAND})
+      endif()
+      unset(_exe CACHE)
+    endif()
+
+    string(REPLACE ";" "^" _cmd "${_cmd}")
+  endif()
+
+  set(_command ${CMAKE_COMMAND} -DCMD=${_cmd})
+
+  #- Handle PRE and POST commands
+  if(ARG_PRECMD)
+    string(REPLACE ";" "^" _pre "${ARG_PRECMD}")
+    set(_command ${_command} -DPRE=${_pre})
+  endif()
+
+  if(ARG_POSTCMD)
+    string(REPLACE ";" "^" _post "${ARG_POSTCMD}")
+    set(_command ${_command} -DPOST=${_post})
+  endif()
+
+  #- Handle INPUT, OUTPUT, ERROR, DEBUG arguments
+  if(ARG_INPUT)
+    set(_command ${_command} -DIN=${ARG_INPUT})
+  endif()
+
+  if(ARG_OUTPUT)
+    set(_command ${_command} -DOUT=${ARG_OUTPUT})
+  endif()
+
+  if(ARG_OUTREF)
+    set(_command ${_command} -DOUTREF=${ARG_OUTREF})
+  endif()
+
+  if(ARG_ERRREF)
+    set(_command ${_command} -DERRREF=${ARG_ERRREF})
+  endif()
+
+  if(ARG_ERROR)
+    set(_command ${_command} -DERR=${ARG_ERROR})
+  endif()
+
+  if(ARG_WORKING_DIR)
+    set(_command ${_command} -DCWD=${ARG_WORKING_DIR})
+  endif()
+
+  if(ARG_DEBUG)
+    set(_command ${_command} -DDBG=ON)
+  endif()
+
+  if(ARG_PASSRC)
+    set(_command ${_command} -DRC=${ARG_PASSRC})
+  endif()
+
+  if(ARG_OUTCNVCMD)
+    string(REPLACE ";" "^" _outcnvcmd "${ARG_OUTCNVCMD}")
+    string(REPLACE "=" "@" _outcnvcmd "${_outcnvcmd}")
+    set(_command ${_command} -DCNVCMD=${_outcnvcmd})
+  endif()
+
+  if(ARG_OUTCNV)
+    string(REPLACE ";" "^" _outcnv "${ARG_OUTCNV}")
+    set(_command ${_command} -DCNV=${_outcnv})
+  endif()
+
+  if(ARG_DIFFCMD)
+    string(REPLACE ";" "^" _diff_cmd "${ARG_DIFFCMD}")
+    set(_command ${_command} -DDIFFCMD=${_diff_cmd})
+
+    if(TARGET ROOT::ROOTStaticSanitizerConfig)
+      # We have to set up leak sanitizer such that it doesn't report on suppressed
+      # leaks. Otherwise, all diffs will fail.
+      set(LSAN_OPT ARG_ENVIRONMENT)
+      list(FILTER LSAN_OPT INCLUDE REGEX LSAN_OPTIONS=[^;]+)
+      if(NOT LSAN_OPT MATCHES LSAN_OPTIONS=.*)
+        set(LSAN_OPT LSAN_OPTIONS=)
+      endif()
+      string(APPEND LSAN_OPT ":print_suppressions=0")
+      list(FILTER ARG_ENVIRONMENT EXCLUDE REGEX LSAN_OPTIONS.*)
+      list(APPEND ARG_ENVIRONMENT ${LSAN_OPT})
+    endif()
+  endif()
+
+  if(ARG_CHECKOUT)
+    set(_command ${_command} -DCHECKOUT=true)
+  endif()
+
+  if(ARG_CHECKERR)
+    set(_command ${_command} -DCHECKERR=true)
+  endif()
+
+  set(_command ${_command} -DSYS=${ROOTSYS})
+
+  #- Handle ENVIRONMENT argument
+  if(ASAN_EXTRA_LD_PRELOAD)
+    # Address sanitizer runtime needs to be preloaded in all python tests
+    # Check now if the -DCMD= contains "python[0-9.] "
+    set(theCommand ${_command})
+    list(FILTER theCommand INCLUDE REGEX "^-DCMD=.*python[0-9.]*[\\^]")
+    if(theCommand OR _command MATCHES roottest/python/cmdLineUtils)
+      list(APPEND ARG_ENVIRONMENT ${ld_preload}=${ASAN_EXTRA_LD_PRELOAD})
+    endif()
+  endif()
+
+  if(ARG_ENVIRONMENT)
+    string(REPLACE ";" "#" _env "${ARG_ENVIRONMENT}")
+    set(_command ${_command} -DENV=${_env})
+  endif()
+
+  #- Copy files to the build directory.
+  if(ARG_COPY_TO_BUILDDIR)
+    string(REPLACE ";" "^" _copy_files "${ARG_COPY_TO_BUILDDIR}")
+    set(_command ${_command} -DCOPY=${_copy_files})
+  endif()
+
+  set(_command ${_command} -P ${ROOT_TEST_DRIVER})
+
+  if(ARG_WILLFAIL)
+    set(test ${test}_WILL_FAIL)
+  endif()
+
+  #- Now we can actually add the test
+  if(ARG_BUILD)
+    if(NOT ARG_SOURCE_DIR)
+      set(ARG_SOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR})
+    endif()
+    if(NOT ARG_BINARY_DIR)
+      set(ARG_BINARY_DIR ${CMAKE_CURRENT_BINARY_DIR})
+    endif()
+    if(NOT ARG_PROJECT)
+       if(NOT PROJECT_NAME STREQUAL "ROOT")
+         set(ARG_PROJECT ${PROJECT_NAME})
+       else()
+         set(ARG_PROJECT ${ARG_BUILD})
+       endif()
+    endif()
+    add_test(NAME ${test} COMMAND ${CMAKE_CTEST_COMMAND}
+      --build-and-test  ${ARG_SOURCE_DIR} ${ARG_BINARY_DIR}
+      --build-generator ${CMAKE_GENERATOR}
+      --build-makeprogram ${CMAKE_MAKE_PROGRAM}
+      --build-target ${ARG_BUILD}
+      --build-project ${ARG_PROJECT}
+      --build-config $<CONFIGURATION>
+      --build-noclean
+      --test-command ${_command} )
+    set_property(TEST ${test} PROPERTY ENVIRONMENT ROOT_DIR=${CMAKE_BINARY_DIR})
+  else()
+    add_test(NAME ${test} COMMAND ${_command})
+    if (gnuinstall)
+      set_property(TEST ${test} PROPERTY ENVIRONMENT ROOTIGNOREPREFIX=1)
+    endif()
+  endif()
+
+  #- provided fixtures and resource lock are set here
+  if (ARG_FIXTURES_SETUP)
+    set_property(TEST ${test} PROPERTY
+      FIXTURES_SETUP ${ARG_FIXTURES_SETUP})
+  endif()
+
+  if (ARG_FIXTURES_CLEANUP)
+    set_property(TEST ${test} PROPERTY
+      FIXTURES_CLEANUP ${ARG_FIXTURES_CLEANUP})
+  endif()
+
+  if (ARG_FIXTURES_REQUIRED)
+    set_property(TEST ${test} PROPERTY
+      FIXTURES_REQUIRED ${ARG_FIXTURES_REQUIRED})
+  endif()
+
+  if (ARG_RESOURCE_LOCK)
+    set_property(TEST ${test} PROPERTY
+      RESOURCE_LOCK ${ARG_RESOURCE_LOCK})
+  endif()
+
+  set_property(TEST ${test} APPEND PROPERTY ENVIRONMENT ROOT_HIST=0)
+
+  #- Handle TIMOUT and DEPENDS arguments
+  if(ARG_TIMEOUT)
+    set_property(TEST ${test} PROPERTY TIMEOUT ${ARG_TIMEOUT})
+  endif()
+
+  if(ARG_DEPENDS)
+    set_property(TEST ${test} PROPERTY DEPENDS ${ARG_DEPENDS})
+  endif()
+
+  if(ARG_PASSREGEX)
+    set_property(TEST ${test} PROPERTY PASS_REGULAR_EXPRESSION ${ARG_PASSREGEX})
+  endif()
+
+  if(ARG_FAILREGEX)
+    set_property(TEST ${test} PROPERTY FAIL_REGULAR_EXPRESSION ${ARG_FAILREGEX})
+  endif()
+
+  if(ARG_WILLFAIL)
+    set_property(TEST ${test} PROPERTY WILL_FAIL true)
+  endif()
+
+  if(ARG_LABELS)
+    set_tests_properties(${test} PROPERTIES LABELS "${ARG_LABELS}")
+  endif()
+
+  if(ARG_PYTHON_DEPS)
+    foreach(python_dep ${ARG_PYTHON_DEPS})
+      if(NOT TEST test-import-${python_dep})
+        add_test(NAME test-import-${python_dep} COMMAND ${PYTHON_EXECUTABLE_Development_Main} -c "import ${python_dep}")
+        set_tests_properties(test-import-${python_dep} PROPERTIES FIXTURES_SETUP requires_${python_dep})
+      endif()
+      list(APPEND fixtures "requires_${python_dep}")
+    endforeach()
+    if(fixtures)
+      set_tests_properties(${test} PROPERTIES FIXTURES_REQUIRED "${fixtures}")
+    endif()
+  endif()
+
+  if(ARG_RUN_SERIAL)
+    set_property(TEST ${test} PROPERTY RUN_SERIAL true)
+  endif()
+
+endfunction()
+
 #---------------------------------------------------------------------------------------------------
 #---ROOT_GENERATE_ROOTMAP( library LINKDEF linkdef LIBRRARY lib DEPENDENCIES lib1 lib2 )
 #---------------------------------------------------------------------------------------------------
