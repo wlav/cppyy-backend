@@ -165,6 +165,7 @@ def ensure_precompiled_header(pchdir = '', pchname = ''):
      olddir = os.getcwd()
      try:
          pkgpath = os.path.abspath(os.path.dirname(__file__))
+         cling_args = os.environ['EXTRA_CLING_ARGS']
          if 'CLING_STANDARD_PCH' in os.environ:
              pchname = os.environ['CLING_STANDARD_PCH']
              if pchname.lower() == 'none':  # magic keyword to disable pch
@@ -177,7 +178,6 @@ def ensure_precompiled_header(pchdir = '', pchname = ''):
                  pchdir = os.path.join(pkgpath, 'etc')
              if not pchname:
                  pchname = 'allDict.cxx.pch.'
-                 cling_args = os.environ['EXTRA_CLING_ARGS']
                  if 'avx' in cling_args:     pchname += 'avx.'
                  if 'openmp' in  cling_args: pchname += 'omp.'
                  if 'cuda' in cling_args:    pchname += 'cuda.'
