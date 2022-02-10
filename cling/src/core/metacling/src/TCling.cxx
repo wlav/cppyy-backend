@@ -7457,10 +7457,10 @@ void TCling::ClassInfo_Destruct(ClassInfo_t* cinfo, void* arena) const
 
 ////////////////////////////////////////////////////////////////////////////////
 
-ClassInfo_t* TCling::ClassInfo_Factory(Bool_t all) const
+ClassInfo_t* TCling::ClassInfo_Factory(Bool_t all, const char* scope) const
 {
    R__LOCKGUARD(gInterpreterMutex);
-   return (ClassInfo_t*) new TClingClassInfo(GetInterpreterImpl(), all);
+   return (ClassInfo_t*) new TClingClassInfo(GetInterpreterImpl(), all, scope);
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -8022,6 +8022,12 @@ void TCling::GetFunctionName(const clang::FunctionDecl *decl, std::string &outpu
       printPolicy.AnonymousTagLocations = false;
       decl->getNameForDiagnostic(stream, printPolicy, /*Qualified=*/false);
    }
+
+   // right strip any trailing spaces (happens e.g. with operators)
+   std::string::size_type i = output.size();
+   for ( ; 0 < i; --i)
+       if (!isspace(output[i-1])) break;
+    if (i != output.size()) output = output.substr(0, i);
 }
 
 ////////////////////////////////////////////////////////////////////////////////

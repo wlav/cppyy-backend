@@ -70,15 +70,26 @@ static std::string FullyQualifiedName(const Decl *decl) {
    return buf;
 }
 
-TClingClassInfo::TClingClassInfo(cling::Interpreter *interp, Bool_t all)
+TClingClassInfo::TClingClassInfo(cling::Interpreter *interp, Bool_t all, const char* name)
    : TClingDeclInfo(nullptr), fInterp(interp), fFirstTime(true), fDescend(false), fIterAll(all),
      fIsIter(true), fType(0), fOffsetCache(0)
 {
-   TranslationUnitDecl *TU =
-      interp->getCI()->getASTContext().getTranslationUnitDecl();
+   if (name) {
+      const cling::LookupHelper& lh = fInterp->getLookupHelper();
+      const Type *type = 0;
+      const Decl *decl = lh.findScope(name,
+           gDebug > 5 ? cling::LookupHelper::WithDiagnostics
+           : cling::LookupHelper::NoDiagnostics,
+           &type, /* intantiateTemplate= */ true );
+      SetDecl(decl);
+      fType = type;
+   } else {
+      TranslationUnitDecl *TU =
+          fInterp->getCI()->getASTContext().getTranslationUnitDecl();
+      SetDecl(TU);
+      fType = 0;
+   }
    fFirstTime = true;
-   SetDecl(TU);
-   fType = 0;
 }
 
 TClingClassInfo::TClingClassInfo(cling::Interpreter *interp, const char *name)

@@ -82,7 +82,7 @@ public: // Types
 
 public:
 
-   explicit TClingClassInfo(cling::Interpreter *, Bool_t all = kTRUE);
+   explicit TClingClassInfo(cling::Interpreter *, Bool_t all = kTRUE, const char* scope = nullptr);
    explicit TClingClassInfo(cling::Interpreter *, const char *);
    explicit TClingClassInfo(cling::Interpreter *, const clang::Type &);
    explicit TClingClassInfo(cling::Interpreter *, const clang::Decl *);

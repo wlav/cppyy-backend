@@ -1083,16 +1083,16 @@ std::string outer_no_template(const std::string& name)
     type* obj = nullptr;                                                      \
     while ((obj = (type*)itr.Next())) {                                       \
         const char* nm = obj->GetName();                                      \
-        if (nm && nm[0] != '_' && !(obj->Property() & (filter))) {            \
-            if (gInitialNames.find(nm) == gInitialNames.end())                \
-                cppnames.insert(nm);                                          \
-    }}}
+        if (nm && !(obj->Property() & (filter)) &&                            \
+                gInitialNames.find(nm) == gInitialNames.end())                \
+            cppnames.insert(nm);                                              \
+    }}
 
 static inline
 void cond_add(Cppyy::TCppScope_t scope, const std::string& ns_scope,
     std::set<std::string>& cppnames, const char* name, bool nofilter = false)
 {
-    if (!name || name[0] == '_' || strstr(name, ".h") != 0 || strncmp(name, "operator", 8) == 0)
+    if (!name || strstr(name, ".h") != 0)
         return;
 
     if (scope == GLOBAL_HANDLE) {
@@ -1146,6 +1146,19 @@ void Cppyy::GetAllCppNames(TCppScope_t scope, std::set<std::string>& cppnames)
         cond_add(scope, ns_scope, cppnames, gClassTable->Next());
 */
 
+// add interpreted classes (no load)
+    {
+        ClassInfo_t* ci = gInterpreter->ClassInfo_Factory(
+            false /* all */, scope == GLOBAL_HANDLE ? nullptr : cr->GetName());
+        while (gInterpreter->ClassInfo_Next(ci)) {
+            const char* className = gInterpreter->ClassInfo_FullName(ci);
+            if (strstr(className, "(anonymous)"))
+                continue;
+            cond_add(scope, ns_scope, cppnames, className);
+        }
+        gInterpreter->ClassInfo_Delete(ci);
+    }
+
 // any other types (e.g. that may have come from parsing headers)
     coll = gROOT->GetListOfTypes();
     {
@@ -1167,10 +1180,8 @@ void Cppyy::GetAllCppNames(TCppScope_t scope, std::set<std::string>& cppnames)
         while ((obj = (TFunction*)itr.Next())) {
             const char* nm = obj->GetName();
         // skip templated functions, adding only the un-instantiated ones
-            if (nm && nm[0] != '_' && strstr(nm, "<") == 0 && strncmp(nm, "operator", 8) != 0) {
-                if (gInitialNames.find(nm) == gInitialNames.end())
-                    cppnames.insert(nm);
-            }
+            if (nm && gInitialNames.find(nm) == gInitialNames.end())
+                cppnames.insert(nm);
         }
     }
 
