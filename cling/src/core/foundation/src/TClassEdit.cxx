@@ -1109,14 +1109,19 @@ string TClassEdit::CleanType(const char *typeDesc, int mode, const char **tail)
 
       if (*c == '<' || *c == '(')   lev++;
       if (lev==0 && !isalnum(*c)) {
-         if (!strchr("*&:._$ []-@",*c)) break;
+         // TODO: ')' is included below only b/c although this code treats it as a
+         // sub-level, the GetSplit() does not actually divvy it up, with trailing
+         // ')' as result (also '(', but that does not get deleted b/c it will by
+         // definition open a level); note: this addition works in conjunction with
+         // checking lev below before decrementing
+         if (!strchr("*&:._$ []-@)",*c)) break;
          // '.' is used as a module/namespace separator by Python
       }
       if (c[0]=='>' && result.size() && result[result.size()-1]=='>') result+=" ";
 
       result += c[0];
 
-      if (*c == '>' || *c == ')')    lev--;
+      if (0 < lev && (*c == '>' || *c == ')'))    lev--;
    }
    if(tail) *tail=c;
    return result;
