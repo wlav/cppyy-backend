@@ -70,7 +70,7 @@ def get_cflags():
 #
 class my_build_cpplib(_build_ext):
     def build_extension(self, ext):
-        cling_include_path = ['/media/sudo-panda/D/workspaces/cppyy/src/cppyy-backend/cling/src/interpreter/cling/include/', '/media/sudo-panda/D/workspaces/cppyy/src/cppyy-backend/cling/src/core/metacling/src', '/usr/include/llvm-9', '/usr/include/llvm-c-9']
+        cling_include_path = ['/media/sudo-panda/D/workspaces/cppyy/src/cppyy-backend/cling/src/interpreter/cling/include/', '/media/sudo-panda/D/workspaces/cppyy/src/cppyy-backend/cling/src/core/metacling/src', '/usr/include/llvm-9', '/usr/lib/llvm-9/include', '/usr/include/llvm-c-9']
         include_dirs = ext.include_dirs + [get_include_path()] + cling_include_path
         log.info('checking for %s', self.build_temp)
         if not os.path.exists(self.build_temp):
@@ -104,8 +104,8 @@ class my_build_cpplib(_build_ext):
 
         log.info("now building %s", libname)
         link_libraries, link_dirs = _get_linker_options()
-        link_libraries = ['LLVM', 'Cling']
-        link_dirs = ['/lib/llvm-9/lib', '/media/sudo-panda/D/workspaces/cppyy/.venv/lib/python2.7/site-packages/cppyy_backend/lib/']
+        link_libraries = ['LLVM', 'Cling', 'clang']
+        link_dirs = ['/usr/lib/llvm-9/lib', '/media/sudo-panda/D/workspaces/cppyy/.venv/lib/python2.7/site-packages/cppyy_backend/lib/']
         self.compiler.link_shared_object(
             objects, libname,
             libraries=link_libraries, library_dirs=link_dirs,

@@ -16,6 +16,13 @@
 
 #include "TCling.h"
 
+// Clang
+#include "clang/AST/DeclBase.h"
+#include "clang/AST/Decl.h"
+
+// LLVM
+#include "llvm/Support/Casting.h"
+
 // ROOT
 #include "TBaseClass.h"
 #include "TClass.h"
@@ -1927,6 +1934,13 @@ bool Cppyy::IsStaticMethod(TCppMethod_t method)
     return false;
 }
 
+const clang::Decl *getDeclFromHandle(Cppyy::TCppType_t handle) {
+  TClassRef& cr = type_from_handle(handle);
+  if (!cr.GetClass() || !cr->GetClassInfo())
+    return nullptr;
+  return static_cast<const clang::Decl*>(gInterpreter->GetDeclId(cr->GetClassInfo()));
+}
+
 // data member reflection information ----------------------------------------
 Cppyy::TCppIndex_t Cppyy::GetNumDatamembers(TCppScope_t scope, bool accept_namespace)
 {
@@ -2113,28 +2127,41 @@ Cppyy::TCppIndex_t Cppyy::GetDatamemberIndexEnumerated(TCppScope_t scope, TCppIn
     return idata;
 }
 
+bool CheckAccess(Cppyy::TCppScope_t scope, Cppyy::TCppIndex_t idata, clang::AccessSpecifier access) {
+    const clang::Decl* D = getDeclFromHandle(scope);
+
+    if (llvm::isa<clang::TranslationUnitDecl>(D) || llvm::isa<clang::NamespaceDecl>(D))
+        return true;
+
+    int idx = (int)idata;
+    if (const clang::RecordDecl *RD = llvm::dyn_cast<const clang::RecordDecl>(D)) {
+        RD = RD->getDefinition();
+        size_t sizeRD = std::distance(RD->field_begin(), RD->field_end());
+        if (idx >= sizeRD) {
+            return false;
+        }
+
+        auto RDFI = RD->field_begin();
+        while (idx--) {
+            ++RDFI;
+        }
+        clang::FieldDecl *FD = *RDFI;
+        auto FDA = FD->getAccess();
+        bool ret = FDA == access;
+        return ret;
+    }
+    return false;
+}
 
 // data member properties ----------------------------------------------------
 bool Cppyy::IsPublicData(TCppScope_t scope, TCppIndex_t idata)
 {
-    if (scope == GLOBAL_HANDLE)
-        return true;
-    TClassRef& cr = type_from_handle(scope);
-    if (cr->Property() & kIsNamespace)
-        return true;
-    TDataMember* m = (TDataMember*)cr->GetListOfDataMembers()->At((int)idata);
-    return m->Property() & kIsPublic;
+    return CheckAccess(scope, idata, clang::AS_public);
 }
 
 bool Cppyy::IsProtectedData(TCppScope_t scope, TCppIndex_t idata)
 {
-    if (scope == GLOBAL_HANDLE)
-        return true;
-    TClassRef& cr = type_from_handle(scope);
-    if (cr->Property() & kIsNamespace)
-        return true;
-    TDataMember* m = (TDataMember*)cr->GetListOfDataMembers()->At((int)idata);
-    return m->Property() & kIsProtected;
+    return CheckAccess(scope, idata, clang::AS_protected);
 }
 
 bool Cppyy::IsStaticData(TCppScope_t scope, TCppIndex_t idata)
