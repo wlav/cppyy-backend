@@ -1944,15 +1944,23 @@ const clang::Decl *getDeclFromHandle(Cppyy::TCppType_t handle) {
 // data member reflection information ----------------------------------------
 Cppyy::TCppIndex_t Cppyy::GetNumDatamembers(TCppScope_t scope, bool accept_namespace)
 {
-    if (!accept_namespace && IsNamespace(scope))
+    const clang::Decl* D = getDeclFromHandle(scope);
+    if (!D) {
+        return (TCppIndex_t)0;
+    }
+
+    if (!accept_namespace && llvm::isa<clang::NamespaceDecl>(D))
         return (TCppIndex_t)0;     // enforce lazy
 
-    if (scope == GLOBAL_HANDLE)
-        return gROOT->GetListOfGlobals(true)->GetSize();
+    if (llvm::isa<clang::TranslationUnitDecl>(D)){
+        auto DeclRange = D->getDeclContext()->noload_decls();
+        return std::distance(DeclRange.begin(), DeclRange.end());
+    }
 
-    TClassRef& cr = type_from_handle(scope);
-    if (cr.GetClass() && cr->GetListOfDataMembers())
-        return cr->GetListOfDataMembers()->GetSize();
+    if (auto RD = llvm::dyn_cast<const clang::RecordDecl>(D)) {
+        RD = RD->getDefinition();
+        return std::distance(RD->field_begin(), RD->field_end());
+    }
 
     return (TCppIndex_t)0;         // unknown class?
 }
