@@ -1988,14 +1988,18 @@ std::string Cppyy::GetDatamemberType(TCppScope_t scope, TCppIndex_t idata)
     TClassRef& cr = type_from_handle(scope);
     if (cr.GetClass())  {
         TDataMember* m = (TDataMember*)cr->GetListOfDataMembers()->At((int)idata);
-    // TODO: fix this upstream. Usually, we want m->GetFullTypeName(), because it does
-    // not resolve typedefs, but it looses scopes for inner classes/structs, so in that
-    // case m->GetTrueTypeName() should be used (this also cleans up the cases where
-    // the "full type" retains spurious "struct" or "union" in the name).
-        std::string fullType = m->GetFullTypeName();
-        const std::string& trueName = m->GetTrueTypeName();
-        if (fullType != trueName) {
-            if (count_scopes(trueName) > count_scopes(fullType))
+    // TODO: fix this upstream ... Usually, we want m->GetFullTypeName(), because it
+    // does not resolve typedefs, but it looses scopes for inner classes/structs, it
+    // doesn't resolve constexpr (leaving unresolved names), leaves spurious "struct"
+    // or "union" in the name, and can not handle anonymous unions. In that case
+    // m->GetTrueTypeName() should be used. W/o clear criteria to determine all these
+    // cases, the general rules are to prefer the true name if the full type does not
+    // exist as a type for classes, and the most scoped name otherwise.
+        const char* ft = m->GetFullTypeName(); std::string fullType = ft ? ft : "";
+        const char* tn = m->GetTrueTypeName(); std::string trueName = tn ? tn : "";
+        if (!trueName.empty() && fullType != trueName && !IsBuiltin(trueName)) {
+            if ( (!TClass::GetClass(fullType.c_str()) && TClass::GetClass(trueName.c_str())) || \
+                 (count_scopes(trueName) > count_scopes(fullType)) )
                 fullType = trueName;
         }
 

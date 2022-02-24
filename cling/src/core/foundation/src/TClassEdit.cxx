@@ -44,6 +44,10 @@ namespace {
             gInterpreterHelper->ShuttingDownSignal();
       }
    };
+
+   static inline bool is_ts(const char* c) {
+       return c[0] == '<' && c[1] != '<';
+   }
 }
 
 namespace std {} using namespace std;
@@ -400,6 +404,9 @@ void TClassEdit::TSplitType::ShortType(std::string &answ, int mode)
 
    // do the same for all inside
    for (int i=1;i<narg; i++) {
+      if (strstr(fElements[i].c_str(),"<<"))     // meaning: operator<< not template, so no split
+         continue;
+
       if (strchr(fElements[i].c_str(),'<')==0) {
          if (mode&kResolveTypedef) {
             fElements[i] = ResolveTypedef(fElements[i].c_str(),true);
@@ -527,7 +534,7 @@ static size_t findNameEnd(const std::string_view full)
    int level = 0;
    for(size_t i = 0; i < full.length(); ++i) {
       switch(full[i]) {
-         case '<': { ++level; break; }
+         case '<': { if (full[i+1] != '<') ++level; break; }
          case '>': {
             if (level == 0) return i;
             else --level;
@@ -808,7 +815,7 @@ const char *TClassEdit::GetUnqualifiedName(const char *original)
    {
       long depth = 0;
       for(auto cursor = original; *cursor != '\0'; ++cursor) {
-         if ( *cursor == '<' || *cursor == '(') ++depth;
+         if ( is_ts(cursor) || *cursor == '(' ) ++depth;
          else if ( *cursor == '>' || *cursor == ')' ) --depth;
          else if ( *cursor == ':' ) {
             if (depth==0 && *(cursor+1) == ':' && *(cursor+2) != '\0') {
@@ -1000,7 +1007,7 @@ int TClassEdit::GetSplit(const char *type, vector<string>& output, int &nestedLo
    }
 
    const char *c = strchr(full.c_str(),'<');
-   if (c) {
+   if (c && c[1] != '<') {
       //we have 'something<'
       output.push_back(string(full,0,c - full.c_str()));
 
@@ -1008,7 +1015,7 @@ int TClassEdit::GetSplit(const char *type, vector<string>& output, int &nestedLo
       int level = 0;
       for(cursor = c + 1; *cursor != '\0' && !(level==0 && *cursor == '>'); ++cursor) {
          switch (*cursor) {
-            case '<': ++level; break;
+            case '<': if (cursor[1] != '<') ++level; break;
             case '>': --level; break;
             case ',':
                if (level == 0) {
@@ -1107,7 +1114,7 @@ string TClassEdit::CleanType(const char *typeDesc, int mode, const char **tail)
       // '@' is special character used only the artifical class name used by ROOT to implement the
       // I/O customization rules that requires caching of the input data.
 
-      if (*c == '<' || *c == '(')   lev++;
+      if (is_ts(c) || *c == '(')   lev++;
       if (lev==0 && !isalnum(*c)) {
          // TODO: ')' is included below only b/c although this code treats it as a
          // sub-level, the GetSplit() does not actually divvy it up, with trailing
@@ -1229,7 +1236,7 @@ CppyyLegacy::ESTLType TClassEdit::IsSTLCont(std::string_view type)
 
    auto c = pos+1;
    for (decltype(type.length()) level = 1; c < type.length(); ++c) {
-      if (type[c] == '<') ++level;
+      if (type[c] == '<' && type[c+1] != '<') ++level;
       if (type[c] == '>') --level;
       if (level == 0) break;
    }
@@ -1677,7 +1684,7 @@ public:
          int lastOpenWedge = 0;
          for (int i=lenght-1;i>-1;i--) {
             auto& c = clName.at(i);
-            if (c == '<') {
+            if (c == '<' && clName.at(i+1) != '<') {
                wedgeBalance++;
                lastOpenWedge = i;
             } else if (c == '>') {
@@ -1835,7 +1842,7 @@ namespace {
             }
          }
          switch (c) {
-            case '<': expected.emplace('>'); break;
+            case '<': if (haystack[pos+1] != '>') expected.emplace('>'); break;
             case '(': expected.emplace(')'); break;
             case '[': expected.emplace(']'); break;
          }
