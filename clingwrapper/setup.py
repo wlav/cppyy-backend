@@ -41,7 +41,7 @@ def is_manylinux():
 
 def _get_linker_options():
     if 'win32' in sys.platform:
-        link_libraries = ['libCoreLegacy', 'libThreadLegacy', 'libRIOLegacy', 'libCling']
+        link_libraries = ['libClingWrappers', 'libCoreLegacy', 'libThreadLegacy', 'libRIOLegacy', 'libCling']
         import cppyy_backend
         link_dirs = [os.path.join(os.path.dirname(cppyy_backend.__file__), 'lib')]
     else:
@@ -70,13 +70,13 @@ def get_cflags():
 #
 class my_build_cpplib(_build_ext):
     def build_extension(self, ext):
-        cling_include_path = ['/media/sudo-panda/D/workspaces/cppyy/src/cppyy-backend/cling/src/interpreter/cling/include/', '/media/sudo-panda/D/workspaces/cppyy/src/cppyy-backend/cling/src/core/metacling/src', '/usr/include/llvm-9', '/usr/lib/llvm-9/include', '/usr/include/llvm-c-9']
+        cling_include_path = ['/media/sudo-panda/D/workspaces/cppyy/.venv/lib/python3.8/site-packages/cppyy_backend/include/']
         include_dirs = ext.include_dirs + [get_include_path()] + cling_include_path
         log.info('checking for %s', self.build_temp)
         if not os.path.exists(self.build_temp):
             log.info('creating %s', self.build_temp)
             os.makedirs(self.build_temp)
-        extra_postargs = ['-O2']+get_cflags().split()
+        extra_postargs = ['-g']+get_cflags().split()
         if 'win32' in sys.platform:
         # /EHsc and sometimes /MT are hardwired in distutils, but the compiler/linker will
         # let the last argument take precedence
@@ -95,6 +95,8 @@ class my_build_cpplib(_build_ext):
         extra_postargs = list()
         if 'linux' in sys.platform:
             extra_postargs.append('-Wl,-Bsymbolic-functions')
+            extra_postargs.append('-Wl,--whole-archive,/media/sudo-panda/D/workspaces/cppyy/.venv/lib/python3.8/site-packages/cppyy_backend/lib/libClingWrappers.a')
+            extra_postargs.append('-Wl,--no-whole-archive')
         elif 'win32' in sys.platform:
             # force the export results in the proper directory.
             extra_postargs.append('/IMPLIB:'+os.path.join(output_dir, libname_base+'.lib'))
@@ -104,8 +106,8 @@ class my_build_cpplib(_build_ext):
 
         log.info("now building %s", libname)
         link_libraries, link_dirs = _get_linker_options()
-        link_libraries = ['LLVM', 'Cling', 'clang']
-        link_dirs = ['/usr/lib/llvm-9/lib', '/media/sudo-panda/D/workspaces/cppyy/.venv/lib/python2.7/site-packages/cppyy_backend/lib/']
+        link_libraries = ['ClingWrappers']
+        link_dirs = ['/media/sudo-panda/D/workspaces/cppyy/.venv/lib/python3.8/site-packages/cppyy_backend/lib/']
         self.compiler.link_shared_object(
             objects, libname,
             libraries=link_libraries, library_dirs=link_dirs,

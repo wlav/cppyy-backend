@@ -149,6 +149,7 @@ class my_cmake_build(_build):
 
         CMAKE_COMMAND = ['cmake', srcdir, '-Wno-dev',
                 stdcxx, '-DLLVM_ENABLE_TERMINFO=0', '-DLLVM_ENABLE_ASSERTIONS=0', '-Dclingtest=On',
+                '-DLLVM_BUILD_TYPE=Debug',
                 '-Dminimal=ON', '-Dbuiltin_cling=ON', '-Druntime_cxxmodules=OFF', '-Dbuiltin_zlib=ON']
         if 'darwin' in sys.platform:
             CMAKE_COMMAND.append('-Dlibcxx=ON')
