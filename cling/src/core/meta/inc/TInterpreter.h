@@ -270,7 +270,6 @@ public:
    virtual DeclId_t GetDeclId(CallFunc_t *info) const = 0;
    virtual DeclId_t GetDeclId(ClassInfo_t *info) const = 0;
    virtual DeclId_t GetDeclId(DataMemberInfo_t *info) const = 0;
-   virtual DeclId_t GetTagDeclId(DataMemberInfo_t *info) const = 0;
    virtual DeclId_t GetDeclId(FuncTempInfo_t *info) const = 0;
    virtual DeclId_t GetDeclId(MethodInfo_t *info) const = 0;
    virtual DeclId_t GetDeclId(TypedefInfo_t *info) const = 0;
@@ -313,7 +312,6 @@ public:
    virtual void   ClassInfo_DeleteArray(ClassInfo_t * /* info */, void * /* arena */, bool /* dtorOnly */) const {;}
    virtual void   ClassInfo_Destruct(ClassInfo_t * /* info */, void * /* arena */) const {;}
    virtual ClassInfo_t  *ClassInfo_Factory(Bool_t /*all*/ = kTRUE) const = 0;
-   virtual ClassInfo_t  *ClassInfo_FactoryWithScope(Bool_t /*all*/ = kTRUE, const char* /*scope*/ = nullptr) const = 0;
    virtual ClassInfo_t  *ClassInfo_Factory(ClassInfo_t * /* cl */) const = 0;
    virtual ClassInfo_t  *ClassInfo_Factory(const char * /* name */) const = 0;
    virtual ClassInfo_t  *ClassInfo_Factory(DeclId_t declid) const = 0;
@@ -459,6 +457,10 @@ public:
    static TInterpreter *Instance();
 
    ClassDef(TInterpreter,0)  //ABC defining interface to generic interpreter
+
+// additional virtual methods at the end for build-time backwards compatibility
+   virtual DeclId_t GetTagDeclId(DataMemberInfo_t *info) const = 0;
+   virtual ClassInfo_t  *ClassInfo_FactoryWithScope(Bool_t /*all*/ = kTRUE, const char* /*scope*/ = nullptr) const = 0;
 };
 
 } // namespace CppyyLegacy

@@ -363,7 +363,6 @@ public: // Public Interface
    virtual void   ClassInfo_DeleteArray(ClassInfo_t* info, void* arena, bool dtorOnly) const;
    virtual void   ClassInfo_Destruct(ClassInfo_t* info, void* arena) const;
    virtual ClassInfo_t*  ClassInfo_Factory(Bool_t all = kTRUE) const;
-   virtual ClassInfo_t*  ClassInfo_FactoryWithScope(Bool_t all = kTRUE, const char* scope = nullptr) const;
    virtual ClassInfo_t*  ClassInfo_Factory(ClassInfo_t* cl) const;
    virtual ClassInfo_t*  ClassInfo_Factory(const char* name) const;
    virtual ClassInfo_t*  ClassInfo_Factory(DeclId_t declid) const;
@@ -412,7 +411,6 @@ public: // Public Interface
 
    // DataMemberInfo interface
    virtual DeclId_t GetDeclId(DataMemberInfo_t *info) const;
-   virtual DeclId_t GetTagDeclId(DataMemberInfo_t *info) const;
    virtual int    DataMemberInfo_ArrayDim(DataMemberInfo_t* dminfo) const;
    virtual void   DataMemberInfo_Delete(DataMemberInfo_t* dminfo) const;
    virtual DataMemberInfo_t*  DataMemberInfo_Factory(ClassInfo_t* clinfo = 0) const;
@@ -577,6 +575,10 @@ private: // Private Utility Functions and Classes
 
    friend void TCling__RegisterRdictForLoadPCM(const std::string &pcmFileNameFullPath, llvm::StringRef *pcmContent);
    friend cling::Interpreter* TCling__GetInterpreter();
+
+// additional virtual methods at the end for build-time backwards compatibility
+   virtual DeclId_t GetTagDeclId(DataMemberInfo_t *info) const;
+   virtual ClassInfo_t  *ClassInfo_FactoryWithScope(Bool_t /*all*/ = kTRUE, const char* /*scope*/ = nullptr) const;
 };
 
 } // namespace CppyyLegacy
