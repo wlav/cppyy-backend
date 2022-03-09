@@ -7457,7 +7457,15 @@ void TCling::ClassInfo_Destruct(ClassInfo_t* cinfo, void* arena) const
 
 ////////////////////////////////////////////////////////////////////////////////
 
-ClassInfo_t* TCling::ClassInfo_Factory(Bool_t all, const char* scope) const
+ClassInfo_t* TCling::ClassInfo_Factory(Bool_t all) const
+{
+   R__LOCKGUARD(gInterpreterMutex);
+   return (ClassInfo_t*) new TClingClassInfo(GetInterpreterImpl(), all);
+}
+
+////////////////////////////////////////////////////////////////////////////////
+
+ClassInfo_t* TCling::ClassInfo_FactoryWithScope(Bool_t all, const char* scope) const
 {
    R__LOCKGUARD(gInterpreterMutex);
    return (ClassInfo_t*) new TClingClassInfo(GetInterpreterImpl(), all, scope);

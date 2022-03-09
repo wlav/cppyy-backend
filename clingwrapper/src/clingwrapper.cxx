@@ -1148,7 +1148,7 @@ void Cppyy::GetAllCppNames(TCppScope_t scope, std::set<std::string>& cppnames)
 
 // add interpreted classes (no load)
     {
-        ClassInfo_t* ci = gInterpreter->ClassInfo_Factory(
+        ClassInfo_t* ci = gInterpreter->ClassInfo_FactoryWithScope(
             false /* all */, scope == GLOBAL_HANDLE ? nullptr : cr->GetName());
         while (gInterpreter->ClassInfo_Next(ci)) {
             const char* className = gInterpreter->ClassInfo_FullName(ci);

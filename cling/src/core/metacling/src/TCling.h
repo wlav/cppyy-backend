@@ -362,7 +362,8 @@ public: // Public Interface
    virtual void   ClassInfo_Delete(ClassInfo_t* info, void* arena) const;
    virtual void   ClassInfo_DeleteArray(ClassInfo_t* info, void* arena, bool dtorOnly) const;
    virtual void   ClassInfo_Destruct(ClassInfo_t* info, void* arena) const;
-   virtual ClassInfo_t*  ClassInfo_Factory(Bool_t all = kTRUE, const char* scope = nullptr) const;
+   virtual ClassInfo_t*  ClassInfo_Factory(Bool_t all = kTRUE) const;
+   virtual ClassInfo_t*  ClassInfo_FactoryWithScope(Bool_t all = kTRUE, const char* scope = nullptr) const;
    virtual ClassInfo_t*  ClassInfo_Factory(ClassInfo_t* cl) const;
    virtual ClassInfo_t*  ClassInfo_Factory(const char* name) const;
    virtual ClassInfo_t*  ClassInfo_Factory(DeclId_t declid) const;
