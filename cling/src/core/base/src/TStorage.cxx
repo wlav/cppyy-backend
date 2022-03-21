@@ -78,8 +78,6 @@ Bool_t        TStorage::fgHasCustomNewDelete;
 
 static const char *gSpaceErr = "storage exhausted";
 
-const size_t kObjMaxSize = 10024;
-
 ////////////////////////////////////////////////////////////////////////////////
 /// Allocate a block of memory, that later can be resized using
 /// TStorage::ReAlloc().
