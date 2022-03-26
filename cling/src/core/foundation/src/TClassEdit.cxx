@@ -422,7 +422,8 @@ void TClassEdit::TSplitType::ShortType(std::string &answ, int mode)
          if (gInterpreterHelper &&
              (gInterpreterHelper->ExistingTypeCheck(fElements[i], typeresult)
               || gInterpreterHelper->GetPartiallyDesugaredNameWithScopeHandling(fElements[i], typeresult))) {
-            if (!typeresult.empty()) fElements[i] = typeresult;
+            if (!typeresult.empty())
+                fElements[i] = typeresult + (fElements[i].back() == ')' ? ")" : "");
          }
       }
    }
