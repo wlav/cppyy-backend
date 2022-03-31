@@ -137,6 +137,8 @@ const char *TDataType::GetTypeName(EDataType type)
       case kVoid_t: return "void";
       case kDataTypeAliasUnsigned_t: return "CppyyLegacy::UInt_t";
       case kDataTypeAliasSignedChar_t: return "CppyyLegacy::SignedChar_t";
+      case kInt8_t:   return "int8_t";
+      case kUInt8_t:  return "uint8_t";
       case kOther_t:  return "";
       case kNoType_t: return "";
       case kchar:     return "CppyyLegacy::Char_t";
