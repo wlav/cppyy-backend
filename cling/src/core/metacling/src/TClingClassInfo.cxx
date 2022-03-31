@@ -839,7 +839,19 @@ EDataType TClingClassInfo::GetUnderlyingType() const
 
    if (auto ED = llvm::dyn_cast<EnumDecl>(GetDecl())) {
       R__LOCKGUARD(gInterpreterMutex);
-      auto Ty = ED->getIntegerType().getCanonicalType().getTypePtrOrNull();
+      auto Ty = ED->getIntegerType().getTypePtrOrNull();
+      if (auto td = llvm::dyn_cast<TypedefType>(Ty)) {
+          const auto* decl = td->getDecl();
+          std::string name;
+          const auto& ctxt = decl->getASTContext();
+          CppyyLegacy::TMetaUtils::GetFullyQualifiedTypeName(name, ctxt.getTypedefType(decl), *fInterp);
+          if (name == "int8_t")
+              return kInt8_t;
+          if (name == "uint8_t")
+              return kUInt8_t;
+      }
+
+      Ty = ED->getIntegerType().getCanonicalType().getTypePtrOrNull();
       if (auto BTy = llvm::dyn_cast<BuiltinType>(Ty)) {
          switch (BTy->getKind()) {
          case BuiltinType::Bool:

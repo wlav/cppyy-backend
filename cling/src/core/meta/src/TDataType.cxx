@@ -365,15 +365,17 @@ void TDataType::SetType(const char *name)
    } else if (!strcmp("signed char", name)) {
       fType = kChar_t; // kDataTypeAliasSignedChar_t;
       fSize = sizeof(Char_t);
+   } else if (!strcmp("int8_t", fName.Data())) {
+      fType = kInt8_t;
+   } else if (!strcmp("uint8_t", fName.Data())) {
+      fType = kUInt8_t;
    }
 
    if (!strcmp("CppyyLegacy::Float16_t", fName.Data())) {
       fType = kFloat16_t;
-   }
-   if (!strcmp("CppyyLegacy::Double32_t", fName.Data())) {
+   } else if (!strcmp("CppyyLegacy::Double32_t", fName.Data())) {
       fType = kDouble32_t;
-   }
-   if (!strcmp("char*",fName.Data())) {
+   } else if (!strcmp("char*",fName.Data())) {
       fType = kCharStar;
    }
    // kCounter =  6, kBits     = 15
@@ -446,6 +448,9 @@ void TDataType::AddBuiltins(TCollection* types)
 
       fgBuiltins[kDataTypeAliasUnsigned_t] = new TDataType("unsigned");
       fgBuiltins[kDataTypeAliasSignedChar_t] = new TDataType("signed char");
+
+      fgBuiltins[kInt8_t] = new TDataType("int8_t");
+      fgBuiltins[kUInt8_t] = new TDataType("uint8_t");
    }
 
    for (Int_t i = 0; i < (Int_t)kNumDataTypes; ++i) {

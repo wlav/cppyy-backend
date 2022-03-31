@@ -38,6 +38,10 @@ enum EDataType {
 
    kDataTypeAliasUnsigned_t = 21,
    kDataTypeAliasSignedChar_t = 22,
+
+   // types that should not resolve to ensure proper treatment as integers
+   kInt8_t = 23, kUInt8_t = 24,
+
    // could add "long int" etc
    kNumDataTypes
 };
