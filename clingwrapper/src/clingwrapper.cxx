@@ -139,8 +139,9 @@ Cppyy::TCppScope_t Cppyy::gGlobalScope = GLOBAL_HANDLE;
 
 // builtin types
 static std::set<std::string> g_builtins =
-    {"bool", "char", "signed char", "unsigned char", "wchar_t", "short", "unsigned short",
-     "int", "unsigned int", "long", "unsigned long", "long long", "unsigned long long",
+    {"bool", "char", "signed char", "unsigned char", "int8_t", "uint8_t", "wchar_t",
+     "short", "unsigned short", "int", "unsigned int", "long", "unsigned long",
+     "long long", "unsigned long long",
      "float", "double", "long double", "void"};
 
 // smart pointer types
