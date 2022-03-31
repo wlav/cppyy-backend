@@ -1173,7 +1173,7 @@ void Cppyy::GetAllCppNames(TCppScope_t scope, std::set<std::string>& cppnames)
 
 // add functions
     coll = (scope == GLOBAL_HANDLE) ?
-        gROOT->GetListOfGlobalFunctions() : cr->GetListOfMethods();
+        gROOT->GetListOfGlobalFunctions(true) : cr->GetListOfMethods(true);
     {
         TIter itr{coll};
         TFunction* obj = nullptr;
@@ -1187,7 +1187,7 @@ void Cppyy::GetAllCppNames(TCppScope_t scope, std::set<std::string>& cppnames)
 
 // add uninstantiated templates
     coll = (scope == GLOBAL_HANDLE) ?
-        gROOT->GetListOfFunctionTemplates() : cr->GetListOfFunctionTemplates();
+        gROOT->GetListOfFunctionTemplates() : cr->GetListOfFunctionTemplates(true);
     FILL_COLL(TFunctionTemplate, kIsPrivate | kIsProtected)
 
 // add (global) data members
@@ -1200,8 +1200,9 @@ void Cppyy::GetAllCppNames(TCppScope_t scope, std::set<std::string>& cppnames)
     }
 
 // add enums values only for user classes/namespaces
-    if (scope != GLOBAL_HANDLE && scope != STD_HANDLE) {
-        coll = cr->GetListOfEnums();
+    coll = (scope == GLOBAL_HANDLE) ?
+        gROOT->GetListOfEnums(true) : cr->GetListOfEnums(true);
+    {
         FILL_COLL(TEnum, kIsPrivate | kIsProtected)
     }
 
