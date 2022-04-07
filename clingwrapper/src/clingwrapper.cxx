@@ -1011,12 +1011,13 @@ bool Cppyy::IsAbstract(TCppType_t klass)
 bool Cppyy::IsEnum(const std::string& type_name)
 {
     if (type_name.empty()) return false;
+
+    if (type_name.rfind("enum ", 0) == 0)
+        return true;    // by definition (C-style)
+
     std::string tn_short = TClassEdit::ShortType(type_name.c_str(), 1);
     if (tn_short.empty()) return false;
-// ShortType does not remove 'enum' in 'enum XYZ' that come from C-style enum
-// variable declarations; full resolution does, but simply removing it will do:
-    if (tn_short.rfind("enum ", 0) == 0)
-        tn_short = tn_short.substr(5, std::string::npos);
+
     R__LOCKGUARD_CLING(gInterpreterMutex);
     return gInterpreter->ClassInfo_IsEnum(tn_short.c_str());
 }
@@ -1596,6 +1597,9 @@ std::string Cppyy::GetMethodArgType(TCppMethod_t method, TCppIndex_t iarg)
     if (method) {
         TFunction* f = m2f(method);
         TMethodArg* arg = (TMethodArg*)f->GetListOfMethodArgs()->At((int)iarg);
+        std::string ft = arg->GetFullTypeName();
+        if (ft.rfind("enum ", 0) != std::string::npos)     // special case to preserve 'enum' tag
+            return ft;
         return arg->GetTypeNormalizedName();
     }
     return "<unknown>";
