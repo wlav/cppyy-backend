@@ -2005,8 +2005,12 @@ std::string Cppyy::GetDatamemberType(TCppScope_t scope, TCppIndex_t idata)
         const char* tn = m->GetTrueTypeName(); std::string trueName = tn ? tn : "";
         if (!trueName.empty() && fullType != trueName && !IsBuiltin(trueName)) {
             if ( (!TClass::GetClass(fullType.c_str()) && TClass::GetClass(trueName.c_str())) || \
-                 (count_scopes(trueName) > count_scopes(fullType)) )
+                 (count_scopes(trueName) > count_scopes(fullType)) ) {
+                bool is_enum_tag = fullType.rfind("enum ", 0) != std::string::npos;
                 fullType = trueName;
+                if (is_enum_tag)
+                   fullType.insert(fullType.rfind("const ", 0) == std::string::npos ? 0 : 6, "enum ");
+            }
         }
 
         if ((int)m->GetArrayDim()) {
