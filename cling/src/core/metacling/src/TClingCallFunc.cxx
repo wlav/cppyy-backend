@@ -321,11 +321,16 @@ void TClingCallFunc::make_narg_ctor(const unsigned N, ostringstream &typedefbuf,
       CXXRecordDecl* rtdecl = QT->getAsCXXRecordDecl();
       if (rtdecl && (rtdecl->getAccess() == AS_private || rtdecl->getAccess() == AS_protected))
          break;
+      auto ET = llvm::dyn_cast<EnumType>(QT);
+      bool is_enum_tag = ET && !ET->getDecl()->isScoped();
       string type_name;
       EReferenceType refType = kNotReference;
       bool isPointer = false;
       collect_type_info(QT, typedefbuf, callbuf, type_name,
                         refType, isPointer, indent_level, true);
+      if (is_enum_tag)
+         type_name.insert(type_name.rfind("const ", 0) == std::string::npos ? 0 : 6, "enum ");
+
       if (i) {
          callbuf << ',';
          if (i % 2) {
@@ -448,8 +453,12 @@ void TClingCallFunc::make_narg_call(const std::string &return_type, const unsign
          const ParmVarDecl *PVD = FD->getParamDecl(i);
          QualType Ty = PVD->getType();
          QualType QT = Ty.getCanonicalType();
+         auto ET = llvm::dyn_cast<EnumType>(QT);
+         bool is_enum_tag = ET && !ET->getDecl()->isScoped();
          std::string arg_type;
          CppyyLegacy::TMetaUtils::GetNormalizedName(arg_type, QT, *fInterp, fNormCtxt);
+         if (is_enum_tag)
+            arg_type.insert(arg_type.rfind("const ", 0) == std::string::npos ? 0 : 6, "enum ");
          callbuf << arg_type;
       }
       if (FD->isVariadic())
@@ -536,10 +545,14 @@ void TClingCallFunc::make_narg_call(const std::string &return_type, const unsign
       CXXRecordDecl* rtdecl = QT->getAsCXXRecordDecl();
       if (rtdecl && (rtdecl->getAccess() == AS_private || rtdecl->getAccess() == AS_protected))
          break;
+      auto ET = llvm::dyn_cast<EnumType>(QT);
+      bool is_enum_tag = ET && !ET->getDecl()->isScoped();
       string type_name;
       EReferenceType refType = kNotReference;
       bool isPointer = false;
       collect_type_info(QT, typedefbuf, callbuf, type_name, refType, isPointer, indent_level, true);
+      if (is_enum_tag)
+         type_name.insert(type_name.rfind("const ", 0) == std::string::npos ? 0 : 6, "enum ");
 
       if (i) {
          if (optype.empty()) {
