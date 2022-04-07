@@ -1598,8 +1598,11 @@ std::string Cppyy::GetMethodArgType(TCppMethod_t method, TCppIndex_t iarg)
         TFunction* f = m2f(method);
         TMethodArg* arg = (TMethodArg*)f->GetListOfMethodArgs()->At((int)iarg);
         std::string ft = arg->GetFullTypeName();
-        if (ft.rfind("enum ", 0) != std::string::npos)     // special case to preserve 'enum' tag
-            return ft;
+        if (ft.rfind("enum ", 0) != std::string::npos) {   // special case to preserve 'enum' tag
+            std::string arg_type = arg->GetTypeNormalizedName();
+            return arg_type.insert(arg_type.rfind("const ", 0) == std::string::npos ? 0 : 6, "enum ");
+        }
+
         return arg->GetTypeNormalizedName();
     }
     return "<unknown>";
