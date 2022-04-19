@@ -2,6 +2,9 @@ releases/
 root-*/
 cling/src/interpreter
 builddir/
+build/
+.cling/
+.clingwrapper/
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
@@ -103,3 +106,5 @@ ENV/
 
 # mypy
 .mypy_cache/
+
+.vscode
