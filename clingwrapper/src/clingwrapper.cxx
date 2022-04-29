@@ -961,7 +961,12 @@ Cppyy::TCppFuncAddr_t Cppyy::GetFunctionAddress(TCppMethod_t method, bool check_
 {
     if (check_enabled && !gEnableFastPath) return (TCppFuncAddr_t)nullptr;
     TFunction* f = m2f(method);
-    return (TCppFuncAddr_t)gInterpreter->FindSym(f->GetMangledName());
+    TCppFuncAddr_t pf = (TCppFuncAddr_t)gInterpreter->FindSym(f->GetMangledName());
+    if (!pf) {
+        // TODO: this is brittle, only works for free functions, and leaks a transaction
+        pf = (TCppFuncAddr_t)gInterpreter->Calc((std::string("&")+f->GetName()).c_str());
+    }
+    return pf;
 }
 
 
