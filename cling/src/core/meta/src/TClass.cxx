@@ -1752,10 +1752,13 @@ TClass *TClass::GetActualClass(const void *object) const
             isa = (TVirtualIsAProxy*)gInterpreter->ProcessLine(TString::Format("new ::CppyyLegacy::TInstrumentedIsAProxy<%s>(0);",GetName()));
          }
          else if (!strstr(GetName(), "(anonymous)")) {
-            // Note: the following line will fail (silently) if called from rootcling b/c
-            // the generated wrapper function can not be found on the last transaction. As
-            // there is no reason why this call has to work from rootcling, this behavior
-            // is left in place.
+            // Note: the following line will fail (silently: the compiler will declare success,
+            // but no code actually runs) if reached from rootcling b/c the generated wrapper
+            // function can not be found on the last transaction (this b/c rootcling runs Cling
+            // in raw input mode). It only reaches this point if `-rootbuild` is provided to
+            // rootcling to generate keys for classes to create an empty I/O PCM. Since I/O is
+            // done on concrete classes, no downcast to actual is necessary and an eventual
+            // return of `this` as being actual is thus fine.
             isa = (TVirtualIsAProxy*)gInterpreter->ProcessLine(TString::Format("new ::CppyyLegacy::TIsAProxy(typeid(%s));",GetName()));
          }
          if (isa) {
