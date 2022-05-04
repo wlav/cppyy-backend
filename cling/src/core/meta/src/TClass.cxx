@@ -1752,6 +1752,10 @@ TClass *TClass::GetActualClass(const void *object) const
             isa = (TVirtualIsAProxy*)gInterpreter->ProcessLine(TString::Format("new ::CppyyLegacy::TInstrumentedIsAProxy<%s>(0);",GetName()));
          }
          else if (!strstr(GetName(), "(anonymous)")) {
+            // Note: the following line will fail (silently) if called from rootcling b/c
+            // the generated wrapper function can not be found on the last transaction. As
+            // there is no reason why this call has to work from rootcling, this behavior
+            // is left in place.
             isa = (TVirtualIsAProxy*)gInterpreter->ProcessLine(TString::Format("new ::CppyyLegacy::TIsAProxy(typeid(%s));",GetName()));
          }
          if (isa) {

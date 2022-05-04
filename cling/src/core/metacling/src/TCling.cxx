@@ -2531,14 +2531,18 @@ intptr_t TCling::ProcessLine(const char* line, int* error_/*=0*/)
    struct InterpreterFlagsRAII {
       cling::Interpreter* fInterpreter;
       bool fWasDynamicLookupEnabled;
+      bool fWasRawInput;
 
       InterpreterFlagsRAII(cling::Interpreter* interp):
          fInterpreter(interp),
-         fWasDynamicLookupEnabled(interp->isDynamicLookupEnabled())
+         fWasDynamicLookupEnabled(interp->isDynamicLookupEnabled()),
+         fWasRawInput(interp->isRawInputEnabled())
       {
          fInterpreter->enableDynamicLookup(true);
+         fInterpreter->enableRawInput(false);
       }
       ~InterpreterFlagsRAII() {
+         fInterpreter->enableRawInput(fWasRawInput);
          fInterpreter->enableDynamicLookup(fWasDynamicLookupEnabled);
          gROOT->SetLineHasBeenProcessed();
       }
@@ -2594,7 +2598,9 @@ intptr_t TCling::ProcessLine(const char* line, int* error_/*=0*/)
          {
             std::string code;
             std::string codeline;
-            std::ifstream in(fname);
+            // Windows requires std::ifstream::binary to properly handle
+            // CRLF and LF line endings
+            std::ifstream in(fname, std::ifstream::binary);
             while (in) {
                std::getline(in, codeline);
                code += codeline + "\n";
