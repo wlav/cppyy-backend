@@ -109,21 +109,7 @@ def set_cling_compile_options(add_defaults = False):
             warnings.warn("CUDA requested, but no nvcc found")
 
     if add_defaults:
-        has_avx = False
-        try:
-            with open('/proc/cpuinfo', 'r') as ci:
-                for line in ci:
-                    if 'avx' in line:
-                        has_avx = True
-                        break
-        except Exception:
-            try:
-                cli_arg = subprocess.check_output(['sysctl', 'machdep.cpu.features'])
-                has_avx = 'avx' in cli_arg.decode("utf-8").strip().lower()
-            except Exception:
-                pass
-        CURRENT_ARGS += ' -O2'
-        if has_avx: CURRENT_ARGS += ' -mavx'
+        CURRENT_ARGS += ' -O2 -march=native'
 
       # py2.7 uses the register storage class, which is no longer allowed with C++17
         if sys.hexversion < 0x3000000:
@@ -186,7 +172,7 @@ def ensure_precompiled_header(pchdir = '', pchname = ''):
                  pchdir = os.path.join(pkgpath, 'etc')
              if not pchname:
                  pchname = 'allDict.cxx.pch.'
-                 if 'avx' in cling_args:     pchname += 'avx.'
+                 if 'native' in cling_args:  pchname += 'native.'
                  if 'openmp' in  cling_args: pchname += 'omp.'
                  if 'cuda' in cling_args:    pchname += 'cuda.'
                  from ._version import __version__
@@ -214,7 +200,7 @@ def ensure_precompiled_header(pchdir = '', pchname = ''):
                      if ext_flags:
                          eca_old1 = eca_old = os.environ.get('EXTRA_CLING_ARGS', '')
                          if 'device' in ext_flags:    # TODO: find cleaner way
-                             eca_old1 = eca_old1.replace(' -mavx', '')
+                             eca_old1 = eca_old1.replace(' -march=native', '')
                          os.environ['EXTRA_CLING_ARGS'] = eca_old1 + ext_flags
                      print('(Re-)building pre-compiled headers (options:%s); this may take a minute ...' % os.environ.get('EXTRA_CLING_ARGS', ' none'))
                      makepch = os.path.join(pkgpath, 'etc', 'dictpch', 'makepch.py')
