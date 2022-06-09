@@ -965,22 +965,26 @@ Cppyy::TCppFuncAddr_t Cppyy::GetFunctionAddress(TCppMethod_t method, bool check_
     TCppFuncAddr_t pf = (TCppFuncAddr_t)gInterpreter->FindSym(f->GetMangledName());
     if (pf) return pf;
 
-    // TODO: this is brittle and leaks a transaction
+    int ierr = 0;
+    const char* fn = TClassEdit::DemangleName(f->GetMangledName(), ierr);
+    if (ierr || !fn)
+        return pf;
+
+    // TODO: the following attempts are all brittle and leak transactions, but
+    // each properly exposes the symbol so subsequent lookups will succeed
     if (strstr(f->GetName(), "<")) {
     // force explicit instantiation and try again
-        int ierr = 0;
-        const char* fn = TClassEdit::DemangleName(f->GetMangledName(), ierr);
-        if (!ierr && fn) {
-            std::ostringstream sig;
-            sig << "template " << fn << ";";
-            gInterpreter->ProcessLine(sig.str().c_str());
-            pf = (TCppFuncAddr_t)gInterpreter->FindSym(f->GetMangledName());
-            if (pf) return pf;
-        }
+        std::ostringstream sig;
+        sig << "template " << fn << ";";
+        gInterpreter->ProcessLine(sig.str().c_str());
+    } else {
+        std::string sfn = std::string("&")+fn;
+        std::string::size_type pos = sfn.find('(');
+        if (pos != std::string::npos) sfn = sfn.substr(0, pos);
+        gInterpreter->Calc(sfn.c_str());
     }
 
-    // TODO: this is brittle, only works for free functions, and leaks a transaction
-    return (TCppFuncAddr_t)gInterpreter->Calc((std::string("&")+f->GetName()).c_str());
+    return (TCppFuncAddr_t)gInterpreter->FindSym(f->GetMangledName());
 }
 
 
