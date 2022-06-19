@@ -435,7 +435,8 @@ void TClingCallFunc::make_narg_call(const std::string &return_type, const unsign
    // to true when we do.
    bool ShouldCastFunction = optype.empty() && \
                              !isa<CXXMethodDecl>(FD) && N == FD->getNumParams() \
-                             && !FD->isTemplateInstantiation() && return_type != "(lambda)";
+                             && !FD->isTemplateInstantiation() && return_type != "(lambda)" \
+                             && !FD->getReturnType()->isFunctionPointerType();
    if (ShouldCastFunction) {
       callbuf << "((" << return_type << " (&)(";
       for (unsigned i = 0U; i < N; ++i) {
