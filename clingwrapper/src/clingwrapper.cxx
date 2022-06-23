@@ -52,12 +52,51 @@
 #include <string.h>
 #include <typeinfo>
 
+#if defined(__arm64__)
+#include <exception>
+#include <setjmp.h>
+#define CLING_CATCH_UNCAUGHT_                                                \
+ARMUncaughtException guard;                                                  \
+if (setjmp(gExcJumBuf) == 0) {
+#define _CLING_CATCH_UNCAUGHT                                                \
+} else {                                                                     \
+    if (!getenv("CPPYY_UNCAUGHT_QUIET"))                                     \
+        std::cerr << "Warning: uncaught exception in JIT is rethrown; resources may leak" \
+                  << " (suppress warning by setting \"CPPYY_UNCAUGHT_QUIET\")" << std::endl;\
+    std::rethrow_exception(std::current_exception());                        \
+}
+#else
+#define CLING_CATCH_UNCAUGHT_
+#define _CLING_CATCH_UNCAUGHT
+#endif
+
+
 using namespace CppyyLegacy;
 
 // temp
 #include <iostream>
 typedef CPyCppyy::Parameter Parameter;
 // --temp
+
+#if defined(__arm64__)
+namespace {
+
+// Trap uncaught exceptions and longjump back to the point of JIT wrapper entry
+jmp_buf gExcJumBuf;
+
+void arm_uncaught_exception() {
+    longjmp(gExcJumBuf, 1);
+}
+
+class ARMUncaughtException {
+    std::terminate_handler m_Handler;
+public:
+    ARMUncaughtException() { m_Handler = std::set_terminate(arm_uncaught_exception); }
+    ~ARMUncaughtException() { std::set_terminate(m_Handler); }
+};
+
+} // unnamed namespace
+#endif // __arm64__
 
 
 // small number that allows use of stack for argument passing
@@ -842,11 +881,15 @@ bool WrapperCall(Cppyy::TCppMethod_t method, size_t nargs, void* args_, void* se
         if (nargs <= SMALL_ARGS_N) {
             void* smallbuf[SMALL_ARGS_N];
             if (nargs) runRelease = copy_args(args, nargs, smallbuf);
+            CLING_CATCH_UNCAUGHT_
             fgen(self, (int)nargs, smallbuf, result);
+            _CLING_CATCH_UNCAUGHT
         } else {
             std::vector<void*> buf(nargs);
             runRelease = copy_args(args, nargs, buf.data());
+            CLING_CATCH_UNCAUGHT_
             fgen(self, (int)nargs, buf.data(), result);
+            _CLING_CATCH_UNCAUGHT
         }
         if (runRelease) release_args(args, nargs);
         return true;
@@ -857,11 +900,15 @@ bool WrapperCall(Cppyy::TCppMethod_t method, size_t nargs, void* args_, void* se
         if (nargs <= SMALL_ARGS_N) {
             void* smallbuf[SMALL_ARGS_N];
             if (nargs) runRelease = copy_args(args, nargs, (void**)smallbuf);
+            CLING_CATCH_UNCAUGHT_
             faceptr.fCtor((void**)smallbuf, result, (unsigned long)nargs);
+            _CLING_CATCH_UNCAUGHT
         } else {
             std::vector<void*> buf(nargs);
             runRelease = copy_args(args, nargs, buf.data());
+            CLING_CATCH_UNCAUGHT_
             faceptr.fCtor(buf.data(), result, (unsigned long)nargs);
+            _CLING_CATCH_UNCAUGHT
         }
         if (runRelease) release_args(args, nargs);
         return true;
