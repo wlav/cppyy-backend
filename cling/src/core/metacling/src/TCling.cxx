@@ -2486,10 +2486,19 @@ static int HandleInterpreterException(cling::MetaProcessor* metaProcessor,
    try {
       return metaProcessor->process(input_line, compRes, result);
    }
-   catch (cling::InterpreterException& ex)
-   {
+   catch (cling::InterpreterException& ex) {
       Error("HandleInterpreterException", "%s.\n%s", ex.what(), "Execution of your code was aborted.");
       ex.diagnose();
+      compRes = cling::Interpreter::kFailure;
+   }
+   catch (std::exception& ex) {
+      Error("HandleInterpreterException", "%s.\n%s", ex.what(), "Execution of your code was aborted.");
+      std::cerr << "compilation failed: " << ex.what() << std::endl;
+      compRes = cling::Interpreter::kFailure;
+   }
+   catch (...) {
+      Error("HandleInterpreterException", "%s", "Execution of your code was aborted.");
+      std::cerr << "compilation failed with unknown error" << std::endl;
       compRes = cling::Interpreter::kFailure;
    }
    return 0;
