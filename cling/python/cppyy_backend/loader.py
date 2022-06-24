@@ -8,7 +8,14 @@ __all__ = [
     'ensure_precompiled_header'   # build precompiled header as necessary
 ]
 
-import os, re, sys, ctypes, subprocess, sysconfig, warnings
+import ctypes
+import os
+import platform
+import re
+import subprocess
+import sys
+import sysconfig
+import warnings
 
 if 'win32' in sys.platform:
     soext = '.dll'
@@ -109,7 +116,11 @@ def set_cling_compile_options(add_defaults = False):
             warnings.warn("CUDA requested, but no nvcc found")
 
     if add_defaults:
-        CURRENT_ARGS += ' -O2 -march=native'
+       # M1 does not support -march=native until LLVM 15
+        if sys.platform != sys.platform or not 'arm64' in platform.machine():
+            CURRENT_ARGS += ' -O2 -march=native'
+        else:
+            CURRENT_ARGS += ' -O2'
 
       # py2.7 uses the register storage class, which is no longer allowed with C++17
         if sys.hexversion < 0x3000000:
