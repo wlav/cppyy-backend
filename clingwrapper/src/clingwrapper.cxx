@@ -62,7 +62,7 @@ if (setjmp(gExcJumBuf) == 0) {
 } else {                                                                     \
     if (!getenv("CPPYY_UNCAUGHT_QUIET"))                                     \
         std::cerr << "Warning: uncaught exception in JIT is rethrown; resources may leak" \
-                  << " (suppress warning by setting \"CPPYY_UNCAUGHT_QUIET\")" << std::endl;\
+                  << " (suppress with \"CPPYY_UNCAUGHT_QUIET=1\")" << std::endl;\
     std::rethrow_exception(std::current_exception());                        \
 }
 #else
