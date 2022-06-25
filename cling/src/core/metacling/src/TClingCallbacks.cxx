@@ -281,9 +281,9 @@ bool TClingCallbacks::LookupObject(LookupResult &R, Scope *S) {
    if (fIsAutoloadingRecursively)
       return false;
 
-   // Finally try to resolve this name as a dynamic name, i.e delay its
-   // resolution for runtime.
-   return tryResolveAtRuntimeInternal(R, S);
+   // Skip resolving resolve this name as a dynamic name, i.e. do not call
+   // `return tryResolveAtRuntimeInternal(R, S);`
+   return false;
 }
 
 bool TClingCallbacks::LookupObject(const DeclContext* DC, DeclarationName Name) {
