@@ -26,7 +26,7 @@ diff --git a/src/interpreter/llvm/src/tools/clang/lib/AST/TemplateBase.cpp b/src
 index 88a554c985..5e6e53e1e7 100644
 --- a/src/interpreter/llvm/src/tools/clang/lib/AST/TemplateBase.cpp
 +++ b/src/interpreter/llvm/src/tools/clang/lib/AST/TemplateBase.cpp
-@@ -406,7 +408,16 @@ void TemplateArgument::print(const PrintingPolicy &Policy,
+@@ -426,7 +428,16 @@ void TemplateArgument::print(const PrintingPolicy &Policy,
    case Type: {
      PrintingPolicy SubPolicy(Policy);
      SubPolicy.SuppressStrongLifetime = true;

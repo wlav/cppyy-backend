@@ -2,10 +2,10 @@ diff --git a/src/interpreter/cling/include/cling/Interpreter/DynamicLibraryManag
 index d6e1006334..d982cb61d6 100644
 --- a/src/interpreter/cling/include/cling/Interpreter/DynamicLibraryManager.h
 +++ b/src/interpreter/cling/include/cling/Interpreter/DynamicLibraryManager.h
-@@ -136,9 +136,9 @@ namespace cling {
+@@ -160,9 +160,9 @@ namespace cling {
      /// other error was encountered.
      ///
-     LoadLibResult loadLibrary(const std::string& libStem, bool permanent,
+     LoadLibResult loadLibrary(llvm::StringRef, bool permanent,
 -                              bool resolved = false);
 +                              bool resolved = false, bool silent = false);
  
@@ -18,16 +18,16 @@ diff --git a/src/interpreter/cling/lib/Interpreter/DynamicLibraryManager.cpp b/s
 index c49f06e411..f51530567e 100644
 --- a/src/interpreter/cling/lib/Interpreter/DynamicLibraryManager.cpp
 +++ b/src/interpreter/cling/lib/Interpreter/DynamicLibraryManager.cpp
-@@ -166,7 +168,7 @@ namespace cling {
+@@ -348,7 +350,7 @@ namespace cling {
  
    DynamicLibraryManager::LoadLibResult
-   DynamicLibraryManager::loadLibrary(const std::string& libStem,
+   DynamicLibraryManager::loadLibrary(llvm::StringRef libStem,
 -                                     bool permanent, bool resolved) {
 +                                     bool permanent, bool resolved, bool silent) {
-     std::string lResolved;
-     const std::string& canonicalLoadedLib = resolved ? libStem : lResolved;
-     if (!resolved) {
-@@ -189,8 +191,11 @@ namespace cling {
+     if (DEBUG > 7) {
+       cling::errs() << "Dyld::loadLibrary: " << libStem.str() << ", " <<
+         (permanent ? "permanent" : "not-permanent") << ", " <<
+@@ -377,8 +379,11 @@ namespace cling {
            return kLoadLibSuccess;
        }
  
@@ -41,7 +41,7 @@ index c49f06e411..f51530567e 100644
        return kLoadLibLoadError;
      }
      else if (InterpreterCallbacks* C = getCallbacks())
-@@ -205,7 +210,7 @@ namespace cling {
+@@ -393,7 +398,7 @@ namespace cling {
      return kLoadLibSuccess;
    }
  
@@ -50,7 +50,7 @@ index c49f06e411..f51530567e 100644
      std::string canonicalLoadedLib = lookupLibrary(libStem);
      if (!isLibraryLoaded(canonicalLoadedLib))
        return;
-@@ -223,8 +228,9 @@ namespace cling {
+@@ -411,8 +416,9 @@ namespace cling {
  
      std::string errMsg;
      platform::DLClose(dyLibHandle, &errMsg);
@@ -74,7 +74,7 @@ index 6135f838e4..d4c5c39227 100644
  #pragma comment(lib, "Advapi32.lib")
  
  extern "C" char* __unDName(char *demangled, const char *mangled, int out_len,
-@@ -531,8 +531,14 @@ std::string GetCwd() {
+@@ -533,8 +533,14 @@ std::string GetCwd() {
  
  std::string NormalizePath(const std::string& Path) {
    char Buf[MAX_PATHC];
@@ -91,7 +91,7 @@ index 6135f838e4..d4c5c39227 100644
  
    ReportLastError("_fullpath");
    return std::string();
-@@ -635,6 +644,7 @@ const void* DLSym(const std::string& Name, std::string* Err) {
+@@ -637,6 +646,7 @@ const void* DLSym(const std::string& Name, std::string* Err) {
  }
  
  void DLClose(const void* Lib, std::string* Err) {

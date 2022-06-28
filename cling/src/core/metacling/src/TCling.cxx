@@ -3481,7 +3481,7 @@ Int_t TCling::Load(const char* filename, Bool_t system)
    cling::DynamicLibraryManager::LoadLibResult res
       = cling::DynamicLibraryManager::kLoadLibNotFound;
    if (!canonLib.empty())
-      res = DLM->loadLibrary(filename, system);
+      res = DLM->loadLibrary(filename, system, true /* resolved */);
 
    if (res == cling::DynamicLibraryManager::kLoadLibSuccess) {
       UpdateListOfLoadedSharedLibraries();

@@ -2,10 +2,11 @@ diff --git a/src/interpreter/cling/lib/Interpreter/CIFactory.cpp b/src/interpret
 index f97c86032f..69321c5579 100644
 --- a/src/interpreter/cling/lib/Interpreter/CIFactory.cpp
 +++ b/src/interpreter/cling/lib/Interpreter/CIFactory.cpp
-@@ -1634,9 +1634,9 @@ static void stringifyPreprocSetting(PreprocessorOptions& PPOpts,
+@@ -1641,9 +1641,10 @@ static void stringifyPreprocSetting(PreprocessorOptions& PPOpts,
  
      // Set CodeGen options.
      CodeGenOptions& CGOpts = CI->getCodeGenOpts();
++    CGOpts.OptimizationLevel = 2;
 +    CGOpts.RelaxedAliasing = 1;
  #ifdef _MSC_VER
      CGOpts.MSVolatile = 1;
@@ -13,63 +14,40 @@ index f97c86032f..69321c5579 100644
      CGOpts.EmitCodeView = 1;
      CGOpts.CXXCtorDtorAliases = 1;
  #endif
-@@ -1644,7 +1644,7 @@ static void stringifyPreprocSetting(PreprocessorOptions& PPOpts,
-     // FIXME: We have a bug when we switch to -O2, for some cases it takes
-     // several minutes to optimize, while the same code compiled by clang -O2
-     // takes only a few seconds.
--    CGOpts.OptimizationLevel = 0;
-+    CGOpts.OptimizationLevel = 2;
-     // Taken from a -O2 run of clang:
-     CGOpts.DiscardValueNames = 1;
-     CGOpts.OmitLeafFramePointer = 1;
-diff --git a/src/interpreter/llvm/src/tools/clang/lib/CodeGen/ModuleBuilder.cpp b/src/interpreter/llvm/src/tools/clang/lib/CodeGen/ModuleBuilder.cpp
-index 60cfd043da..26eae177dc 100644
---- a/src/interpreter/llvm/src/tools/clang/lib/CodeGen/ModuleBuilder.cpp
-+++ b/src/interpreter/llvm/src/tools/clang/lib/CodeGen/ModuleBuilder.cpp
-@@ -167,6 +167,7 @@ namespace clang {
-       Builder->WeakRefReferences.swap(OldBuilder->WeakRefReferences);
- 
-       ((CXXABICtxSwapper&)*Builder->ABI).SwapCtx(*OldBuilder->ABI);
-+      Builder->TBAA.swap(OldBuilder->TBAA);
- 
-       return M.get();
-     }
-diff --git a/interpreter/cling/lib/Interpreter/IncrementalParser.cpp b/interpreter/cling/lib/Interpreter/IncrementalParser.cpp
-index 3f87b902b4..608425cd4e 100644
+diff --git a/src/interpreter/cling/lib/Interpreter/IncrementalParser.cpp b/src/interpreter/cling/lib/Interpreter/IncrementalParser.cpp
+index 4b971bb02e..cbea6870db 100644
 --- a/src/interpreter/cling/lib/Interpreter/IncrementalParser.cpp
 +++ b/src/interpreter/cling/lib/Interpreter/IncrementalParser.cpp
-@@ -20,7 +20,6 @@
+@@ -19,7 +19,6 @@
+ #include "DefinitionShadower.h"
  #include "DeviceKernelInliner.h"
  #include "DynamicLookup.h"
- #include "IncrementalExecutor.h"
 -#include "NullDerefProtectionTransformer.h"
  #include "TransactionPool.h"
  #include "ValueExtractionSynthesizer.h"
  #include "ValuePrinterSynthesizer.h"
-@@ -926,15 +925,11 @@ namespace cling {
+@@ -996,15 +995,8 @@ namespace cling {
      ASTTransformers.emplace_back(new AutoSynthesizer(TheSema));
      ASTTransformers.emplace_back(new EvaluateTSynthesizer(TheSema));
      if (hasCodeGenerator() && !m_Interpreter->getOptions().NoRuntime) {
 -      // Don't protect against crashes if we cannot run anything.
 -      // cling might also be in a PCH-generation mode; don't inject our Sema
 -      // pointer into the PCH.
--      if (!isCUDADevice)
+-      if (!isCUDADevice && m_Interpreter->getOptions().PtrCheck)
 -        ASTTransformers.emplace_back(
 -            new NullDerefProtectionTransformer(m_Interpreter));
--      else
-+      // Don't inject our Sema pointer into the PCH.
-+      if (isCUDADevice) {
-         ASTTransformers.emplace_back(
-             new DeviceKernelInliner(TheSema));
-+      }
+       if (isCUDADevice)
+-        ASTTransformers.emplace_back(
+-            new DeviceKernelInliner(TheSema));
++        ASTTransformers.emplace_back(new DeviceKernelInliner(TheSema));
      }
      ASTTransformers.emplace_back(new DefinitionShadower(*TheSema, *m_Interpreter));
-
+ 
 diff --git a/src/interpreter/cling/lib/Interpreter/BackendPasses.cpp b/src/interpreter/cling/lib/Interpreter/BackendPasses.cpp
 index cb3308c360..873bc682ea 100644
 --- a/src/interpreter/cling/lib/Interpreter/BackendPasses.cpp
 +++ b/src/interpreter/cling/lib/Interpreter/BackendPasses.cpp
-@@ -159,6 +159,9 @@ void BackendPasses::CreatePasses(llvm::Module& M, int OptLevel)
+@@ -229,6 +229,9 @@ void BackendPasses::CreatePasses(llvm::Module& M, int OptLevel)
      // Inlining = CGOpts.NoInlining;
    }
 

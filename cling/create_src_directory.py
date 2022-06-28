@@ -34,7 +34,7 @@ DEBUG_TESTBUILD = False
 TARBALL_CACHE_DIR = 'releases'
 ERR_RELEASE_NOT_FOUND = 2
 
-ROOT_VERSION = '6.24.06'
+ROOT_VERSION = '6.26.04'
 
 #
 ## released source pull and copy of Cling
@@ -109,9 +109,9 @@ except ImportError:
             return res == 0
 
 patch_files = ['typedef_of_private', 'optlevel2_forced', 'explicit_template',
-               'alias_template', 'incomplete_types', 'clang_printing', 'luhelper',
-               'improv_load', 'unload', 'pch', 'win64rtti', 'win64', 'win64s2',
-               'locales', 'build', 'ppc', 'cuda102']
+               'alias_template', 'incomplete_types', 'clang_printing',
+               'improv_load', 'unload', 'pch', 'win64rtti', 'win64s2',
+               'locales', 'build', 'cuda102']
 
 if 'linux' in sys.platform:
     patch_files.append('system_dirs')
