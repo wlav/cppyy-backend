@@ -1,8 +1,13 @@
 #!/usr/bin/env python
 from __future__ import print_function
 
-import os, sys, subprocess
-import shutil, tarfile
+import contextlib
+import os
+import shutil
+import subprocess
+import sys
+import tarfile
+
 try:
     import urllib2
 except ModuleNotFoundError:
@@ -51,7 +56,7 @@ if not os.path.exists(os.path.join(TARBALL_CACHE_DIR, fn)):
             output_fn = fn
         else:
             output_fn = bytes(fn, 'utf-8')
-        with urllib2.urlopen(addr, output_fn) as resp:
+        with contextlib.closing(urllib2.urlopen(addr, output_fn)) as resp:
             with open(os.path.join(TARBALL_CACHE_DIR, fn), 'wb') as out:
                 shutil.copyfileobj(resp, out)
     except urllib2.HTTPError:
