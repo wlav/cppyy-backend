@@ -13,7 +13,7 @@ except ImportError:
     has_wheel = False
 from distutils.errors import DistutilsSetupError
 
-requirements = ['cppyy-cling==6.25.3']
+requirements = ['cppyy-cling==6.25.4']
 setup_requirements = ['wheel']
 if 'build' in sys.argv or 'install' in sys.argv:
     setup_requirements += requirements
