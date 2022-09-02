@@ -579,6 +579,13 @@ private: // Private Utility Functions and Classes
 // additional virtual methods at the end for build-time backwards compatibility
    virtual DeclId_t GetTagDeclId(DataMemberInfo_t *info) const;
    virtual ClassInfo_t  *ClassInfo_FactoryWithScope(Bool_t /*all*/ = kTRUE, const char* /*scope*/ = nullptr) const;
+
+public:
+// additional MethodArgInfo interface
+   virtual TypeInfo_t* MethodArgInfo_TypeInfo(MethodArgInfo_t *marginfo) const;
+
+// additional TypeInfo interface
+   virtual void*  TypeInfo_QualTypePtr(TypeInfo_t* tinfo) const;
 };
 
 } // namespace CppyyLegacy

@@ -461,6 +461,12 @@ public:
 // additional virtual methods at the end for build-time backwards compatibility
    virtual DeclId_t GetTagDeclId(DataMemberInfo_t *info) const = 0;
    virtual ClassInfo_t  *ClassInfo_FactoryWithScope(Bool_t /*all*/ = kTRUE, const char* /*scope*/ = nullptr) const = 0;
+
+// additional MethodArgInfo interface
+   virtual TypeInfo_t *MethodArgInfo_TypeInfo(MethodArgInfo_t * /* marginfo */) const {return 0;}
+
+// additional TypeInfo interface
+   virtual void  *TypeInfo_QualTypePtr(TypeInfo_t * /* tinfo */) const {return 0;}
 };
 
 } // namespace CppyyLegacy

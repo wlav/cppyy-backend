@@ -87,6 +87,14 @@ Long_t TMethodArg::Property() const
 }
 
 ////////////////////////////////////////////////////////////////////////////////
+/// Get the QualType of the argument.
+
+TypeInfo_t *TMethodArg::GetTypeInfo() const
+{
+   return gCling->MethodArgInfo_TypeInfo(fInfo);
+}
+
+////////////////////////////////////////////////////////////////////////////////
 /// Update fInfo (to 0 for unloading and non-zero for reloading).
 /// This takes ownership of 'info'
 
