@@ -586,6 +586,15 @@ public:
 
 // additional TypeInfo interface
    virtual void*  TypeInfo_QualTypePtr(TypeInfo_t* tinfo) const;
+
+// QualType Opaque Ptr interface
+   virtual bool IsSameType(const void * QualTypePtr1, const void * QualTypePtr2) const;
+   virtual bool IsIntegerType(const void * QualTypePtr) const;
+   virtual bool IsSignedIntegerType(const void * QualTypePtr) const;
+   virtual bool IsUnsignedIntegerType(const void * QualTypePtr) const;
+   virtual bool IsFloatingType(const void * QualTypePtr) const;
+   virtual bool IsPointerType(const void * QualTypePtr) const;
+   virtual bool IsVoidPointerType(const void * QualTypePtr) const;
 };
 
 } // namespace CppyyLegacy
