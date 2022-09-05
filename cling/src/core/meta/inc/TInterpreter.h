@@ -476,6 +476,9 @@ public:
    virtual Bool_t IsFloatingType(const void * /* QualTypePtr */) const {return 0;}
    virtual Bool_t IsPointerType(const void * /* QualTypePtr */) const {return 0;}
    virtual Bool_t IsVoidPointerType(const void * /* QualTypePtr */) const {return 0;}
+
+// FunctionDecl interface 
+   virtual Bool_t FunctionDeclId_IsMethod(DeclId_t /* fdeclid */) const {return 0;}
 };
 
 } // namespace CppyyLegacy
