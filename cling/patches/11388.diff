@@ -1,0 +1,15 @@
+diff --git a/src/interpreter/cling/lib/Interpreter/LookupHelper.cpp b/src/interpreter/cling/lib/Interpreter/LookupHelper.cpp
+index fc46452e034b..23e6c086aab4 100644
+--- a/src/interpreter/cling/lib/Interpreter/LookupHelper.cpp
++++ b/src/interpreter/cling/lib/Interpreter/LookupHelper.cpp
+@@ -347,8 +347,8 @@ namespace cling {
+       return Context.LongTy;
+     }
+     if (typeName.equals("long long")) {
+-      if (isunsigned) return Context.LongLongTy;
+-      return Context.UnsignedLongLongTy;
++      if (isunsigned) return Context.UnsignedLongLongTy;
++      return Context.LongLongTy;
+     }
+     if (!issigned && !isunsigned) {
+       if (typeName.equals("bool")) return Context.BoolTy;
