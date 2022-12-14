@@ -929,6 +929,7 @@ T CallT(Cppyy::TCppMethod_t method, Cppyy::TCppObject_t self, size_t nargs, void
     T t{};
     if (WrapperCall(method, nargs, args, (void*)self, &t))
         return t;
+    throw std::runtime_error("failed to resolve function");
     return (T)-1;
 }
 
