@@ -107,11 +107,11 @@ target_include_directories(CoreLegacy PRIVATE ${CMAKE_SOURCE_DIR})
 target_link_libraries(CoreLegacy
   PRIVATE
     ${LIBLZMA_LIBRARIES}
-   
     ZLIB::ZLIB
     ${ZSTD_LIBRARIES}
     ${CMAKE_DL_LIBS}
     ${CMAKE_THREAD_LIBS_INIT}
+    ${ROOT_ATOMIC_LIBS}
     ${corelinklibs}
 )
 
