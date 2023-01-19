@@ -49,6 +49,8 @@ def getParams():
                                                 or flag[0:4] == '-Wno']
    if '-Wno-noexcept-type' in cxxflagsNoW:
       cxxflagsNoW.remove('-Wno-noexcept-type')
+   if sys.platform == 'win32':
+      cxxflagsNoW = [x.replace('-std:', '-std=') for x in cxxflagsNoW]
 
    return rootSrcDir, modules, expPyROOT == 'ON', clingetpchList, cxxflagsNoW
 
