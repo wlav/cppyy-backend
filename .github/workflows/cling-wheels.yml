@@ -12,15 +12,11 @@ on: [push, pull_request]
 
 jobs:
   build_wheels:
-    name: Build wheels on ${{ matrix.os }}
+    name: Build wheels on ${{ matrix.cibw.build }}
     runs-on: ${{ matrix.os }}
 
     env:
       CIBW_BUILD: "${{ matrix.cibw.build || '*' }}"
-      CIBW_SKIP: "${{ matrix.cibw.skip || '' }}"
-      CIBW_ARCHS_LINUX: "${{ matrix.cibw.arch || 'auto' }}"
-      CIBW_ARCHS_MACOS: "${{ matrix.cibw.arch || 'auto' }}"
-      CIBW_MANYLINUX_X86_64_IMAGE: "${{ matrix.cibw.manylinux_x86_64_image || '' }}"
 
     strategy:
       fail-fast: false
@@ -29,72 +25,81 @@ jobs:
           - os: macos-11
             name: mac-cpython
             cibw:
-              build: "cp38-*"
+              build: "cp39-macosx_x86_64"
 
           - os: macos-11
             name: mac-cpython-arm
             cibw:
-              arch: arm64
-              build: "cp38-*"
+              build: "cp39-macosx_arm64"
 
           - os: macos-11
             name: mac-pypy
             cibw:
-              build: "pp37-*"
+              build: "pp39-macosx_x86_64"
 
           - os: macos-11
             name: mac-pypy-arm
             cibw:
               arch: arm64
-              build: "pp37-*"
+              build: "pp39-macosx_arm64"
 
           - os: ubuntu-20.04
             name: manylinux-x86_64
             cibw:
-              arch: x86_64
-              build: "cp38-manylinux*"
+              build: "cp39-manylinux_x86_64"
 
           - os: ubuntu-20.04
             name: manylinux-arch64
             cibw:
-              arch: aarch64
-              build: "cp38-manylinux*"
+              build: "cp39-manylinux_aarch64"
+
+          - os: ubuntu-20.04
+            name: manylinux-pypy-arch64
+            cibw:
+              build: "pp39-manylinux_aarch64"
 
           - os: ubuntu-20.04
             name: manylinux-i686
             cibw:
-              arch: i686
-              build: "cp38-manylinux*"
+              build: "cp39-manylinux_i686"
+
+          - os: ubuntu-20.04
+            name: manylinux-pypy-x86_64
+            cibw:
+              build: "pp39-manylinux_x86_64"
 
           - os: ubuntu-20.04
             name: musllinux-x86_64
             cibw:
-              arch: x86_64
-              build: "cp38-musllinux*"
+              build: "cp39-musllinux_x86_64"
+
+          - os: ubuntu-20.04
+            name: musllinux-pypy-x86_64
+            cibw:
+              build: "pp39-musllinux_x86_64"
 
           - os: ubuntu-20.04
             name: musllinux-i686
             cibw:
-              arch: i686
-              build: "cp38-musllinux*"
+              build: "cp39-musllinux_i686"
 
           - os: windows-2019-x86
             name: win32
             architecture: x86
             cibw:
-              build: "cp38-win32"
+              build: "cp39-win32"
 
           - os: windows-2019-amd64
             name: win_amd64
             architecture: x64
             cibw:
-              build: "cp38-win_amd64"
+              build: "cp39-win_amd64"
 
           - os: windows-2019-arm64
             name: win32-arm64
             architecture: x64
             cibw:
-              build: "cp38-win_arm64"
+              build: "cp39-win_arm64"
 
      
     steps:
@@ -103,7 +108,7 @@ jobs:
       - name: setup python
         uses: actions/setup-python@v3
         with:
-          python-version: "3.8"
+          python-version: "3.9"
           architecture: ${{ matrix.architecture }}
 
 
