@@ -772,7 +772,7 @@ public:
       } else {
          llvm::StringRef include(start, fSourceManager.getCharacterData(end.getLocation()) - start + end.getLength());
 
-         if (!fOwner.AddInclude(include)) {
+         if (!fOwner.AddInclude(include.str())) {
             Error("", tok);
          }
       }
@@ -917,7 +917,7 @@ public:
       } else {
          llvm::StringRef identifier(start, fSourceManager.getCharacterData(end.getLocation()) - start + end.getLength());
 
-         if (!fOwner.AddRule(type, identifier, linkOn, false, options.get())) {
+         if (!fOwner.AddRule(type.str(), identifier.str(), linkOn, false, options.get())) {
             Error(type.data(), tok, false);
          }
       }
@@ -976,7 +976,7 @@ public:
 
       llvm::StringRef identifier(start, fSourceManager.getCharacterData(end.getLocation()) - start + end.getLength());
 
-      if (!fOwner.AddRule("class", identifier, true, true)) {
+      if (!fOwner.AddRule("class", identifier.str(), true, true)) {
          Error("", tok);
       }
 

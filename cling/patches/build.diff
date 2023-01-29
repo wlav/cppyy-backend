@@ -2,7 +2,7 @@ diff --git a/src/interpreter/CMakeLists.txt b/src/interpreter/CMakeLists.txt
 index 39dc895cce..6d616cb354 100644
 --- a/src/interpreter/CMakeLists.txt
 +++ b/src/interpreter/CMakeLists.txt
-@@ -470,7 +470,8 @@ else()
+@@ -481,7 +481,8 @@ else()
    set(Clang_DIR "${LLVM_BINARY_DIR}/lib/cmake/clang/")
  endif()
  
@@ -16,7 +16,7 @@ diff --git a/src/interpreter/CMakeLists.txt b/src/interpreter/CMakeLists.txt
 index 7002e43f36..dfdf718685 100644
 --- a/src/interpreter/CMakeLists.txt
 +++ b/src/interpreter/CMakeLists.txt
-@@ -493,7 +493,10 @@ if (builtin_cling)
+@@ -504,7 +504,10 @@ if (builtin_cling)
      set(CLING_CXXFLAGS " ${LLVM_DEFS} -DNOMINMAX -D_XKEYCHECK_H")
    else()
      # FIXME: Work hard to remove -Wno-shadow and -Wno-unused-parameter
@@ -32,30 +32,15 @@ diff --git a/src/interpreter/cling/lib/Interpreter/CIFactory.cpp b/src/interpret
 index 1ab35553fa..b7c99ba281 100644
 --- a/src/interpreter/cling/lib/Interpreter/CIFactory.cpp
 +++ b/src/interpreter/cling/lib/Interpreter/CIFactory.cpp
-@@ -419,7 +419,10 @@ namespace {
+@@ -422,7 +422,10 @@ namespace {
        Opts.CXXExceptions = 1;
      }
  
 -    //Opts.Modules = 1;
 +// TODO: temporary hack, switching off modules for C++20, which is enabled
 +// by default otherwise (yet not currently supported in cppyy-cling)
-+    if (Opts.CPlusPlus2a)
++    if (Opts.CPlusPlus20)
 +        Opts.Modules = 0;
  
      // See test/CodeUnloading/PCH/VTables.cpp which implicitly compares clang
      // to cling lang options. They should be the same, we should not have to
-@@ -829,12 +832,12 @@ static void stringifyPreprocSetting(PreprocessorOptions& PPOpts,
-     PPOpts.addMacroDef("__CLING__GNUC_MINOR__=" ClingStringify(__GNUC_MINOR__));
- #elif defined(_MSC_VER)
-     PPOpts.addMacroDef("__CLING__MSVC__=" ClingStringify(_MSC_VER));
--#if (_MSC_VER >= 1926)
-+//#if (_MSC_VER >= 1926)
-     // FIXME: Silly workaround for cling not being able to parse the STL
-     //        headers anymore after the update of Visual Studio v16.7.0
-     //        To be checked/removed after the upgrade of LLVM & Clang
-     PPOpts.addMacroDef("_HAS_CONDITIONAL_EXPLICIT=0");
--#endif
-+//#endif
- #endif
- 
- // https://gcc.gnu.org/onlinedocs/libstdc++/manual/using_dual_abi.html

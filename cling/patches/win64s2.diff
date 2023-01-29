@@ -2,15 +2,15 @@ diff --git a/src/interpreter/llvm/src/tools/clang/lib/AST/MicrosoftMangle.cpp b/
 index 24b16f892e..57a5b6f686 100644
 --- a/src/interpreter/llvm/src/tools/clang/lib/AST/MicrosoftMangle.cpp
 +++ b/src/interpreter/llvm/src/tools/clang/lib/AST/MicrosoftMangle.cpp
-@@ -32,6 +32,7 @@
- #include "llvm/Support/MD5.h"
+@@ -34,6 +34,7 @@
  #include "llvm/Support/MathExtras.h"
  #include "llvm/Support/StringSaver.h"
+ #include "llvm/Support/xxhash.h"
 +#include "llvm/Support/raw_ostream.h"
  
  using namespace clang;
  
-@@ -2425,11 +2426,13 @@ void MicrosoftCXXNameMangler::mangleType(const UnresolvedUsingType *T,
+@@ -2772,11 +2773,13 @@ void MicrosoftCXXNameMangler::mangleType(const UnresolvedUsingType *T,
                                           Qualifiers, SourceRange Range) {
    // Probably should be mangled as a template instantiation; need to see what
    // VC does first.
@@ -24,7 +24,7 @@ index 24b16f892e..57a5b6f686 100644
  }
  
  // <type>        ::= <union-type> | <struct-type> | <class-type> | <enum-type>
-@@ -2575,20 +2578,24 @@ void MicrosoftCXXNameMangler::mangleType(const MemberPointerType *T, Qualifiers
+@@ -2922,20 +2925,24 @@ void MicrosoftCXXNameMangler::mangleType(const MemberPointerType *T, Qualifiers
  
  void MicrosoftCXXNameMangler::mangleType(const TemplateTypeParmType *T,
                                           Qualifiers, SourceRange Range) {
@@ -49,7 +49,7 @@ index 24b16f892e..57a5b6f686 100644
  }
  
  // <type> ::= <pointer-type>
-@@ -2741,11 +2748,13 @@ void MicrosoftCXXNameMangler::mangleType(const ExtVectorType *T,
+@@ -3088,11 +3095,13 @@ void MicrosoftCXXNameMangler::mangleType(const ExtVectorType *T,
  
  void MicrosoftCXXNameMangler::mangleType(const DependentSizedExtVectorType *T,
                                           Qualifiers, SourceRange Range) {
@@ -62,8 +62,8 @@ index 24b16f892e..57a5b6f686 100644
 +*/
  }
  
- void MicrosoftCXXNameMangler::mangleType(const DependentAddressSpaceType *T,
-@@ -2824,97 +2833,117 @@ void MicrosoftCXXNameMangler::mangleType(const InjectedClassNameType *,
+ void MicrosoftCXXNameMangler::mangleType(const ConstantMatrixType *T,
+@@ -3188,97 +3201,117 @@ void MicrosoftCXXNameMangler::mangleType(const InjectedClassNameType *,
  
  void MicrosoftCXXNameMangler::mangleType(const TemplateSpecializationType *T,
                                           Qualifiers, SourceRange Range) {
@@ -181,17 +181,3 @@ index 24b16f892e..57a5b6f686 100644
  }
  
  void MicrosoftCXXNameMangler::mangleType(const AtomicType *T, Qualifiers,
-@@ -2933,11 +2962,13 @@ void MicrosoftCXXNameMangler::mangleType(const AtomicType *T, Qualifiers,
- 
- void MicrosoftCXXNameMangler::mangleType(const PipeType *T, Qualifiers,
-                                          SourceRange Range) {
-+/*
-   DiagnosticsEngine &Diags = Context.getDiags();
-   unsigned DiagID = Diags.getCustomDiagID(DiagnosticsEngine::Error,
-     "cannot mangle this OpenCL pipe type yet");
-   Diags.Report(Range.getBegin(), DiagID)
-     << Range;
-+*/
- }
- 
- void MicrosoftMangleContextImpl::mangleCXXName(const NamedDecl *D,

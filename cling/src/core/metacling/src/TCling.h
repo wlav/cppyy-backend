@@ -184,8 +184,7 @@ protected:
 public: // Public Interface
 
    virtual ~TCling();
-   TCling(const char* name, const char* title, const char* const argv[]);
-   TCling(const char* name, const char* title): TCling(name, title, kNullArgv) {}
+   TCling(const char* name, const char* title, const char* const argv[], void *interpLibHandle);
 
    void    AddIncludePath(const char* path);
    void    AddTypeReducer(const std::string& reducable, const std::string& reduced);
@@ -413,7 +412,8 @@ public: // Public Interface
    virtual DeclId_t GetDeclId(DataMemberInfo_t *info) const;
    virtual int    DataMemberInfo_ArrayDim(DataMemberInfo_t* dminfo) const;
    virtual void   DataMemberInfo_Delete(DataMemberInfo_t* dminfo) const;
-   virtual DataMemberInfo_t*  DataMemberInfo_Factory(ClassInfo_t* clinfo = 0) const;
+   virtual DataMemberInfo_t*  DataMemberInfo_Factory(ClassInfo_t* clinfo = 0,
+       TDictionary::EMemberSelection selection = TDictionary::EMemberSelection::kNoUsingDecls) const;
    virtual DataMemberInfo_t  *DataMemberInfo_Factory(DeclId_t declid, ClassInfo_t* clinfo) const;
    virtual DataMemberInfo_t*  DataMemberInfo_FactoryCopy(DataMemberInfo_t* dminfo) const;
    virtual bool   DataMemberInfo_IsValid(DataMemberInfo_t* dminfo) const;

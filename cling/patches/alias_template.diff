@@ -22,7 +22,7 @@ diff --git a/src/interpreter/cling/lib/Interpreter/LookupHelper.cpp b/src/interp
 index a863eb7db1..5dacfdc59f 100644
 --- a/src/interpreter/cling/lib/Interpreter/LookupHelper.cpp
 +++ b/src/interpreter/cling/lib/Interpreter/LookupHelper.cpp
-@@ -907,6 +907,148 @@ namespace cling {
+@@ -906,6 +906,148 @@ namespace cling {
      return 0;
    }
  

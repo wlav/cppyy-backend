@@ -2097,7 +2097,7 @@ std::string Cppyy::GetDatamemberType(TCppScope_t scope, TCppIndex_t idata)
     // this is the only place where anonymous structs are uniquely identified, so setup
     // a class if needed, such that subsequent GetScope() and GetScopedFinalName() calls
     // return the uniquely named class
-        auto declid = m->GetTagDeclId();
+        auto declid = m->GetDeclId();
         if (declid && (m->Property() & (kIsClass | kIsStruct | kIsUnion)) &&\
                 fullType.find("(anonymous)") != std::string::npos) {
 

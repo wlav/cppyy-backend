@@ -71,8 +71,6 @@ private:
    std::string           fDeclFileName; // Name of the file where the underlying entity is declared.
    llvm::DenseMap<const clang::Decl*, std::pair<ptrdiff_t, OffsetPtrFunc_t> > fOffsetCache; // Functions already generated for offsets.
 
-   explicit TClingClassInfo() = delete;
-   TClingClassInfo &operator=(const TClingClassInfo &) = delete;
 public: // Types
 
    enum EInheritanceMode {
@@ -81,11 +79,39 @@ public: // Types
    };
 
 public:
-
+   explicit TClingClassInfo():
+      fFirstTime(true), fDescend(false),
+      fIterAll(false), fIsIter(false)
+   {}
+   TClingClassInfo(const TClingClassInfo &rhs) : // Copy all but the mutex
+      TClingDeclInfo(rhs),
+      fInterp(rhs.fInterp), fFirstTime(rhs.fFirstTime), fDescend(rhs.fDescend),
+      fIterAll(rhs.fIterAll), fIsIter(rhs.fIsIter), fIter(rhs.fIter),
+      fType(rhs.fType), fIterStack(rhs.fIterStack), fTitle(rhs.fTitle),
+      fDeclFileName(rhs.fDeclFileName), fOffsetCache(rhs.fOffsetCache)
+   {}
    explicit TClingClassInfo(cling::Interpreter *, Bool_t all = kTRUE, const char* scope = nullptr);
    explicit TClingClassInfo(cling::Interpreter *, const char *);
    explicit TClingClassInfo(cling::Interpreter *, const clang::Type &);
    explicit TClingClassInfo(cling::Interpreter *, const clang::Decl *);
+   TClingClassInfo &operator=(const TClingClassInfo &rhs)
+   {
+      // Copy all but the mutex
+      *((TClingDeclInfo*)this) = rhs;
+      fInterp = rhs.fInterp;
+      fFirstTime = rhs.fFirstTime;
+      fDescend = rhs.fDescend;
+      fIterAll = rhs.fIterAll;
+      fIsIter = rhs.fIsIter;
+      fIter = rhs.fIter;
+      fType = rhs.fType;
+      fIterStack = rhs.fIterStack;
+      fTitle = rhs.fTitle;
+      fDeclFileName = rhs.fDeclFileName;
+      fOffsetCache = rhs.fOffsetCache;
+      return *this;
+   }
+
    void                 AddBaseOffsetFunction(const clang::Decl* decl, OffsetPtrFunc_t func) { fOffsetCache[decl] = std::make_pair(0L, func); }
    void                 AddBaseOffsetValue(const clang::Decl* decl, ptrdiff_t offset);
    long                 ClassProperty() const;

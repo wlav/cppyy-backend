@@ -46,6 +46,7 @@
 #include "clang/Lex/Preprocessor.h"
 #include "clang/Lex/PreprocessorOptions.h"
 
+#include "clang/Sema/Lookup.h"
 #include "clang/Sema/Sema.h"
 #include "clang/Sema/SemaDiagnostic.h"
 
@@ -226,63 +227,18 @@ static const clang::FieldDecl *GetDataMemberFromAll(const clang::CXXRecordDecl &
 }
 
 ////////////////////////////////////////////////////////////////////////////////
-
-static bool CXXRecordDecl__FindOrdinaryMember(const clang::CXXBaseSpecifier *Specifier,
-                                              clang::CXXBasePath &Path,
-                                              const char *Name)
-{
-   clang::RecordDecl *BaseRecord = Specifier->getType()->getAs<clang::RecordType>()->getDecl();
-
-   const clang::CXXRecordDecl *clxx = llvm::dyn_cast<clang::CXXRecordDecl>(BaseRecord);
-   if (clxx == 0) return false;
-
-   const clang::FieldDecl *found = GetDataMemberFromAll(*clxx,(const char*)Name);
-   if (found) {
-      // Humm, this is somewhat bad (well really bad), oh well.
-      // Let's hope Paths never thinks it owns those (it should not as far as I can tell).
-      clang::NamedDecl* NonConstFD = const_cast<clang::FieldDecl*>(found);
-      clang::NamedDecl** BaseSpecFirstHack
-      = reinterpret_cast<clang::NamedDecl**>(NonConstFD);
-      Path.Decls = clang::DeclContextLookupResult(llvm::ArrayRef<clang::NamedDecl*>(BaseSpecFirstHack, 1));
-      return true;
-   }
-   //
-   // This is inspired from CXXInheritance.cpp:
-   /*
-    *      RecordDecl *BaseRecord =
-    *        Specifier->getType()->castAs<RecordType>()->getDecl();
-    *
-    *  const unsigned IDNS = clang::Decl::IDNS_Ordinary | clang::Decl::IDNS_Tag | clang::Decl::IDNS_Member;
-    *  clang::DeclarationName N = clang::DeclarationName::getFromOpaquePtr(Name);
-    *  for (Path.Decls = BaseRecord->lookup(N);
-    *       Path.Decls.first != Path.Decls.second;
-    *       ++Path.Decls.first) {
-    *     if ((*Path.Decls.first)->isInIdentifierNamespace(IDNS))
-    *        return true;
-    }
-    */
-   return false;
-
-}
-
-////////////////////////////////////////////////////////////////////////////////
 /// Return a data member name 'what' in any of the base classes of the class described by 'cl' if any.
 
-static const clang::FieldDecl *GetDataMemberFromAllParents(const clang::CXXRecordDecl &cl, const char *what)
+static const clang::FieldDecl *GetDataMemberFromAllParents(clang::Sema &SemaR, const clang::CXXRecordDecl &cl, const char *what)
 {
-   clang::CXXBasePaths Paths;
-   Paths.setOrigin(const_cast<clang::CXXRecordDecl*>(&cl));
-   if (cl.lookupInBases([=](const clang::CXXBaseSpecifier *Specifier, clang::CXXBasePath &Path) {
-            return CXXRecordDecl__FindOrdinaryMember(Specifier, Path, what);}, Paths))
-   {
-      clang::CXXBasePaths::paths_iterator iter = Paths.begin();
-      if (iter != Paths.end()) {
-         // See CXXRecordDecl__FindOrdinaryMember, this is, well, awkward.
-         const clang::FieldDecl *found = (clang::FieldDecl *)iter->Decls.data();
-         return found;
-      }
-   }
-   return 0;
+   clang::DeclarationName DName = &SemaR.Context.Idents.get(what);
+   clang::LookupResult R(SemaR, DName, clang::SourceLocation(),
+                         clang::Sema::LookupOrdinaryName,
+                         clang::Sema::ForExternalRedeclaration);
+   SemaR.LookupInSuper(R, &const_cast<clang::CXXRecordDecl&>(cl));
+   if (R.empty())
+      return nullptr;
+   return llvm::dyn_cast<const clang::FieldDecl>(R.getFoundDecl());
 }
 
 static
@@ -2182,7 +2138,7 @@ void CppyyLegacy::TMetaUtils::WritePointersSTL(const AnnotatedRecordDecl &cl,
 {
    std::string a;
    std::string clName;
-   TMetaUtils::GetCppName(clName, CppyyLegacy::TMetaUtils::GetFileName(*cl.GetRecordDecl(), interp).str().c_str());
+   TMetaUtils::GetCppName(clName, CppyyLegacy::TMetaUtils::GetFileName(*cl.GetRecordDecl(), interp).c_str());
    int version = CppyyLegacy::TMetaUtils::GetClassVersion(cl.GetRecordDecl(),interp);
    if (version == 0) return;
    if (version < 0 && !(cl.RequestStreamerInfo()) ) return;
@@ -2300,14 +2256,12 @@ CppyyLegacy::TMetaUtils::GetTrivialIntegralReturnValue(const clang::FunctionDecl
    // ClassDef argument. It's usually just be an integer literal but it could
    // also be an enum or a variable template for all we know.
    // Go through ICE to be more general.
-   llvm::APSInt RetRes;
-   if (!RetExpr->isIntegerConstantExpr(RetRes, funcCV->getASTContext()))
-      return res_t{false, -1};
-   if (RetRes.isSigned()) {
-      return res_t{true, (Version_t)RetRes.getSExtValue()};
+   if (auto RetRes = RetExpr->getIntegerConstantExpr(funcCV->getASTContext())) {
+      if (RetRes->isSigned())
+         return res_t{true, (Version_t)RetRes->getSExtValue()};
+      return res_t{true, (Version_t)RetRes->getZExtValue()};
    }
-   // else
-   return res_t{true, (Version_t)RetRes.getZExtValue()};
+   return res_t{false, -1};
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -2793,7 +2747,7 @@ clang::QualType CppyyLegacy::TMetaUtils::AddDefaultParameters(clang::QualType in
 /// If errstr is not null, *errstr is updated with the address of a static
 ///   string containing the part of the index with is invalid.
 
-llvm::StringRef CppyyLegacy::TMetaUtils::DataMemberInfo__ValidArrayIndex(const clang::DeclaratorDecl &m, int *errnum, llvm::StringRef *errstr)
+llvm::StringRef CppyyLegacy::TMetaUtils::DataMemberInfo__ValidArrayIndex(const cling::Interpreter &interp, const clang::DeclaratorDecl &m, int *errnum, llvm::StringRef *errstr)
 {
    llvm::StringRef title;
 
@@ -2894,7 +2848,10 @@ llvm::StringRef CppyyLegacy::TMetaUtils::DataMemberInfo__ValidArrayIndex(const c
          } else {
             // There is no variable by this name in this class, let see
             // the base classes!:
-            index1 = GetDataMemberFromAllParents( *parent_clxx, current );
+            if (parent_clxx) {
+               clang::Sema& SemaR = const_cast<cling::Interpreter&>(interp).getSema();
+               index1 = GetDataMemberFromAllParents(SemaR, *parent_clxx, current);
+            }
             if ( index1 ) {
                if ( IsFieldDeclInt(index1) ) {
                   found = 1;
@@ -3003,7 +2960,7 @@ getFinalSpellingLoc(clang::SourceManager& sourceManager,
 ////////////////////////////////////////////////////////////////////////////////
 /// Return the header file to be included to declare the Decl.
 
-llvm::StringRef CppyyLegacy::TMetaUtils::GetFileName(const clang::Decl& decl,
+std::string CppyyLegacy::TMetaUtils::GetFileName(const clang::Decl& decl,
                                               const cling::Interpreter& interp)
 {
    // It looks like the template specialization decl actually contains _less_ information
@@ -3055,7 +3012,7 @@ llvm::StringRef CppyyLegacy::TMetaUtils::GetFileName(const clang::Decl& decl,
       // use HeaderSearch on the basename, to make sure it takes a header from
       // the include path (e.g. not from /usr/include/bits/)
       assert(headerFE && "Couldn't find FileEntry from FID!");
-      const FileEntry *FEhdr
+      auto FEhdr
          = HdrSearch.LookupFile(llvm::sys::path::filename(headerFE->getName()),
                                 SourceLocation(),
                                 true /*isAngled*/, 0/*FromDir*/, foundDir,
@@ -3084,7 +3041,11 @@ llvm::StringRef CppyyLegacy::TMetaUtils::GetFileName(const clang::Decl& decl,
    }
 
    if (!headerFE) return invalidFilename;
-   llvm::StringRef headerFileName = headerFE->getName();
+
+   llvm::SmallString<256> headerFileName(headerFE->getName());
+   // Remove double ../ from the path so that the search below finds a valid
+   // longest match and does not result in growing paths.
+   llvm::sys::path::remove_dots(headerFileName, /*remove_dot_dot=*/true);
 
    // Now headerFID references the last valid system header or the original
    // user file.
@@ -3096,7 +3057,7 @@ llvm::StringRef CppyyLegacy::TMetaUtils::GetFileName(const clang::Decl& decl,
    // points to the same file as the long version. If such a short version
    // exists it will be returned. If it doesn't the long version is returned.
    bool isAbsolute = llvm::sys::path::is_absolute(headerFileName);
-   const FileEntry* FELong = 0;
+   llvm::Optional<clang::FileEntryRef> FELong;
    // Find the longest available match.
    for (llvm::sys::path::const_iterator
            IDir = llvm::sys::path::begin(headerFileName),
@@ -3145,7 +3106,7 @@ llvm::StringRef CppyyLegacy::TMetaUtils::GetFileName(const clang::Decl& decl,
                                0/*Searchpath*/, 0/*RelPath*/,
                                0/*SuggestedModule*/, 0/*RequestingModule*/,
                                0/*IsMapped*/, nullptr /*IsFrameworkFound*/) == FELong) {
-         return trailingPart;
+         return trailingPart.str();
       }
    }
 
@@ -3379,7 +3340,8 @@ static bool areEqualValues(const clang::TemplateArgument& tArg,
    llvm::APSInt defaultValueAPSInt(64, false);
    if (Expr* defArgExpr = nttpd.getDefaultArgument()) {
       const ASTContext& astCtxt = nttpdPtr->getASTContext();
-      defArgExpr->isIntegerConstantExpr(defaultValueAPSInt, astCtxt);
+      if (auto Value = defArgExpr->getIntegerConstantExpr(astCtxt))
+         defaultValueAPSInt = *Value;
    }
 
    const int value = tArg.getAsIntegral().getLimitedValue();
@@ -4357,6 +4319,7 @@ clang::QualType CppyyLegacy::TMetaUtils::ReSubstTemplateArg(clang::QualType inpu
          if (newQT == arr->getElementType()) return QT;
          QT = Ctxt.getConstantArrayType (newQT,
                                         arr->getSize(),
+                                        arr->getSizeExpr(),
                                         arr->getSizeModifier(),
                                         arr->getIndexTypeCVRQualifiers());
 
@@ -4467,7 +4430,7 @@ clang::QualType CppyyLegacy::TMetaUtils::ReSubstTemplateArg(clang::QualType inpu
       } else {
          std::string astDump;
          llvm::raw_string_ostream ostream(astDump);
-         instance->dump(ostream);
+         instance->dump(ostream, Ctxt);
          ostream.flush();
          CppyyLegacy::TMetaUtils::Warning("ReSubstTemplateArg","Unexpected type of declaration context for template parameter: %s.\n\tThe responsible class is:\n\t%s\n",
                                    replacedDeclCtxt->getDeclKindName(), astDump.c_str());
