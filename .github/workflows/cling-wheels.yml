@@ -57,13 +57,13 @@ jobs:
           - os: ubuntu-20.04
             name: manylinux-arch64
             cibw:
-              arch: arch64
+              arch: aarch64
               build: "cp39-manylinux_aarch64"
 
           - os: ubuntu-20.04
             name: manylinux-pypy-arch64
             cibw:
-              arch: arch64
+              arch: aarch64
               build: "pp39-manylinux_aarch64"
 
           - os: ubuntu-20.04
