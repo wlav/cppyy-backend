@@ -17,6 +17,8 @@ jobs:
 
     env:
       CIBW_BUILD: "${{ matrix.cibw.build || '*' }}"
+      CIBW_ARCHS_LINUX: "${{ matrix.cibw.arch || 'auto' }}"
+      CIBW_ARCHS_MACOS: "${{ matrix.cibw.arch || 'auto' }}"
 
     strategy:
       fail-fast: false
@@ -24,74 +26,74 @@ jobs:
         include:
           - os: macos-11
             name: mac-cpython
-            architecture: x86_64
             cibw:
+              arch: x86_64
               build: "cp39-macosx_x86_64"
 
           - os: macos-11
             name: mac-cpython-arm
-            architecture: arm64
             cibw:
+              arch: arm64
               build: "cp39-macosx_arm64"
 
           - os: macos-11
             name: mac-pypy
-            architecture: x86_64
             cibw:
+              arch: x86_64
               build: "pp39-macosx_x86_64"
 
           - os: macos-11
             name: mac-pypy-arm
-            architecture: arm64
             cibw:
+              arch: arm64
               build: "pp39-macosx_arm64"
 
           - os: ubuntu-20.04
             name: manylinux-x86_64
-            architecture: x86_64
             cibw:
+              arch: x86_64
               build: "cp39-manylinux_x86_64"
 
           - os: ubuntu-20.04
             name: manylinux-arch64
-            architecture: arch64
             cibw:
+              arch: arch64
               build: "cp39-manylinux_aarch64"
 
           - os: ubuntu-20.04
             name: manylinux-pypy-arch64
-            architecture: arch64
             cibw:
+              arch: arch64
               build: "pp39-manylinux_aarch64"
 
           - os: ubuntu-20.04
             name: manylinux-i686
-            architecture: i686
             cibw:
+              arch: i686
               build: "cp39-manylinux_i686"
 
           - os: ubuntu-20.04
             name: manylinux-pypy-x86_64
-            architecture: x86_64
             cibw:
+              arch: x86_64
               build: "pp39-manylinux_x86_64"
 
           - os: ubuntu-20.04
             name: musllinux-x86_64
-            architecture: x86_64
             cibw:
+              arch: x86_64
               build: "cp39-musllinux_x86_64"
 
           - os: ubuntu-20.04
             name: musllinux-pypy-x86_64
-            architecture: x86_64
             cibw:
+              arch: x86_64
               build: "pp39-musllinux_x86_64"
 
           - os: ubuntu-20.04
             name: musllinux-i686
-            architecture: i686
             cibw:
+              arch: i686
               build: "cp39-musllinux_i686"
 
           - os: windows-2019-x86
