@@ -24,62 +24,73 @@ jobs:
         include:
           - os: macos-11
             name: mac-cpython
+            architecture: x86_64
             cibw:
               build: "cp39-macosx_x86_64"
 
           - os: macos-11
             name: mac-cpython-arm
+            architecture: arm64
             cibw:
               build: "cp39-macosx_arm64"
 
           - os: macos-11
             name: mac-pypy
+            architecture: x86_64
             cibw:
               build: "pp39-macosx_x86_64"
 
           - os: macos-11
             name: mac-pypy-arm
+            architecture: arm64
             cibw:
-              arch: arm64
               build: "pp39-macosx_arm64"
 
           - os: ubuntu-20.04
             name: manylinux-x86_64
+            architecture: x86_64
             cibw:
               build: "cp39-manylinux_x86_64"
 
           - os: ubuntu-20.04
             name: manylinux-arch64
+            architecture: arch64
             cibw:
               build: "cp39-manylinux_aarch64"
 
           - os: ubuntu-20.04
             name: manylinux-pypy-arch64
+            architecture: arch64
             cibw:
               build: "pp39-manylinux_aarch64"
 
           - os: ubuntu-20.04
             name: manylinux-i686
+            architecture: i686
             cibw:
               build: "cp39-manylinux_i686"
 
           - os: ubuntu-20.04
             name: manylinux-pypy-x86_64
+            architecture: x86_64
             cibw:
               build: "pp39-manylinux_x86_64"
 
           - os: ubuntu-20.04
             name: musllinux-x86_64
+            architecture: x86_64
             cibw:
               build: "cp39-musllinux_x86_64"
 
           - os: ubuntu-20.04
             name: musllinux-pypy-x86_64
+            architecture: x86_64
             cibw:
               build: "pp39-musllinux_x86_64"
 
           - os: ubuntu-20.04
             name: musllinux-i686
+            architecture: i686
             cibw:
               build: "cp39-musllinux_i686"
 
@@ -91,13 +102,13 @@ jobs:
 
           - os: windows-2019-amd64
             name: win_amd64
-            architecture: x64
+            architecture: AMD64
             cibw:
               build: "cp39-win_amd64"
 
           - os: windows-2019-arm64
             name: win32-arm64
-            architecture: x64
+            architecture: ARM64
             cibw:
               build: "cp39-win_arm64"
 
