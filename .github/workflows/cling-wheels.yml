@@ -29,7 +29,13 @@ jobs:
           - os: macos-11
             name: mac-cpython
             cibw:
-              build: "cp36-*"
+              build: "cp38-*"
+
+          - os: macos-11
+            name: mac-cpython-arm
+            cibw:
+              arch: arm64
+              build: "cp38-*"
 
           - os: macos-11
             name: mac-pypy
@@ -37,54 +43,59 @@ jobs:
               build: "pp37-*"
 
           - os: macos-11
-            name: mac-arm
+            name: mac-pypy-arm
             cibw:
-              arch: universal2
-              build: "cp36-*"
+              arch: arm64
+              build: "pp37-*"
 
           - os: ubuntu-20.04
             name: manylinux-x86_64
             cibw:
               arch: x86_64
-              build: "cp36-manylinux*"
+              build: "cp38-manylinux*"
+
+          - os: ubuntu-20.04
+            name: manylinux-arch64
+            cibw:
+              arch: aarch64
+              build: "cp38-manylinux*"
 
           - os: ubuntu-20.04
             name: manylinux-i686
             cibw:
               arch: i686
-              build: "cp36-manylinux*"
-
-          # additional manylinux variants, not specified in pyproject.toml:
-          # build with newer 2_28 for cpython >= 3.10, pypy 3.9
-          - name: manylinux-x86_64-2_28
-            os: ubuntu-20.04
-            cibw:
-              arch: x86_64
-              build: "cp310-manylinux* pp39-manylinux*"
-              manylinux_x86_64_image: manylinux_2_28
+              build: "cp38-manylinux*"
 
           - os: ubuntu-20.04
-            name: musllinux
+            name: musllinux-x86_64
             cibw:
-              build: "cp36-musllinux*"
+              arch: x86_64
+              build: "cp38-musllinux*"
 
-          - os: windows-2019
+          - os: ubuntu-20.04
+            name: musllinux-i686
+            cibw:
+              arch: i686
+              build: "cp38-musllinux*"
+
+          - os: windows-2019-x86
             name: win32
             architecture: x86
             cibw:
-              build: "cp36-win32"
+              build: "cp38-win32"
 
-          - os: windows-2019
-            name: win-pypy
-            architecture: x64
-            cibw:
-              build: "pp36-win_amd64"
-
-          - os: windows-2019
+          - os: windows-2019-amd64
             name: win_amd64
             architecture: x64
             cibw:
-              build: "cp36-win_amd64"
+              build: "cp38-win_amd64"
+
+          - os: windows-2019-arm64
+            name: win32-arm64
+            architecture: x64
+            cibw:
+              build: "cp38-win_arm64"
+
      
     steps:
       - uses: actions/checkout@v3
