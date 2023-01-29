@@ -12,7 +12,7 @@ config-settings = {}
 dependency-versions = "pinned"
 environment = {}
 environment-pass = []
-build-verbosity = ""
+build-verbosity = "1"
 
 before-all = "python create_src_directory.py"
 before-build = ""
@@ -39,3 +39,11 @@ musllinux-i686-image = "musllinux_1_1"
 musllinux-aarch64-image = "musllinux_1_1"
 musllinux-ppc64le-image = "musllinux_1_1"
 musllinux-s390x-image = "musllinux_1_1"
+
+[tool.cibuildwheel.macos.environment]
+MACOSX_DEPLOYMENT_TARGET = "10.9"
+
+# mac-arm target is 10.15
+[[tool.cibuildwheel.overrides]]
+select = "*macos*{universal2,arm64}*"
+environment = { MACOSX_DEPLOYMENT_TARGET = "10.15" }
