@@ -129,6 +129,11 @@ jobs:
         run: |
           echo 'MACOSX_DEPLOYMENT_TARGET=10.15' >> "$GITHUB_ENV"
 
+      - name: set LD_LIBRARY_PATH
+        if: contains(matrix.os, 'ubuntu')
+        run: |
+          echo 'LD_LIBRARY_PATH=$PWD/lib' >> "$GITHUB_ENV"
+
 
       - name: Install cibuildwheel
         run: |
