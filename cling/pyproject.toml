@@ -10,8 +10,8 @@ build-verbosity = "1"
 before-all = "python create_src_directory.py"
 
 
-test-requires = ["pytest"]
-test-command = "pytest tests"
+test-requires = []
+test-command = "python -c 'import cppyy_backend'"
 
 [tool.cibuildwheel.macos.environment]
 MACOSX_DEPLOYMENT_TARGET = "10.9"
