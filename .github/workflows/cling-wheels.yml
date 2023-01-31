@@ -28,85 +28,85 @@ jobs:
             name: mac-cpython
             cibw:
               arch: x86_64
-              build: "cp39-macosx_x86_64"
+              build: "cp36-macosx_x86_64"
 
           - os: macos-11
             name: mac-cpython-arm
             cibw:
               arch: arm64
-              build: "cp39-macosx_arm64"
+              build: "cp38-macosx_arm64"
 
           - os: macos-11
             name: mac-pypy
             cibw:
               arch: x86_64
-              build: "pp39-macosx_x86_64"
+              build: "pp37-macosx_x86_64"
 
           - os: macos-11
             name: mac-pypy-arm
             cibw:
               arch: arm64
-              build: "pp39-macosx_arm64"
+              build: "pp38-macosx_arm64"
 
           - os: ubuntu-20.04
             name: manylinux-x86_64
             cibw:
               arch: x86_64
-              build: "cp39-manylinux_x86_64"
+              build: "cp36-manylinux_x86_64"
 
           - os: ubuntu-20.04
             name: manylinux-arch64
             cibw:
               arch: aarch64
-              build: "cp39-manylinux_aarch64"
+              build: "cp36-manylinux_aarch64"
 
           - os: ubuntu-20.04
             name: manylinux-pypy-arch64
             cibw:
               arch: aarch64
-              build: "pp39-manylinux_aarch64"
+              build: "pp37-manylinux_aarch64"
 
           - os: ubuntu-20.04
             name: manylinux-i686
             cibw:
               arch: i686
-              build: "cp39-manylinux_i686"
+              build: "cp36-manylinux_i686"
 
           - os: ubuntu-20.04
             name: manylinux-pypy-x86_64
             cibw:
               arch: x86_64
-              build: "pp39-manylinux_x86_64"
+              build: "pp37-manylinux_x86_64"
 
           - os: ubuntu-20.04
             name: musllinux-x86_64
             cibw:
               arch: x86_64
-              build: "cp39-musllinux_x86_64"
+              build: "cp36-musllinux_x86_64"
 
           - os: ubuntu-20.04
             name: musllinux-pypy-x86_64
             cibw:
               arch: x86_64
-              build: "pp39-musllinux_x86_64"
+              build: "pp37-musllinux_x86_64"
 
           - os: ubuntu-20.04
             name: musllinux-i686
             cibw:
               arch: i686
-              build: "cp39-musllinux_i686"
+              build: "cp36-musllinux_i686"
 
           - os: windows-2019-x86
             name: win32
             architecture: x86
             cibw:
-              build: "cp39-win32"
+              build: "cp36-win32"
 
           - os: windows-2019-amd64
             name: win_amd64
             architecture: AMD64
             cibw:
-              build: "cp39-win_amd64"
+              build: "cp36-win_amd64"
 
           - os: windows-2019-arm64
             name: win32-arm64
@@ -128,11 +128,6 @@ jobs:
         if: contains(matrix.os, 'macos') && matrix.cibw.arch == 'arm64'
         run: |
           echo 'MACOSX_DEPLOYMENT_TARGET=10.15' >> "$GITHUB_ENV"
-
-      - name: set LD_LIBRARY_PATH
-        if: contains(matrix.os, 'ubuntu')
-        run: |
-          echo 'LD_LIBRARY_PATH=$PWD/lib' >> "$GITHUB_ENV"
 
 
       - name: Install cibuildwheel
