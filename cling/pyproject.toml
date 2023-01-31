@@ -13,6 +13,10 @@ before-all = "python create_src_directory.py"
 test-requires = []
 test-command = "python -c 'import cppyy_backend'"
 
+[tool.cibuildwheel.linux]
+repair-wheel-command = ""
+# repair-wheel-command = "LD_LIBRARY_PATH=$PWD/lib auditwheel repair -w {dest_dir} {wheel}"
+
 [tool.cibuildwheel.macos.environment]
 MACOSX_DEPLOYMENT_TARGET = "10.9"
 
