@@ -124,6 +124,12 @@ jobs:
           python-version: "3.9"
           architecture: ${{ matrix.architecture }}
 
+      - name: Set up QEMU
+        if: runner.os == 'Linux'
+        uses: docker/setup-qemu-action@v2
+        with:
+          platforms: all
+
       - name: customize mac-arm-64
         if: contains(matrix.os, 'macos') && matrix.cibw.arch == 'arm64'
         run: |
