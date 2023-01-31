@@ -19,6 +19,7 @@ jobs:
       CIBW_BUILD: "${{ matrix.cibw.build || '*' }}"
       CIBW_ARCHS_LINUX: "${{ matrix.cibw.arch || 'auto' }}"
       CIBW_ARCHS_MACOS: "${{ matrix.cibw.arch || 'auto' }}"
+      CIBW_ARCHS_WINDOWS: "${{ matrix.cibw.arch || 'auto' }}"
 
     strategy:
       fail-fast: false
@@ -98,20 +99,20 @@ jobs:
 
           - os: windows-2019-x86
             name: win32
-            architecture: x86
             cibw:
+              arch: x86
               build: "cp36-win32"
 
           - os: windows-2019-amd64
             name: win_amd64
-            architecture: AMD64
             cibw:
+              arch: AMD64
               build: "cp36-win_amd64"
 
           - os: windows-2019-arm64
             name: win32-arm64
-            architecture: ARM64
             cibw:
+              arch: ARM64
               build: "cp39-win_arm64"
 
      
