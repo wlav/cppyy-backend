@@ -764,10 +764,12 @@ void Cppyy::Deallocate(TCppType_t /* type */, TCppObject_t instance)
     ::operator delete(instance);
 }
 
-Cppyy::TCppObject_t Cppyy::Construct(TCppType_t type)
+Cppyy::TCppObject_t Cppyy::Construct(TCppType_t type, void* arena)
 {
     TClassRef& cr = type_from_handle(type);
-    return (TCppObject_t)cr->New();
+    if (arena)
+        return (TCppObject_t)cr->New(arena, TClass::kRealNew);
+    return (TCppObject_t)cr->New(TClass::kRealNew);
 }
 
 static std::map<Cppyy::TCppType_t, bool> sHasOperatorDelete;

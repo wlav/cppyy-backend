@@ -74,7 +74,7 @@ namespace Cppyy {
     RPY_EXPORTED
     void         Deallocate(TCppType_t type, TCppObject_t instance);
     RPY_EXPORTED
-    TCppObject_t Construct(TCppType_t type);
+    TCppObject_t Construct(TCppType_t type, void* arena = nullptr);
     RPY_EXPORTED
     void         Destruct(TCppType_t type, TCppObject_t instance);
 
