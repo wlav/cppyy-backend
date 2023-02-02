@@ -14,7 +14,6 @@ jobs:
   build_wheels:
     name: Build wheels on ${{ matrix.cibw.build }}
     runs-on: ${{ matrix.os }}
-    timeout-minutes: 600
 
     env:
       CIBW_BUILD: "${{ matrix.cibw.build || '*' }}"
@@ -98,19 +97,19 @@ jobs:
               arch: i686
               build: "cp36-musllinux_i686"
 
-          - os: windows-2019-x86
+          - os: windows-2019
             name: win32
             cibw:
               arch: x86
               build: "cp36-win32"
 
-          - os: windows-2019-amd64
+          - os: windows-2019
             name: win_amd64
             cibw:
               arch: AMD64
               build: "cp36-win_amd64"
 
-          - os: windows-2019-arm64
+          - os: windows-2019
             name: win32-arm64
             cibw:
               arch: ARM64
@@ -147,6 +146,7 @@ jobs:
           cd cling && python -m cibuildwheel . --print-build-identifiers
 
       - name: Build wheels
+        timeout-minutes: 600
         run: |
           cd cling && python -m cibuildwheel --output-dir wheelhouse
 
