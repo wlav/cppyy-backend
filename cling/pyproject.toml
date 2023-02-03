@@ -11,7 +11,7 @@ before-all = "python create_src_directory.py"
 
 
 test-requires = []
-test-command = "python -c 'import cppyy_backend'"
+test-command = 'python -c "import cppyy_backend"'
 
 [tool.cibuildwheel.linux]
 repair-wheel-command = ""
