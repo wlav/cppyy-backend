@@ -4076,7 +4076,8 @@ TCling::CheckClassInfo(const char *name, Bool_t autoload, Bool_t isClassOrNamesp
                      &type, /* intantiateTemplate= */ false );
    if (!decl) {
       std::string strname{classname};
-      std::string::size_type pos = strname.rfind("::(anonymous");
+      std::string::size_type pos = strname.rfind("::(unnamed");
+      if (pos == std::string::npos) pos = strname.rfind("::(anonymous");
       if (pos != std::string::npos) {
          const clang::Decl* anon = lh.findScope(strname.substr(0, pos),
                                    gDebug > 5 ? cling::LookupHelper::WithDiagnostics
@@ -4386,7 +4387,7 @@ TClass *TCling::GenerateTClass(const char *classname, Bool_t emulation, Bool_t s
       version = TClass::GetClass("CppyyLegacy::TVirtualStreamerInfo")->GetClassVersion();
    }
    TClass *cl = new TClass(classname, version, silent);
-   if (emulation || strstr(classname, "(anonymous)")) {
+   if (emulation || strstr(classname, "(anonymous)") || strstr(classname, "(unnamed)")) {
       cl->SetBit(TClass::kIsEmulation);
    } else {
       // Set the class version if the class is versioned.
@@ -6983,7 +6984,8 @@ TInterpreter::DeclId_t TCling::GetDeclId(DataMemberInfo_t* data) const
 
 TInterpreter::DeclId_t TCling::GetTagDeclId(DataMemberInfo_t* data) const
 {
-   return 0; /* deprecated */
+   if (data) return ((TClingDataMemberInfo*)data)->GetTagDeclId();
+   return 0;
 }
 
 ////////////////////////////////////////////////////////////////////////////////

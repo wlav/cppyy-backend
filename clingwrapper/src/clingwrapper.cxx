@@ -527,7 +527,7 @@ std::string Cppyy::ResolveEnum(const std::string& enum_type)
 
 // remove qualifiers and desugar the type before resolving
     std::string et_short = TClassEdit::ShortType(enum_type.c_str(), 1);
-    if (et_short.find("(anonymous") == std::string::npos) {
+    if (et_short.find("(anonymous") == std::string::npos && et_short.find("(unnamed") == std::string::npos) {
         TEnum* ee = nullptr;
 
         std::string scope_name = extract_namespace(et_short);
@@ -1227,7 +1227,7 @@ void Cppyy::GetAllCppNames(TCppScope_t scope, std::set<std::string>& cppnames)
             false /* all */, scope == GLOBAL_HANDLE ? nullptr : cr->GetName());
         while (gInterpreter->ClassInfo_Next(ci)) {
             const char* className = gInterpreter->ClassInfo_FullName(ci);
-            if (strstr(className, "(anonymous)"))
+            if (strstr(className, "(anonymous)") || strstr(className, "(unnamed)"))
                 continue;
             cond_add(scope, ns_scope, cppnames, className);
         }
@@ -2099,11 +2099,11 @@ std::string Cppyy::GetDatamemberType(TCppScope_t scope, TCppIndex_t idata)
     // this is the only place where anonymous structs are uniquely identified, so setup
     // a class if needed, such that subsequent GetScope() and GetScopedFinalName() calls
     // return the uniquely named class
-        auto declid = m->GetDeclId();
+        auto declid = m->GetTagDeclId(); //GetDeclId();
         if (declid && (m->Property() & (kIsClass | kIsStruct | kIsUnion)) &&\
-                fullType.find("(anonymous)") != std::string::npos) {
+                (fullType.find("(anonymous)") != std::string::npos || fullType.find("(unnamed)") != std::string::npos)) {
 
-        // use the (fixed) tag decl address to guarantee a unique name, even when there
+        // use the (fixed) decl id address to guarantee a unique name, even when there
         // are multiple anonymous structs in the parent scope
             std::ostringstream fulls;
             fulls << fullType << "@" << (void*)declid;
@@ -2305,7 +2305,7 @@ bool Cppyy::IsEnumData(TCppScope_t scope, TCppIndex_t idata)
         std::string ti = m->GetTypeName();
 
     // can't check anonymous enums by type name, so just accept them as enums
-        if (ti.rfind("(anonymous)") != std::string::npos)
+        if (ti.rfind("(anonymous)") != std::string::npos || ti.rfind("(unnamed)") != std::string::npos)
             return m->Property() & kIsEnum;
 
     // since there seems to be no distinction between data of enum type and enum values,

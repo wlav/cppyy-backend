@@ -65,6 +65,7 @@ public:
    virtual       ~TDataMember();
    Int_t          GetArrayDim() const;
    DeclId_t       GetDeclId() const;
+   DeclId_t       GetTagDeclId() const;
    Int_t          GetMaxIndex(Int_t dim) const;
    TClass        *GetClass() const { return fClass; }
    TDataType     *GetDataType() const { return fDataType; } //only for basic type
