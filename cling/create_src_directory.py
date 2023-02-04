@@ -116,7 +116,7 @@ except ImportError:
 patch_files = ['typedef_of_private', 'optlevel2_forced', 'explicit_template',
                'alias_template', 'incomplete_types', 'clang_printing',
                'improv_load', 'unload', 'pch', 'win64rtti', 'win64s2',
-               'locales', 'build'] # 'cuda102'
+               'locales', 'build', 'disambiguate']
 
 if 'linux' in sys.platform:
     patch_files.append('system_dirs')
