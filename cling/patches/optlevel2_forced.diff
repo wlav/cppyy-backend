@@ -2,7 +2,7 @@ diff --git a/src/interpreter/cling/lib/Interpreter/CIFactory.cpp b/src/interpret
 index f97c86032f..69321c5579 100644
 --- a/src/interpreter/cling/lib/Interpreter/CIFactory.cpp
 +++ b/src/interpreter/cling/lib/Interpreter/CIFactory.cpp
-@@ -1657,9 +1657,10 @@ static void stringifyPreprocSetting(PreprocessorOptions& PPOpts,
+@@ -1661,9 +1661,10 @@ static void stringifyPreprocSetting(PreprocessorOptions& PPOpts,
  
      // Set CodeGen options.
      CodeGenOptions& CGOpts = CI->getCodeGenOpts();
@@ -47,7 +47,7 @@ diff --git a/src/interpreter/cling/lib/Interpreter/BackendPasses.cpp b/src/inter
 index cb3308c360..873bc682ea 100644
 --- a/src/interpreter/cling/lib/Interpreter/BackendPasses.cpp
 +++ b/src/interpreter/cling/lib/Interpreter/BackendPasses.cpp
-@@ -383,6 +383,9 @@ void BackendPasses::CreatePasses(llvm::Module& M, int OptLevel)
+@@ -382,6 +382,9 @@ void BackendPasses::CreatePasses(llvm::Module& M, int OptLevel)
      // Inlining = CGOpts.NoInlining;
    }
 
