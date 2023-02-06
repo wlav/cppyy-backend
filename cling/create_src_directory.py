@@ -127,7 +127,7 @@ for fdiff in patch_files:
     pset = patch.fromfile(fpatch)
     if not pset or not pset.apply():
         print("Failed to apply patch:", fdiff)
-        # sys.exit(2)
+        sys.exit(2)
 
 #
 ## manylinux1 specific patch, as there a different, older, compiler is used
