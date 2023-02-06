@@ -156,7 +156,7 @@ inline long APIntToLong(const llvm::APInt& num)
 
 inline std::string APIntToStr(const llvm::APInt& num)
 {
-   return num.toString(10, true);
+   return llvm::toString(num, /*radix*/10, /*signed*/true);
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -754,7 +754,7 @@ bool RScanner::TreatRecordDeclOrTypedefNameDecl(clang::TypeDecl* typeDecl)
          auto previouslyMatchingRule = (const ClassSelectionRule*)declSelRuleMapIt->second;
          int previouslineno = previouslyMatchingRule->GetLineNumber();
 
-         std::string cleanFileName =  llvm::sys::path::filename(selected->GetSelFileName());
+         std::string cleanFileName =  llvm::sys::path::filename(selected->GetSelFileName()).str();
          auto lineno = selected->GetLineNumber();
          auto rulesAreCompatible = SelectionRulesUtils::areEqual<ClassSelectionRule>(selected, previouslyMatchingRule, true /*moduloNameOrPattern*/);
          if (!rulesAreCompatible){
@@ -864,14 +864,14 @@ bool RScanner::VisitTypedefNameDecl(clang::TypedefNameDecl* D)
    if (ctx) {
       const clang::NamedDecl *parent = llvm::dyn_cast<clang::NamedDecl> (ctx);
       isInStd = parent && 0 == parent->getQualifiedNameAsString().compare(0,5,"std::");
-      }
+   }
 
    if (TMetaUtils::GetUnderlyingRecordDecl(D->getUnderlyingType()) &&
        !isInStd){
       TreatRecordDeclOrTypedefNameDecl(D);
    }
 
-    return true;
+   return true;
 }
 
 ////////////////////////////////////////////////////////////////////////////////

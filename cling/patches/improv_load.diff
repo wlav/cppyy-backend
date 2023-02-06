@@ -18,7 +18,7 @@ diff --git a/src/interpreter/cling/lib/Interpreter/DynamicLibraryManager.cpp b/s
 index c49f06e411..f51530567e 100644
 --- a/src/interpreter/cling/lib/Interpreter/DynamicLibraryManager.cpp
 +++ b/src/interpreter/cling/lib/Interpreter/DynamicLibraryManager.cpp
-@@ -348,7 +350,7 @@ namespace cling {
+@@ -350,7 +352,7 @@ namespace cling {
  
    DynamicLibraryManager::LoadLibResult
    DynamicLibraryManager::loadLibrary(llvm::StringRef libStem,
@@ -27,7 +27,7 @@ index c49f06e411..f51530567e 100644
      if (DEBUG > 7) {
        cling::errs() << "Dyld::loadLibrary: " << libStem.str() << ", " <<
          (permanent ? "permanent" : "not-permanent") << ", " <<
-@@ -377,8 +379,11 @@ namespace cling {
+@@ -380,8 +382,11 @@ namespace cling {
            return kLoadLibSuccess;
        }
  
@@ -41,7 +41,7 @@ index c49f06e411..f51530567e 100644
        return kLoadLibLoadError;
      }
      else if (InterpreterCallbacks* C = getCallbacks())
-@@ -393,7 +398,7 @@ namespace cling {
+@@ -396,7 +401,7 @@ namespace cling {
      return kLoadLibSuccess;
    }
  
@@ -50,7 +50,7 @@ index c49f06e411..f51530567e 100644
      std::string canonicalLoadedLib = lookupLibrary(libStem);
      if (!isLibraryLoaded(canonicalLoadedLib))
        return;
-@@ -411,8 +416,9 @@ namespace cling {
+@@ -414,8 +419,9 @@ namespace cling {
  
      std::string errMsg;
      platform::DLClose(dyLibHandle, &errMsg);

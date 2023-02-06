@@ -120,7 +120,7 @@ class my_cmake_build(_build):
             if is_manylinux():
                 stdcxx = '11'
             else:
-                stdcxx = '17'
+                stdcxx = '20'
 
         if not stdcxx in ['11', '14', '17', '20']:
             log.fatal('FATAL: envar STDCXX should be one of 11, 14, 17, or 20')

@@ -107,7 +107,7 @@ static bool IsUnsupportedUniquePointer(const char *normName, TDataMember *dm)
       int i;
       TClassEdit::GetSplit(dmTypeName, out, i);
       // out[2] contains the deleter type.
-      if (0 != out[2].find("std::default_delete<")) {
+      if (!out[2].empty() /* otherwise default */ && 0 != out[2].find("std::default_delete<")) {
          Error("CloseStreamerInfoROOTFile", "I/O is supported only for unique_ptrs with a default deleter. %s::%s  appears to have a custom one, %s.", normName, dm->GetName(), out[2].c_str());
          return true;
       }

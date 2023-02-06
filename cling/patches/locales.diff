@@ -2,7 +2,7 @@ diff --git a/src/interpreter/cling/lib/Interpreter/CIFactory.cpp b/src/interpret
 index f4a61b6640..9956a11bdf 100644
 --- a/src/interpreter/cling/lib/Interpreter/CIFactory.cpp
 +++ b/src/interpreter/cling/lib/Interpreter/CIFactory.cpp
-@@ -111,11 +111,11 @@ namespace {
+@@ -114,11 +114,11 @@ namespace {
                                         bool Verbose) {
      std::string CppInclQuery("LC_ALL=C ");
      CppInclQuery.append(Compiler);

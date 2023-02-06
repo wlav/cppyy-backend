@@ -150,6 +150,16 @@ TDictionary::DeclId_t TClingDataMemberInfo::GetTagDeclId() const
    return TDictionary::DeclId_t();
 }
 
+const clang::ValueDecl *TClingDataMemberInfo::GetTargetValueDecl() const
+{
+   const Decl *D = GetDecl();
+   do {
+      if (auto VD = dyn_cast<ValueDecl>(D))
+         return VD;
+   } while ((D = dyn_cast<UsingShadowDecl>(D)->getTargetDecl()));
+   return nullptr;
+}
+
 int TClingDataMemberInfo::ArrayDim() const
 {
    if (!IsValid()) {
@@ -664,7 +674,7 @@ const char *TClingDataMemberInfo::TypeTrueName(const CppyyLegacy::TMetaUtils::TN
    return 0;
 }
 
-const char *TClingDataMemberInfo::Name()
+const char *TClingDataMemberInfo::Name() const
 {
    if (!IsValid()) {
       return 0;
@@ -717,9 +727,10 @@ llvm::StringRef TClingDataMemberInfo::ValidArrayIndex() const
    if (!IsValid()) {
       return llvm::StringRef();
    }
-   const clang::DeclaratorDecl *FD = llvm::dyn_cast<clang::DeclaratorDecl>(GetDecl());
-   if (FD) return CppyyLegacy::TMetaUtils::DataMemberInfo__ValidArrayIndex(*FD);
-   else return llvm::StringRef();
+   const clang::DeclaratorDecl *FD = llvm::dyn_cast<clang::DeclaratorDecl>(GetTargetValueDecl());
+   if (FD)
+      return CppyyLegacy::TMetaUtils::DataMemberInfo__ValidArrayIndex(*fInterp, *FD);
+   return {};
 }
 
 } // namespace CppyyLegacy

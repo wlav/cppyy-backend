@@ -346,7 +346,7 @@ clang::QualType AddDefaultParameters(clang::QualType instanceType,
                                      const TNormalizedCtxt &normCtxt);
 
 //______________________________________________________________________________
-llvm::StringRef DataMemberInfo__ValidArrayIndex(const clang::DeclaratorDecl &m, int *errnum = 0, llvm::StringRef  *errstr = 0);
+llvm::StringRef DataMemberInfo__ValidArrayIndex(const cling::Interpreter &interp, const clang::DeclaratorDecl &m, int *errnum = 0, llvm::StringRef  *errstr = 0);
 
 enum class EIOCtorCategory : short {kAbsent, kDefault, kIOPtrType, kIORefType};
 
@@ -535,7 +535,7 @@ bool HasCustomConvStreamerMemberFunction(const AnnotatedRecordDecl &cl,
 
 //______________________________________________________________________________
 // Return the header file to be included to declare the Decl
-llvm::StringRef GetFileName(const clang::Decl& decl,
+std::string GetFileName(const clang::Decl& decl,
                             const cling::Interpreter& interp);
 
 //______________________________________________________________________________
@@ -546,6 +546,24 @@ std::string GetModuleFileName(const char* moduleName);
 // Return (in the argument 'output') a mangled version of the C++ symbol/type (pass as 'input')
 // that can be used in C++ as a variable name.
 void GetCppName(std::string &output, const char *input);
+
+//______________________________________________________________________________
+// Demangle the input symbol name for dlsym.
+static inline std::string DemangleNameForDlsym(const std::string& name)
+{
+   std::string nameForDlsym = name;
+
+#if defined(R__MACOSX) || defined(R__WIN32)
+   // The JIT gives us a mangled name which has an additional leading underscore
+   // on macOS and Windows, for instance __ZN8TRandom34RndmEv. However, dlsym
+   // requires us to remove it.
+   // FIXME: get this information from the DataLayout via getGlobalPrefix()!
+   if (nameForDlsym[0] == '_')
+      nameForDlsym.erase(0, 1);
+#endif //R__MACOSX
+
+   return nameForDlsym;
+}
 
 //______________________________________________________________________________
 // Return the type with all parts fully qualified (most typedefs),

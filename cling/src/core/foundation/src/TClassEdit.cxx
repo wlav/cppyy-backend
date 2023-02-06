@@ -439,11 +439,7 @@ void TClassEdit::TSplitType::ShortType(std::string &answ, int mode)
    if (narg>1) { answ += fElements[narg-1]; }
 
    if (!fElements[0].empty()) {
-      if ( answ.at(answ.size()-1) == '>') {
-         answ += " >";
-      } else {
-         answ += '>';
-      }
+      answ += '>';
    }
    if (fNestedLocation) {
       // Treat X pf A<B>::X
@@ -1492,7 +1488,7 @@ static void ResolveTypedefImpl(const char *tname,
             }
             if ( (cursor+1)<len && tname[cursor+1] == '>') {
                ++cursor;
-               if (modified) result += " >";
+               if (modified) result += ">";
                return;
             }
             if ( (cursor+1) >= len) {
@@ -1756,7 +1752,7 @@ public:
          fHasChanged |= node->HasChanged();
       }
       name.pop_back(); // Remove the last comma.
-      name += name.back() == '>' ? " >" : ">"; // Respect name normalisation
+      name += ">";
       return name;
    }
 

@@ -679,7 +679,7 @@ std::string TClingMethodInfo::GetMangledName() const
    return mangled_name;
 }
 
-const char *TClingMethodInfo::Name()
+const char *TClingMethodInfo::Name() const
 {
    if (!IsValid()) {
       return 0;

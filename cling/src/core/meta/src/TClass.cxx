@@ -1751,7 +1751,7 @@ TClass *TClass::GetActualClass(const void *object) const
          if (GetClassInfo() && gCling->ClassInfo_HasMethod(fClassInfo,"IsA")) {
             isa = (TVirtualIsAProxy*)gInterpreter->ProcessLine(TString::Format("new ::CppyyLegacy::TInstrumentedIsAProxy<%s>(0);",GetName()));
          }
-         else if (!strstr(GetName(), "(anonymous)")) {
+         else if (!strstr(GetName(), "(anonymous)") && !strstr(GetName(), "(unnamed)")) {
             // Note: the following line will fail (silently: the compiler will declare success,
             // but no code actually runs) if reached from rootcling b/c the generated wrapper
             // function can not be found on the last transaction (this b/c rootcling runs Cling
@@ -2274,7 +2274,7 @@ TClass *TClass::GetClass(const char *name, Bool_t load, Bool_t silent)
       } else if (cci) {
          // Get the normalized name based on the decl (currently the only way
          // to get the part to add or drop the default arguments as requested by the user)
-         if (normalizedName.find("(anonymous)") == std::string::npos) {
+         if (normalizedName.find("(anonymous)") == std::string::npos && normalizedName.find("(unnamed)") == std::string::npos) {
             std::string alternative;
             gInterpreter->GetInterpreterTypeName(normalizedName.c_str(), alternative, kTRUE);
             const char *altname = alternative.c_str();

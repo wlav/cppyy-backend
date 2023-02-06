@@ -138,10 +138,10 @@ public:
    int                TypeSize() const;
    const char        *TypeName() const;
    const char        *TypeTrueName(const CppyyLegacy::TMetaUtils::TNormalizedCtxt &normCtxt) const;
-   const char        *Name() override;
+   const char        *Name() const override;
    const char        *Title();
    llvm::StringRef    ValidArrayIndex() const;
-
+   const clang::ValueDecl* GetTargetValueDecl() const;
 };
 
 } // namespace CppyyLegacy

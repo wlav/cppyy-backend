@@ -276,7 +276,7 @@ const char *TClingTypedefInfo::TrueName(const CppyyLegacy::TMetaUtils::TNormaliz
 ////////////////////////////////////////////////////////////////////////////////
 /// Get the name of the current typedef.
 
-const char *TClingTypedefInfo::Name()
+const char *TClingTypedefInfo::Name() const
 {
    if (!IsValid()) {
       return "(unknown)";
