@@ -6,7 +6,7 @@ archs = ["auto"]
 build-frontend = "pip"
 dependency-versions = "pinned"
 build-verbosity = "1"
-build = "cp38-*"
+build = "cp39-*"
 
 before-all = "python cling/create_src_directory.py"
 
