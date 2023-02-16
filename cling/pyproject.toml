@@ -1,5 +1,5 @@
 [build-system]
-requires = ["cmake", "setuptools", "wheel"]
+requires = ["cmake", "setuptools", "wheel", "numpy"]
 
 [tool.cibuildwheel]
 archs = ["auto"]
