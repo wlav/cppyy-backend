@@ -8,7 +8,7 @@ dependency-versions = "pinned"
 build-verbosity = "1"
 build = "cp38-*"
 
-before-all = "python create_src_directory.py"
+before-all = "python cling/create_src_directory.py"
 
 
 test-requires = []
