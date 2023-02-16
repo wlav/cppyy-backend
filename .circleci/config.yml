@@ -7,7 +7,6 @@ jobs:
       - image: circleci/python:3.9
     steps:
       - checkout
-          path: ~/cling
       - setup_remote_docker
       - run:
           name: Build the Linux wheels.
@@ -16,8 +15,8 @@ jobs:
             . venv/bin/activate
             python3 -m pip install pip --upgrade
             python3 -m pip install cibuildwheel==2.12.0
-            python3 -m cibuildwheel . --print-build-identifiers
-            python3 -m cibuildwheel . --output-dir wheelhouse
+            cd cling && python3 -m cibuildwheel . --print-build-identifiers
+            cd cling && python3 -m cibuildwheel . --output-dir wheelhouse
       - store_artifacts:
           path: wheelhouse/
 
@@ -30,7 +29,6 @@ jobs:
     resource_class: arm.medium
     steps:
       - checkout
-          path: ~/cling
       - run:
           name: Build the Linux aarch64 wheels.
           command: |
@@ -38,8 +36,8 @@ jobs:
             . venv/bin/activate
             python3 -m pip install pip --upgrade
             python3 -m pip install cibuildwheel==2.12.0
-            python3 -m cibuildwheel . --print-build-identifiers
-            python3 -m cibuildwheel . --output-dir wheelhouse
+            cd cling && python3 -m cibuildwheel . --print-build-identifiers
+            cd cling && python3 -m cibuildwheel . --output-dir wheelhouse
       - store_artifacts:
           path: wheelhouse/
 
@@ -49,7 +47,6 @@ jobs:
       xcode: 12.5.1
     steps:
       - checkout
-          path: ~/cling
       - run:
           name: Build the OS X wheels.
           command: |
@@ -57,8 +54,8 @@ jobs:
             . venv/bin/activate
             python3 -m pip install pip --upgrade
             python3 -m pip install cibuildwheel==2.12.0
-            python3 -m cibuildwheel . --print-build-identifiers
-            python3 -m cibuildwheel . --output-dir wheelhouse
+            cd cling && python3 -m cibuildwheel . --print-build-identifiers
+            cd cling && python3 -m cibuildwheel . --output-dir wheelhouse
       - store_artifacts:
           path: wheelhouse/
 
