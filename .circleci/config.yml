@@ -6,14 +6,12 @@ jobs:
     machine:
       image: ubuntu-2004:2022.10.1
     resource_class: medium
-    environment:
-      CXXFLAGS: -std=c++2a
     steps:
       - checkout
       - run: 
-          name: Install clang
+          name: Update 
           command: |
-            sudo apt-get install -y libc++-dev libc++abi-dev
+            sudo apt-get update && sudo apt-get install git cmake build-essential tar curl g++ gcc-9 clang-10
       - run:
           name: Build the Linux wheels.
           command: |
