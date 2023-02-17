@@ -4,15 +4,14 @@ jobs:
   linux-wheels:
     working_directory: ~/linux-wheels
     machine:
-      image: ubuntu-2004:2022.04.1
-    resource_class: large
+      image: ubuntu-2004:2022.10.1
+    resource_class: medium
     steps:
       - checkout
       - run: 
           name: Install clang
           command: |
-            sudo apt-get update
-            sudo apt-get install -y install libc++-dev libc++abi-dev
+            sudo apt-get install -y libc++-dev libc++abi-dev
       - run:
           name: Build the Linux wheels.
           command: |
