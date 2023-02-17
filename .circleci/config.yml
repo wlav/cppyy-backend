@@ -6,8 +6,9 @@ jobs:
     docker:
       - image: circleci/python:3.9
     environment:
-        CC: gcc-12
-        CXX: g++-12
+        CC: clang-14
+        CXX: clang++-14
+        CXXFLAGS: -stdlib=libc++
     steps:
       - checkout
       - setup_remote_docker
@@ -15,7 +16,7 @@ jobs:
           name: Install C++ compiler
           command: |
               sudo apt-get update
-              sudo apt-get install -y ninja-build git unzip cmake g++-12 libstdc++-12-dev
+              sudo apt-get install -y ninja-build git unzip cmake clang-14 libc++-14-dev libc++abi-14-dev
       - run:
           name: Build the Linux wheels.
           command: |
