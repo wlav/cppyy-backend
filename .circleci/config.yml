@@ -5,9 +5,17 @@ jobs:
     working_directory: ~/linux-wheels
     docker:
       - image: circleci/python:3.9
+    environment:
+        CC: gcc-12
+        CXX: g++-12
     steps:
       - checkout
       - setup_remote_docker
+      - run:
+          name: Install C++ compiler
+          command: |
+              sudo apt-get update
+              sudo apt-get install -y ninja-build git unzip cmake g++-12 libstdc++-12-dev
       - run:
           name: Build the Linux wheels.
           command: |
@@ -28,7 +36,7 @@ jobs:
     # https://circleci.com/product/features/resource-classes/
     resource_class: arm.medium
     steps:
-      - checkout
+      - checkout            
       - run:
           name: Build the Linux aarch64 wheels.
           command: |
