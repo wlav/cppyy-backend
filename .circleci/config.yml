@@ -3,20 +3,10 @@ version: 2
 jobs:
   linux-wheels:
     working_directory: ~/linux-wheels
-    docker:
-      - image: circleci/python:3.9
-    environment:
-        CC: clang-14
-        CXX: clang++-14
-        CXXFLAGS: -stdlib=libc++
+    machine:
+      image: ubuntu-2004:2022.04.1
     steps:
       - checkout
-      - setup_remote_docker
-      - run:
-          name: Install C++ compiler
-          command: |
-              sudo apt-get update
-              sudo apt-get install -y ninja-build git unzip cmake clang-14 libc++-14-dev libc++abi-14-dev
       - run:
           name: Build the Linux wheels.
           command: |
