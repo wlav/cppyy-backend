@@ -5,7 +5,10 @@ jobs:
     working_directory: ~/linux-wheels
     machine:
       image: ubuntu-2004:2022.10.1
-    resource_class: medium
+    resource_class: large
+    environment:
+        STDCXX: 20
+        MAKE_NPROCS: 4
     steps:
       - checkout
       - run: 
@@ -30,7 +33,10 @@ jobs:
       image: ubuntu-2004:2022.04.1
     # resource_class is what tells CircleCI to use an ARM worker for native arm builds
     # https://circleci.com/product/features/resource-classes/
-    resource_class: arm.medium
+    resource_class: arm.large
+    environment:
+        STDCXX: 20
+        MAKE_NPROCS: 4
     steps:
       - checkout            
       - run:
