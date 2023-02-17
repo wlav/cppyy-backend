@@ -6,6 +6,8 @@ jobs:
     machine:
       image: ubuntu-2004:2022.10.1
     resource_class: medium
+    environment:
+      CXXFLAGS: -std=c++2a
     steps:
       - checkout
       - run: 
