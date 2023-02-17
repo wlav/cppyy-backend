@@ -5,8 +5,17 @@ jobs:
     working_directory: ~/linux-wheels
     machine:
       image: ubuntu-2004:2022.04.1
+    environment:
+        CC: clang-14
+        CXX: clang++-14
+        CXXFLAGS: -stdlib=libc++
     steps:
       - checkout
+      - run: 
+          name: Install clang
+          command: |
+            sudo apt-get remove clang
+            sudo apt-get install -y ninja-build git unzip cmake clang-14 libc++-14-dev libc++abi-14-dev
       - run:
           name: Build the Linux wheels.
           command: |
