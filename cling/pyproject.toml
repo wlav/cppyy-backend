@@ -6,7 +6,6 @@ archs = ["auto"]
 build-frontend = "pip"
 dependency-versions = "pinned"
 build-verbosity = "1"
-build = "cp39-*"
 
 before-all = "cd cling && python create_src_directory.py"
 
@@ -15,6 +14,8 @@ test-requires = []
 test-command = 'python -c "import cppyy_backend"'
 
 [tool.cibuildwheel.linux]
+build = "cp39-manylinux-*"
+skip = "*-manylinux_i686"
 repair-wheel-command = ""
 # repair-wheel-command = "LD_LIBRARY_PATH=$PWD/lib auditwheel repair -w {dest_dir} {wheel}"
 
