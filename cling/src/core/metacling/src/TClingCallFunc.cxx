@@ -322,7 +322,7 @@ void TClingCallFunc::make_narg_ctor(const unsigned N, ostringstream &typedefbuf,
       if (rtdecl && (rtdecl->getAccess() == AS_private || rtdecl->getAccess() == AS_protected))
          break;
       auto ET = llvm::dyn_cast<EnumType>(QT);
-      bool is_enum_tag = ET && !ET->getDecl()->isScoped();
+      bool is_enum_tag = ET && !ET->getDecl()->isScoped() && !Ty.getTypePtr()->isTypedefNameType();
       string type_name;
       EReferenceType refType = kNotReference;
       bool isPointer = false;
@@ -455,7 +455,7 @@ void TClingCallFunc::make_narg_call(const std::string &return_type, const unsign
          QualType Ty = PVD->getType();
          QualType QT = Ty.getCanonicalType();
          auto ET = llvm::dyn_cast<EnumType>(QT);
-         bool is_enum_tag = ET && !ET->getDecl()->isScoped();
+         bool is_enum_tag = ET && !ET->getDecl()->isScoped() && !Ty.getTypePtr()->isTypedefNameType();
          std::string arg_type;
          CppyyLegacy::TMetaUtils::GetNormalizedName(arg_type, QT, *fInterp, fNormCtxt);
          if (is_enum_tag)
@@ -547,7 +547,7 @@ void TClingCallFunc::make_narg_call(const std::string &return_type, const unsign
       if (rtdecl && (rtdecl->getAccess() == AS_private || rtdecl->getAccess() == AS_protected))
          break;
       auto ET = llvm::dyn_cast<EnumType>(QT);
-      bool is_enum_tag = ET && !ET->getDecl()->isScoped();
+      bool is_enum_tag = ET && !ET->getDecl()->isScoped() && !Ty.getTypePtr()->isTypedefNameType();
       string type_name;
       EReferenceType refType = kNotReference;
       bool isPointer = false;
