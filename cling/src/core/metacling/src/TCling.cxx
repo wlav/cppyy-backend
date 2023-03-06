@@ -2653,7 +2653,7 @@ intptr_t TCling::ProcessLine(const char* line, int* error_/*=0*/)
        && result.isValid()
        && !result.isVoid())
    {
-      return result.simplisticCastAs<intptr_t>();
+      return result.castAs<intptr_t>();
    }
    return 0;
 }
@@ -3287,7 +3287,7 @@ Bool_t TCling::IsLoaded(const char* filename) const
             return kTRUE;
       }
       // ...then check shared library again, but with full path now
-      sFilename = FE->getName();
+      sFilename = FE->getName().str();
       if (gSystem->FindDynamicLibrary(sFilename, kTRUE)
           && fileMap.count(sFilename.Data())) {
          return kTRUE;
@@ -3527,7 +3527,7 @@ intptr_t TCling::Calc(const char* line, EErrorCode* error)
    }
 
    RegisterTemporary(valRef);
-   return valRef.simplisticCastAs<intptr_t>();
+   return  valRef.castAs<intptr_t>();
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -6487,7 +6487,7 @@ static std::string GetSharedLibImmediateDepsSlow(std::string lib,
       }
    } else {
       assert(llvm::sys::fs::exists(lib) && "Must exist!");
-      lib = llvm::sys::path::filename(lib);
+      lib = llvm::sys::path::filename(lib).str();
    }
 
    auto ObjF = llvm::object::ObjectFile::createObjectFile(LibFullPath.Data());

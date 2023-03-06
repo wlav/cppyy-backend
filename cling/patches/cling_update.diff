@@ -1,0 +1,3667 @@
+diff --git a/src/interpreter/cling/CMakeLists.txt b/src/interpreter/cling/CMakeLists.txt
+index 57b4984edd..b0081c5aee 100644
+--- a/src/interpreter/cling/CMakeLists.txt
++++ b/src/interpreter/cling/CMakeLists.txt
+@@ -180,8 +180,13 @@ else() # Building as part of LLVM
+     include(${LLVMCONFIG_FILE})
+   endif()
+   if (NOT CLANG_INCLUDE_DIRS)
+-    set (CLANG_INCLUDE_DIRS "${CMAKE_SOURCE_DIR}/tools/clang/include"
+-      "${CMAKE_BINARY_DIR}/tools/clang/include")
++    set (CLANG_INCLUDE_DIRS "${LLVM_MAIN_SRC_DIR}/tools/clang/include")
++    if (NOT EXISTS ${CLANG_INCLUDE_DIRS})
++      # Otherwise assume the monorepo layout.
++      set (CLANG_INCLUDE_DIRS ${LLVM_MAIN_SRC_DIR}/../clang/include )
++    endif()
++    set (CLANG_INCLUDE_DIRS "${CLANG_INCLUDE_DIRS}"
++      "${LLVM_BINARY_DIR}/tools/clang/include")
+   endif()
+ endif()
+ 
+diff --git a/src/interpreter/cling/include/cling/Interpreter/ClangInternalState.h b/src/interpreter/cling/include/cling/Interpreter/ClangInternalState.h
+index e9972ca88d..f3e5e21d08 100644
+--- a/src/interpreter/cling/include/cling/Interpreter/ClangInternalState.h
++++ b/src/interpreter/cling/include/cling/Interpreter/ClangInternalState.h
+@@ -79,7 +79,7 @@ namespace cling {
+     ///
+     bool differentContent(const std::string& file1, const std::string& file2,
+                           const char* type = nullptr, bool verbose = false,
+-               const llvm::SmallVectorImpl<llvm::StringRef>* ignores = 0) const;
++               const llvm::SmallVectorImpl<llvm::StringRef>* ignores = nullptr) const;
+ 
+     ///\brief Return the llvm::Module this state is bound too.
+     ///
+@@ -95,7 +95,7 @@ namespace cling {
+                                       const clang::Preprocessor& PP);
+   private:
+     llvm::raw_fd_ostream* createOutputFile(llvm::StringRef OutFile,
+-                                           std::string* TempPathName = 0,
++                                           std::string* TempPathName = nullptr,
+                                            bool RemoveFileOnSignal = true);
+   };
+ } // end namespace cling
+diff --git a/src/interpreter/cling/include/cling/Interpreter/DynamicLibraryManager.h b/src/interpreter/cling/include/cling/Interpreter/DynamicLibraryManager.h
+index 406e54f2a8..d4868971f2 100644
+--- a/src/interpreter/cling/include/cling/Interpreter/DynamicLibraryManager.h
++++ b/src/interpreter/cling/include/cling/Interpreter/DynamicLibraryManager.h
+@@ -208,7 +208,7 @@ namespace cling {
+     ///\param[out] exists - sets if the file exists. Useful to distinguish if it
+     ///            is a library but of incompatible file format.
+     ///
+-    static bool isSharedLibrary(llvm::StringRef libFullPath, bool* exists = 0);
++    static bool isSharedLibrary(llvm::StringRef libFullPath, bool *exists = nullptr);
+   };
+ } // end namespace cling
+ #endif // CLING_DYNAMIC_LIBRARY_MANAGER_H
+diff --git a/src/interpreter/cling/include/cling/Interpreter/DynamicLookupRuntimeUniverse.h b/src/interpreter/cling/include/cling/Interpreter/DynamicLookupRuntimeUniverse.h
+index 3550275754..8942810f20 100644
+--- a/src/interpreter/cling/include/cling/Interpreter/DynamicLookupRuntimeUniverse.h
++++ b/src/interpreter/cling/include/cling/Interpreter/DynamicLookupRuntimeUniverse.h
+@@ -55,7 +55,7 @@ namespace runtime {
+         // Check whether the expected return type and the actual return type are
+         // compatible with Sema::CheckAssingmentConstraints or
+         // ASTContext::typesAreCompatible.
+-        return result.simplisticCastAs<T>();
++        return result.castAs<T>();
+       return T();
+     }
+ 
+diff --git a/src/interpreter/cling/include/cling/Interpreter/Interpreter.h b/src/interpreter/cling/include/cling/Interpreter/Interpreter.h
+index 4cf115eba4..bb6223b4b6 100644
+--- a/src/interpreter/cling/include/cling/Interpreter/Interpreter.h
++++ b/src/interpreter/cling/include/cling/Interpreter/Interpreter.h
+@@ -255,7 +255,7 @@ namespace cling {
+     ///
+     CompilationResult DeclareInternal(const std::string& input,
+                                       const CompilationOptions& CO,
+-                                      Transaction** T = 0) const;
++                                      Transaction** T = nullptr) const;
+ 
+     ///\brief Worker function, building block for interpreter's public
+     /// interfaces.
+@@ -272,8 +272,8 @@ namespace cling {
+     ///
+     CompilationResult EvaluateInternal(const std::string& input,
+                                        CompilationOptions CO,
+-                                       Value* V = 0,
+-                                       Transaction** T = 0,
++                                       Value* V = nullptr,
++                                       Transaction** T = nullptr,
+                                        size_t wrapPoint = 0);
+ 
+     ///\brief Worker function to code complete after all the mechanism
+@@ -312,7 +312,7 @@ namespace cling {
+     ///\returns The result of the execution.
+     ///
+     ExecutionResult RunFunction(const clang::FunctionDecl* FD,
+-                                Value* res = 0);
++                                Value* res = nullptr);
+ 
+     ///\brief Compile the function definition and return its Decl.
+     ///
+@@ -357,7 +357,7 @@ namespace cling {
+     ///\param[in] extraLibHandle - resolve symbols also from this dylib
+     ///\param[in] noRuntime - flag to control the presence of runtime universe
+     ///
+-    Interpreter(int argc, const char* const* argv, const char* llvmdir = 0,
++    Interpreter(int argc, const char* const* argv, const char* llvmdir = nullptr,
+                 const ModuleFileExtensions& moduleExtensions = {},
+                 void *extraLibHandle = nullptr, bool noRuntime = false)
+         : Interpreter(argc, argv, llvmdir, moduleExtensions, extraLibHandle,
+@@ -374,7 +374,7 @@ namespace cling {
+     ///\param[in] noRuntime - flag to control the presence of runtime universe
+     ///
+     Interpreter(const Interpreter& parentInterpreter, int argc,
+-                const char* const* argv, const char* llvmdir = 0,
++                const char* const* argv, const char* llvmdir = nullptr,
+                 const ModuleFileExtensions& moduleExtensions = {},
+                 void *extraLibHandle = nullptr, bool noRuntime = true);
+ 
+@@ -521,8 +521,8 @@ namespace cling {
+     ///
+     ///\returns Whether the operation was fully successful.
+     ///
+-    CompilationResult process(const std::string& input, Value* V = 0,
+-                              Transaction** T = 0,
++    CompilationResult process(const std::string& input, Value* V = nullptr,
++                              Transaction** T = nullptr,
+                               bool disableValuePrinting = false);
+ 
+     ///\brief Parses input line, which doesn't contain statements. No code
+@@ -537,7 +537,7 @@ namespace cling {
+     ///\returns Whether the operation was fully successful.
+     ///
+     CompilationResult parse(const std::string& input,
+-                            Transaction** T = 0) const;
++                            Transaction** T = nullptr) const;
+     /// Loads a C++ Module with a given name by synthesizing an Import decl.
+     /// This routine checks if there is a modulemap in the current directory
+     /// and loads it.
+@@ -594,7 +594,7 @@ namespace cling {
+     ///
+     ///\returns Whether the operation was fully successful.
+     ///
+-    CompilationResult declare(const std::string& input, Transaction** T = 0);
++    CompilationResult declare(const std::string& input, Transaction** T = nullptr);
+ 
+     ///\brief Compiles input line, which contains only expressions.
+     ///
+@@ -623,7 +623,7 @@ namespace cling {
+     ///
+     ///\returns Whether the operation was fully successful.
+     ///
+-    CompilationResult echo(const std::string& input, Value* V = 0);
++    CompilationResult echo(const std::string& input, Value* V = nullptr);
+ 
+     ///\brief Compiles input line and runs.
+     ///
+@@ -673,7 +673,7 @@ namespace cling {
+     ///\returns result of the compilation.
+     ///
+     CompilationResult loadHeader(const std::string& filename,
+-                                 Transaction** T = 0);
++                                 Transaction** T = nullptr);
+ 
+     ///\brief Loads header file or shared library.
+     ///
+@@ -685,7 +685,7 @@ namespace cling {
+     ///
+     CompilationResult loadFile(const std::string& filename,
+                                bool allowSharedLib = true,
+-                               Transaction** T = 0);
++                               Transaction** T = nullptr);
+ 
+     ///\brief Unloads (forgets) a transaction from AST and JITed symbols.
+     ///
+@@ -810,7 +810,7 @@ namespace cling {
+     ///\param[in]  D       - the global's Decl to find
+     ///\param[out] fromJIT - whether the symbol was JITted.
+     void* getAddressOfGlobal(const clang::GlobalDecl& D,
+-                             bool* fromJIT = 0) const;
++                             bool* fromJIT = nullptr) const;
+ 
+     ///\brief Gets the address of an existing global and whether it was JITted.
+     ///
+@@ -820,7 +820,7 @@ namespace cling {
+     ///\param[in]  SymName - the name of the global to search
+     ///\param[out] fromJIT - whether the symbol was JITted.
+     ///
+-    void* getAddressOfGlobal(llvm::StringRef SymName, bool* fromJIT = 0) const;
++    void* getAddressOfGlobal(llvm::StringRef SymName, bool* fromJIT = nullptr) const;
+ 
+     ///\brief Get a given macro definition by name.
+     ///
+@@ -860,7 +860,7 @@ namespace cling {
+                         clang::ASTContext& Ctx,
+                         llvm::raw_ostream& out,
+                         bool enableMacros = false,
+-                        llvm::raw_ostream* logs = 0,
++                        llvm::raw_ostream* logs = nullptr,
+                         IgnoreFilesFunc_t ignoreFiles =
+                           [](const clang::PresumedLoc&) { return false;}) const;
+ 
+diff --git a/src/interpreter/cling/include/cling/Interpreter/LookupHelper.h b/src/interpreter/cling/include/cling/Interpreter/LookupHelper.h
+index 7f25944af5..6e6e281470 100644
+--- a/src/interpreter/cling/include/cling/Interpreter/LookupHelper.h
++++ b/src/interpreter/cling/include/cling/Interpreter/LookupHelper.h
+@@ -102,7 +102,7 @@ namespace cling {
+     ///
+     const clang::Decl* findScope(llvm::StringRef className,
+                                  DiagSetting diagOnOff,
+-                                 const clang::Type** resultType = 0,
++                                 const clang::Type** resultType = nullptr,
+                                  bool instantiateTemplate = true) const;
+ 
+ 
+diff --git a/src/interpreter/cling/include/cling/Interpreter/Transaction.h b/src/interpreter/cling/include/cling/Interpreter/Transaction.h
+index 1ce7639117..d16344cf3c 100644
+--- a/src/interpreter/cling/include/cling/Interpreter/Transaction.h
++++ b/src/interpreter/cling/include/cling/Interpreter/Transaction.h
+@@ -74,11 +74,11 @@ namespace cling {
+       ConsumerCallInfo m_Call;
+       DelayCallInfo(clang::DeclGroupRef DGR, ConsumerCallInfo CCI)
+         : m_DGR(DGR), m_Call(CCI) {}
+-      inline bool operator==(const DelayCallInfo& rhs) {
++      inline bool operator==(const DelayCallInfo& rhs) const {
+         return m_DGR.getAsOpaquePtr() == rhs.m_DGR.getAsOpaquePtr()
+           && m_Call == rhs.m_Call;
+       }
+-      inline bool operator!=(const DelayCallInfo& rhs) {
++      inline bool operator!=(const DelayCallInfo& rhs) const {
+         return !operator==(rhs);
+       }
+       void dump() const;
+@@ -100,10 +100,10 @@ namespace cling {
+       MacroDirectiveInfo(clang::IdentifierInfo* II,
+                          const clang::MacroDirective* MD)
+                 : m_II(II), m_MD(MD) {}
+-      inline bool operator==(const MacroDirectiveInfo& rhs) {
++      inline bool operator==(const MacroDirectiveInfo& rhs) const {
+         return m_II == rhs.m_II && m_MD == rhs.m_MD;
+       }
+-      inline bool operator!=(const MacroDirectiveInfo& rhs) {
++      inline bool operator!=(const MacroDirectiveInfo& rhs) const {
+         return !operator==(rhs);
+       }
+       void dump(const clang::Preprocessor& PP) const;
+@@ -272,22 +272,22 @@ namespace cling {
+     const_nested_iterator nested_begin() const {
+       if (hasNestedTransactions())
+         return m_NestedTransactions->begin();
+-      return 0;
++      return nullptr;
+     }
+     const_nested_iterator nested_end() const {
+       if (hasNestedTransactions())
+         return m_NestedTransactions->end();
+-      return 0;
++      return nullptr;
+     }
+     const_reverse_nested_iterator rnested_begin() const {
+       if (hasNestedTransactions())
+         return m_NestedTransactions->rbegin();
+-      return const_reverse_nested_iterator(0);
++      return const_reverse_nested_iterator(nullptr);
+     }
+     const_reverse_nested_iterator rnested_end() const {
+       if (hasNestedTransactions())
+         return m_NestedTransactions->rend();
+-      return const_reverse_nested_iterator(0);
++      return const_reverse_nested_iterator(nullptr);
+     }
+ 
+     /// Macro iteration
+@@ -432,7 +432,7 @@ namespace cling {
+ 
+     Transaction* getLastNestedTransaction() const {
+       if (!hasNestedTransactions())
+-        return 0;
++        return nullptr;
+       return m_NestedTransactions->back();
+     }
+ 
+diff --git a/src/interpreter/cling/include/cling/Interpreter/Value.h b/src/interpreter/cling/include/cling/Interpreter/Value.h
+index 829b89ddf3..65375856f9 100644
+--- a/src/interpreter/cling/include/cling/Interpreter/Value.h
++++ b/src/interpreter/cling/include/cling/Interpreter/Value.h
+@@ -12,9 +12,7 @@
+ 
+ #include "cling/Interpreter/Visibility.h"
+ 
+-#include <stddef.h>
+-#include <stdint.h>
+-#include <type_traits>
++#include <cstdint> // for uintptr_t
+ 
+ namespace llvm {
+   class raw_ostream;
+@@ -23,9 +21,66 @@ namespace llvm {
+ namespace clang {
+   class ASTContext;
+   class QualType;
+-  class RecordDecl;
+ }
+ 
++// FIXME: Merge with clang::BuiltinType::getName
++#define CLING_VALUE_BUILTIN_TYPES                                      \
++  /*  X(void, Void) */                                                 \
++  X(bool, Bool)                                                        \
++  X(char, Char_S)                                                      \
++  /*X(char, Char_U)*/                                                  \
++  X(signed char, SChar)                                                \
++  X(short, Short)                                                      \
++  X(int, Int)                                                          \
++  X(long, Long)                                                        \
++  X(long long, LongLong)                                               \
++  /*X(__int128, Int128)*/                                              \
++  X(unsigned char, UChar)                                              \
++  X(unsigned short, UShort)                                            \
++  X(unsigned int, UInt)                                                \
++  X(unsigned long, ULong)                                              \
++  X(unsigned long long, ULongLong)                                     \
++  /*X(unsigned __int128, UInt128)*/                                    \
++  /*X(half, Half)*/                                                    \
++  /*X(__bf16, BFloat16)*/                                              \
++  X(float, Float)                                                      \
++  X(double, Double)                                                    \
++  X(long double, LongDouble)                                           \
++  /*X(short _Accum, ShortAccum)                                        \
++    X(_Accum, Accum)                                                   \
++    X(long _Accum, LongAccum)                                          \
++    X(unsigned short _Accum, UShortAccum)                              \
++    X(unsigned _Accum, UAccum)                                         \
++    X(unsigned long _Accum, ULongAccum)                                \
++    X(short _Fract, ShortFract)                                        \
++    X(_Fract, Fract)                                                   \
++    X(long _Fract, LongFract)                                          \
++    X(unsigned short _Fract, UShortFract)                              \
++    X(unsigned _Fract, UFract)                                         \
++    X(unsigned long _Fract, ULongFract)                                \
++    X(_Sat short _Accum, SatShortAccum)                                \
++    X(_Sat _Accum, SatAccum)                                           \
++    X(_Sat long _Accum, SatLongAccum)                                  \
++    X(_Sat unsigned short _Accum, SatUShortAccum)                      \
++    X(_Sat unsigned _Accum, SatUAccum)                                 \
++    X(_Sat unsigned long _Accum, SatULongAccum)                        \
++    X(_Sat short _Fract, SatShortFract)                                \
++    X(_Sat _Fract, SatFract)                                           \
++    X(_Sat long _Fract, SatLongFract)                                  \
++    X(_Sat unsigned short _Fract, SatUShortFract)                      \
++    X(_Sat unsigned _Fract, SatUFract)                                 \
++    X(_Sat unsigned long _Fract, SatULongFract)                        \
++    X(_Float16, Float16)                                               \
++    X(__float128, Float128)                                            \
++    X(__ibm128, Ibm128)*/                                              \
++  X(wchar_t, WChar_S)                                                  \
++  /*X(wchar_t, WChar_U)*/                                              \
++  /*X(char8_t, Char8)*/                                                \
++  X(char16_t, Char16)                                                  \
++  X(char32_t, Char32)                                                  \
++  /*X(std::nullptr_t, NullPtr) same as kPtrOrObjTy*/
++
++
+ namespace cling {
+   class Interpreter;
+ 
+@@ -40,78 +95,42 @@ namespace cling {
+   /// and parameters for function calls.
+   ///
+   class CLING_LIB_EXPORT Value {
+-  protected:
++  public:
+     ///\brief Multi-purpose storage.
+     ///
+     union Storage {
+-      long long m_LL;
+-      unsigned long long m_ULL;
++#define X(type, name) type m_##name;
++      CLING_VALUE_BUILTIN_TYPES
++#undef X
+       void* m_Ptr; /// Can point to allocation, see needsManagedAllocation().
+-      float m_Float;
+-      double m_Double;
+-      long double m_LongDouble;
+     };
+ 
++    enum TypeKind : short {
++      kInvalid = 0,
++#define X(type, name) \
++      k##name,
++      CLING_VALUE_BUILTIN_TYPES
++#undef X
++      kVoid,
++      kPtrOrObjTy
++    };
++
++  protected:
+     /// \brief The actual value.
+     Storage m_Storage;
+ 
+-    enum EStorageType {
+-      kSignedIntegerOrEnumerationType,
+-      kUnsignedIntegerOrEnumerationType,
+-      kDoubleType,
+-      kFloatType,
+-      kLongDoubleType,
+-      kPointerType,
+-      kManagedAllocation,
+-      kUnsupportedType
+-    };
++    /// \brief If the \c Value class needs to alloc and dealloc memory.
++    bool m_NeedsManagedAlloc = false;
+ 
+-    /// \brief Which part in m_Storage is active.
+-    EStorageType m_StorageType;
++    TypeKind m_TypeKind = Value::kInvalid;
+ 
+     /// \brief The value's type, stored as opaque void* to reduce
+     /// dependencies.
+-    void* m_Type;
++    void* m_Type = nullptr;
+ 
+     ///\brief Interpreter that produced the value.
+     ///
+-    Interpreter* m_Interpreter;
+-
+-    /// \brief Retrieve the underlying, canonical, desugared, unqualified type.
+-    EStorageType getStorageType() const { return m_StorageType; }
+-
+-    /// \brief Determine the underlying, canonical, desugared, unqualified type:
+-    /// the element of Storage to be used.
+-    static EStorageType determineStorageType(clang::QualType QT);
+-
+-    /// \brief Determine the underlying, canonical, desugared, unqualified type:
+-    /// the element of Storage to be used.
+-    static constexpr EStorageType determineStorageTypeT(...) {
+-      return kManagedAllocation;
+-    }
+-
+-    template <class T, class = typename std::enable_if<std::is_integral<T>::value>::type>
+-    static constexpr EStorageType determineStorageTypeT(T*) {
+-      return std::is_signed<T>::value
+-        ? kSignedIntegerOrEnumerationType
+-        : kUnsignedIntegerOrEnumerationType;
+-    }
+-    static constexpr EStorageType determineStorageTypeT(double*) {
+-      return kDoubleType;
+-    }
+-    static constexpr EStorageType determineStorageTypeT(float*) {
+-      return kFloatType;
+-    }
+-    static constexpr EStorageType determineStorageTypeT(long double*) {
+-      return kDoubleType;
+-    }
+-    template <class T>
+-    static constexpr EStorageType determineStorageTypeT(T**) {
+-      return kPointerType;
+-    }
+-    static constexpr EStorageType determineStorageTypeT(void*) {
+-      return kUnsupportedType;
+-    }
++    Interpreter* m_Interpreter = nullptr;
+ 
+     /// \brief Allocate storage as needed by the type.
+     void ManagedAllocate();
+@@ -120,65 +139,67 @@ namespace cling {
+     ///   dependencies.
+     void AssertOnUnsupportedTypeCast() const;
+ 
+-    size_t GetNumberOfElements() const;
++    bool isPointerOrObjectType() const { return m_TypeKind == kPtrOrObjTy; }
++    bool isBuiltinType() const {
++      return m_TypeKind != kInvalid && !isPointerOrObjectType();
++    };
+ 
+-    // Allow simplisticCastAs to be partially specialized.
++    // Allow castAs to be partially specialized.
+     template<typename T>
+     struct CastFwd {
+       static T cast(const Value& V) {
+-        EStorageType storageType = V.getStorageType();
+-        switch (storageType) {
+-        case kSignedIntegerOrEnumerationType:
+-          return (T) V.getAs<long long>();
+-        case kUnsignedIntegerOrEnumerationType:
+-          return (T) V.getAs<unsigned long long>();
+-        case kDoubleType:
+-          return (T) V.getAs<double>();
+-        case kFloatType:
+-          return (T) V.getAs<float>();
+-        case kLongDoubleType:
+-          return (T) V.getAs<long double>();
+-        case kPointerType:
+-        case kManagedAllocation:
++        if (V.isPointerOrObjectType())
+           return (T) (uintptr_t) V.getAs<void*>();
+-        case kUnsupportedType:
+-          V.AssertOnUnsupportedTypeCast();
++        if (V.isInvalid() || V.isVoid()) {
++#ifndef NDEBUG // Removing this might break inlining
++           V.AssertOnUnsupportedTypeCast();
++#endif // NDEBUG
++           return T();
+         }
+-        return T();
++        return V.getAs<T>();
+       }
+     };
+-
+     template<typename T>
+     struct CastFwd<T*> {
+       static T* cast(const Value& V) {
+-        EStorageType storageType = V.getStorageType();
+-        if (storageType == kPointerType
+-            || storageType == kManagedAllocation)
++        if (V.isPointerOrObjectType())
+           return (T*) (uintptr_t) V.getAs<void*>();
++#ifndef NDEBUG // Removing this might break inlining
+         V.AssertOnUnsupportedTypeCast();
+-        return 0;
++#endif // NDEBUG
++        return nullptr;
+       }
+     };
+ 
+-    Value(void* QualTypeAsOpaquePtr, Interpreter& Interp, EStorageType stType):
+-      m_StorageType(stType),
+-      m_Type(QualTypeAsOpaquePtr),
+-      m_Interpreter(&Interp) {
++    /// \brief Get to the value with type checking casting the underlying
++    /// stored value to T.
++    template <typename T> T getAs() const {
++      switch (m_TypeKind) {
++      default:
++#ifndef NDEBUG
++        AssertOnUnsupportedTypeCast();
++#endif // NDEBUG
++        return T();
++#define X(type, name)                                           \
++        case Value::k##name: return (T) m_Storage.m_##name;
++        CLING_VALUE_BUILTIN_TYPES
++#undef X
++      }
+     }
+ 
++    void AssertTypeMismatch(const char* Type) const;
+   public:
+-    /// \brief Default constructor, creates a value that IsInvalid().
+-    Value():
+-      m_StorageType(kUnsupportedType), m_Type(nullptr),
+-      m_Interpreter(nullptr) {}
++    Value() = default;
+     /// \brief Copy a value.
+     Value(const Value& other);
+     /// \brief Move a value.
+     Value(Value&& other):
+-      m_Storage(other.m_Storage), m_StorageType(other.m_StorageType),
++      m_Storage(other.m_Storage), m_NeedsManagedAlloc(other.m_NeedsManagedAlloc),
++      m_TypeKind(other.m_TypeKind),
+       m_Type(other.m_Type), m_Interpreter(other.m_Interpreter) {
+       // Invalidate other so it will not release.
+-      other.m_StorageType = kUnsupportedType;
++      other.m_NeedsManagedAlloc = false;
++      other.m_TypeKind = kInvalid;
+     }
+ 
+     /// \brief Construct a valid but uninitialized Value. After this call the
+@@ -189,16 +210,20 @@ namespace cling {
+     /// \brief Destruct the value; calls ManagedFree() if needed.
+     ~Value();
+ 
+-    /// \brief Create a valid but ininitialized Value. After this call the
+-    ///   value's storage can be accessed; i.e. calls ManagedAllocate() if
+-    ///   needed.
++    // Avoid including type_traits.
++    template<typename T>
++    struct dependent_false {
++       static constexpr bool value = false;
++       constexpr operator bool() const noexcept { return value; }
++    };
++    /// \brief Create a valid Value holding a clang::Type deduced from the
++    /// argument. This is useful when we want to create a \c Value with a
++    /// particular value from compiled code.
+     template <class T>
+-    static Value Create(void* QualTypeAsOpaquePtr, Interpreter& Interp) {
+-      EStorageType stType
+-        = std::is_reference<T>::value ?
+-       determineStorageTypeT((typename std::remove_reference<T>::type**)nullptr)
+-        : determineStorageTypeT((T*)nullptr);
+-      return Value(QualTypeAsOpaquePtr, Interp, stType);
++    static Value Create(Interpreter& Interp, T val) {
++       static_assert(dependent_false<T>::value,
++                     "Can not instantiate for this type.");
++       return {};
+     }
+ 
+     Value& operator =(const Value& other);
+@@ -211,57 +236,54 @@ namespace cling {
+     /// \brief Whether this type needs managed heap, i.e. the storage provided
+     /// by the m_Storage member is insufficient, or a non-trivial destructor
+     /// must be called.
+-    bool needsManagedAllocation() const {
+-      return getStorageType() == kManagedAllocation;
+-    }
++    bool needsManagedAllocation() const { return m_NeedsManagedAlloc; }
+ 
+     /// \brief Determine whether the Value has been set.
+     //
+     /// Determine whether the Value has been set by checking
+     /// whether the type is valid.
+-    bool isValid() const;
++    bool isValid() const { return m_TypeKind != Value::kInvalid; }
++    bool isInvalid() const { return !isValid(); }
+ 
+     /// \brief Determine whether the Value is set but void.
+-    bool isVoid() const;
++    bool isVoid() const { return m_TypeKind == Value::kVoid; }
+ 
+     /// \brief Determine whether the Value is set and not void.
+     //
+     /// Determine whether the Value is set and not void.
+-    /// Only in this case can getAs() or simplisticCastAs() be called.
++    /// Only in this case can we can get the represented value.
+     bool hasValue() const { return isValid() && !isVoid(); }
+ 
+-    /// \brief Get a reference to the value without type checking.
+-    /// T *must* correspond to type. Else use simplisticCastAs()!
+-    template <typename T>
+-    T& getAs() { return getAs((T*)0); }
+-
+-    /// \brief Get the value without type checking.
+-    /// T *must* correspond to type. Else use simplisticCastAs()!
+-    template <typename T>
+-    T getAs() const { return const_cast<Value*>(this)->getAs<T>(); }
+-
+-    template <typename T>
+-    T*& getAs(T**) { return (T*&)getAs((void**)0); }
+-    void*& getAs(void**) { return m_Storage.m_Ptr; }
+-    double& getAs(double*) { return m_Storage.m_Double; }
+-    long double& getAs(long double*) { return m_Storage.m_LongDouble; }
+-    float& getAs(float*) { return m_Storage.m_Float; }
+-    long long& getAs(long long*) { return m_Storage.m_LL; }
+-    unsigned long long& getAs(unsigned long long*) { return m_Storage.m_ULL; }
+-
+-    void*& getPtr() { return m_Storage.m_Ptr; }
+-    double& getDouble() { return m_Storage.m_Double; }
+-    long double& getLongDouble() { return m_Storage.m_LongDouble; }
+-    float& getFloat() { return m_Storage.m_Float; }
+-    long long& getLL() { return m_Storage.m_LL; }
+-    unsigned long long& getULL() { return m_Storage.m_ULL; }
+-
++    // FIXME: If the cling::Value is destroyed and it handed out an address that
++    // might be accessing invalid memory.
++    void** getPtrAddress() { return &m_Storage.m_Ptr; }
+     void* getPtr() const { return m_Storage.m_Ptr; }
+-    double getDouble() const { return m_Storage.m_Double; }
+-    long double getLongDouble() const { return m_Storage.m_LongDouble; }
+-    float getFloat() const { return m_Storage.m_Float; }
+-    long long getLL() const { return m_Storage.m_LL; }
+-    unsigned long long getULL() const { return m_Storage.m_ULL; }
++    void setPtr(void* Val) { m_Storage.m_Ptr = Val; }
++
++#ifndef NDEBUG
++#define _STRINGIFY(x) #x
++#define STRINGIFY(x) _STRINGIFY(x)
++    // FIXME: Uncomment and debug the various type mismatches.
++    //#define ASSERT_TYPE_MISMATCH(name) AssertTypeMismatch(STRINGIFY(name))
++    #define ASSERT_TYPE_MISMATCH(name)
++#undef STRINGIFY
++#undef _STRINGIFY
++#else
++    #define ASSERT_TYPE_MISMATCH(name)
++#endif // NDEBUG
++#define X(type, name)                                    \
++    type get##name() const {                             \
++      ASSERT_TYPE_MISMATCH(name);                        \
++      return m_Storage.m_##name;                         \
++    }                                                    \
++    void set##name(type Val) {                           \
++      ASSERT_TYPE_MISMATCH(name);                        \
++      m_Storage.m_##name = Val;                          \
++    }                                                    \
++
++  CLING_VALUE_BUILTIN_TYPES
++
++#undef X
+ 
+     /// \brief Get the value with cast.
+     //
+@@ -269,7 +291,7 @@ namespace cling {
+     /// casting the value of builtins (except void), enums and pointers.
+     /// Values referencing an object are treated as pointers to the object.
+     template <typename T>
+-    T simplisticCastAs() const {
++    T castAs() const {
+       return CastFwd<T>::cast(*this);
+     }
+ 
+@@ -284,6 +306,20 @@ namespace cling {
+     void print(llvm::raw_ostream& Out, bool escape = false) const;
+     void dump(bool escape = true) const;
+   };
++
++  template <> inline void* Value::getAs() const {
++    if (isPointerOrObjectType())
++      return m_Storage.m_Ptr;
++    return (void*)getAs<uintptr_t>();
++  }
++
++#define X(type, name)                                                   \
++  template <> Value Value::Create(Interpreter& Interp, type val);       \
++
++  CLING_VALUE_BUILTIN_TYPES
++
++#undef X
++
+ } // end namespace cling
+ 
+ #endif // CLING_VALUE_H
+diff --git a/src/interpreter/cling/include/cling/MetaProcessor/MetaSema.h b/src/interpreter/cling/include/cling/MetaProcessor/MetaSema.h
+index c83a462892..d4b553802e 100644
+--- a/src/interpreter/cling/include/cling/MetaProcessor/MetaSema.h
++++ b/src/interpreter/cling/include/cling/MetaProcessor/MetaSema.h
+@@ -61,7 +61,7 @@ namespace cling {
+     ///\param[out] transaction - Transaction containing the loaded file.
+     ///
+     ActionResult actOnLCommand(llvm::StringRef file,
+-                               Transaction** transaction = 0);
++                               Transaction** transaction = nullptr);
+ 
+     ///\brief O command sets the optimization level.
+     ///
+diff --git a/src/interpreter/cling/include/cling/Utils/AST.h b/src/interpreter/cling/include/cling/Utils/AST.h
+index 0e549e512e..4e0be2ce70 100644
+--- a/src/interpreter/cling/include/cling/Utils/AST.h
++++ b/src/interpreter/cling/include/cling/Utils/AST.h
+@@ -77,9 +77,9 @@ namespace utils {
+     ///\returns 0 if the operation wasn't successful.
+     ///
+     clang::Expr* GetOrCreateLastExpr(clang::FunctionDecl* FD,
+-                                     int* FoundAt = 0,
++                                     int* FoundAt = nullptr,
+                                      bool omitDeclStmts = true,
+-                                     clang::Sema* S = 0);
++                                     clang::Sema* S = nullptr);
+ 
+     ///\brief Return true if the class or template is declared directly in the
+     /// std namespace (modulo inline namespace).
+@@ -196,7 +196,7 @@ namespace utils {
+     ///
+     clang::NamespaceDecl* Namespace(clang::Sema* S,
+                                     const char* Name,
+-                                    const clang::DeclContext* Within = 0);
++                                    const clang::DeclContext* Within = nullptr);
+ 
+     ///\brief Quick lookup for a single named declaration in a given
+     /// declaration context.
+@@ -209,7 +209,7 @@ namespace utils {
+     ///
+     clang::NamedDecl* Named(clang::Sema* S,
+                             llvm::StringRef Name,
+-                            const clang::DeclContext* Within = 0);
++                            const clang::DeclContext* Within = nullptr);
+ 
+     ///\brief Quick lookup for a single named declaration in a given
+     /// declaration context.
+@@ -222,7 +222,7 @@ namespace utils {
+     ///
+     clang::NamedDecl* Named(clang::Sema* S,
+                             const char* Name,
+-                            const clang::DeclContext* Within = 0);
++                            const clang::DeclContext* Within = nullptr);
+ 
+     ///\brief Quick lookup for a single namespace declaration in a given
+     /// declaration context.
+@@ -236,7 +236,7 @@ namespace utils {
+     ///
+     clang::NamedDecl* Named(clang::Sema* S,
+                             const clang::DeclarationName& Name,
+-                            const clang::DeclContext* Within = 0);
++                            const clang::DeclContext* Within = nullptr);
+ 
+     ///\brief Quick lookup for a single named tag declaration ( enums, classes,
+     /// structs, and unions) in a given declaration context.
+@@ -249,7 +249,7 @@ namespace utils {
+     ///
+     clang::TagDecl* Tag(clang::Sema* S,
+                         llvm::StringRef Name,
+-                        const clang::DeclContext* Within = 0);
++                        const clang::DeclContext* Within = nullptr);
+ 
+     ///\brief Quick lookup for a single named tag declaration ( enums, classes,
+     /// structs, and unions) in a given declaration context.
+@@ -262,7 +262,7 @@ namespace utils {
+     ///
+     clang::TagDecl* Tag(clang::Sema* S,
+                         const char* Name,
+-                        const clang::DeclContext* Within = 0);
++                        const clang::DeclContext* Within = nullptr);
+ 
+     ///\brief Quick lookup for a single named tag declaration ( enums, classes,
+     /// structs, and unions) in a given declaration context.
+@@ -275,7 +275,7 @@ namespace utils {
+     ///
+     clang::TagDecl* Tag(clang::Sema* S,
+                         const clang::DeclarationName& Name,
+-                        const clang::DeclContext* Within = 0);
++                        const clang::DeclContext* Within = nullptr);
+ 
+     ///\brief Quick lookup for a name in possible a declaration context.
+     ///
+@@ -289,7 +289,7 @@ namespace utils {
+     ///\returns the found result if single, -1 if multiple or 0 if not found.
+     ///
+     void Named(clang::Sema* S, clang::LookupResult& R,
+-               const clang::DeclContext* Within = 0);
++               const clang::DeclContext* Within = nullptr);
+ 
+   }
+ 
+diff --git a/src/interpreter/cling/include/cling/libc_msvc.modulemap b/src/interpreter/cling/include/cling/libc_msvc.modulemap
+index b5636b943e..9424a062c4 100644
+--- a/src/interpreter/cling/include/cling/libc_msvc.modulemap
++++ b/src/interpreter/cling/include/cling/libc_msvc.modulemap
+@@ -32,6 +32,7 @@ module "libc" [system] [extern_c] [no_undeclared_includes] {
+     header "stdio.h"
+   }
+   module "complex.h" {
++    requires missing
+     export *
+     header "complex.h"
+   }
+diff --git a/src/interpreter/cling/include/cling/std.modulemap b/src/interpreter/cling/include/cling/std.modulemap
+index 6f466ddbbb..713aeaafd4 100644
+--- a/src/interpreter/cling/include/cling/std.modulemap
++++ b/src/interpreter/cling/include/cling/std.modulemap
+@@ -63,6 +63,11 @@ module "std" [system] {
+     export *
+     header "cmath"
+   }
++  module "compare" {
++    requires cplusplus20
++    export *
++    header "compare"
++  }
+   module "complex" {
+     export *
+     header "complex"
+@@ -71,6 +76,11 @@ module "std" [system] {
+     export *
+     header "complex.h"
+   }
++  module "concepts" {
++    requires cplusplus20
++    export *
++    header "concepts"
++  }
+   module "condition_variable" {
+     export *
+     header "condition_variable"
+@@ -172,6 +182,7 @@ module "std" [system] {
+   }
+   module "future" {
+     export *
++    export bits_alloc_traits_h
+     header "future"
+   }
+ /*  module "hash_map" {
+@@ -362,6 +373,11 @@ module "std" [system] {
+     export *
+     header "valarray"
+   }
++  module "variant" {
++    requires cplusplus17
++    export *
++    header "variant"
++  }
+   module "vector" {
+     export *
+     header "vector"
+@@ -375,10 +391,10 @@ module "std" [system] {
+     export *
+     header "cuchar"
+   }
+-  //module "experimental/algorithm" {
+-  //  export *
+-  //  header "experimental/algorithm"
+-  //}
++  module "experimental/string_view" {
++    export *
++    header "experimental/string_view"
++  }
+   module "ext/functional" {
+     export *
+     header "ext/functional"
+@@ -396,6 +412,15 @@ module "std" [system] {
+     export *
+     header "ext/numeric"
+   }
++  module "ext/type_traits.h" {
++    export *
++    header "ext/type_traits.h"
++  }
++
++  module "bits_alloc_traits_h" {
++    export *
++    header "bits/alloc_traits.h"
++  }
+   module "bits/allocator.h" {
+     export *
+     header "bits/allocator.h"
+@@ -416,14 +441,29 @@ module "std" [system] {
+     export *
+     header "bits/ios_base.h"
+   }
++  module "bits/iterator_concepts.h" {
++    requires cplusplus20
++    export *
++    header "bits/iterator_concepts.h"
++  }
+   module "bits/locale_facets.h" {
+     export *
+     header "bits/locale_facets.h"
+   }
+-  module "bits/stl_algobase.h" {
++  module "bits_stl_algobase_h" {
+     export *
+     header "bits/stl_algobase.h"
+   }
++  module "bits_stl_iterator_h" {
++    export bits_stl_algobase_h
++    export *
++    header "bits/stl_iterator.h"
++  }
++  module "bits/stl_iterator_base_types.h" {
++    export *
++    export bits_stl_algobase_h
++    header "bits/stl_iterator_base_types.h"
++  }
+   module "bits/stl_map.h" {
+     export *
+     export bits_stl_tree_h
+@@ -437,4 +477,26 @@ module "std" [system] {
+     export *
+     header "bits/stl_tree.h"
+   }
++  module "bits/ranges_algo.h" {
++    requires cplusplus20
++    export *
++    export utility
++    header "bits/ranges_algo.h"
++  }
++  module "bits/ranges_algobase.h" {
++    requires cplusplus20
++    export *
++    header "bits/ranges_algobase.h"
++  }
++  module "bits/ranges_base.h" {
++    requires cplusplus20
++    export *
++    export bits_stl_iterator_h
++    header "bits/ranges_base.h"
++  }
++  module "bits/uniform_int_dist.h" {
++    export *
++    export bits_stl_algobase_h
++    header "bits/uniform_int_dist.h"
++  }
+ }
+diff --git a/src/interpreter/cling/include/cling/std_msvc.modulemap b/src/interpreter/cling/include/cling/std_msvc.modulemap
+index cef3b5e5b6..2dff2bc04d 100644
+--- a/src/interpreter/cling/include/cling/std_msvc.modulemap
++++ b/src/interpreter/cling/include/cling/std_msvc.modulemap
+@@ -61,6 +61,12 @@ module "std" [system] {
+     export *
+     header "chrono"
+   }
++  module "__msvc_chrono.hpp" {
++    requires msvc1934
++    export xtimec_h
++    export *
++    header "__msvc_chrono.hpp"
++  }
+   module "cinttypes" {
+     export *
+     header "cinttypes"
+@@ -439,14 +445,6 @@ module "std" [system] {
+     export *
+     header "xlocbuf"
+   }
+-  module "xlocinfo" {
+-    export *
+-    header "xlocinfo"
+-  }
+-  module "xlocinfo.h" {
+-    export *
+-    header "xlocinfo.h"
+-  }
+   module "xlocmes" {
+     export *
+     header "xlocmes"
+@@ -484,12 +482,14 @@ module "std" [system] {
+     header "xstring"
+   }
+   module "xthreads.h" {
++    export thread
+     export *
+-    textual header "xthreads.h"
++    header "xthreads.h"
+   }
+-  module "xtimec.h" {
++  module "xtimec_h" {
++    export chrono
+     export *
+-    textual header "xtimec.h"
++    header "xtimec.h"
+   }
+   module "xtr1common" {
+     export *
+@@ -515,4 +515,14 @@ module "std" [system] {
+     export *
+     header "yvals_core.h"
+   }
++  module "xnode_handle.h" {
++    requires cplusplus17
++    export *
++    header "xnode_handle.h"
++  }
++  module "__msvc_iter_core.hpp" {
++    requires msvc1934
++    export *
++    header "__msvc_iter_core.hpp"
++  }
+ }
+diff --git a/src/interpreter/cling/lib/Interpreter/ASTTransformer.h b/src/interpreter/cling/lib/Interpreter/ASTTransformer.h
+index 0f0ee2d0d0..ef63257376 100644
+--- a/src/interpreter/cling/lib/Interpreter/ASTTransformer.h
++++ b/src/interpreter/cling/lib/Interpreter/ASTTransformer.h
+@@ -46,7 +46,7 @@ namespace cling {
+     ///\param[in] S - The semantic analysis object.
+     ///
+     ASTTransformer(clang::Sema* S):
+-      m_Sema(S), m_Consumer(0), m_Transaction(nullptr) {}
++      m_Sema(S), m_Consumer(nullptr), m_Transaction(nullptr) {}
+     virtual ~ASTTransformer();
+ 
+     ///\brief Retrieves the semantic analysis object used for this transaction
+diff --git a/src/interpreter/cling/lib/Interpreter/AutoSynthesizer.cpp b/src/interpreter/cling/lib/Interpreter/AutoSynthesizer.cpp
+index f49c77de1c..b1d4448fde 100644
+--- a/src/interpreter/cling/lib/Interpreter/AutoSynthesizer.cpp
++++ b/src/interpreter/cling/lib/Interpreter/AutoSynthesizer.cpp
+@@ -23,7 +23,7 @@ namespace cling {
+     llvm::DenseSet<NamedDecl*> m_HandledDecls;
+   private:
+   public:
+-    AutoFixer(Sema* S) : m_Sema(S), m_FoundDRE(0) {}
++    AutoFixer(Sema* S) : m_Sema(S), m_FoundDRE(nullptr) {}
+ 
+     CompoundStmt* Fix(CompoundStmt* CS) {
+       if (!CS->size())
+diff --git a/src/interpreter/cling/lib/Interpreter/CIFactory.cpp b/src/interpreter/cling/lib/Interpreter/CIFactory.cpp
+index 698f7eb634..b5b5df2e8e 100644
+--- a/src/interpreter/cling/lib/Interpreter/CIFactory.cpp
++++ b/src/interpreter/cling/lib/Interpreter/CIFactory.cpp
+@@ -1279,6 +1279,13 @@ namespace {
+ #if __APPLE__ && __arm64__
+     argvCompile.push_back("--target=arm64-apple-darwin20.3.0");
+ #endif
++#if __aarch64__
++    // Disable outline-atomics on AArch64; the routines __aarch64_* are defined
++    // in the static library libgcc.a and not necessarily included in libCling
++    // or otherwise present in the process, so the interpreter has a hard time
++    // finding them.
++    argvCompile.push_back("-mno-outline-atomics");
++#endif
+ 
+     // Variables for storing the memory of the C-string arguments.
+     // FIXME: We shouldn't use C-strings in the first place, but just use
+@@ -1414,10 +1421,6 @@ namespace {
+     }
+ 
+     llvm::Triple TheTriple(llvm::sys::getProcessTriple());
+-#ifdef _WIN32
+-    // COFF format currently needs a few changes in LLVM to function properly.
+-    TheTriple.setObjectFormat(llvm::Triple::COFF);
+-#endif
+     clang::driver::Driver Drvr(argv[0], TheTriple.getTriple(), *Diags);
+     //Drvr.setWarnMissingInput(false);
+     Drvr.setCheckInputsExist(false); // think foo.C(12)
+diff --git a/src/interpreter/cling/lib/Interpreter/ClangInternalState.cpp b/src/interpreter/cling/lib/Interpreter/ClangInternalState.cpp
+index 25b5a801cb..255ef4e3db 100644
+--- a/src/interpreter/cling/lib/Interpreter/ClangInternalState.cpp
++++ b/src/interpreter/cling/lib/Interpreter/ClangInternalState.cpp
+@@ -308,7 +308,7 @@ namespace cling {
+   void ClangInternalState::printLLVMModule(llvm::raw_ostream& Out,
+                                            const llvm::Module& M,
+                                            CodeGenerator& CG) {
+-    M.print(Out, /*AssemblyAnnotationWriter*/ 0);
++    M.print(Out, /*AssemblyAnnotationWriter*/ nullptr);
+     CG.print(Out);
+   }
+ 
+diff --git a/src/interpreter/cling/lib/Interpreter/DeclExtractor.cpp b/src/interpreter/cling/lib/Interpreter/DeclExtractor.cpp
+index 45b2892f0a..55e9041981 100644
+--- a/src/interpreter/cling/lib/Interpreter/DeclExtractor.cpp
++++ b/src/interpreter/cling/lib/Interpreter/DeclExtractor.cpp
+@@ -220,7 +220,7 @@ namespace cling {
+       WrapperDC->addDecl(FD);
+     }
+ 
+-    return hasNoErrors ? FD : 0;
++    return hasNoErrors ? FD != nullptr : false;
+   }
+ 
+   void DeclExtractor::createUniqueName(std::string& out) {
+@@ -239,58 +239,60 @@ namespace cling {
+ 
+     std::string FunctionName = "__fd";
+     createUniqueName(FunctionName);
+-    IdentifierInfo& IIFD = m_Context->Idents.get(FunctionName);
++    clang::DeclarationName DeclName = &m_Context->Idents.get(FunctionName);
+     SourceLocation Loc;
+-    NamedDecl* ND = m_Sema->ImplicitlyDefineFunction(Loc, IIFD, TUScope);
+-    if (FunctionDecl* FD = dyn_cast_or_null<FunctionDecl>(ND)) {
+-      Sema::SynthesizedFunctionScope Scope(*m_Sema, FD);
+-      FD->setImplicit(false); // Better for debugging
+-
+-      // Add a return statement if it doesn't exist
+-      if (!isa<ReturnStmt>(Stmts.back())) {
+-        Sema::ContextRAII pushedDC(*m_Sema, FD);
+-        // Generate the return statement:
+-        // First a literal 0, then the return taking that literal.
+-        // One bit is enough:
+-        llvm::APInt ZeroInt(m_Context->getIntWidth(m_Context->IntTy), 0,
+-                            /*isSigned=*/true);
+-        IntegerLiteral* ZeroLit
+-          = IntegerLiteral::Create(*m_Context, ZeroInt, m_Context->IntTy,
+-                                   SourceLocation());
+-        Stmts.push_back(m_Sema->ActOnReturnStmt(ZeroLit->getExprLoc(),
+-                                                ZeroLit,
+-                                                m_Sema->getCurScope()).get());
+-      }
+-
+-      // Wrap Stmts into a function body.
+-      llvm::ArrayRef<Stmt*> StmtsRef(Stmts.data(), Stmts.size());
+-      CompoundStmt* CS = CompoundStmt::Create(*m_Context, StmtsRef, Loc, Loc);
+-      FD->setBody(CS);
+-      Emit(FD);
+-
+-      // Create the VarDecl with the init
+-      std::string VarName = "__vd";
+-      createUniqueName(VarName);
+-      IdentifierInfo& IIVD = m_Context->Idents.get(VarName);
+-      VarDecl* VD = VarDecl::Create(*m_Context, TUDC, Loc, Loc, &IIVD,
+-                                    FD->getReturnType(), (TypeSourceInfo*)0,
+-                                    SC_None);
+-      LookupResult R(*m_Sema, FD->getDeclName(), Loc, Sema::LookupMemberName);
+-      R.addDecl(FD);
+-      CXXScopeSpec CSS;
+-      Expr* UnresolvedLookup
+-        = m_Sema->BuildDeclarationNameExpr(CSS, R, /*ADL*/ false).get();
+-      Expr* TheCall = m_Sema->ActOnCallExpr(TUScope, UnresolvedLookup, Loc,
+-                                            MultiExprArg(), Loc).get();
+-      assert(VD && TheCall && "Missing VD or its init!");
+-      VD->setInit(TheCall);
+-
+-      Emit(VD); // Add it to the transaction for codegenning
+-      TUDC->addHiddenDecl(VD);
+-      Stmts.clear();
+-      return;
++    clang::QualType FnTy =
++        m_Context->getFunctionType(m_Context->IntTy, {},
++                                   clang::FunctionProtoType::ExtProtoInfo());
++    clang::FunctionDecl* FD = clang::FunctionDecl::Create(
++        *m_Context, m_Context->getTranslationUnitDecl(), Loc, Loc, DeclName,
++        FnTy, m_Context->getTrivialTypeSourceInfo(FnTy), clang::SC_None);
++
++    Sema::SynthesizedFunctionScope Scope(*m_Sema, FD);
++    FD->setImplicit(false); // Better for debugging
++
++    // Add a return statement if it doesn't exist
++    if (!isa<ReturnStmt>(Stmts.back())) {
++      Sema::ContextRAII pushedDC(*m_Sema, FD);
++      // Generate the return statement:
++      // First a literal 0, then the return taking that literal.
++      // One bit is enough:
++      llvm::APInt ZeroInt(m_Context->getIntWidth(m_Context->IntTy), 0,
++                          /*isSigned=*/true);
++      IntegerLiteral* ZeroLit
++        = IntegerLiteral::Create(*m_Context, ZeroInt, m_Context->IntTy,
++                                 SourceLocation());
++      Stmts.push_back(m_Sema->ActOnReturnStmt(ZeroLit->getExprLoc(),
++                                              ZeroLit,
++                                              m_Sema->getCurScope()).get());
+     }
+-    llvm_unreachable("Must be able to enforce init order.");
++
++    // Wrap Stmts into a function body.
++    llvm::ArrayRef<Stmt*> StmtsRef(Stmts.data(), Stmts.size());
++    CompoundStmt* CS = CompoundStmt::Create(*m_Context, StmtsRef, Loc, Loc);
++    FD->setBody(CS);
++    Emit(FD);
++
++    // Create the VarDecl with the init
++    std::string VarName = "__vd";
++    createUniqueName(VarName);
++    IdentifierInfo& IIVD = m_Context->Idents.get(VarName);
++    VarDecl* VD = VarDecl::Create(*m_Context, TUDC, Loc, Loc, &IIVD,
++                                  FD->getReturnType(), (TypeSourceInfo*)0,
++                                  SC_None);
++    LookupResult R(*m_Sema, FD->getDeclName(), Loc, Sema::LookupMemberName);
++    R.addDecl(FD);
++    CXXScopeSpec CSS;
++    Expr* UnresolvedLookup
++      = m_Sema->BuildDeclarationNameExpr(CSS, R, /*ADL*/ false).get();
++    Expr* TheCall = m_Sema->ActOnCallExpr(TUScope, UnresolvedLookup, Loc,
++                                          MultiExprArg(), Loc).get();
++    assert(VD && TheCall && "Missing VD or its init!");
++    VD->setInit(TheCall);
++
++    Emit(VD); // Add it to the transaction for codegenning
++    TUDC->addHiddenDecl(VD);
++    Stmts.clear();
+   }
+ 
+   ///\brief Checks for clashing names when trying to extract a declaration.
+@@ -340,7 +342,7 @@ namespace cling {
+ 
+     IdentifierInfo* Name = NewTD->getIdentifier();
+     // If this is not a definition, it must have a name.
+-    assert((Name != 0 || NewTD->isThisDeclarationADefinition()) &&
++    assert((Name != nullptr || NewTD->isThisDeclarationADefinition()) &&
+            "Nameless record must be a definition!");
+ 
+     // Figure out the underlying type if this a enum declaration. We need to do
+@@ -367,7 +369,7 @@ namespace cling {
+         // integral type; any cv-qualification is ignored.
+ 
+         SourceLocation UnderlyingLoc;
+-        TypeSourceInfo* TI = 0;
++        TypeSourceInfo* TI = nullptr;
+         if ((TI = ED->getIntegerTypeSourceInfo()))
+           UnderlyingLoc = TI->getTypeLoc().getBeginLoc();
+ 
+@@ -560,7 +562,7 @@ namespace cling {
+               Kind = PrevTagDecl->getTagKind();
+             else {
+               // Recover by making this an anonymous redefinition.
+-              Name = 0;
++              Name = nullptr;
+               Previous.clear();
+               Invalid = true;
+             }
+@@ -622,7 +624,7 @@ namespace cling {
+                   // If this is a redefinition, recover by making this
+                   // struct be anonymous, which will make any later
+                   // references get the previous definition.
+-                  Name = 0;
++                  Name = nullptr;
+                   Previous.clear();
+                   Invalid = true;
+                 }
+@@ -635,7 +637,7 @@ namespace cling {
+                   m_Sema->Diag(NameLoc, diag::err_nested_redefinition) << Name;
+                   m_Sema->Diag(PrevTagDecl->getLocation(),
+                                diag::note_previous_definition);
+-                  Name = 0;
++                  Name = nullptr;
+                   Previous.clear();
+                   Invalid = true;
+                 }
+@@ -689,7 +691,7 @@ namespace cling {
+           // issue an error and recover by making this tag be anonymous.
+           m_Sema->Diag(NameLoc, diag::err_redefinition_different_kind) << Name;
+           m_Sema->Diag(PrevDecl->getLocation(), diag::note_previous_definition);
+-          Name = 0;
++          Name = nullptr;
+           Invalid = true;
+         }
+ 
+diff --git a/src/interpreter/cling/lib/Interpreter/DeclUnloader.cpp b/src/interpreter/cling/lib/Interpreter/DeclUnloader.cpp
+index 5d13259cd4..e33ed31912 100644
+--- a/src/interpreter/cling/lib/Interpreter/DeclUnloader.cpp
++++ b/src/interpreter/cling/lib/Interpreter/DeclUnloader.cpp
+@@ -247,10 +247,10 @@ bool DeclUnloader::VisitRedeclarable(clang::Redeclarable<T>* R, DeclContext* DC)
+       for (Globals::iterator I = VisitedGlobals.begin(),
+              E = VisitedGlobals.end(); I != E; ++I)
+         if (GlobalVariable* GVar = dyn_cast<GlobalVariable>(*I)) {
+-          GVar->setInitializer(0);
++          GVar->setInitializer(nullptr);
+         }
+         else if (GlobalAlias* GA = dyn_cast<GlobalAlias>(*I)) {
+-          GA->setAliasee(0);
++          GA->setAliasee(nullptr);
+         }
+         else {
+           Function* F = cast<Function>(*I);
+@@ -454,7 +454,7 @@ bool DeclUnloader::VisitRedeclarable(clang::Redeclarable<T>* R, DeclContext* DC)
+ 
+   bool DeclUnloader::VisitDeclaratorDecl(DeclaratorDecl* DD) {
+     // VisitDeclaratorDecl: ValueDecl
+-    auto found = std::find(m_Sema->UnusedFileScopedDecls.begin(/*ExtSource*/0,
++    auto found = std::find(m_Sema->UnusedFileScopedDecls.begin(/*ExtSource*/nullptr,
+                                                                /*Local*/true),
+                            m_Sema->UnusedFileScopedDecls.end(), DD);
+     if (found != m_Sema->UnusedFileScopedDecls.end())
+@@ -592,13 +592,13 @@ bool DeclUnloader::VisitRedeclarable(clang::Redeclarable<T>* R, DeclContext* DC)
+         This->getCommonPtr()->Specializations.clear();
+ 
+         //Readd the collected specializations.
+-        void* InsertPos = 0;
+-        FunctionTemplateSpecializationInfo* FTSI = 0;
++        void* InsertPos = nullptr;
++        FunctionTemplateSpecializationInfo* FTSI = nullptr;
+         for (size_t i = 0, e = specializations.size(); i < e; ++i) {
+           FTSI = specializations[i]->getTemplateSpecializationInfo();
+           assert(FTSI && "Must not be null.");
+           // Avoid assertion on add.
+-          FTSI->SetNextInBucket(0);
++          FTSI->SetNextInBucket(nullptr);
+           This->addSpecialization(FTSI, InsertPos);
+         }
+ #ifndef NDEBUG
+@@ -736,7 +736,7 @@ bool DeclUnloader::VisitRedeclarable(clang::Redeclarable<T>* R, DeclContext* DC)
+       // Hopefully LSD->isExternCContext() means that it already does exist
+       ExternCContextDecl* ECD = m_Sema->Context.getExternCContextDecl();
+       StoredDeclsMap* Map = ECD ? ECD->getLookupPtr() : nullptr;
+-      
++
+       for (Decl* D : LSD->noload_decls()) {
+         if (NamedDecl* ND = dyn_cast<NamedDecl>(D)) {
+ 
+@@ -909,7 +909,7 @@ bool DeclUnloader::VisitRedeclarable(clang::Redeclarable<T>* R, DeclContext* DC)
+     const MacroInfo* MI = MD->getMacroInfo();
+ 
+     // If the macro is not defined, this is a noop undef, just return.
+-    if (MI == 0)
++    if (!MI)
+       return false;
+ 
+     // Remove the pair from the macros
+@@ -983,13 +983,13 @@ bool DeclUnloader::VisitRedeclarable(clang::Redeclarable<T>* R, DeclContext* DC)
+       This->getCommonPtr()->Specializations.clear();
+ 
+       //Readd the collected specializations.
+-      void* InsertPos = 0;
+-      ClassTemplateSpecializationDecl* CTSD = 0;
++      void* InsertPos = nullptr;
++      ClassTemplateSpecializationDecl* CTSD = nullptr;
+       for (size_t i = 0, e = specializations.size(); i < e; ++i) {
+         CTSD = specializations[i];
+         assert(CTSD && "Must not be null.");
+         // Avoid assertion on add.
+-        CTSD->SetNextInBucket(0);
++        CTSD->SetNextInBucket(nullptr);
+         This->AddSpecialization(CTSD, InsertPos);
+       }
+     }
+@@ -1019,13 +1019,13 @@ bool DeclUnloader::VisitRedeclarable(clang::Redeclarable<T>* R, DeclContext* DC)
+       This->getPartialSpecializations().clear();
+ 
+       //Readd the collected specializations.
+-      void* InsertPos = 0;
+-      ClassTemplatePartialSpecializationDecl* CTPSD = 0;
++      void* InsertPos = nullptr;
++      ClassTemplatePartialSpecializationDecl* CTPSD = nullptr;
+       for (size_t i = 0, e = specializations.size(); i < e; ++i) {
+         CTPSD = specializations[i];
+         assert(CTPSD && "Must not be null.");
+         // Avoid assertion on add.
+-        CTPSD->SetNextInBucket(0);
++        CTPSD->SetNextInBucket(nullptr);
+         This->AddPartialSpecialization(CTPSD, InsertPos);
+       }
+     }
+diff --git a/src/interpreter/cling/lib/Interpreter/DynamicLibraryManager.cpp b/src/interpreter/cling/lib/Interpreter/DynamicLibraryManager.cpp
+index 73c6fed44d..09babd0b33 100644
+--- a/src/interpreter/cling/lib/Interpreter/DynamicLibraryManager.cpp
++++ b/src/interpreter/cling/lib/Interpreter/DynamicLibraryManager.cpp
+@@ -404,7 +404,7 @@ namespace cling {
+     if (!isLibraryLoaded(canonicalLoadedLib))
+       return;
+ 
+-    DyLibHandle dyLibHandle = 0;
++    DyLibHandle dyLibHandle = nullptr;
+     for (DyLibs::const_iterator I = m_DyLibs.begin(), E = m_DyLibs.end();
+          I != E; ++I) {
+       if (I->second == canonicalLoadedLib) {
+diff --git a/src/interpreter/cling/lib/Interpreter/DynamicLookup.cpp b/src/interpreter/cling/lib/Interpreter/DynamicLookup.cpp
+index e426a2e272..2d6bcb224c 100644
+--- a/src/interpreter/cling/lib/Interpreter/DynamicLookup.cpp
++++ b/src/interpreter/cling/lib/Interpreter/DynamicLookup.cpp
+@@ -153,9 +153,9 @@ namespace cling {
+ 
+   // Constructors
+   EvaluateTSynthesizer::EvaluateTSynthesizer(Sema* S)
+-    : ASTTransformer(S), m_EvalDecl(0), m_LifetimeHandlerDecl(0),
+-      m_LHgetMemoryDecl(0), m_DynamicExprInfoDecl(0), m_DeclContextDecl(0),
+-      m_gCling(0), m_CurDeclContext(0), m_Context(&S->getASTContext()),
++    : ASTTransformer(S), m_EvalDecl(nullptr), m_LifetimeHandlerDecl(nullptr),
++      m_LHgetMemoryDecl(nullptr), m_DynamicExprInfoDecl(nullptr), m_DeclContextDecl(nullptr),
++      m_gCling(nullptr), m_CurDeclContext(nullptr), m_Context(&S->getASTContext()),
+       m_UniqueNameCounter(0), m_NestedCompoundStmts(0)
+   { }
+ 
+@@ -266,7 +266,7 @@ namespace cling {
+           D->dump();
+           if (NewBody.hasSingleNode())
+             NewBody.getAs<Expr>()->dump();
+-          return Result(0, false); // Signal a fatal error.
++          return Result(nullptr, false); // Signal a fatal error.
+         }
+         FD->setBody(NewBody.getAsSingleNode());
+       }
+@@ -527,9 +527,9 @@ namespace cling {
+                                               /*IsArrow=*/false,
+                                               SS,
+                                               m_NoSLoc,
+-                                              /*FirstQualifierInScope=*/0,
++                                              /*FirstQualifierInScope=*/nullptr,
+                                               MemberLookup,
+-                                              /*TemplateArgs=*/0,
++                                              /*TemplateArgs=*/nullptr,
+                                               /*Scope*/nullptr).get();
+         // 3.3 Build the actual call
+         Scope* S = m_Sema->getScopeForContext(m_Sema->CurContext);
+@@ -719,7 +719,7 @@ namespace cling {
+     // 3. Build the array of addresses
+     QualType VarAddrTy = m_Sema->BuildArrayType(m_Context->VoidPtrTy,
+                                                 ArrayType::Normal,
+-                                                /*ArraySize*/0,
++                                                /*ArraySize*/nullptr,
+                                                 /*IndexTypeQuals*/0,
+                                                 m_NoRange,
+                                                 DeclarationName() );
+@@ -734,7 +734,7 @@ namespace cling {
+       if (!UnOp) {
+         // Not good, return what we had.
+         cling::errs() << "Error while creating dynamic expression for:\n  ";
+-        SubTree->printPretty(cling::errs(), 0 /*PrinterHelper*/,
++        SubTree->printPretty(cling::errs(), nullptr /*PrinterHelper*/,
+                              m_Context->getPrintingPolicy(), 2);
+         cling::errs() << "\n";
+ #ifndef NDEBUG
+@@ -768,7 +768,7 @@ namespace cling {
+                               CK_ArrayToPointerDecay);
+ 
+     // Is the result of the expression to be printed or not
+-    Expr* VPReq = 0;
++    Expr* VPReq = nullptr;
+     if (ValuePrinterReq)
+       VPReq = m_Sema->ActOnCXXBoolLiteral(m_NoSLoc, tok::kw_true).get();
+     else
+@@ -958,7 +958,7 @@ namespace cling {
+       Value res = Interp->Evaluate(ctor.c_str(), DC,
+                                    ExprInfo->isValuePrinterRequested()
+                                    );
+-      m_Memory = (void*)res.getAs<void*>();
++      m_Memory = res.getPtr();
+     }
+ 
+     LifetimeHandler::~LifetimeHandler() {
+diff --git a/src/interpreter/cling/lib/Interpreter/ForwardDeclPrinter.cpp b/src/interpreter/cling/lib/Interpreter/ForwardDeclPrinter.cpp
+index 075f235c3b..f85b68113d 100644
+--- a/src/interpreter/cling/lib/Interpreter/ForwardDeclPrinter.cpp
++++ b/src/interpreter/cling/lib/Interpreter/ForwardDeclPrinter.cpp
+@@ -217,9 +217,9 @@ namespace cling {
+ 
+        auto FE = PP.LookupFile(fileNameLoc, FileName, isAngled, FromDir,
+                                FromFile,
+-                               CurDir, /*SearchPath*/ 0,
+-                               /*RelativePath*/ 0, /*suggestedModule*/ 0,
+-                               /*IsMapped*/ 0, /*IsFramework*/ nullptr,
++                               CurDir, /*SearchPath*/ nullptr,
++                               /*RelativePath*/ nullptr, /*suggestedModule*/ nullptr,
++                               /*IsMapped*/ nullptr, /*IsFramework*/ nullptr,
+                                /*SkipCache*/ false,
+                                /*OpenFile*/ false, /*CacheFail*/ true);
+        // Return true if we can '#include' the given filename
+@@ -456,7 +456,7 @@ namespace cling {
+     }
+ 
+     if (const FunctionType *AFT = Ty->getAs<FunctionType>()) {
+-      const FunctionProtoType *FT = 0;
++      const FunctionProtoType *FT = nullptr;
+       if (D->hasWrittenPrototype())
+         FT = dyn_cast<FunctionProtoType>(AFT);
+ 
+@@ -525,7 +525,7 @@ namespace cling {
+         if (isComputedNoexcept(FT->getExceptionSpecType())) {
+           Proto += "(";
+           llvm::raw_string_ostream EOut(Proto);
+-          FT->getNoexceptExpr()->printPretty(EOut, 0, SubPolicy,
++          FT->getNoexceptExpr()->printPretty(EOut, nullptr, SubPolicy,
+                                              m_Indentation);
+           EOut.flush();
+           //Proto += EOut.str()
+@@ -570,8 +570,8 @@ namespace cling {
+ 
+             Init = Init->IgnoreParens();
+ 
+-            Expr *SimpleInit = 0;
+-            Expr **Args = 0;
++            Expr *SimpleInit = nullptr;
++            Expr **Args = nullptr;
+             unsigned NumArgs = 0;
+             if (ParenListExpr *ParenList = dyn_cast<ParenListExpr>(Init)) {
+               Args = ParenList->getExprs();
+@@ -584,7 +584,7 @@ namespace cling {
+               SimpleInit = Init;
+ 
+             if (SimpleInit)
+-              SimpleInit->printPretty(Out(), 0, m_Policy, m_Indentation);
++              SimpleInit->printPretty(Out(), nullptr, m_Policy, m_Indentation);
+             else {
+               for (unsigned I = 0; I != NumArgs; ++I) {
+                 if (isa<CXXDefaultArgExpr>(Args[I]))
+@@ -592,7 +592,7 @@ namespace cling {
+ 
+                 if (I)
+                   Out() << ", ";
+-                Args[I]->printPretty(Out(), 0, m_Policy, m_Indentation);
++                Args[I]->printPretty(Out(), nullptr, m_Policy, m_Indentation);
+               }
+             }
+           }
+@@ -662,7 +662,7 @@ namespace cling {
+ 
+     if (D->isBitField()) {
+       Out() << " : ";
+-      D->getBitWidth()->printPretty(Out(), 0, m_Policy, m_Indentation);
++      D->getBitWidth()->printPretty(Out(), nullptr, m_Policy, m_Indentation);
+     }
+ 
+     Expr *Init = D->getInClassInitializer();
+@@ -671,7 +671,7 @@ namespace cling {
+         Out() << " ";
+       else
+         Out() << " = ";
+-      Init->printPretty(Out(), 0, m_Policy, m_Indentation);
++      Init->printPretty(Out(), nullptr, m_Policy, m_Indentation);
+     }
+     prettyPrintAttributes(D);
+     Out() << ';' << closeBraces << '\n';
+@@ -772,7 +772,7 @@ namespace cling {
+             }
+           }
+           if (! isEnumConst)
+-            Init->printPretty(Out(), 0, m_Policy, m_Indentation);
++            Init->printPretty(Out(), nullptr, m_Policy, m_Indentation);
+ 
+         }
+       if ((D->getInitStyle() == VarDecl::CallInit) && !isa<ParenListExpr>(Init))
+@@ -791,7 +791,7 @@ namespace cling {
+     std::string closeBraces = PrintEnclosingDeclContexts(Out(),
+                                                          D->getDeclContext());
+     Out() << "__asm (";
+-    D->getAsmString()->printPretty(Out(), 0, m_Policy, m_Indentation);
++    D->getAsmString()->printPretty(Out(), nullptr, m_Policy, m_Indentation);
+     Out() << ");" << closeBraces << '\n';
+   }
+ 
+@@ -804,9 +804,9 @@ namespace cling {
+     std::string closeBraces = PrintEnclosingDeclContexts(Out(),
+                                                          D->getDeclContext());
+     Out() << "static_assert(";
+-    D->getAssertExpr()->printPretty(Out(), 0, m_Policy, m_Indentation);
++    D->getAssertExpr()->printPretty(Out(), nullptr, m_Policy, m_Indentation);
+     Out() << ", ";
+-    D->getMessage()->printPretty(Out(), 0, m_Policy, m_Indentation);
++    D->getMessage()->printPretty(Out(), nullptr, m_Policy, m_Indentation);
+     Out() << ");" << closeBraces << '\n';
+   }
+ 
+@@ -941,7 +941,7 @@ namespace cling {
+             = utils::TypeName::GetFullyQualifiedType(ArgQT, m_Ctx);
+           Visit(ArgFQQT);
+           if (m_SkipFlag) {
+-            skipDecl(0, "type template param default failed");
++            skipDecl(nullptr, "type template param default failed");
+             return;
+           }
+           Stream << " = ";
+@@ -964,7 +964,7 @@ namespace cling {
+           if (DeclRefExpr* DRE = dyn_cast<DeclRefExpr>(DefArg)) {
+             Visit(DRE->getFoundDecl());
+             if (m_SkipFlag) {
+-              skipDecl(0, "expression template param default failed");
++              skipDecl(nullptr, "expression template param default failed");
+               return;
+             }
+           } else if (isa<IntegerLiteral>(DefArg)
+@@ -974,9 +974,9 @@ namespace cling {
+                      || isa<FloatingLiteral>(DefArg)
+                      || isa<StringLiteral>(DefArg)) {
+             Stream << " = ";
+-            DefArg->printPretty(Stream, 0, m_Policy, m_Indentation);
++            DefArg->printPretty(Stream, nullptr, m_Policy, m_Indentation);
+           } else {
+-            skipDecl(0, "expression template param default not a literal");
++            skipDecl(nullptr, "expression template param default not a literal");
+             return;
+           }
+         }
+@@ -1013,7 +1013,7 @@ namespace cling {
+ 
+     PrintTemplateParameters(Stream, D->getTemplateParameters());
+     if (m_SkipFlag) {
+-      skipDecl(0, "Template parameters failed");
++      skipDecl(nullptr, "Template parameters failed");
+       return;
+     }
+ 
+@@ -1302,12 +1302,12 @@ namespace cling {
+     case clang::NestedNameSpecifier::TypeSpec: // fall-through:
+     case clang::NestedNameSpecifier::TypeSpecWithTemplate:
+       // We cannot fwd declare nested types.
+-      skipDecl(0, "NestedNameSpec TypeSpec/TypeSpecWithTemplate");
++      skipDecl(nullptr, "NestedNameSpec TypeSpec/TypeSpecWithTemplate");
+       break;
+     default:
+       Log() << "VisitNestedNameSpecifier: Unexpected kind "
+             << NNS->getKind() << '\n';
+-      skipDecl(0, 0);
++      skipDecl(nullptr, nullptr);
+       break;
+    };
+   }
+@@ -1332,7 +1332,7 @@ namespace cling {
+         //Implement that if important functions are marked so.
+         //Not important, as users do not need hints
+         //about using Deleted functions
+-    if (D->getIdentifier() == 0
++    if (D->getIdentifier() == nullptr
+         || D->getNameAsString()[0] == '_'
+         || D->getStorageClass() == SC_Static
+         || D->isCXXClassMember()
+@@ -1438,7 +1438,7 @@ namespace cling {
+     for(; DC && !DC->isTranslationUnit(); DC = DC->getParent()) {
+       if (!isa<NamespaceDecl>(DC) && !isa<LinkageSpecDecl>(DC)) {
+         Log() << "Skipping unhandled " << DC->getDeclKindName() << '\n';
+-        skipDecl(0, 0);
++        skipDecl(nullptr, nullptr);
+         return "";
+       }
+       DeclCtxs.push_back(DC);
+diff --git a/src/interpreter/cling/lib/Interpreter/ForwardDeclPrinter.h b/src/interpreter/cling/lib/Interpreter/ForwardDeclPrinter.h
+index a4b0c68c93..8e3f784589 100644
+--- a/src/interpreter/cling/lib/Interpreter/ForwardDeclPrinter.h
++++ b/src/interpreter/cling/lib/Interpreter/ForwardDeclPrinter.h
+@@ -166,7 +166,7 @@ namespace cling {
+ 
+     void PrintTemplateParameters(llvm::raw_ostream& Stream,
+                                  clang::TemplateParameterList *Params,
+-                                 const clang::TemplateArgumentList *Args = 0);
++                                 const clang::TemplateArgumentList *Args = nullptr);
+     void prettyPrintAttributes(clang::Decl *D);
+ 
+     bool isOperator(clang::FunctionDecl* D);
+@@ -270,7 +270,7 @@ namespace cling {
+       largestream m_Stream;
+       bool m_HavePopped;
+     public:
+-      StreamRAII(ForwardDeclPrinter& pr, clang::PrintingPolicy* pol = 0):
++      StreamRAII(ForwardDeclPrinter& pr, clang::PrintingPolicy* pol = nullptr):
+         m_pr(pr), m_oldPol(pr.m_Policy), m_HavePopped(false) {
+         m_pr.m_StreamStack.push(&static_cast<llvm::raw_ostream&>(m_Stream));
+         if (pol)
+diff --git a/src/interpreter/cling/lib/Interpreter/IncrementalExecutor.cpp b/src/interpreter/cling/lib/Interpreter/IncrementalExecutor.cpp
+index 592d67975a..25f01de4d0 100644
+--- a/src/interpreter/cling/lib/Interpreter/IncrementalExecutor.cpp
++++ b/src/interpreter/cling/lib/Interpreter/IncrementalExecutor.cpp
+@@ -277,7 +277,7 @@ IncrementalExecutor::getPointerToGlobalFromJIT(llvm::StringRef name) const {
+   void* addr = m_JIT->getSymbolAddress(name, false /*no dlsym*/);
+ 
+   if (diagnoseUnresolvedSymbols(name, "symbol"))
+-    return 0;
++    return nullptr;
+   return addr;
+ }
+ 
+diff --git a/src/interpreter/cling/lib/Interpreter/IncrementalExecutor.h b/src/interpreter/cling/lib/Interpreter/IncrementalExecutor.h
+index 535172831e..e50f20bb15 100644
+--- a/src/interpreter/cling/lib/Interpreter/IncrementalExecutor.h
++++ b/src/interpreter/cling/lib/Interpreter/IncrementalExecutor.h
+@@ -183,7 +183,7 @@ namespace cling {
+ 
+     ///\brief Runs a wrapper function.
+     ExecutionResult executeWrapper(llvm::StringRef function,
+-                                   Value* returnValue = 0) const;
++                                   Value* returnValue = nullptr) const;
+     ///\brief Replaces a symbol (function) to the execution engine.
+     ///
+     /// Allows runtime declaration of a function passing its pointer for being
+@@ -216,7 +216,7 @@ namespace cling {
+     ///\param[out] fromJIT - whether the symbol was JITted.
+     ///
+     void*
+-    getAddressOfGlobal(llvm::StringRef mangledName, bool* fromJIT = 0) const;
++    getAddressOfGlobal(llvm::StringRef mangledName, bool *fromJIT = nullptr) const;
+ 
+     ///\brief Return the address of a global from the JIT (as
+     /// opposed to dynamic libraries). Forces the emission of the symbol if
+diff --git a/src/interpreter/cling/lib/Interpreter/IncrementalJIT.cpp b/src/interpreter/cling/lib/Interpreter/IncrementalJIT.cpp
+index 5342945ed1..04bebf0558 100644
+--- a/src/interpreter/cling/lib/Interpreter/IncrementalJIT.cpp
++++ b/src/interpreter/cling/lib/Interpreter/IncrementalJIT.cpp
+@@ -15,11 +15,14 @@
+ #include "cling/Utils/Output.h"
+ #include "cling/Utils/Utils.h"
+ 
++#include <clang/Basic/TargetInfo.h>
+ #include <clang/Basic/TargetOptions.h>
+ #include <clang/Frontend/CompilerInstance.h>
+ 
+ #include <llvm/ADT/Triple.h>
++#include <llvm/ExecutionEngine/JITLink/EHFrameSupport.h>
+ #include <llvm/ExecutionEngine/Orc/JITTargetMachineBuilder.h>
++#include <llvm/ExecutionEngine/Orc/ObjectLinkingLayer.h>
+ #include <llvm/ExecutionEngine/Orc/RTDyldObjectLinkingLayer.h>
+ #include <llvm/ExecutionEngine/SectionMemoryManager.h>
+ #include <llvm/IR/LLVMContext.h>
+@@ -29,6 +32,7 @@
+ #include <llvm/Target/TargetMachine.h>
+ 
+ using namespace llvm;
++using namespace llvm::jitlink;
+ using namespace llvm::orc;
+ 
+ namespace {
+@@ -185,6 +189,117 @@ namespace {
+     bool needsToReserveAllocationSpace() override { return true; }
+   };
+ 
++  /// A JITLinkMemoryManager for Cling that never frees its allocations.
++  class ClingJITLinkMemoryManager : public JITLinkMemoryManager {
++  public:
++    Expected<std::unique_ptr<Allocation>>
++    allocate(const JITLinkDylib* JD,
++             const SegmentsRequestMap& Request) override {
++      // A copy of InProcessMemoryManager::allocate with an empty implementation
++      // of IPMMAlloc::deallocate.
++
++      using AllocationMap = DenseMap<unsigned, sys::MemoryBlock>;
++
++      // Local class for allocation.
++      class IPMMAlloc : public Allocation {
++      public:
++        IPMMAlloc(AllocationMap SegBlocks) : SegBlocks(std::move(SegBlocks)) {}
++        MutableArrayRef<char> getWorkingMemory(ProtectionFlags Seg) override {
++          assert(SegBlocks.count(Seg) && "No allocation for segment");
++          return {static_cast<char*>(SegBlocks[Seg].base()),
++                  SegBlocks[Seg].allocatedSize()};
++        }
++        JITTargetAddress getTargetMemory(ProtectionFlags Seg) override {
++          assert(SegBlocks.count(Seg) && "No allocation for segment");
++          return pointerToJITTargetAddress(SegBlocks[Seg].base());
++        }
++        void finalizeAsync(FinalizeContinuation OnFinalize) override {
++          OnFinalize(applyProtections());
++        }
++        Error deallocate() override {
++          // Disabled until CallFunc is informed about unloading, and can
++          // re-generate the wrapper (if the decl is still available). See
++          // https://github.com/root-project/root/issues/10898
++          return Error::success();
++        }
++
++      private:
++        Error applyProtections() {
++          for (auto& KV : SegBlocks) {
++            auto& Prot = KV.first;
++            auto& Block = KV.second;
++            if (auto EC = sys::Memory::protectMappedMemory(Block, Prot))
++              return errorCodeToError(EC);
++            if (Prot & sys::Memory::MF_EXEC)
++              sys::Memory::InvalidateInstructionCache(Block.base(),
++                                                      Block.allocatedSize());
++          }
++          return Error::success();
++        }
++
++        AllocationMap SegBlocks;
++      };
++
++      if (!isPowerOf2_64((uint64_t)sys::Process::getPageSizeEstimate()))
++        return make_error<StringError>("Page size is not a power of 2",
++                                       inconvertibleErrorCode());
++
++      AllocationMap Blocks;
++      const sys::Memory::ProtectionFlags ReadWrite =
++          static_cast<sys::Memory::ProtectionFlags>(sys::Memory::MF_READ |
++                                                    sys::Memory::MF_WRITE);
++
++      // Compute the total number of pages to allocate.
++      size_t TotalSize = 0;
++      for (auto& KV : Request) {
++        const auto& Seg = KV.second;
++
++        if (Seg.getAlignment() > sys::Process::getPageSizeEstimate())
++          return make_error<StringError>("Cannot request higher than page "
++                                         "alignment",
++                                         inconvertibleErrorCode());
++
++        TotalSize = alignTo(TotalSize, sys::Process::getPageSizeEstimate());
++        TotalSize += Seg.getContentSize();
++        TotalSize += Seg.getZeroFillSize();
++      }
++
++      // Allocate one slab to cover all the segments.
++      std::error_code EC;
++      auto SlabRemaining =
++          sys::Memory::allocateMappedMemory(TotalSize, nullptr, ReadWrite, EC);
++
++      if (EC)
++        return errorCodeToError(EC);
++
++      // Allocate segment memory from the slab.
++      for (auto& KV : Request) {
++
++        const auto& Seg = KV.second;
++
++        uint64_t SegmentSize =
++            alignTo(Seg.getContentSize() + Seg.getZeroFillSize(),
++                    sys::Process::getPageSizeEstimate());
++        assert(SlabRemaining.allocatedSize() >= SegmentSize &&
++               "Mapping exceeds allocation");
++
++        sys::MemoryBlock SegMem(SlabRemaining.base(), SegmentSize);
++        SlabRemaining =
++            sys::MemoryBlock((char*)SlabRemaining.base() + SegmentSize,
++                             SlabRemaining.allocatedSize() - SegmentSize);
++
++        // Zero out the zero-fill memory.
++        memset(static_cast<char*>(SegMem.base()) + Seg.getContentSize(), 0,
++               Seg.getZeroFillSize());
++
++        // Record the block for this segment.
++        Blocks[KV.first] = std::move(SegMem);
++      }
++
++      return std::unique_ptr<InProcessMemoryManager::Allocation>(
++          new IPMMAlloc(std::move(Blocks)));
++    }
++  };
+ 
+   /// A DynamicLibrarySearchGenerator that uses ResourceTracker to remember
+   /// which symbols were resolved through dlsym during a transaction's reign.
+@@ -262,8 +377,6 @@ Error RTDynamicLibrarySearchGenerator::tryToGenerate(
+     JITDylibLookupFlags JDLookupFlags, const SymbolLookupSet &Symbols) {
+   orc::SymbolMap NewSymbols;
+ 
+-  bool HasGlobalPrefix = (GlobalPrefix != '\0');
+-
+   for (auto &KV : Symbols) {
+     auto &Name = KV.first;
+ 
+@@ -273,11 +386,10 @@ Error RTDynamicLibrarySearchGenerator::tryToGenerate(
+     if (Allow && !Allow(Name))
+       continue;
+ 
+-    if (HasGlobalPrefix && (*Name).front() != GlobalPrefix)
+-      continue;
++    bool StripGlobalPrefix = (GlobalPrefix != '\0' && (*Name).front() == GlobalPrefix);
+ 
+-    std::string Tmp((*Name).data() + HasGlobalPrefix,
+-                    (*Name).size() - HasGlobalPrefix);
++    std::string Tmp((*Name).data() + StripGlobalPrefix,
++                    (*Name).size() - StripGlobalPrefix);
+     if (void *Addr = Dylib.getAddressOfSymbol(Tmp.c_str())) {
+       NewSymbols[Name] = JITEvaluatedSymbol(
+           static_cast<JITTargetAddress>(reinterpret_cast<uintptr_t>(Addr)),
+@@ -291,67 +403,64 @@ Error RTDynamicLibrarySearchGenerator::tryToGenerate(
+   return JD.define(absoluteSymbols(std::move(NewSymbols)), CurrentRT());
+ }
+ 
+-static std::unique_ptr<TargetMachine>
+-CreateHostTargetMachine(const clang::CompilerInstance& CI) {
+-  const clang::TargetOptions& TargetOpts = CI.getTargetOpts();
+-  const clang::CodeGenOptions& CGOpt = CI.getCodeGenOpts();
+-  const std::string& Triple = TargetOpts.Triple;
+-
+-  std::string Error;
+-  const Target *TheTarget = TargetRegistry::lookupTarget(Triple, Error);
+-  if (!TheTarget) {
+-    cling::errs() << "cling::IncrementalExecutor: unable to find target:\n"
+-                  << Error;
+-    return std::unique_ptr<TargetMachine>();
++static bool UseJITLink(const Triple& TT) {
++  bool jitLink = false;
++  // Default to JITLink on macOS and RISC-V, as done in (recent) LLVM by
++  // LLJITBuilderState::prepareForConstruction.
++  if (TT.getArch() == Triple::riscv64 ||
++      (TT.isOSBinFormatMachO() &&
++       (TT.getArch() == Triple::aarch64 || TT.getArch() == Triple::x86_64))) {
++    jitLink = true;
+   }
++  // Finally, honor the user's choice by setting an environment variable.
++  if (const char* clingJitLink = std::getenv("CLING_JITLINK")) {
++    jitLink = cling::utils::ConvertEnvValueToBool(clingJitLink);
++  }
++  return jitLink;
++}
+ 
++static std::unique_ptr<TargetMachine>
++CreateTargetMachine(const clang::CompilerInstance& CI, bool JITLink) {
+   CodeGenOpt::Level OptLevel = CodeGenOpt::Default;
+-  switch (CGOpt.OptimizationLevel) {
++  switch (CI.getCodeGenOpts().OptimizationLevel) {
+     case 0: OptLevel = CodeGenOpt::None; break;
+     case 1: OptLevel = CodeGenOpt::Less; break;
+     case 2: OptLevel = CodeGenOpt::Default; break;
+     case 3: OptLevel = CodeGenOpt::Aggressive; break;
+     default: OptLevel = CodeGenOpt::Default;
+   }
++
++  const Triple &TT = CI.getTarget().getTriple();
++
+   using namespace llvm::orc;
+-  auto JTMB = JITTargetMachineBuilder::detectHost();
+-  if (!JTMB)
+-    logAllUnhandledErrors(JTMB.takeError(), llvm::errs(),
+-                          "Error detecting host");
++  auto JTMB = JITTargetMachineBuilder(TT);
++  JTMB.addFeatures(CI.getTargetOpts().Features);
++  JTMB.getOptions().MCOptions.ABIName = CI.getTarget().getABI().str();
+ 
+-  JTMB->setCodeGenOptLevel(OptLevel);
++  JTMB.setCodeGenOptLevel(OptLevel);
+ #ifdef _WIN32
+-  JTMB->getOptions().EmulatedTLS = false;
++  JTMB.getOptions().EmulatedTLS = false;
+ #endif // _WIN32
+ 
+ #if defined(__powerpc64__) || defined(__PPC64__)
+   // We have to use large code model for PowerPC64 because TOC and text sections
+   // can be more than 2GB apart.
+-  JTMB->setCodeModel(CodeModel::Large);
++  JTMB.setCodeModel(CodeModel::Large);
+ #endif
+ 
+-  std::unique_ptr<TargetMachine> TM = cantFail(JTMB->createTargetMachine());
+-
+-  // Forcefully disable GlobalISel, it might be enabled on AArch64 without
+-  // optimizations. In tests on an Apple M1 after the upgrade to LLVM 9, this
+-  // new instruction selection framework emits branches / calls that expect all
+-  // code to be reachable in +/- 128 MB. This cannot be guaranteed during JIT,
+-  // which generates code into allocated pages on the heap and could span the
+-  // entire address space of the process.
+-  //
+-  // TODO:
+-  // 1. Try to reproduce the problem with vanilla lli of LLVM 9 to check that
+-  //    this is not related to the way Cling incrementally JITs and executes.
+-  // 2. Figure out exactly why GlobalISel emits different branch instructions,
+-  //    and whether this is a problem in the framework or of the generated IR.
+-  // 3. Verify if the same happens with LLVM 11/12 (whatever Cling will move to
+-  //    next), and possibly fix the underlying issue in LLVM upstream's `main`.
+-  //
+-  // FIXME: Lift this restriction and allow the target to enable GlobalISel,
+-  // if deemed ready by upstream developers.
+-  TM->setGlobalISel(false);
+-
+-  return TM;
++  if (JITLink) {
++    // Set up the TargetMachine as otherwise done by
++    // LLJITBuilderState::prepareForConstruction.
++    JTMB.setRelocationModel(Reloc::PIC_);
++    // Set the small code except for macOS on AArch64 - it results in relocation
++    // targets that are out-of-range.
++    // TODO: Investigate / report upstream and re-evaluate after a future LLVM
++    // upgrade.
++    if (!(TT.isOSBinFormatMachO() && TT.getArch() == Triple::aarch64))
++      JTMB.setCodeModel(CodeModel::Small);
++  }
++
++  return cantFail(JTMB.createTargetMachine());
+ }
+ } // unnamed namespace
+ 
+@@ -365,16 +474,31 @@ IncrementalJIT::IncrementalJIT(
+     std::unique_ptr<llvm::orc::ExecutorProcessControl> EPC, Error& Err,
+     void *ExtraLibHandle, bool Verbose)
+     : SkipHostProcessLookup(false),
+-      TM(CreateHostTargetMachine(CI)),
++      m_JITLink(UseJITLink(CI.getTarget().getTriple())),
++      m_TM(CreateTargetMachine(CI, m_JITLink)),
+       SingleThreadedContext(std::make_unique<LLVMContext>()) {
+   ErrorAsOutParameter _(&Err);
+ 
+   LLJITBuilder Builder;
++  Builder.setDataLayout(m_TM->createDataLayout());
+   Builder.setExecutorProcessControl(std::move(EPC));
+ 
+   // Create ObjectLinkingLayer with our own MemoryManager.
+   Builder.setObjectLinkingLayerCreator([&](ExecutionSession& ES,
+-                                           const Triple& TT) {
++                                           const Triple& TT)
++                                           -> std::unique_ptr<ObjectLayer> {
++    if (m_JITLink) {
++      // For JITLink, we only need a custom memory manager to avoid freeing the
++      // memory segments; the default InProcessMemoryManager (which is mostly
++      // copied above) already does slab allocation to keep all segments
++      // together which is needed for exception handling support.
++      auto ObjLinkingLayer = std::make_unique<ObjectLinkingLayer>(
++          ES, std::make_unique<ClingJITLinkMemoryManager>());
++      ObjLinkingLayer->addPlugin(std::make_unique<EHFrameRegistrationPlugin>(
++          ES, std::make_unique<InProcessEHFrameRegistrar>()));
++      return ObjLinkingLayer;
++    }
++
+     auto GetMemMgr = []() { return std::make_unique<ClingMemoryManager>(); };
+     auto Layer =
+         std::make_unique<RTDyldObjectLinkingLayer>(ES, std::move(GetMemMgr));
+@@ -404,7 +528,7 @@ IncrementalJIT::IncrementalJIT(
+ 
+   Builder.setCompileFunctionCreator([&](llvm::orc::JITTargetMachineBuilder)
+   -> llvm::Expected<std::unique_ptr<llvm::orc::IRCompileLayer::IRCompiler>> {
+-    return std::make_unique<SimpleCompiler>(*TM);
++    return std::make_unique<SimpleCompiler>(*m_TM);
+   });
+ 
+   if (Expected<std::unique_ptr<LLJIT>> JitInstance = Builder.create()) {
+@@ -424,7 +548,7 @@ IncrementalJIT::IncrementalJIT(
+       m_CompiledModules[Unsafe] = std::move(TSM);
+     });
+ 
+-  char LinkerPrefix = this->TM->createDataLayout().getGlobalPrefix();
++  char LinkerPrefix = this->m_TM->createDataLayout().getGlobalPrefix();
+ 
+   // Process symbol resolution
+   auto HostProcessLookup
+@@ -539,7 +663,7 @@ IncrementalJIT::addOrReplaceDefinition(StringRef Name,
+     return KnownAddr;
+ 
+   llvm::SmallString<128> LinkerMangledName;
+-  char LinkerPrefix = this->TM->createDataLayout().getGlobalPrefix();
++  char LinkerPrefix = this->m_TM->createDataLayout().getGlobalPrefix();
+   bool HasLinkerPrefix = LinkerPrefix != '\0';
+   if (HasLinkerPrefix && Name.front() == LinkerPrefix) {
+     LinkerMangledName.assign(1, LinkerPrefix);
+diff --git a/src/interpreter/cling/lib/Interpreter/IncrementalJIT.h b/src/interpreter/cling/lib/Interpreter/IncrementalJIT.h
+index c05458c241..170cc40320 100644
+--- a/src/interpreter/cling/lib/Interpreter/IncrementalJIT.h
++++ b/src/interpreter/cling/lib/Interpreter/IncrementalJIT.h
+@@ -93,7 +93,7 @@ public:
+ 
+   /// @brief Get the TargetMachine used by the JIT.
+   /// Non-const because BackendPasses need to update OptLevel.
+-  llvm::TargetMachine &getTargetMachine() { return *TM; }
++  llvm::TargetMachine &getTargetMachine() { return *m_TM; }
+ 
+ private:
+   std::unique_ptr<llvm::orc::LLJIT> Jit;
+@@ -109,8 +109,9 @@ private:
+   std::map<const Transaction*, llvm::orc::ResourceTrackerSP> m_ResourceTrackers;
+   std::map<const llvm::Module *, llvm::orc::ThreadSafeModule> m_CompiledModules;
+ 
++  bool m_JITLink;
+   // FIXME: Move TargetMachine ownership to BackendPasses
+-  std::unique_ptr<llvm::TargetMachine> TM;
++  std::unique_ptr<llvm::TargetMachine> m_TM;
+ 
+   // TODO: We only need the context for materialization. Instead of defining it
+   // here we might want to pass one in on a per-module basis.
+diff --git a/src/interpreter/cling/lib/Interpreter/IncrementalParser.cpp b/src/interpreter/cling/lib/Interpreter/IncrementalParser.cpp
+index 1c6ca43cd6..6a63777b59 100644
+--- a/src/interpreter/cling/lib/Interpreter/IncrementalParser.cpp
++++ b/src/interpreter/cling/lib/Interpreter/IncrementalParser.cpp
+@@ -346,7 +346,7 @@ namespace cling {
+       m_CI->createPCHExternalASTSource(PCHFileName,
+                                        DisableValidationForModuleKind::All,
+                                        true /*AllowPCHWithCompilerErrors*/,
+-                                       0 /*DeserializationListener*/,
++                                       nullptr /*DeserializationListener*/,
+                                        true /*OwnsDeserializationListener*/);
+       result.push_back(endTransaction(PchT));
+       if (Trap.hasErrorOccurred()) {
+@@ -752,13 +752,13 @@ namespace cling {
+ 
+     if (Transaction* Parent = T.getParent()) {
+       Parent->removeNestedTransaction(&T);
+-      T.setParent(0);
++      T.setParent(nullptr);
+     } else {
+       if (&T == m_Transactions.back()) {
+         // Remove from the queue
+         m_Transactions.pop_back();
+         if (!m_Transactions.empty())
+-          m_Transactions.back()->setNext(0);
++          m_Transactions.back()->setNext(nullptr);
+       } else {
+         // If T is not the last transaction it must not be a previous
+         // transaction either, but a "disconnected" one, i.e. one that
+@@ -851,7 +851,7 @@ namespace cling {
+     Preprocessor& PP = m_CI->getPreprocessor();
+     if (!PP.getCurrentLexer()) {
+        PP.EnterSourceFile(m_CI->getSourceManager().getMainFileID(),
+-                          0, SourceLocation());
++             nullptr, SourceLocation());
+     }
+     assert(PP.isIncrementalProcessingEnabled() && "Not in incremental mode!?");
+     PP.enableIncrementalProcessing();
+@@ -896,7 +896,7 @@ namespace cling {
+     m_MemoryBuffers.push_back(std::make_pair(MBNonOwn, FID));
+ 
+     // NewLoc only used for diags.
+-    PP.EnterSourceFile(FID, /*DirLookup*/0, NewLoc);
++    PP.EnterSourceFile(FID, /*DirLookup*/nullptr, NewLoc);
+     m_Consumer->getTransaction()->setBufferFID(FID);
+ 
+     DiagnosticsEngine& Diags = getCI()->getDiagnostics();
+diff --git a/src/interpreter/cling/lib/Interpreter/IncrementalParser.h b/src/interpreter/cling/lib/Interpreter/IncrementalParser.h
+index 8c9082088e..582e2bd575 100644
+--- a/src/interpreter/cling/lib/Interpreter/IncrementalParser.h
++++ b/src/interpreter/cling/lib/Interpreter/IncrementalParser.h
+@@ -174,7 +174,7 @@ namespace cling {
+     ///
+     const Transaction* getFirstTransaction() const {
+       if (m_Transactions.empty())
+-        return 0;
++        return nullptr;
+       return m_Transactions.front();
+     }
+ 
+@@ -182,7 +182,7 @@ namespace cling {
+     ///
+     Transaction* getLastTransaction() {
+       if (m_Transactions.empty())
+-        return 0;
++        return nullptr;
+       return m_Transactions.back();
+     }
+ 
+@@ -190,7 +190,7 @@ namespace cling {
+     ///
+     const Transaction* getLastTransaction() const {
+       if (m_Transactions.empty())
+-        return 0;
++        return nullptr;
+       return m_Transactions.back();
+     }
+ 
+diff --git a/src/interpreter/cling/lib/Interpreter/Interpreter.cpp b/src/interpreter/cling/lib/Interpreter/Interpreter.cpp
+index 0a3337e33f..2996db25fd 100644
+--- a/src/interpreter/cling/lib/Interpreter/Interpreter.cpp
++++ b/src/interpreter/cling/lib/Interpreter/Interpreter.cpp
+@@ -399,7 +399,7 @@ namespace cling {
+     // and the ASTContext. For that to happen we shut down the IncrementalParser
+     // explicitly, before the implicit destruction (through the unique_ptr) of
+     // the callbacks.
+-    m_IncrParser.reset(0);
++    m_IncrParser.reset(nullptr);
+   }
+ 
+   Transaction* Interpreter::Initialize(bool NoRuntime, bool SyntaxOnly,
+@@ -439,13 +439,13 @@ namespace cling {
+     const char* Linkage = LangOpts.CPlusPlus ? "extern \"C\"" : "";
+     if (!NoRuntime) {
+       if (LangOpts.CPlusPlus) {
+-        Strm << "#include \"cling/Interpreter/RuntimeUniverse.h\"\n";
++        Strm << "#include <cling/Interpreter/RuntimeUniverse.h>\n";
+         if (EmitDefinitions)
+           Strm << "namespace cling { class Interpreter; namespace runtime { "
+                   "Interpreter* gCling=(Interpreter*)" << ThisP << ";\n"
+                   "RuntimeOptions* gClingOpts=(RuntimeOptions*)" << &this->m_RuntimeOptions << ";}}\n";
+       } else {
+-        Strm << "#include \"cling/Interpreter/CValuePrinter.h\"\n"
++        Strm << "#include <cling/Interpreter/CValuePrinter.h>\n"
+              << "void* gCling";
+         if (EmitDefinitions)
+           Strm << "=(void*)" << ThisP;
+@@ -1267,7 +1267,7 @@ namespace cling {
+                      clang::diag::Severity::Warning, SourceLocation());
+ 
+     if (CR != cling::Interpreter::kSuccess)
+-      return 0;
++      return nullptr;
+ 
+     for (cling::Transaction::const_iterator I = T->decls_begin(),
+            E = T->decls_end(); I != E; ++I) {
+@@ -1285,7 +1285,7 @@ namespace cling {
+         }
+       }
+     }
+-    return 0;
++    return nullptr;
+   }
+ 
+   void*
+@@ -1296,7 +1296,7 @@ namespace cling {
+     //
+ 
+     if (isInSyntaxOnlyMode())
+-      return 0;
++      return nullptr;
+ 
+     if (ifUnique) {
+       if (void* Addr = (void*)getAddressOfGlobal(name)) {
+@@ -1307,7 +1307,7 @@ namespace cling {
+     Transaction* T = nullptr;
+     const FunctionDecl* FD = DeclareCFunction(name, code, withAccessControl, T);
+     if (!FD || !T)
+-      return 0;
++      return nullptr;
+ 
+     //  Get the wrapper function pointer from the ExecutionEngine (the JIT).
+     return m_Executor->getPointerToGlobalFromJIT(name);
+@@ -1440,16 +1440,16 @@ namespace cling {
+     // Clang doc says:
+     // "LookupFrom is set when this is a \#include_next directive, it
+     // specifies the file to start searching from."
+-    const DirectoryLookup* FromDir = 0;
+-    const FileEntry* FromFile = 0;
+-    const DirectoryLookup* CurDir = 0;
++    const DirectoryLookup* FromDir = nullptr;
++    const FileEntry* FromFile = nullptr;
++    const DirectoryLookup* CurDir = nullptr;
+     Preprocessor& PP = getCI()->getPreprocessor();
+     // PP::LookupFile uses it to issue 'nice' diagnostic
+     SourceLocation fileNameLoc;
+     auto FE = PP.LookupFile(fileNameLoc, canonicalFile, isAngled, FromDir,
+-                            FromFile, CurDir, /*SearchPath*/0,
+-                            /*RelativePath*/ 0, /*suggestedModule*/0,
+-                            0 /*IsMapped*/, /*IsFrameworkFound*/ nullptr,
++                            FromFile, CurDir, /*SearchPath*/nullptr,
++                            /*RelativePath*/ nullptr, /*suggestedModule*/nullptr,
++                            /*IsMapped*/ nullptr, /*IsFrameworkFound*/ nullptr,
+                             /*SkipCache*/ false, /*OpenFile*/ false,
+                             /*CacheFail*/ false);
+     if (FE)
+@@ -1692,7 +1692,7 @@ namespace cling {
+     if (!m_DynamicLookupDeclared && value) {
+       // No dynlookup for the dynlookup header!
+       m_DynamicLookupEnabled = false;
+-      declare("#include \"cling/Interpreter/DynamicLookupRuntimeUniverse.h\"");
++      declare("#include <cling/Interpreter/DynamicLookupRuntimeUniverse.h>");
+     }
+     m_DynamicLookupDeclared = true;
+ 
+@@ -1748,7 +1748,7 @@ namespace cling {
+                                         bool* fromJIT /*=0*/) const {
+     // Return a symbol's address, and whether it was jitted.
+     if (isInSyntaxOnlyMode())
+-      return 0;
++      return nullptr;
+     return m_Executor->getAddressOfGlobal(SymName, fromJIT);
+   }
+ 
+diff --git a/src/interpreter/cling/lib/Interpreter/InterpreterCallbacks.cpp b/src/interpreter/cling/lib/Interpreter/InterpreterCallbacks.cpp
+index 974a5d1eed..d9736e0e2f 100644
+--- a/src/interpreter/cling/lib/Interpreter/InterpreterCallbacks.cpp
++++ b/src/interpreter/cling/lib/Interpreter/InterpreterCallbacks.cpp
+@@ -232,7 +232,7 @@ namespace cling {
+ 
+   public:
+     InterpreterExternalSemaSource(InterpreterCallbacks* C)
+-      : m_Callbacks(C), m_Sema(0) {}
++      : m_Callbacks(C), m_Sema(nullptr) {}
+ 
+     ~InterpreterExternalSemaSource() {
+       // FIXME: Another gross hack due to the missing multiplexing AST external
+@@ -250,7 +250,7 @@ namespace cling {
+     }
+ 
+     void ForgetSema() override {
+-      m_Sema = 0;
++      m_Sema = nullptr;
+     }
+ 
+     InterpreterCallbacks* getCallbacks() const { return m_Callbacks; }
+@@ -297,7 +297,7 @@ namespace cling {
+                              bool enableExternalSemaSourceCallbacks/* = false*/,
+                         bool enableDeserializationListenerCallbacks/* = false*/,
+                                              bool enablePPCallbacks/* = false*/)
+-    : m_Interpreter(interp), m_ExternalSemaSource(0), m_PPCallbacks(0),
++    : m_Interpreter(interp), m_ExternalSemaSource(nullptr), m_PPCallbacks(nullptr),
+       m_IsRuntime(false) {
+     Sema& SemaRef = interp->getSema();
+     ASTReader* Reader = m_Interpreter->getCI()->getASTReader().get();
+diff --git a/src/interpreter/cling/lib/Interpreter/LookupHelper.cpp b/src/interpreter/cling/lib/Interpreter/LookupHelper.cpp
+index f87341ea49..593d67a7c4 100644
+--- a/src/interpreter/cling/lib/Interpreter/LookupHelper.cpp
++++ b/src/interpreter/cling/lib/Interpreter/LookupHelper.cpp
+@@ -519,7 +519,7 @@ namespace cling {
+ 
+   const Decl* LookupHelper::findScope(llvm::StringRef className,
+                                       DiagSetting diagOnOff,
+-                                      const Type** resultType /* = 0 */,
++                                      const Type** resultType /* = nullptr */,
+                                       bool instantiateTemplate/*=true*/) const {
+ 
+     //
+diff --git a/src/interpreter/cling/lib/Interpreter/Value.cpp b/src/interpreter/cling/lib/Interpreter/Value.cpp
+index 52be4a4437..b7aed930be 100644
+--- a/src/interpreter/cling/lib/Interpreter/Value.cpp
++++ b/src/interpreter/cling/lib/Interpreter/Value.cpp
+@@ -135,16 +135,53 @@ namespace {
+ namespace cling {
+ 
+   Value::Value(const Value& other):
+-    m_Storage(other.m_Storage), m_StorageType(other.m_StorageType),
++    m_Storage(other.m_Storage), m_NeedsManagedAlloc(other.m_NeedsManagedAlloc),
++    m_TypeKind(other.m_TypeKind),
+     m_Type(other.m_Type), m_Interpreter(other.m_Interpreter) {
+     if (other.needsManagedAllocation())
+       AllocatedValue::getFromPayload(m_Storage.m_Ptr)->Retain();
+   }
+ 
++  static Value::TypeKind getCorrespondingTypeKind(clang::QualType QT,
++                                                  const clang::ASTContext &C) {
++    using namespace clang;
++
++    if (C.hasSameType(QT, C.VoidTy))
++      return Value::kVoid;
++
++    if (const auto *ET = dyn_cast<EnumType>(QT.getTypePtr()))
++      QT = ET->getDecl()->getIntegerType();
++
++    if (!QT->isBuiltinType() || QT->castAs<BuiltinType>()->isNullPtrType())
++      return Value::kPtrOrObjTy;
++
++    switch(QT->getAs<BuiltinType>()->getKind()) {
++    default:
++#ifndef NDEBUG
++      QT->dump();
++#endif // NDEBUG
++      assert(false && "Type not supported");
++      return Value::kInvalid;
++#define X(type, name) \
++      case BuiltinType::name: return Value::k##name;
++      CLING_VALUE_BUILTIN_TYPES
++#undef X
++    }
++  }
++
+   Value::Value(clang::QualType clangTy, Interpreter& Interp):
+-    m_StorageType(determineStorageType(clangTy)),
+-    m_Type(clangTy.getAsOpaquePtr()),
++    m_TypeKind(getCorrespondingTypeKind(clangTy, Interp.getCI()->getASTContext())),
++    m_Type(clangTy.getAsOpaquePtr()), // FIXME: What if clangTy is freed?
+     m_Interpreter(&Interp) {
++    if (m_TypeKind == Value::kPtrOrObjTy) {
++      clang::QualType Canon = clangTy.getCanonicalType();
++      if (Canon->isPointerType() || Canon->isObjectType() ||
++          Canon->isReferenceType())
++        if (Canon->isRecordType() || Canon->isConstantArrayType() ||
++            Canon->isMemberPointerType())
++          m_NeedsManagedAlloc = true;
++    }
++
+     if (needsManagedAllocation())
+       ManagedAllocate();
+   }
+@@ -157,7 +194,8 @@ namespace cling {
+     // Retain new one.
+     m_Type = other.m_Type;
+     m_Storage = other.m_Storage;
+-    m_StorageType = other.m_StorageType;
++    m_NeedsManagedAlloc = other.m_NeedsManagedAlloc;
++    m_TypeKind = other.m_TypeKind;
+     m_Interpreter = other.m_Interpreter;
+     if (needsManagedAllocation())
+       AllocatedValue::getFromPayload(m_Storage.m_Ptr)->Retain();
+@@ -172,10 +210,12 @@ namespace cling {
+     // Move new one.
+     m_Type = other.m_Type;
+     m_Storage = other.m_Storage;
+-    m_StorageType = other.m_StorageType;
++    m_NeedsManagedAlloc = other.m_NeedsManagedAlloc;
++    m_TypeKind = other.m_TypeKind;
+     m_Interpreter = other.m_Interpreter;
+     // Invalidate other so it will not release.
+-    other.m_StorageType = kUnsupportedType;
++    other.m_NeedsManagedAlloc = false;
++    other.m_TypeKind = kInvalid;
+ 
+     return *this;
+   }
+@@ -193,16 +233,9 @@ namespace cling {
+     return m_Interpreter->getCI()->getASTContext();
+   }
+ 
+-  bool Value::isValid() const { return !getType().isNull(); }
+-
+-  bool Value::isVoid() const {
+-    const clang::ASTContext& Ctx = getASTContext();
+-    return isValid() && Ctx.hasSameType(getType(), Ctx.VoidTy);
+-  }
+-
+-  size_t Value::GetNumberOfElements() const {
++  static size_t GetNumberOfElements(clang::QualType QT) {
+     if (const clang::ConstantArrayType* ArrTy
+-        = llvm::dyn_cast<clang::ConstantArrayType>(getType())) {
++        = llvm::dyn_cast<clang::ConstantArrayType>(QT.getTypePtr())) {
+       llvm::APInt arrSize(sizeof(size_t)*8, 1);
+       do {
+         arrSize *= ArrTy->getSize();
+@@ -214,30 +247,6 @@ namespace cling {
+     return 1;
+   }
+ 
+-  Value::EStorageType Value::determineStorageType(clang::QualType QT) {
+-    const clang::Type* desugCanon = QT.getCanonicalType().getTypePtr();
+-    if (desugCanon->isSignedIntegerOrEnumerationType())
+-      return kSignedIntegerOrEnumerationType;
+-    else if (desugCanon->isUnsignedIntegerOrEnumerationType())
+-      return kUnsignedIntegerOrEnumerationType;
+-    else if (desugCanon->isRealFloatingType()) {
+-      const clang::BuiltinType* BT = desugCanon->getAs<clang::BuiltinType>();
+-      if (BT->getKind() == clang::BuiltinType::Double)
+-        return kDoubleType;
+-      else if (BT->getKind() == clang::BuiltinType::Float)
+-        return kFloatType;
+-      else if (BT->getKind() == clang::BuiltinType::LongDouble)
+-        return kLongDoubleType;
+-    } else if (desugCanon->isPointerType() || desugCanon->isObjectType()
+-               || desugCanon->isReferenceType()) {
+-      if (desugCanon->isRecordType() || desugCanon->isConstantArrayType()
+-          || desugCanon->isMemberPointerType())
+-        return kManagedAllocation;
+-      return kPointerType;
+-    }
+-    return kUnsupportedType;
+-  }
+-
+   void Value::ManagedAllocate() {
+     assert(needsManagedAllocation() && "Does not need managed allocation");
+     void* dtorFunc = 0;
+@@ -255,11 +264,46 @@ namespace cling {
+     const clang::ASTContext& ctx = getASTContext();
+     unsigned payloadSize = ctx.getTypeSizeInChars(getType()).getQuantity();
+     m_Storage.m_Ptr = AllocatedValue::CreatePayload(payloadSize, dtorFunc,
+-                                                    GetNumberOfElements());
++                                                GetNumberOfElements(getType()));
++  }
++
++  void Value::AssertTypeMismatch(const char* Type) const {
++#ifndef NDEBUG
++    assert(isBuiltinType() && "Must be a builtin!");
++    const clang::BuiltinType *BT = getType()->castAs<clang::BuiltinType>();
++    clang::PrintingPolicy Policy = getASTContext().getPrintingPolicy();
++#endif // NDEBUG
++    assert(BT->getName(Policy).equals(Type));
+   }
+ 
++  static clang::QualType getCorrespondingBuiltin(clang::ASTContext &C,
++                                                 clang::BuiltinType::Kind K) {
++    using namespace clang;
++    switch(K) {
++    default:
++      assert(false && "Type not supported");
++      return {};
++#define BUILTIN_TYPE(Id, SingletonId) \
++      case BuiltinType::Id: return C.SingletonId;
++#include "clang/AST/BuiltinTypes.def"
++    }
++  }
++
++#define X(type, name)                                                   \
++  template <> Value Value::Create(Interpreter& Interp, type val) {      \
++    clang::ASTContext &C = Interp.getCI()->getASTContext();             \
++    clang::BuiltinType::Kind K = clang::BuiltinType::name;              \
++    Value res = Value(getCorrespondingBuiltin(C, K), Interp);           \
++    res.set##name(val);                                                 \
++    return res;                                                         \
++  }                                                                     \
++
++  CLING_VALUE_BUILTIN_TYPES
++
++#undef X
++
+   void Value::AssertOnUnsupportedTypeCast() const {
+-    assert("unsupported type in Value, cannot cast simplistically!" && 0);
++    assert("unsupported type in Value, cannot cast!" && 0);
+   }
+ 
+   namespace valuePrinterInternal {
+diff --git a/src/interpreter/cling/lib/Interpreter/ValueExtractionSynthesizer.cpp b/src/interpreter/cling/lib/Interpreter/ValueExtractionSynthesizer.cpp
+index 5de56b41a9..830d50ace2 100644
+--- a/src/interpreter/cling/lib/Interpreter/ValueExtractionSynthesizer.cpp
++++ b/src/interpreter/cling/lib/Interpreter/ValueExtractionSynthesizer.cpp
+@@ -523,44 +523,42 @@ namespace runtime {
+     CLING_LIB_EXPORT
+     void setValueNoAlloc(void* vpI, void* vpSVR, void* vpQT, char vpOn,
+                          float value) {
+-      allocateStoredRefValueAndGetGV(vpI, vpSVR, vpQT).getAs<float>() = value;
++      allocateStoredRefValueAndGetGV(vpI, vpSVR, vpQT).setFloat(value);
+       dumpIfNoStorage(vpSVR, vpOn);
+     }
+ 
+     CLING_LIB_EXPORT
+     void setValueNoAlloc(void* vpI, void* vpSVR, void* vpQT, char vpOn,
+                          double value) {
+-      allocateStoredRefValueAndGetGV(vpI, vpSVR, vpQT).getAs<double>() = value;
++      allocateStoredRefValueAndGetGV(vpI, vpSVR, vpQT).setDouble(value);
+       dumpIfNoStorage(vpSVR, vpOn);
+     }
+ 
+     CLING_LIB_EXPORT
+     void setValueNoAlloc(void* vpI, void* vpSVR, void* vpQT, char vpOn,
+                          long double value) {
+-      allocateStoredRefValueAndGetGV(vpI, vpSVR, vpQT).getAs<long double>()
+-        = value;
++      allocateStoredRefValueAndGetGV(vpI, vpSVR, vpQT).setLongDouble(value);
+       dumpIfNoStorage(vpSVR, vpOn);
+     }
+ 
+     CLING_LIB_EXPORT
+     void setValueNoAlloc(void* vpI, void* vpSVR, void* vpQT, char vpOn,
+                          unsigned long long value) {
+-      allocateStoredRefValueAndGetGV(vpI, vpSVR, vpQT)
+-        .getAs<unsigned long long>() = value;
++      allocateStoredRefValueAndGetGV(vpI, vpSVR, vpQT).setULongLong(value);
+       dumpIfNoStorage(vpSVR, vpOn);
+     }
+ 
+     CLING_LIB_EXPORT
+     void setValueNoAlloc(void* vpI, void* vpSVR, void* vpQT, char vpOn,
+                          const void* value){
+-      allocateStoredRefValueAndGetGV(vpI, vpSVR, vpQT).getAs<void*>()
+-        = const_cast<void*>(value);
++      allocateStoredRefValueAndGetGV(vpI, vpSVR, vpQT)
++        .setPtr(const_cast<void*>(value));
+       dumpIfNoStorage(vpSVR, vpOn);
+     }
+ 
+     CLING_LIB_EXPORT
+     void* setValueWithAlloc(void* vpI, void* vpSVR, void* vpQT, char vpOn) {
+-      return allocateStoredRefValueAndGetGV(vpI, vpSVR, vpQT).getAs<void*>();
++      return allocateStoredRefValueAndGetGV(vpI, vpSVR, vpQT).getPtr();
+     }
+   } // end namespace internal
+ } // end namespace runtime
+diff --git a/src/interpreter/cling/lib/Interpreter/ValuePrinter.cpp b/src/interpreter/cling/lib/Interpreter/ValuePrinter.cpp
+index 7841226774..f16f9406fc 100644
+--- a/src/interpreter/cling/lib/Interpreter/ValuePrinter.cpp
++++ b/src/interpreter/cling/lib/Interpreter/ValuePrinter.cpp
+@@ -762,7 +762,7 @@ static std::string printEnumValue(const Value &V) {
+   const clang::EnumType *EnumTy = Ty.getNonReferenceType()->getAs<clang::EnumType>();
+   assert(EnumTy && "ValuePrinter.cpp: ERROR, printEnumValue invoked for a non enum type.");
+   clang::EnumDecl *ED = EnumTy->getDecl();
+-  uint64_t value = V.getULL();
++  uint64_t value = V.getULongLong();
+   bool IsFirst = true;
+   llvm::APSInt ValAsAPSInt = C.MakeIntValue(value, Ty);
+   for (clang::EnumDecl::enumerator_iterator I = ED->enumerator_begin(),
+@@ -906,33 +906,33 @@ static std::string printUnpackedClingValue(const Value &V) {
+       = llvm::dyn_cast<clang::BuiltinType>(Td.getCanonicalType().getTypePtr())) {
+     switch (BT->getKind()) {
+       case clang::BuiltinType::Bool:
+-        return executePrintValue<bool>(V, V.getLL());
++        return executePrintValue<bool>(V, V.castAs<bool>());
+ 
+       case clang::BuiltinType::Char_S:
+-        return executePrintValue<signed char>(V, V.getLL());
++        return executePrintValue<signed char>(V, V.castAs<signed char>());
+       case clang::BuiltinType::SChar:
+-        return executePrintValue<signed char>(V, V.getLL());
++         return executePrintValue<signed char>(V, V.castAs<signed char>());
+       case clang::BuiltinType::Short:
+-        return executePrintValue<short>(V, V.getLL());
++        return executePrintValue<short>(V, V.castAs<short>());
+       case clang::BuiltinType::Int:
+-        return executePrintValue<int>(V, V.getLL());
++        return executePrintValue<int>(V, V.castAs<int>());
+       case clang::BuiltinType::Long:
+-        return executePrintValue<long>(V, V.getLL());
++        return executePrintValue<long>(V, V.castAs<long>());
+       case clang::BuiltinType::LongLong:
+-        return executePrintValue<long long>(V, V.getLL());
++        return executePrintValue<long long>(V, V.castAs<long long>());
+ 
+       case clang::BuiltinType::Char_U:
+-        return executePrintValue<unsigned char>(V, V.getULL());
++        return executePrintValue<unsigned char>(V, V.castAs<unsigned char>());
+       case clang::BuiltinType::UChar:
+-        return executePrintValue<unsigned char>(V, V.getULL());
++        return executePrintValue<unsigned char>(V, V.castAs<unsigned char>());
+       case clang::BuiltinType::UShort:
+-        return executePrintValue<unsigned short>(V, V.getULL());
++        return executePrintValue<unsigned short>(V, V.castAs<unsigned short>());
+       case clang::BuiltinType::UInt:
+-        return executePrintValue<unsigned int>(V, V.getULL());
++        return executePrintValue<unsigned int>(V, V.castAs<unsigned int>());
+       case clang::BuiltinType::ULong:
+-        return executePrintValue<unsigned long>(V, V.getULL());
++        return executePrintValue<unsigned long>(V, V.castAs<unsigned long>());
+       case clang::BuiltinType::ULongLong:
+-        return executePrintValue<unsigned long long>(V, V.getULL());
++        return executePrintValue<unsigned long long>(V, V.castAs<unsigned long long>());
+ 
+       case clang::BuiltinType::Float:
+         return executePrintValue<float>(V, V.getFloat());
+diff --git a/src/interpreter/cling/lib/MetaProcessor/Display.cpp b/src/interpreter/cling/lib/MetaProcessor/Display.cpp
+index 7c74eecc01..22032c7967 100644
+--- a/src/interpreter/cling/lib/MetaProcessor/Display.cpp
++++ b/src/interpreter/cling/lib/MetaProcessor/Display.cpp
+@@ -71,7 +71,7 @@ bool HasUDT(const Decl* decl)
+ //______________________________________________________________________________
+ int NumberOfElements(const ArrayType* type)
+ {
+-  assert(type != 0 && "NumberOfElements, 'type' parameter is null");
++  assert(type != nullptr && "NumberOfElements, 'type' parameter is null");
+ 
+   if (const ConstantArrayType* const arrayType = dyn_cast<ConstantArrayType>(type)) {
+     //We can calculate only the size of constant size array.
+@@ -98,7 +98,7 @@ static void AppendAnyDeclLocation(const CompilerInstance* compiler,
+                                   const char* formatNull,
+                                   const char* filenameNull)
+ {
+-  assert(compiler != 0 && "AppendAnyDeclLocation, 'compiler' parameter is null");
++  assert(compiler != nullptr && "AppendAnyDeclLocation, 'compiler' parameter is null");
+ 
+   llvm::raw_string_ostream rss(textLine);
+   llvm::formatted_raw_ostream frss(rss);
+@@ -130,7 +130,7 @@ static void AppendAnyDeclLocation(const CompilerInstance* compiler,
+ void AppendClassDeclLocation(const CompilerInstance* compiler, const CXXRecordDecl* classDecl,
+                              std::string& textLine, bool verbose)
+ {
+-  assert(classDecl != 0 && "AppendClassDeclLocation, 'classDecl' parameter is null");
++  assert(classDecl != nullptr && "AppendClassDeclLocation, 'classDecl' parameter is null");
+ 
+   //Location has a fixed format - from G__display_class.
+   static const char* formatShort = "%-25s%5d";
+@@ -148,8 +148,8 @@ void AppendMemberFunctionLocation(const CompilerInstance* compiler, const Decl*
+ {
+   //Location has a fixed format - from G__display_class.
+ 
+-  assert(compiler != 0 && "AppendMemberFunctionLocation, 'compiler' parameter is null");
+-  assert(decl != 0 && "AppendMemberFunctionLocation, 'decl' parameter is null");
++  assert(compiler != nullptr && "AppendMemberFunctionLocation, 'compiler' parameter is null");
++  assert(decl != nullptr && "AppendMemberFunctionLocation, 'decl' parameter is null");
+ 
+   llvm::raw_string_ostream rss(textLine);
+   llvm::formatted_raw_ostream frss(rss);
+@@ -171,7 +171,7 @@ void AppendDeclLocation(const CompilerInstance* compiler, const Decl* decl,
+ void AppendMacroLocation(const CompilerInstance* compiler, const MacroInfo* macroInfo,
+                          std::string& textLine)
+ {
+-  assert(macroInfo != 0 && "AppendMacroLocation, 'macroInfo' parameter is null");
++  assert(macroInfo != nullptr && "AppendMacroLocation, 'macroInfo' parameter is null");
+ 
+   //TODO: check what does location for macro definition really means -
+   //macro can be defined many times, what do we have in a TranslationUnit in this case?
+@@ -184,7 +184,7 @@ void AppendMacroLocation(const CompilerInstance* compiler, const MacroInfo* macr
+ //______________________________________________________________________________
+ void AppendClassKeyword(const CXXRecordDecl* classDecl, std::string& name)
+ {
+-  assert(classDecl != 0 && "AppendClassKeyword, 'classDecl' parameter is null");
++  assert(classDecl != nullptr && "AppendClassKeyword, 'classDecl' parameter is null");
+ 
+   name += classDecl->getKindName();
+   name += ' ';
+@@ -193,7 +193,7 @@ void AppendClassKeyword(const CXXRecordDecl* classDecl, std::string& name)
+ //______________________________________________________________________________
+ void AppendClassName(const CXXRecordDecl* classDecl, std::string& name)
+ {
+-  assert(classDecl != 0 && "AppendClassName, 'classDecl' parameter is null");
++  assert(classDecl != nullptr && "AppendClassName, 'classDecl' parameter is null");
+ 
+   const LangOptions langOpts;
+   PrintingPolicy printingPolicy(langOpts);
+@@ -211,7 +211,7 @@ void AppendClassName(const CXXRecordDecl* classDecl, std::string& name)
+ //______________________________________________________________________________
+ void AppendMemberAccessSpecifier(const Decl* memberDecl, std::string& name)
+ {
+-  assert(memberDecl != 0 && "AppendMemberAccessSpecifier, 'memberDecl' parameter is 0");
++  assert(memberDecl != nullptr && "AppendMemberAccessSpecifier, 'memberDecl' parameter is 0");
+ 
+   switch (memberDecl->getAccess()) {
+   case AS_private:
+@@ -229,7 +229,7 @@ void AppendMemberAccessSpecifier(const Decl* memberDecl, std::string& name)
+ //______________________________________________________________________________
+ void AppendConstructorSignature(const CXXConstructorDecl* ctorDecl, std::string& name)
+ {
+-  assert(ctorDecl != 0 && "AppendConstructorSignature, 'ctorDecl' parameter is null");
++  assert(ctorDecl != nullptr && "AppendConstructorSignature, 'ctorDecl' parameter is null");
+ 
+   const QualType type = ctorDecl->getType();
+   assert(isa<FunctionType>(type) == true && "AppendConstructorSignature, ctorDecl->getType is not a FunctionType");
+@@ -272,7 +272,7 @@ void AppendConstructorSignature(const CXXConstructorDecl* ctorDecl, std::string&
+ //______________________________________________________________________________
+ void AppendMemberFunctionSignature(const Decl* methodDecl, std::string& name)
+ {
+-  assert(methodDecl != 0 && "AppendMemberFunctionSignature, 'methodDecl' parameter is null");
++  assert(methodDecl != nullptr && "AppendMemberFunctionSignature, 'methodDecl' parameter is null");
+   assert(methodDecl->getKind() != Decl::CXXConstructor && "AppendMemberFunctionSignature, called for a ctor declaration");
+ 
+   llvm::raw_string_ostream out(name);
+@@ -289,7 +289,7 @@ void AppendMemberFunctionSignature(const Decl* methodDecl, std::string& name)
+ void AppendObjectDeclaration(const Decl* objDecl, const PrintingPolicy& policy,
+                              bool printInstantiation, std::string& name)
+ {
+-  assert(objDecl != 0 && "AppendObjectDeclaration, 'objDecl' parameter is null");
++  assert(objDecl != nullptr && "AppendObjectDeclaration, 'objDecl' parameter is null");
+ 
+   llvm::raw_string_ostream out(name);
+   objDecl->print(out, policy, 0, printInstantiation);
+@@ -318,8 +318,8 @@ void AppendBaseClassSpecifiers(base_decl_iterator base, std::string& textLine)
+ void AppendClassSize(const CompilerInstance* compiler, const RecordDecl* decl,
+                      std::string& textLine)
+ {
+-  assert(compiler != 0 && "AppendClassSize, 'compiler' parameter is null");
+-  assert(decl != 0 && "AppendClassSize, 'decl' parameter is null");
++  assert(compiler != nullptr && "AppendClassSize, 'compiler' parameter is null");
++  assert(decl != nullptr && "AppendClassSize, 'decl' parameter is null");
+ 
+   if (dyn_cast<ClassTemplatePartialSpecializationDecl>(decl)) {
+     textLine += "SIZE: (NA)";
+@@ -337,8 +337,8 @@ void AppendClassSize(const CompilerInstance* compiler, const RecordDecl* decl,
+ template<class Decl>
+ void AppendUDTSize(const CompilerInstance* compiler, const Decl* decl, std::string& textLine)
+ {
+-  assert(compiler != 0 && "AppendUDTSize, 'compiler' parameter is null");
+-  assert(decl != 0 && "AppendUDTSize, 'decl' parameter is null");
++  assert(compiler != nullptr && "AppendUDTSize, 'compiler' parameter is null");
++  assert(decl != nullptr && "AppendUDTSize, 'decl' parameter is null");
+ 
+   std::string formatted;
+ 
+@@ -372,9 +372,9 @@ void AppendUDTSize(const CompilerInstance* compiler, const Decl* decl, std::stri
+ void AppendBaseClassOffset(const CompilerInstance* compiler, const CXXRecordDecl* completeClass,
+                            const CXXRecordDecl* baseClass, bool isVirtual, std::string& textLine)
+ {
+-  assert(compiler != 0 && "AppendBaseClassOffset, 'compiler' parameter is null");
+-  assert(completeClass != 0 && "AppendBaseClassOffset, 'completeClass' parameter is null");
+-  assert(baseClass != 0 && "AppendBaseClassOffset, 'baseClass' parameter is null");
++  assert(compiler != nullptr && "AppendBaseClassOffset, 'compiler' parameter is null");
++  assert(completeClass != nullptr && "AppendBaseClassOffset, 'completeClass' parameter is null");
++  assert(baseClass != nullptr && "AppendBaseClassOffset, 'baseClass' parameter is null");
+ 
+   const ASTRecordLayout& layout = compiler->getASTContext().getASTRecordLayout(completeClass);
+ 
+@@ -391,9 +391,9 @@ void AppendBaseClassOffset(const CompilerInstance* compiler, const CXXRecordDecl
+ void AppendDataMemberOffset(const CompilerInstance* compiler, const CXXRecordDecl* classDecl,
+                             const FieldDecl* fieldDecl, std::string& textLine)
+ {
+-  assert(compiler != 0 && "AppendDataMemberOffset, 'compiler' parameter is null");
+-  assert(classDecl != 0 && "AppendDataMemberOffset, 'classDecl' parameter is null");
+-  assert(fieldDecl != 0 && "AppendDataMemberOffset, 'fieldDecl' parameter is null");
++  assert(compiler != nullptr && "AppendDataMemberOffset, 'compiler' parameter is null");
++  assert(classDecl != nullptr && "AppendDataMemberOffset, 'classDecl' parameter is null");
++  assert(fieldDecl != nullptr && "AppendDataMemberOffset, 'fieldDecl' parameter is null");
+ 
+   const ASTRecordLayout& layout = compiler->getASTContext().getASTRecordLayout(classDecl);
+ 
+@@ -428,7 +428,7 @@ FILEPrintHelper::FILEPrintHelper(llvm::raw_ostream& stream)
+ //______________________________________________________________________________
+ void FILEPrintHelper::Print(const char* msg)const
+ {
+-  assert(msg != 0 && "Print, 'msg' parameter is null");
++  assert(msg != nullptr && "Print, 'msg' parameter is null");
+   // We want to keep stdout and fStream in sync if fStream is different.
+   fflush(stdout);
+   fStream << msg;
+@@ -471,7 +471,7 @@ private:
+   void ProcessTypeOfMember(const Decl* decl, unsigned nSpaces)const
+   {
+     //Extract the type of declaration and process it.
+-    assert(decl != 0 && "ProcessTypeOfMember, 'decl' parameter is null");
++    assert(decl != nullptr && "ProcessTypeOfMember, 'decl' parameter is null");
+ 
+     if (const ArrayType* const arrayType = decl->getType()->getAsArrayTypeUnsafe()) {
+       if (const Type* const elType = arrayType->getBaseElementTypeUnsafe()) {
+@@ -510,7 +510,7 @@ ClassPrinter::ClassPrinter(llvm::raw_ostream& stream, const cling::Interpreter*
+              fInterpreter(interpreter),
+              fVerbose(false)
+ {
+-  assert(interpreter != 0 && "ClassPrinter, 'compiler' parameter is null");
++  assert(interpreter != nullptr && "ClassPrinter, 'compiler' parameter is null");
+ }
+ 
+ 
+@@ -518,13 +518,13 @@ ClassPrinter::ClassPrinter(llvm::raw_ostream& stream, const cling::Interpreter*
+ void ClassPrinter::DisplayAllClasses()const
+ {
+   //Just in case asserts were deleted from ctor:
+-  assert(fInterpreter != 0 && "DisplayAllClasses, fCompiler is null");
++  assert(fInterpreter != nullptr && "DisplayAllClasses, fCompiler is null");
+ 
+   const CompilerInstance* const compiler = fInterpreter->getCI();
+-  assert(compiler != 0 && "DisplayAllClasses, compiler instance is null");
++  assert(compiler != nullptr && "DisplayAllClasses, compiler instance is null");
+ 
+   const TranslationUnitDecl* const tuDecl = compiler->getASTContext().getTranslationUnitDecl();
+-  assert(tuDecl != 0 && "DisplayAllClasses, translation unit is empty");
++  assert(tuDecl != nullptr && "DisplayAllClasses, translation unit is empty");
+ 
+   fOut.Print("List of classes\n");
+   // Could trigger deserialization of decls.
+@@ -565,8 +565,8 @@ void ClassPrinter::SetVerbose(bool verbose)
+ void ClassPrinter::ProcessDecl(decl_iterator decl)const
+ {
+   //Just in case asserts were deleted from ctor:
+-  assert(fInterpreter != 0 && "ProcessDecl, fInterpreter is null");
+-  assert(*decl != 0 && "ProcessDecl, 'decl' parameter is not a valid iterator");
++  assert(fInterpreter != nullptr && "ProcessDecl, fInterpreter is null");
++  assert(*decl != nullptr && "ProcessDecl, 'decl' parameter is not a valid iterator");
+ 
+   switch (decl->getKind()) {
+   case Decl::Namespace:
+@@ -605,14 +605,14 @@ void ClassPrinter::ProcessDecl(decl_iterator decl)const
+ void ClassPrinter::ProcessBlockDecl(decl_iterator decl)const
+ {
+   //Just in case asserts were deleted from ctor:
+-  assert(fInterpreter != 0 && "ProcessBlockDecl, fInterpreter is null");
+-  assert(*decl != 0 && "ProcessBlockDecl, 'decl' parameter is not a valid iterator");
++  assert(fInterpreter != nullptr && "ProcessBlockDecl, fInterpreter is null");
++  assert(*decl != nullptr && "ProcessBlockDecl, 'decl' parameter is not a valid iterator");
+   assert(decl->getKind() == Decl::Block && "ProcessBlockDecl, decl->getKind() != BlockDecl");
+ 
+   //Block can contain nested (arbitrary deep) class declarations.
+   //Though, I'm not sure if have block in our code.
+   const BlockDecl* const blockDecl = dyn_cast<BlockDecl>(*decl);
+-  assert(blockDecl != 0 && "ProcessBlockDecl, internal error - decl is not a BlockDecl");
++  assert(blockDecl != nullptr && "ProcessBlockDecl, internal error - decl is not a BlockDecl");
+ 
+   // Could trigger deserialization of decls.
+   Interpreter::PushTransactionRAII RAII(const_cast<Interpreter*>(fInterpreter));
+@@ -624,12 +624,12 @@ void ClassPrinter::ProcessBlockDecl(decl_iterator decl)const
+ void ClassPrinter::ProcessFunctionDecl(decl_iterator decl)const
+ {
+   //Just in case asserts were deleted from ctor:
+-  assert(fInterpreter != 0 && "ProcessFunctionDecl, fInterpreter is null");
+-  assert(*decl != 0 && "ProcessFunctionDecl, 'decl' parameter is not a valid iterator");
++  assert(fInterpreter != nullptr && "ProcessFunctionDecl, fInterpreter is null");
++  assert(*decl != nullptr && "ProcessFunctionDecl, 'decl' parameter is not a valid iterator");
+ 
+   //Function can contain class declarations, we have to check this.
+   const FunctionDecl* const functionDecl = dyn_cast<FunctionDecl>(*decl);
+-  assert(functionDecl != 0 && "ProcessFunctionDecl, internal error - decl is not a FunctionDecl");
++  assert(functionDecl != nullptr && "ProcessFunctionDecl, internal error - decl is not a FunctionDecl");
+ 
+   // Could trigger deserialization of decls.
+   Interpreter::PushTransactionRAII RAII(const_cast<Interpreter*>(fInterpreter));
+@@ -641,13 +641,13 @@ void ClassPrinter::ProcessFunctionDecl(decl_iterator decl)const
+ void ClassPrinter::ProcessNamespaceDecl(decl_iterator decl)const
+ {
+   //Just in case asserts were deleted from ctor:
+-  assert(fInterpreter != 0 && "ProcessNamespaceDecl, fInterpreter is null");
+-  assert(*decl != 0 && "ProcessNamespaceDecl, 'decl' parameter is not a valid iterator");
++  assert(fInterpreter != nullptr && "ProcessNamespaceDecl, fInterpreter is null");
++  assert(*decl != nullptr && "ProcessNamespaceDecl, 'decl' parameter is not a valid iterator");
+   assert(decl->getKind() == Decl::Namespace && "ProcessNamespaceDecl, decl->getKind() != Namespace");
+ 
+   //Namespace can contain nested (arbitrary deep) class declarations.
+   const NamespaceDecl* const namespaceDecl = dyn_cast<NamespaceDecl>(*decl);
+-  assert(namespaceDecl != 0 && "ProcessNamespaceDecl, 'decl' parameter is not a NamespaceDecl");
++  assert(namespaceDecl != nullptr && "ProcessNamespaceDecl, 'decl' parameter is not a NamespaceDecl");
+ 
+   // Could trigger deserialization of decls.
+   Interpreter::PushTransactionRAII RAII(const_cast<Interpreter*>(fInterpreter));
+@@ -659,11 +659,11 @@ void ClassPrinter::ProcessNamespaceDecl(decl_iterator decl)const
+ void ClassPrinter::ProcessLinkageSpecDecl(decl_iterator decl)const
+ {
+   //Just in case asserts were deleted from ctor:
+-  assert(fInterpreter != 0 && "ProcessLinkageSpecDecl, fInterpreter is null");
+-  assert(*decl != 0 && "ProcessLinkageSpecDecl, 'decl' parameter is not a valid iterator");
++  assert(fInterpreter != nullptr && "ProcessLinkageSpecDecl, fInterpreter is null");
++  assert(*decl != nullptr && "ProcessLinkageSpecDecl, 'decl' parameter is not a valid iterator");
+ 
+   const LinkageSpecDecl* const linkageSpec = dyn_cast<LinkageSpecDecl>(*decl);
+-  assert(linkageSpec != 0 && "ProcessLinkageSpecDecl, decl is not a LinkageSpecDecl");
++  assert(linkageSpec != nullptr && "ProcessLinkageSpecDecl, decl is not a LinkageSpecDecl");
+ 
+   // Could trigger deserialization of decls.
+   Interpreter::PushTransactionRAII RAII(const_cast<Interpreter*>(fInterpreter));
+@@ -674,11 +674,11 @@ void ClassPrinter::ProcessLinkageSpecDecl(decl_iterator decl)const
+ //______________________________________________________________________________
+ void ClassPrinter::ProcessClassDecl(decl_iterator decl) const
+ {
+-  assert(fInterpreter != 0 && "ProcessClassDecl, fInterpreter is null");
+-  assert(*decl != 0 && "ProcessClassDecl, 'decl' parameter is not a valid iterator");
++  assert(fInterpreter != nullptr && "ProcessClassDecl, fInterpreter is null");
++  assert(*decl != nullptr && "ProcessClassDecl, 'decl' parameter is not a valid iterator");
+ 
+   const CXXRecordDecl* const classDecl = dyn_cast<CXXRecordDecl>(*decl);
+-  assert(classDecl != 0 && "ProcessClassDecl, internal error, declaration is not a CXXRecordDecl");
++  assert(classDecl != nullptr && "ProcessClassDecl, internal error, declaration is not a CXXRecordDecl");
+ 
+   if (!classDecl->hasDefinition()) {
+     DisplayClassFwdDecl(classDecl);
+@@ -698,11 +698,11 @@ void ClassPrinter::ProcessClassDecl(decl_iterator decl) const
+ //______________________________________________________________________________
+ void ClassPrinter::ProcessClassTemplateDecl(decl_iterator decl)const
+ {
+-  assert(fInterpreter != 0 && "ProcessClassDecl, fInterpreter is null");
+-  assert(*decl != 0 && "ProcessClassDecl, 'decl' parameter is not a valid iterator");
++  assert(fInterpreter != nullptr && "ProcessClassDecl, fInterpreter is null");
++  assert(*decl != nullptr && "ProcessClassDecl, 'decl' parameter is not a valid iterator");
+ 
+   ClassTemplateDecl *templateDecl = dyn_cast<ClassTemplateDecl>(*decl);
+-  assert(templateDecl != 0 && "ProcessClassTemplateDecl, internal error, declaration is not a ClassTemplateDecl");
++  assert(templateDecl != nullptr && "ProcessClassTemplateDecl, internal error, declaration is not a ClassTemplateDecl");
+ 
+   templateDecl = templateDecl->getCanonicalDecl();
+ 
+@@ -720,14 +720,14 @@ void ClassPrinter::ProcessClassTemplateDecl(decl_iterator decl)const
+ //______________________________________________________________________________
+ void ClassPrinter::DisplayClassDecl(const CXXRecordDecl* classDecl)const
+ {
+-  assert(classDecl != 0 && "DisplayClassDecl, 'classDecl' parameter is null");
+-  assert(fInterpreter != 0 && "DisplayClassDecl, fInterpreter is null");
++  assert(classDecl != nullptr && "DisplayClassDecl, 'classDecl' parameter is null");
++  assert(fInterpreter != nullptr && "DisplayClassDecl, fInterpreter is null");
+ 
+   // Could trigger deserialization of decls.
+   Interpreter::PushTransactionRAII RAII(const_cast<Interpreter*>(fInterpreter));
+ 
+   classDecl = classDecl->getDefinition();
+-  assert(classDecl != 0 && "DisplayClassDecl, invalid decl - no definition");
++  assert(classDecl != nullptr && "DisplayClassDecl, invalid decl - no definition");
+ 
+   if (fSeenDecls.find(classDecl) != fSeenDecls.end())
+     return;
+@@ -787,8 +787,8 @@ void ClassPrinter::DisplayClassDecl(const CXXRecordDecl* classDecl)const
+ //______________________________________________________________________________
+ void ClassPrinter::DisplayClassFwdDecl(const CXXRecordDecl* classDecl)const
+ {
+-  assert(classDecl != 0 && "DisplayClassDecl, 'classDecl' parameter is null");
+-  assert(fInterpreter != 0 && "DisplayClassDecl, fInterpreter is null");
++  assert(classDecl != nullptr && "DisplayClassDecl, 'classDecl' parameter is null");
++  assert(fInterpreter != nullptr && "DisplayClassDecl, fInterpreter is null");
+ 
+   if (classDecl->isImplicit() || fSeenDecls.find(classDecl) != fSeenDecls.end())
+     return;
+@@ -830,8 +830,8 @@ void ClassPrinter::DisplayClassFwdDecl(const CXXRecordDecl* classDecl)const
+ //______________________________________________________________________________
+ void ClassPrinter::DisplayBasesAsList(const CXXRecordDecl* classDecl)const
+ {
+-  assert(fInterpreter != 0 && "DisplayBasesAsList, fInterpreter is null");
+-  assert(classDecl != 0 && "DisplayBasesAsList, 'classDecl' parameter is 0");
++  assert(fInterpreter != nullptr && "DisplayBasesAsList, fInterpreter is null");
++  assert(classDecl != nullptr && "DisplayBasesAsList, 'classDecl' parameter is 0");
+   assert(classDecl->hasDefinition() == true && "DisplayBasesAsList, 'classDecl' is invalid");
+   assert(fVerbose == false && "DisplayBasesAsList, called in a verbose output");
+ 
+@@ -863,10 +863,10 @@ void ClassPrinter::DisplayBasesAsList(const CXXRecordDecl* classDecl)const
+ //______________________________________________________________________________
+ void ClassPrinter::DisplayBasesAsTree(const CXXRecordDecl* classDecl, unsigned nSpaces)const
+ {
+-  assert(classDecl != 0 && "DisplayBasesAsTree, 'classDecl' parameter is null");
++  assert(classDecl != nullptr && "DisplayBasesAsTree, 'classDecl' parameter is null");
+   assert(classDecl->hasDefinition() == true && "DisplayBasesAsTree, 'classDecl' is invalid");
+ 
+-  assert(fInterpreter != 0 && "DisplayBasesAsTree, fInterpreter is null");
++  assert(fInterpreter != nullptr && "DisplayBasesAsTree, fInterpreter is null");
+   assert(fVerbose == true && "DisplayBasesAsTree, call in a simplified output");
+ 
+   std::string textLine;
+@@ -901,7 +901,7 @@ void ClassPrinter::DisplayBasesAsTree(const CXXRecordDecl* classDecl, unsigned n
+ //______________________________________________________________________________
+ void ClassPrinter::DisplayMemberFunctions(const CXXRecordDecl* classDecl)const
+ {
+-  assert(classDecl != 0 && "DisplayMemberFunctions, 'classDecl' parameter is null");
++  assert(classDecl != nullptr && "DisplayMemberFunctions, 'classDecl' parameter is null");
+ 
+   typedef CXXRecordDecl::method_iterator method_iterator;
+   typedef CXXRecordDecl::ctor_iterator ctor_iterator;
+@@ -946,7 +946,7 @@ void ClassPrinter::DisplayMemberFunctions(const CXXRecordDecl* classDecl)const
+   for (decl_iterator decl = classDecl->decls_begin(); decl != classDecl->decls_end(); ++decl) {
+     if (decl->getKind() == Decl::FunctionTemplate) {
+       const FunctionTemplateDecl* const ftDecl = dyn_cast<FunctionTemplateDecl>(*decl);
+-      assert(ftDecl != 0 && "DisplayMemberFunctions, decl is not a function template");
++      assert(ftDecl != nullptr && "DisplayMemberFunctions, decl is not a function template");
+ 
+       textLine.clear();
+       AppendMemberFunctionLocation(fInterpreter->getCI(), *decl, textLine);
+@@ -975,7 +975,7 @@ void ClassPrinter::DisplayMemberFunctions(const CXXRecordDecl* classDecl)const
+ //______________________________________________________________________________
+ void ClassPrinter::DisplayDataMembers(const CXXRecordDecl* classDecl, unsigned nSpaces)const
+ {
+-  assert(classDecl != 0 && "DisplayDataMembers, 'classDecl' parameter is null");
++  assert(classDecl != nullptr && "DisplayDataMembers, 'classDecl' parameter is null");
+ 
+   typedef RecordDecl::field_iterator field_iterator;
+   typedef EnumDecl::enumerator_iterator enumerator_iterator;
+@@ -1018,7 +1018,7 @@ void ClassPrinter::DisplayDataMembers(const CXXRecordDecl* classDecl, unsigned n
+   for (decl_iterator decl = classDecl->decls_begin(); decl != classDecl->decls_end(); ++decl) {
+     if (decl->getKind() == Decl::Enum) {
+       const EnumDecl* enumDecl = dyn_cast<EnumDecl>(*decl);
+-      assert(enumDecl != 0 && "DisplayDataMembers, decl->getKind() == Enum, but decl is not a EnumDecl");
++      assert(enumDecl != nullptr && "DisplayDataMembers, decl->getKind() == Enum, but decl is not a EnumDecl");
+       //it's not really clear, if I should really check this.
+       if (enumDecl->isComplete() && (enumDecl = enumDecl->getDefinition())) {
+         //if (fSeenDecls.find(enumDecl) == fSeenDecls.end()) {
+@@ -1053,7 +1053,7 @@ void ClassPrinter::DisplayDataMembers(const CXXRecordDecl* classDecl, unsigned n
+       }
+     } else if (decl->getKind() == Decl::Var) {
+       const VarDecl* const varDecl = dyn_cast<VarDecl>(*decl);
+-      assert(varDecl != 0 && "DisplayDataMembers, decl->getKind() == Var, but decl is not a VarDecl");
++      assert(varDecl != nullptr && "DisplayDataMembers, decl->getKind() == Var, but decl is not a VarDecl");
+       if (varDecl->getStorageClass() == SC_Static) {
+         //I hope, this is a static data-member :)
+         textLine.clear();
+@@ -1106,7 +1106,7 @@ GlobalsPrinter::GlobalsPrinter(llvm::raw_ostream& stream, const cling::Interpret
+            : fOut(stream),
+              fInterpreter(interpreter)
+ {
+-  assert(interpreter != 0 && "GlobalsPrinter, 'compiler' parameter is null");
++  assert(interpreter != nullptr && "GlobalsPrinter, 'compiler' parameter is null");
+ }
+ 
+ //______________________________________________________________________________
+@@ -1138,13 +1138,13 @@ void GlobalsPrinter::DisplayGlobals()const
+ {
+   typedef Preprocessor::macro_iterator macro_iterator;
+ 
+-  assert(fInterpreter != 0 && "DisplayGlobals, fInterpreter is null");
++  assert(fInterpreter != nullptr && "DisplayGlobals, fInterpreter is null");
+ 
+   const CompilerInstance* const compiler = fInterpreter->getCI();
+-  assert(compiler != 0 && "DisplayGlobals, compiler instance is null");
++  assert(compiler != nullptr && "DisplayGlobals, compiler instance is null");
+ 
+   const TranslationUnitDecl* const tuDecl = compiler->getASTContext().getTranslationUnitDecl();
+-  assert(tuDecl != 0 && "DisplayGlobals, translation unit is empty");
++  assert(tuDecl != nullptr && "DisplayGlobals, translation unit is empty");
+ 
+   // Could trigger deserialization of decls.
+   Interpreter::PushTransactionRAII RAII(const_cast<Interpreter*>(fInterpreter));
+@@ -1174,13 +1174,13 @@ void GlobalsPrinter::DisplayGlobal(const std::string& name)const
+ 
+   //TODO: is it ok to compare 'name' with decl->getNameAsString() ??
+ 
+-  assert(fInterpreter != 0 && "DisplayGlobal, fInterpreter is null");
++  assert(fInterpreter != nullptr && "DisplayGlobal, fInterpreter is null");
+ 
+   const CompilerInstance* const compiler = fInterpreter->getCI();
+-  assert(compiler != 0 && "DisplayGlobal, compiler instance is null");
++  assert(compiler != nullptr && "DisplayGlobal, compiler instance is null");
+ 
+   const TranslationUnitDecl* const tuDecl = compiler->getASTContext().getTranslationUnitDecl();
+-  assert(tuDecl != 0 && "DisplayGlobal, translation unit is empty");
++  assert(tuDecl != nullptr && "DisplayGlobal, translation unit is empty");
+ 
+   unsigned count = 0;
+ 
+@@ -1209,8 +1209,8 @@ void GlobalsPrinter::DisplayGlobal(const std::string& name)const
+ //______________________________________________________________________________
+ void GlobalsPrinter::DisplayVarDecl(const VarDecl* varDecl) const
+ {
+-  assert(fInterpreter != 0 && "DisplayVarDecl, fInterpreter is null");
+-  assert(varDecl != 0 && "DisplayVarDecl, 'varDecl' parameter is null");
++  assert(fInterpreter != nullptr && "DisplayVarDecl, fInterpreter is null");
++  assert(varDecl != nullptr && "DisplayVarDecl, 'varDecl' parameter is null");
+ 
+   const LangOptions langOpts;
+   PrintingPolicy printingPolicy(langOpts);
+@@ -1240,8 +1240,8 @@ void GlobalsPrinter::DisplayVarDecl(const VarDecl* varDecl) const
+ //______________________________________________________________________________
+ void GlobalsPrinter::DisplayEnumeratorDecl(const EnumConstantDecl* enumerator)const
+ {
+-  assert(fInterpreter != 0 && "DisplayEnumeratorDecl, fInterpreter is null");
+-  assert(enumerator != 0 && "DisplayEnumeratorDecl, 'enumerator' parameter is null");
++  assert(fInterpreter != nullptr && "DisplayEnumeratorDecl, fInterpreter is null");
++  assert(enumerator != nullptr && "DisplayEnumeratorDecl, 'enumerator' parameter is null");
+ 
+   const LangOptions langOpts;
+   PrintingPolicy printingPolicy(langOpts);
+@@ -1342,9 +1342,9 @@ void NamespacePrinter::Print()const
+ void NamespacePrinter::ProcessNamespaceDeclaration(decl_iterator declIt,
+                                 const std::string& enclosingNamespaceName)const
+ {
+-  assert(fInterpreter != 0 &&
++  assert(fInterpreter != nullptr &&
+          "ProcessNamespaceDeclaration, fInterpreter is null");
+-  assert(*declIt != 0 &&
++  assert(*declIt != nullptr &&
+          "ProcessNamespaceDeclaration, parameter 'decl' is not a valid iterator");
+ 
+   if (const auto nsDecl = dyn_cast<NamespaceDecl>(*declIt)) {
+@@ -1405,19 +1405,19 @@ TypedefPrinter::TypedefPrinter(llvm::raw_ostream& stream, const Interpreter* int
+                   : fOut(stream),
+                     fInterpreter(interpreter)
+ {
+-  assert(interpreter != 0 && "TypedefPrinter, parameter 'interpreter' is null");
++  assert(interpreter != nullptr && "TypedefPrinter, parameter 'interpreter' is null");
+ }
+ 
+ //______________________________________________________________________________
+ void TypedefPrinter::DisplayTypedefs()const
+ {
+-  assert(fInterpreter != 0 && "DisplayTypedefs, fInterpreter is null");
++  assert(fInterpreter != nullptr && "DisplayTypedefs, fInterpreter is null");
+ 
+   const CompilerInstance* const compiler = fInterpreter->getCI();
+-  assert(compiler != 0 && "DisplayTypedefs, compiler instance is null");
++  assert(compiler != nullptr && "DisplayTypedefs, compiler instance is null");
+ 
+   const TranslationUnitDecl* const tuDecl = compiler->getASTContext().getTranslationUnitDecl();
+-  assert(tuDecl != 0 && "DisplayTypedefs, translation unit is empty");
++  assert(tuDecl != nullptr && "DisplayTypedefs, translation unit is empty");
+ 
+   fOut.Print("List of typedefs\n");
+   ProcessNestedDeclarations(tuDecl);
+@@ -1450,7 +1450,7 @@ void TypedefPrinter::DisplayTypedef(const std::string& typedefName)const
+ //______________________________________________________________________________
+ void TypedefPrinter::ProcessNestedDeclarations(const DeclContext* decl)const
+ {
+-  assert(decl != 0 && "ProcessNestedDeclarations, parameter 'decl' is null");
++  assert(decl != nullptr && "ProcessNestedDeclarations, parameter 'decl' is null");
+   // Could trigger deserialization of decls.
+   Interpreter::PushTransactionRAII RAII(const_cast<Interpreter*>(fInterpreter));
+   for (decl_iterator it = decl->decls_begin(), eIt = decl->decls_end(); it != eIt; ++it)
+@@ -1460,8 +1460,8 @@ void TypedefPrinter::ProcessNestedDeclarations(const DeclContext* decl)const
+ //______________________________________________________________________________
+ void TypedefPrinter::ProcessDecl(decl_iterator decl)const
+ {
+-  assert(fInterpreter != 0 && "ProcessDecl, fInterpreter is null");
+-  assert(*decl != 0 && "ProcessDecl, parameter 'decl' is not a valid iterator");
++  assert(fInterpreter != nullptr && "ProcessDecl, fInterpreter is null");
++  assert(*decl != nullptr && "ProcessDecl, parameter 'decl' is not a valid iterator");
+ 
+   switch (decl->getKind()) {
+   case Decl::Typedef:
+@@ -1490,9 +1490,9 @@ void TypedefPrinter::ProcessDecl(decl_iterator decl)const
+ //______________________________________________________________________________
+ void TypedefPrinter::DisplayTypedefDecl(TypedefNameDecl* typedefDecl)const
+ {
+-  assert(typedefDecl != 0
++  assert(typedefDecl != nullptr
+          && "DisplayTypedefDecl, parameter 'typedefDecl' is null");
+-  assert(fInterpreter != 0 && "DisplayTypedefDecl, fInterpreter is null");
++  assert(fInterpreter != nullptr && "DisplayTypedefDecl, fInterpreter is null");
+ 
+   std::string textLine;
+   AppendDeclLocation(fInterpreter->getCI(), typedefDecl, textLine);
+@@ -1524,7 +1524,7 @@ void TypedefPrinter::DisplayTypedefDecl(TypedefNameDecl* typedefDecl)const
+ void DisplayClass(llvm::raw_ostream& stream, const Interpreter* interpreter,
+                   const char* className, bool verbose)
+ {
+-  assert(interpreter != 0 && "DisplayClass, 'interpreter' parameter is null");
++  assert(interpreter != nullptr && "DisplayClass, 'interpreter' parameter is null");
+ 
+   ClassPrinter printer(stream, interpreter);
+   printer.SetVerbose(verbose);
+@@ -1540,7 +1540,7 @@ void DisplayClass(llvm::raw_ostream& stream, const Interpreter* interpreter,
+ //______________________________________________________________________________
+ void DisplayNamespaces(llvm::raw_ostream &stream, const Interpreter *interpreter)
+ {
+-  assert(interpreter != 0 && "DisplayNamespaces, parameter 'interpreter' is null");
++  assert(interpreter != nullptr && "DisplayNamespaces, parameter 'interpreter' is null");
+   Interpreter::PushTransactionRAII RAII(const_cast<Interpreter*>(interpreter));
+ 
+   NamespacePrinter printer(stream, interpreter);
+@@ -1551,7 +1551,7 @@ void DisplayNamespaces(llvm::raw_ostream &stream, const Interpreter *interpreter
+ //______________________________________________________________________________
+ void DisplayGlobals(llvm::raw_ostream& stream, const Interpreter* interpreter)
+ {
+-  assert(interpreter != 0 && "DisplayGlobals, 'interpreter' parameter is null");
++  assert(interpreter != nullptr && "DisplayGlobals, 'interpreter' parameter is null");
+ 
+   GlobalsPrinter printer(stream, interpreter);
+   // Could trigger deserialization of decls.
+@@ -1563,7 +1563,7 @@ void DisplayGlobals(llvm::raw_ostream& stream, const Interpreter* interpreter)
+ void DisplayGlobal(llvm::raw_ostream& stream, const Interpreter* interpreter,
+                    const std::string& name)
+ {
+-  assert(interpreter != 0 && "DisplayGlobal, 'interpreter' parameter is null");
++  assert(interpreter != nullptr && "DisplayGlobal, 'interpreter' parameter is null");
+ 
+   GlobalsPrinter printer(stream, interpreter);
+   // Could trigger deserialization of decls.
+@@ -1574,7 +1574,7 @@ void DisplayGlobal(llvm::raw_ostream& stream, const Interpreter* interpreter,
+ //______________________________________________________________________________
+ void DisplayTypedefs(llvm::raw_ostream &stream, const Interpreter *interpreter)
+ {
+-   assert(interpreter != 0 && "DisplayTypedefs, parameter 'interpreter' is null");
++   assert(interpreter != nullptr && "DisplayTypedefs, parameter 'interpreter' is null");
+ 
+    TypedefPrinter printer(stream, interpreter);
+    // Could trigger deserialization of decls.
+@@ -1586,7 +1586,7 @@ void DisplayTypedefs(llvm::raw_ostream &stream, const Interpreter *interpreter)
+ void DisplayTypedef(llvm::raw_ostream &stream, const Interpreter *interpreter,
+                     const std::string &name)
+ {
+-   assert(interpreter != 0 && "DisplayTypedef, parameter 'interpreter' is null");
++   assert(interpreter != nullptr && "DisplayTypedef, parameter 'interpreter' is null");
+ 
+    TypedefPrinter printer(stream, interpreter);
+    printer.DisplayTypedef(name);
+diff --git a/src/interpreter/cling/lib/MetaProcessor/MetaSema.cpp b/src/interpreter/cling/lib/MetaProcessor/MetaSema.cpp
+index abad20f990..ace4fb2f9f 100644
+--- a/src/interpreter/cling/lib/MetaProcessor/MetaSema.cpp
++++ b/src/interpreter/cling/lib/MetaProcessor/MetaSema.cpp
+@@ -141,7 +141,7 @@ namespace cling {
+       return (m_Interpreter.echo(OS.str(), ret) == Interpreter::kSuccess)
+               ? CR_Success : CR_Failure;
+     };
+-    
++
+     cling::Transaction* T = nullptr;
+     if (actOnLCommand(file, &T) != AR_Success || !T)
+       return AR_Failure;
+@@ -193,7 +193,7 @@ namespace cling {
+     auto interpreterHasTransaction = [] (const Interpreter& Interp,
+                                          const Transaction* T) {
+       for (const Transaction* I = Interp.getFirstTransaction();
+-           I != 0; I = I->getNext())
++           I != nullptr; I = I->getNext())
+         if (I == T)
+           return true;
+       return false;
+@@ -469,7 +469,7 @@ namespace cling {
+       clang::ASTContext& Ctx = m_Interpreter.getCI()->getASTContext();
+       if (result) {
+         *result = Value(Ctx.IntTy, m_Interpreter);
+-        result->getAs<long long>() = exitStatus;
++        result->setLongLong(exitStatus); // FIXME: This should assert.
+       }
+       return (exitStatus == 0) ? AR_Success : AR_Failure;
+     }
+diff --git a/src/interpreter/cling/lib/UserInterface/UserInterface.cpp b/src/interpreter/cling/lib/UserInterface/UserInterface.cpp
+index 77b254731a..6aa015b8f5 100644
+--- a/src/interpreter/cling/lib/UserInterface/UserInterface.cpp
++++ b/src/interpreter/cling/lib/UserInterface/UserInterface.cpp
+@@ -13,9 +13,10 @@
+ #include "cling/MetaProcessor/MetaProcessor.h"
+ #include "cling/Utils/Output.h"
+ #include "textinput/Callbacks.h"
+-#include "textinput/TextInput.h"
++#include "textinput/History.h"
+ #include "textinput/StreamReader.h"
+ #include "textinput/TerminalDisplay.h"
++#include "textinput/TextInput.h"
+ 
+ #include "llvm/ADT/SmallString.h"
+ #include "llvm/Support/ErrorHandling.h"
+@@ -66,6 +67,45 @@ namespace {
+ 
+     textinput::TextInput* operator -> () { return &m_Input; }
+   };
++
++  llvm::SmallString<512> GetHistoryFilePath() {
++    if (getenv("CLING_NOHISTORY")) {
++      return {};
++    }
++
++    if (const char* HistFileEnvvar = std::getenv("CLING_HISTFILE")) {
++      return llvm::StringRef{HistFileEnvvar};
++    }
++
++    // History file search order according to XDG Base Directory Specification:
++    //
++    // ${XDG_STATE_HOME}/cling/history
++    // ~/.local/state/cling/history
++    // ~/.cling_history
++    const char* StateHome = std::getenv("XDG_STATE_HOME");
++
++    if (!StateHome) {
++      StateHome = "~/.local/state";
++    }
++
++    llvm::SmallString<512> FilePath;
++
++    if (!llvm::sys::fs::real_path(StateHome, FilePath, true)) {
++      // If xdg state home directory exists then create cling subdirectory if
++      // the latter does not exist.
++      if (llvm::sys::fs::is_directory(FilePath) &&
++          !llvm::sys::fs::create_directory(FilePath += "/cling")) {
++        return FilePath += "/history";
++      }
++    }
++
++    if (llvm::sys::path::home_directory(FilePath)) {
++      return FilePath += "/.cling_history";
++    }
++
++    cling::errs() << "Failed to create command history file\n";
++    return {};
++  }
+ }
+ 
+ namespace cling {
+@@ -82,12 +122,7 @@ namespace cling {
+       PrintLogo();
+     }
+ 
+-    llvm::SmallString<512> histfilePath;
+-    if (!getenv("CLING_NOHISTORY")) {
+-      // History file is $HOME/.cling_history
+-      if (llvm::sys::path::home_directory(histfilePath))
+-        llvm::sys::path::append(histfilePath, ".cling_history");
+-    }
++    auto histfilePath{GetHistoryFilePath()};
+ 
+     const auto Completion =
+         std::make_unique<UITabCompletion>(m_MetaProcessor->getInterpreter());
+@@ -95,6 +130,17 @@ namespace cling {
+ 
+     TI->SetCompletion(Completion.get());
+ 
++    if (const char* HistSizeEnvvar = std::getenv("CLING_HISTSIZE")) {
++      const size_t HistSize = std::strtoull(HistSizeEnvvar, nullptr, 0);
++
++      // std::strtoull() returns 0 if the parsing fails.
++      // zero HistSize will disable history logging to file.
++      // refer to textinput::History::AppendToFile()
++      TI->SetHistoryMaxDepth(HistSize);
++      TI->SetHistoryPruneLength(
++          static_cast<size_t>(textinput::History::kPruneLengthDefault));
++    }
++
+     bool Done = false;
+     std::string Line;
+     std::string Prompt("[cling]$ ");
+diff --git a/src/interpreter/cling/lib/Utils/AST.cpp b/src/interpreter/cling/lib/Utils/AST.cpp
+index 1126ac6382..d41e9b3590 100644
+--- a/src/interpreter/cling/lib/Utils/AST.cpp
++++ b/src/interpreter/cling/lib/Utils/AST.cpp
+@@ -30,7 +30,7 @@ namespace {
+   static D* LookupResult2Decl(clang::LookupResult& R)
+   {
+     if (R.empty())
+-      return 0;
++      return nullptr;
+ 
+     R.resolveKind();
+ 
+@@ -112,7 +112,7 @@ namespace utils {
+     if (FoundAt)
+       *FoundAt = -1;
+ 
+-    Expr* result = 0;
++    Expr* result = nullptr;
+     if (CompoundStmt* CS = dyn_cast<CompoundStmt>(FD->getBody())) {
+       ArrayRef<Stmt*> Stmts
+         = llvm::makeArrayRef(CS->body_begin(), CS->size());
+@@ -126,7 +126,7 @@ namespace utils {
+         *FoundAt = indexOfLastExpr;
+ 
+       if (indexOfLastExpr < 0)
+-        return 0;
++        return nullptr;
+ 
+       if ( (result = dyn_cast<Expr>(Stmts[indexOfLastExpr])) )
+         return result;
+@@ -196,7 +196,7 @@ namespace utils {
+   GetFullyQualifiedTemplateName(const ASTContext& Ctx, TemplateName &tname) {
+ 
+     bool changed = false;
+-    NestedNameSpecifier *NNS = 0;
++    NestedNameSpecifier *NNS = nullptr;
+ 
+     TemplateDecl *argtdecl = tname.getAsTemplateDecl();
+     QualifiedTemplateName *qtname = tname.getAsQualifiedTemplateName();
+@@ -208,7 +208,7 @@ namespace utils {
+         changed = true;
+         NNS = qNNS;
+       } else {
+-        NNS = 0;
++        NNS = nullptr;
+       }
+     } else {
+       NNS = CreateNestedNameSpecifierForScopeOf(Ctx, argtdecl, true);
+@@ -362,7 +362,7 @@ namespace utils {
+ 
+     if (const Type *type = scope->getAsType()) {
+       // Find decl context.
+-      const TagDecl* TD = 0;
++      const TagDecl* TD = nullptr;
+       if (const TagType* tagdecltype = dyn_cast<TagType>(type)) {
+         TD = tagdecltype->getDecl();
+       } else {
+@@ -391,7 +391,7 @@ namespace utils {
+                                     NestedNameSpecifier *original_prefix,
+                              const Transform::Config& TypeConfig) {
+     // We have to also desugar the prefix.
+-    NestedNameSpecifier* prefix = 0;
++    NestedNameSpecifier* prefix = nullptr;
+     if (declContext) {
+       // We had a scope prefix as input, let see if it is still
+       // the same as the scope of the result and if it is, then
+@@ -402,7 +402,7 @@ namespace utils {
+         const NamespaceDecl *new_ns =dyn_cast<NamespaceDecl>(declContext);
+         if (new_ns) {
+           new_ns = new_ns->getCanonicalDecl();
+-          NamespaceDecl *old_ns = 0;
++          NamespaceDecl *old_ns = nullptr;
+           if (original_prefix) {
+             original_prefix->getAsNamespace();
+             if (NamespaceAliasDecl *alias =
+@@ -551,7 +551,7 @@ namespace utils {
+         desugared = etype->getNamedType();
+       } else {
+ 
+-        Decl* decl = 0;
++        Decl* decl = nullptr;
+         const TypedefType* typedeftype =
+           dyn_cast_or_null<TypedefType>(&(*desugared));
+         if (typedeftype) {
+@@ -576,7 +576,7 @@ namespace utils {
+             outer_scope = SelectPrefix(Ctx,decl->getDeclContext(),
+                                        outer_scope,TypeConfig);
+           } else {
+-            outer_scope = 0;
++            outer_scope = nullptr;
+           }
+         } else if (outer_scope) {
+           outer_scope = GetPartiallyDesugaredNNS(Ctx, outer_scope, TypeConfig);
+@@ -675,7 +675,7 @@ namespace utils {
+ 
+     if (Analyze::IsStdClass(Template)) {
+       static const char *stls[] =  //container names
+-        {"vector","list","deque","map","multimap","set","multiset",0};
++        {"vector","list","deque","map","multimap","set","multiset",nullptr};
+       static unsigned int values[] =       //number of default arg.
+         {1,1,1,2,2,2,2};
+       StringRef name = Template.getName();
+@@ -1045,7 +1045,7 @@ namespace utils {
+     // NOTE: however we problably want to add the std::vector typedefs
+     // to the list of things to skip!
+ 
+-    NestedNameSpecifier* original_prefix = 0;
++    NestedNameSpecifier* original_prefix = nullptr;
+     Qualifiers prefix_qualifiers;
+     const ElaboratedType* etype_input
+       = dyn_cast<ElaboratedType>(QT.getTypePtr());
+@@ -1063,7 +1063,7 @@ namespace utils {
+           prefix_qualifiers = QT.getLocalQualifiers();
+           QT = QualType(etype_input->getNamedType().getTypePtr(),0);
+         } else {
+-          original_prefix = 0;
++          original_prefix = nullptr;
+         }
+       }
+     }
+@@ -1108,7 +1108,7 @@ namespace utils {
+                                            fullyQualifyTmpltArg);
+     }
+ 
+-    NestedNameSpecifier* prefix = 0;
++    NestedNameSpecifier* prefix = nullptr;
+     const ElaboratedType* etype
+       = dyn_cast<ElaboratedType>(QT.getTypePtr());
+     if (etype) {
+@@ -1123,7 +1123,7 @@ namespace utils {
+       // in which case we want to add it ... but we can't really preserve
+       // the typedef in this case ...
+ 
+-      Decl *decl = 0;
++      Decl *decl = nullptr;
+       const TypedefType* typedeftype =
+         dyn_cast_or_null<TypedefType>(QT.getTypePtr());
+       if (typedeftype) {
+@@ -1156,7 +1156,7 @@ namespace utils {
+                 // Same type, use the original spelling
+                 prefix
+                   = GetPartiallyDesugaredNNS(Ctx, original_prefix, TypeConfig);
+-                outer = 0; // Cancel the later creation.
++                outer = nullptr; // Cancel the later creation.
+               }
+             } else {
+               const NamespaceDecl *old_ns = original_prefix->getAsNamespace();
+@@ -1174,7 +1174,7 @@ namespace utils {
+                 // This is the same namespace, use the original prefix
+                 // as a starting point.
+                 prefix = GetFullyQualifiedNameSpecifier(Ctx,original_prefix);
+-                outer = 0; // Cancel the later creation.
++                outer = nullptr; // Cancel the later creation.
+               }
+             }
+           } else { // if (!original_prefix)
+@@ -1420,14 +1420,14 @@ namespace utils {
+       if (const clang::TagDecl* TD = dyn_cast<clang::TagDecl>(Within)) {
+         if (!TD->getDefinition()) {
+           // No definition, no lookup result.
+-          return 0;
++          return nullptr;
+         }
+       }
+       S->LookupQualifiedName(R, const_cast<DeclContext*>(Within));
+     }
+ 
+     if (R.empty())
+-      return 0;
++      return nullptr;
+ 
+     R.resolveKind();
+ 
+@@ -1536,7 +1536,7 @@ namespace utils {
+         return TypeName::CreateNestedNameSpecifier(Ctx, TD, FullyQualified);
+       }
+     }
+-    return 0;
++    return nullptr;
+   }
+ 
+   static NestedNameSpecifier*
+@@ -1547,9 +1547,9 @@ namespace utils {
+     // Create a nested name specifier for the declaring context of the type.
+ 
+     if (!TypePtr)
+-      return 0;
++      return nullptr;
+ 
+-    Decl *decl = 0;
++    Decl *decl = nullptr;
+     if (const TypedefType* typedeftype = llvm::dyn_cast<TypedefType>(TypePtr)) {
+       decl = typedeftype->getDecl();
+     } else {
+@@ -1561,7 +1561,7 @@ namespace utils {
+     }
+ 
+     if (!decl)
+-      return 0;
++      return nullptr;
+ 
+     return CreateNestedNameSpecifierForScopeOf(Ctx, decl, FullyQualified);
+   }
+@@ -1573,7 +1573,7 @@ namespace utils {
+       // Ignore inline namespace;
+       Namesp = dyn_cast_or_null<NamespaceDecl>(Namesp->getDeclContext());
+     }
+-    if (!Namesp) return 0;
++    if (!Namesp) return nullptr;
+ 
+     bool FullyQualified = true; // doesn't matter, DeclContexts are namespaces
+     return NestedNameSpecifier::Create(Ctx, CreateOuterNNS(Ctx, Namesp,
+@@ -1658,7 +1658,7 @@ namespace utils {
+       QT = Ctx.getQualifiedType(QT, quals);
+     }
+ 
+-    NestedNameSpecifier* prefix = 0;
++    NestedNameSpecifier* prefix = nullptr;
+     Qualifiers prefix_qualifiers;
+     if (const ElaboratedType* etype_input
+         = llvm::dyn_cast<ElaboratedType>(QT.getTypePtr())) {
+@@ -1672,9 +1672,9 @@ namespace utils {
+             && !(ns && ns->isAnonymousNamespace())) {
+           prefix_qualifiers = QT.getLocalQualifiers();
+           prefix = GetFullyQualifiedNameSpecifier(Ctx, prefix);
+-          QT = QualType(etype_input->getNamedType().getTypePtr(),0);
++          QT = QualType(etype_input->getNamedType().getTypePtr(), 0);
+         } else {
+-          prefix = 0;
++          prefix = nullptr;
+         }
+       }
+     } else {
+diff --git a/src/interpreter/cling/test/Driver/CommandHistory.C b/src/interpreter/cling/test/Driver/CommandHistory.C
+new file mode 100644
+index 0000000000..d91e54ee88
+--- /dev/null
++++ b/src/interpreter/cling/test/Driver/CommandHistory.C
+@@ -0,0 +1,36 @@
++//------------------------------------------------------------------------------
++// CLING - the C++ LLVM-based InterpreterG :)
++//
++// This file is dual-licensed: you can choose to license it under the University
++// of Illinois Open Source License or the GNU Lesser General Public License. See
++// LICENSE.TXT for details.
++//------------------------------------------------------------------------------
++
++// clang-format off
++// RUN: %rm /tmp/__testing_cling_history
++// RUN: cat %s | env --unset=CLING_NOHISTORY CLING_HISTSIZE=8 CLING_HISTFILE="/tmp/__testing_cling_history" %cling - 2>&1
++// RUN: diff /tmp/__testing_cling_history "%S/Inputs/cling_history"
++// REQUIRES: not_system-windows
++
++#include <iostream>
++
++int i = 8;
++
++template<class T>
++struct type_a {
++	const T t;
++	double d;
++
++/*
++		comment
++ * */
++
++	static const int i = 37;
++};
++
++// another comment
++
++using std::cout;
++
++std::cout << "test\n";
++
+diff --git a/src/interpreter/cling/test/Driver/Inputs/cling_history b/src/interpreter/cling/test/Driver/Inputs/cling_history
+new file mode 100644
+index 0000000000..eed01cab12
+--- /dev/null
++++ b/src/interpreter/cling/test/Driver/Inputs/cling_history
+@@ -0,0 +1,8 @@
++/*
++comment
++ * */
++static const int i = 37;
++};
++// another comment
++using std::cout;
++std::cout << "test\n";
+diff --git a/src/interpreter/cling/test/Interfaces/evaluate.C b/src/interpreter/cling/test/Interfaces/evaluate.C
+index cbec8ea80b..02b9254033 100644
+--- a/src/interpreter/cling/test/Interfaces/evaluate.C
++++ b/src/interpreter/cling/test/Interfaces/evaluate.C
+@@ -141,7 +141,7 @@ namespace cling {
+   }
+ }
+ void dumpTracerSVR(cling::Value& svr) {
+-  ((Tracer*)svr.getAs<void*>())->dump("dump");
++  ((Tracer*)svr.castAs<void*>())->dump("dump");
+ }
+ .rawInput 0
+ 
+diff --git a/src/interpreter/cling/tools/demo/cling-demo.cpp b/src/interpreter/cling/tools/demo/cling-demo.cpp
+index 4ca2a86560..28764e3e91 100644
+--- a/src/interpreter/cling/tools/demo/cling-demo.cpp
++++ b/src/interpreter/cling/tools/demo/cling-demo.cpp
+@@ -31,13 +31,13 @@ void useHeader(cling::Interpreter& interp) {
+ 
+   cling::Value res; // Will hold the result of the expression evaluation.
+   interp.process("aGlobal;", &res);
+-  std::cout << "aGlobal is " << res.getAs<long long>() << '\n';
++  std::cout << "aGlobal is " << res.castAs<long long>() << '\n';
+   interp.process("getAnotherGlobal();", &res);
+-  std::cout << "getAnotherGlobal() returned " << res.getAs<float>() << '\n';
++  std::cout << "getAnotherGlobal() returned " << res.getFloat() << '\n';
+ 
+   setAnotherGlobal(1.); // We modify the compiled value,
+   interp.process("getAnotherGlobal();", &res); // does the interpreter see it?
+-  std::cout << "getAnotherGlobal() returned " << res.getAs<float>() << '\n';
++  std::cout << "getAnotherGlobal() returned " << res.getFloat() << '\n';
+ 
+   // We modify using the interpreter, now the binary sees the new value.
+   interp.process("setAnotherGlobal(7.777); getAnotherGlobal();");
+diff --git a/src/interpreter/cling/tools/driver/CMakeLists.txt b/src/interpreter/cling/tools/driver/CMakeLists.txt
+index 77d6a2870d..d107dd7d02 100644
+--- a/src/interpreter/cling/tools/driver/CMakeLists.txt
++++ b/src/interpreter/cling/tools/driver/CMakeLists.txt
+@@ -9,9 +9,9 @@
+ # Keep symbols for JIT resolution
+ set(LLVM_NO_DEAD_STRIP 1)
+ 
++set(LLVM_LINK_COMPONENTS Support)
+ if(BUILD_SHARED_LIBS)
+   set(LIBS
+-    LLVMSupport
+ 
+     clangFrontendTool
+ 
+@@ -25,8 +25,6 @@ if(BUILD_SHARED_LIBS)
+   )
+ else()
+   set(LIBS
+-    LLVMSupport
+-
+     clangASTMatchers
+     clangFrontendTool
+ 
+diff --git a/src/interpreter/cling/tools/plugins/clad/CMakeLists.txt b/src/interpreter/cling/tools/plugins/clad/CMakeLists.txt
+index fb4a3ae28f..44443b1873 100644
+--- a/src/interpreter/cling/tools/plugins/clad/CMakeLists.txt
++++ b/src/interpreter/cling/tools/plugins/clad/CMakeLists.txt
+@@ -66,7 +66,7 @@ list(APPEND _clad_cmake_logging_settings LOG_OUTPUT_ON_FAILURE ON)
+ ExternalProject_Add(
+   clad
+   GIT_REPOSITORY https://github.com/vgvassilev/clad.git
+-  GIT_TAG v1.0
++  GIT_TAG v1.1
+   UPDATE_COMMAND ""
+   CMAKE_ARGS -G ${CMAKE_GENERATOR}
+              -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE}

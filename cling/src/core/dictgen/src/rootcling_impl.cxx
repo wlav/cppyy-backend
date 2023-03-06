@@ -4173,7 +4173,7 @@ int RootClingMain(int argc,
       }
 
       dictpathname = gOptDictionaryFileName;
-      dictname = llvm::sys::path::filename(gOptDictionaryFileName);
+      dictname = llvm::sys::path::filename(gOptDictionaryFileName).str();
    }
 
    if (gOptForce && dictname.empty()) {
