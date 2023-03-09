@@ -34,6 +34,7 @@ jobs:
 
 
 workflows:
+  version: 2
   build-aarch64-wheels:
     when: << pipeline.parameters.build_aarch64_wheel >>
     jobs:
