@@ -19,10 +19,7 @@ test-command = 'python -c "import cppyy_backend"'
 repair-wheel-command = ""
 # repair-wheel-command = "LD_LIBRARY_PATH=$PWD/lib auditwheel repair -w {dest_dir} {wheel}"
 
-[tool.cibuildwheel.macos.environment]
-MACOSX_DEPLOYMENT_TARGET = "10.9"
-
 # mac-arm target is 10.15
 [[tool.cibuildwheel.overrides]]
-select = "*macos*{universal2,arm64}*"
+select = "*macos*"
 environment = { MACOSX_DEPLOYMENT_TARGET = "10.15" }
