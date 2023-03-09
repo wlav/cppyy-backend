@@ -1,16 +1,31 @@
 name: Build and upload to PyPI
 
-# Build on every branch push, tag push, and pull request change:
-on: [push] #, pull_request]
-# Alternatively, to publish when a (published) GitHub Release is created, use the following:
-# on:
-#   push:
-#   pull_request:
-#   release:
-#     types:
-#       - published
+on:
+  workflow_dispatch:
+    inputs:
+      build_aarch64_wheel:
+        description: "Whether to build aarch64 wheel on CircleCI"
+        default: false
+        type: boolean
+      branch:
+        description: "Which branch to target"
+        default: build-wheels-with-cibuildwheel
+        type: string
 
 jobs:
+  build-aarch64-wheels:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: setup python
+        uses: actions/setup-python@v4
+        with:
+          python-version: "3.9"
+      - name: Trigger circleci build for ARM
+        run: |
+          echo "Need to trigger circleci pipeline"
+
   build_wheels:
     name: Build wheels on ${{ matrix.cibw.build }}
     runs-on: ${{ matrix.os }}
@@ -120,7 +135,7 @@ jobs:
       - uses: actions/checkout@v3
 
       - name: setup python
-        uses: actions/setup-python@v3
+        uses: actions/setup-python@v4
         with:
           python-version: "3.9"
           architecture: ${{ matrix.architecture }}
