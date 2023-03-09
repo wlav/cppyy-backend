@@ -43,11 +43,11 @@ jobs:
               arch: x86_64
               build: "pp37-macosx_x86_64"
 
-          - os: macos-11
-            name: mac-pypy-arm
-            cibw:
-              arch: arm64
-              build: "pp38-macosx_arm64"
+          # - os: macos-11
+          #   name: mac-pypy-arm
+          #   cibw:
+          #     arch: arm64
+          #     build: "pp38-macosx_arm64"
 
           - os: ubuntu-20.04
             name: manylinux-x86_64
@@ -61,11 +61,11 @@ jobs:
           #     arch: aarch64
           #     build: "cp36-manylinux_aarch64"
 
-          - os: ubuntu-20.04
-            name: manylinux-pypy-arch64
-            cibw:
-              arch: aarch64
-              build: "pp37-manylinux_aarch64"
+          # - os: ubuntu-20.04
+          #   name: manylinux-pypy-arch64
+          #   cibw:
+          #     arch: aarch64
+          #     build: "pp37-manylinux_aarch64"
 
           - os: ubuntu-20.04
             name: manylinux-i686
@@ -79,23 +79,23 @@ jobs:
               arch: x86_64
               build: "pp37-manylinux_x86_64"
 
-          - os: ubuntu-20.04
-            name: musllinux-x86_64
-            cibw:
-              arch: x86_64
-              build: "cp36-musllinux_x86_64"
+          # - os: ubuntu-20.04
+          #   name: musllinux-x86_64
+          #   cibw:
+          #     arch: x86_64
+          #     build: "cp36-musllinux_x86_64"
 
-          - os: ubuntu-20.04
-            name: musllinux-pypy-x86_64
-            cibw:
-              arch: x86_64
-              build: "pp37-musllinux_x86_64"
+          # - os: ubuntu-20.04
+          #   name: musllinux-pypy-x86_64
+          #   cibw:
+          #     arch: x86_64
+          #     build: "pp37-musllinux_x86_64"
 
-          - os: ubuntu-20.04
-            name: musllinux-i686
-            cibw:
-              arch: i686
-              build: "cp36-musllinux_i686"
+          # - os: ubuntu-20.04
+          #   name: musllinux-i686
+          #   cibw:
+          #     arch: i686
+          #     build: "cp36-musllinux_i686"
 
           - os: windows-2019
             name: win32
