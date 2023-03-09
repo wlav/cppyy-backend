@@ -143,12 +143,12 @@ jobs:
 
       - name: list target wheels
         run: |
-          cd cling && python -m cibuildwheel . --print-build-identifiers
+          python -m cibuildwheel cling --print-build-identifiers
 
       - name: Build wheels
         timeout-minutes: 600
         run: |
-          cd cling && python -m cibuildwheel --output-dir wheelhouse
+          python -m cibuildwheel cling --output-dir wheelhouse
 
       - uses: actions/upload-artifact@v3
         with:
