@@ -1420,7 +1420,7 @@ int CppyyLegacy::TMetaUtils::extractAttrString(clang::Attr* attribute, std::stri
       //TMetaUtils::Error(0,"Could not cast Attribute to AnnotatedAttribute\n");
       return 1;
    }
-   attrString = annAttr->getAnnotation();
+   attrString = annAttr->getAnnotation().str();
    return 0;
 }
 
@@ -1467,7 +1467,7 @@ bool CppyyLegacy::TMetaUtils::ExtractAttrPropertyFromName(const clang::Decl& dec
       std::pair<llvm::StringRef,llvm::StringRef> split = attribute.split(propNames::separator.c_str());
       if (split.first != propName.c_str()) continue;
       else {
-         propValue = split.second;
+         propValue = split.second.str();
          return true;
       }
    }

@@ -1,0 +1,22 @@
+diff --git a/src/interpreter/llvm/src/utils/TableGen/GlobalISel/GIMatchDag.cpp b/src/interpreter/llvm/src/utils/TableGen/GlobalISel/GIMatchDag.cpp
+index 7e037dd03b..8be32d2eff 100644
+--- a/src/interpreter/llvm/src/utils/TableGen/GlobalISel/GIMatchDag.cpp
++++ b/src/interpreter/llvm/src/utils/TableGen/GlobalISel/GIMatchDag.cpp
+@@ -48,7 +48,7 @@ void GIMatchDag::writeDOTGraph(raw_ostream &OS, StringRef ID) const {
+          << Assignment.first << ")";
+       Separator = ", ";
+     }
+-    OS << format("|%p|", &N);
++    OS << llvm::format("|%p|", &N);
+     writePorts("d", N->getOperandInfo());
+     OS << "}\"";
+     if (N->isMatchRoot())
+@@ -82,7 +82,7 @@ void GIMatchDag::writeDOTGraph(raw_ostream &OS, StringRef ID) const {
+     writePorts("s", N->getOperandInfo());
+     OS << "|" << N->getName() << "|";
+     N->printDescription(OS);
+-    OS << format("|%p|", &N);
++    OS << llvm::format("|%p|", &N);
+     writePorts("d", N->getOperandInfo());
+     OS << "}\",style=dotted]\n";
+   }

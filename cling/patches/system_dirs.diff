@@ -38,7 +38,7 @@ index 1213179cba..774e31c24d 100644
 +    llvm::SmallString<512> recInc(resourcePath);
 +    llvm::sys::path::append(recInc, "include");
 +    if (llvm::sys::fs::exists(recInc.str()))
-+      resourceIncDir = recInc.str();
++      resourceIncDir = recInc.str().str();
 +
      if (FILE *PF = ::popen(CppInclQuery.c_str(), "r")) {
        Buf.resize(Buf.capacity_in_bytes());

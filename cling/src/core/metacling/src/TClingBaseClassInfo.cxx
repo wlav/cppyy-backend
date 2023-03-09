@@ -218,7 +218,7 @@ TClingBaseClassInfo::GenerateBaseOffsetFunction(TClingClassInfo * fromDerivedCla
                                                   QTtoBase, *fInterp);
       //  Write the wrapper code.
       llvm::raw_string_ostream buf(code);
-      buf << "extern \"C\" long " + wrapper_name + "(void* address, bool isDerivedObject) {\n"
+      buf << "extern \"C\" ptrdiff_t " + wrapper_name + "(void* address, bool isDerivedObject) {\n"
       // If the object is not derived, will downcast to toBase first.
           << "  " << fromDerivedClassName << " *fromDerived;"
           << "  if (isDerivedObject) {"
@@ -230,7 +230,7 @@ TClingBaseClassInfo::GenerateBaseOffsetFunction(TClingClassInfo * fromDerivedCla
           << "    return -1; \n"
           << "  }\n"
           << "  " << toBase_class_name << " *toBase = fromDerived;\n"
-          << "  return ((long)toBase - (long)fromDerived);\n}\n";
+          << "  return ((intptr_t)toBase - (intptr_t)fromDerived);\n}\n";
    }
 
    // If we have a GV then compileFunction will use it; empty code is enough.

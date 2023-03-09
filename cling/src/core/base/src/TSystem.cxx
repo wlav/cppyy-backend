@@ -3541,8 +3541,8 @@ const char *TSystem::GetObjExt() const
 void TSystem::SetBuildDir(const char* build_dir, Bool_t isflat)
 {
    fBuildDir = build_dir;
-   if (isflat) fAclicProperties |= (kFlatBuildDir & kBitMask);
-   else fAclicProperties &= ~(kFlatBuildDir & kBitMask);
+   if (isflat) fAclicProperties |= kFlatBuildDir;
+   else fAclicProperties &= ~kFlatBuildDir;
 }
 
 ////////////////////////////////////////////////////////////////////////////////
