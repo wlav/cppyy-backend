@@ -1,31 +1,31 @@
 version: 2
 # Get inspiration from https://github.com/dwavesystems/dimod/blob/main/.circleci/config.yml
 jobs:
-  linux-wheels:
-    working_directory: ~/linux-wheels
-    machine:
-      image: ubuntu-2004:2022.10.1
-    resource_class: large
-    environment:
-        STDCXX: 20
-        MAKE_NPROCS: 4
-    steps:
-      - checkout
-      - run: 
-          name: Update 
-          command: |
-            sudo apt-get update && sudo apt-get install git cmake build-essential tar curl g++ gcc-9 clang-10
-      - run:
-          name: Build the Linux wheels.
-          command: |
-            python3 -m venv venv
-            . venv/bin/activate
-            python3 -m pip install pip --upgrade
-            python3 -m pip install cibuildwheel==2.12.0
-            python3 -m cibuildwheel cling --print-build-identifiers
-            python3 -m cibuildwheel cling --output-dir wheelhouse
-      - store_artifacts:
-          path: wheelhouse/
+  # linux-wheels:
+  #   working_directory: ~/linux-wheels
+  #   machine:
+  #     image: ubuntu-2004:2022.10.1
+  #   resource_class: large
+  #   environment:
+  #       STDCXX: 20
+  #       MAKE_NPROCS: 4
+  #   steps:
+  #     - checkout
+  #     - run: 
+  #         name: Update 
+  #         command: |
+  #           sudo apt-get update && sudo apt-get install git cmake build-essential tar curl g++ gcc-9 clang-10
+  #     - run:
+  #         name: Build the Linux wheels.
+  #         command: |
+  #           python3 -m venv venv
+  #           . venv/bin/activate
+  #           python3 -m pip install pip --upgrade
+  #           python3 -m pip install cibuildwheel==2.12.0
+  #           python3 -m cibuildwheel cling --print-build-identifiers
+  #           python3 -m cibuildwheel cling --output-dir wheelhouse
+  #     - store_artifacts:
+  #         path: wheelhouse/
 
   linux-aarch64-wheels:
     working_directory: ~/linux-aarch64-wheels
@@ -51,28 +51,28 @@ jobs:
       - store_artifacts:
           path: wheelhouse/
 
-  osx-wheels:
-    working_directory: ~/osx-wheels
-    macos:
-      xcode: 12.5.1
-    steps:
-      - checkout
-      - run:
-          name: Build the OS X wheels.
-          command: |
-            python3 -m venv venv
-            . venv/bin/activate
-            python3 -m pip install pip --upgrade
-            python3 -m pip install cibuildwheel==2.12.0
-            python3 -m cibuildwheel cling --print-build-identifiers
-            python3 -m cibuildwheel cling --output-dir wheelhouse
-      - store_artifacts:
-          path: wheelhouse/
+  # osx-wheels:
+  #   working_directory: ~/osx-wheels
+  #   macos:
+  #     xcode: 12.5.1
+  #   steps:
+  #     - checkout
+  #     - run:
+  #         name: Build the OS X wheels.
+  #         command: |
+  #           python3 -m venv venv
+  #           . venv/bin/activate
+  #           python3 -m pip install pip --upgrade
+  #           python3 -m pip install cibuildwheel==2.12.0
+  #           python3 -m cibuildwheel cling --print-build-identifiers
+  #           python3 -m cibuildwheel cling --output-dir wheelhouse
+  #     - store_artifacts:
+  #         path: wheelhouse/
 
 workflows:
   version: 2
   all-tests:
     jobs:
-      - linux-wheels
       - linux-aarch64-wheels
-      - osx-wheels
+      # - linux-wheels
+      # - osx-wheels

@@ -1,7 +1,7 @@
 name: Build and upload to PyPI
 
 # Build on every branch push, tag push, and pull request change:
-on: [] #push, pull_request]
+on: [push] #, pull_request]
 # Alternatively, to publish when a (published) GitHub Release is created, use the following:
 # on:
 #   push:
@@ -55,11 +55,11 @@ jobs:
               arch: x86_64
               build: "cp36-manylinux_x86_64"
 
-          - os: ubuntu-20.04
-            name: manylinux-arch64
-            cibw:
-              arch: aarch64
-              build: "cp36-manylinux_aarch64"
+          # - os: ubuntu-20.04
+          #   name: manylinux-arch64
+          #   cibw:
+          #     arch: aarch64
+          #     build: "cp36-manylinux_aarch64"
 
           - os: ubuntu-20.04
             name: manylinux-pypy-arch64
