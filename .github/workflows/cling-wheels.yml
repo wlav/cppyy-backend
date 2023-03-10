@@ -5,6 +5,8 @@ on: [push]
 jobs:
   build-aarch64-wheels:
     runs-on: ubuntu-latest
+    outputs:
+      job_number: ${{ steps.aarch64-job-number.outputs.job_number }}
     steps:
       - uses: actions/checkout@v3
 
@@ -140,7 +142,7 @@ jobs:
           path: ./cling/dist/*.tar.gz
 
   upload_aarch64_wheel:
-    needs: build_wheels  # Just wait until this workflow is done - then aarch64 should be done
+    needs: [build_wheels, build-aarch64-wheels]  # Just wait until this workflow is done - then aarch64 should be done
     runs-on: ubuntu-latest
 
     steps:
@@ -153,8 +155,10 @@ jobs:
           python-version: "3.10"
 
       - name: Get wheel from CircleCI artifact
+        env:
+          JOB_NUMBER: ${{ needs.build-aarch64-wheels.outputs.job_number }}
         run: |
-          export WHEEL_PATH=$(python circleci.py artifact --job-number ${{ steps.aarch64-job-number.outputs.job_number }})
+          export WHEEL_PATH=$(python circleci.py artifact --job-number $JOB_NUMBER)
           echo "wheel_path=$WHEEL_PATH" >> $GITHUB_ENV
 
       - uses: actions/upload-artifact@v3
