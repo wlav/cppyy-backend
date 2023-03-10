@@ -155,8 +155,11 @@ class my_cmake_build(_build):
         CMAKE_COMMAND.append('-DCMAKE_BUILD_TYPE='+get_build_type())
         if 'win32' in sys.platform:
             import platform
-            if '64' in platform.architecture()[0]:
+            bits = platform.architecture()[0]
+            if '64' in bits:
                 CMAKE_COMMAND += ['-Thost=x64', '-DCMAKE_GENERATOR_PLATFORM=x64']
+            elif '32' in bits:
+                CMAKE_COMMAND += ['-Thost=x86', '-DCMAKE_GENERATOR_PLATFORM=win32']
         elif 'darwin' in sys.platform:
             import platform
             if 'arm64' in platform.machine():
