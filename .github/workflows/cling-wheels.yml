@@ -158,7 +158,7 @@ jobs:
         env:
           JOB_NUMBER: ${{ needs.build-aarch64-wheels.outputs.job_number }}
         run: |
-          export WHEEL_PATH=$(python circleci.py artifact --job-number $JOB_NUMBER --token ${{ secrets.CIRCLE_API_TOKEN }}))
+          export WHEEL_PATH=$(python circleci.py artifact --job-number $JOB_NUMBER --token ${{ secrets.CIRCLE_API_TOKEN }})
           echo "wheel_path=$WHEEL_PATH" >> $GITHUB_ENV
 
       - uses: actions/upload-artifact@v3
