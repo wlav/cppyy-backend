@@ -14,8 +14,8 @@ jobs:
           python-version: "3.10"
       - name: Trigger circleci build for ARM
         run: |
-          export JOBID=$(python3 circleci.py job --token ${{ secrets.CIRCLE_API_TOKEN }})
-          echo "jobid=$JOBID" >> $GITHUB_ENV
+          export JOB_NUMBER=$(python3 circleci.py job --token ${{ secrets.CIRCLE_API_TOKEN }})
+          echo "job_number=$JOB_NUMBER" >> $GITHUB_ENV
 
   build_wheels:
     name: Build wheels on ${{ matrix.cibw.build }}
@@ -153,7 +153,7 @@ jobs:
 
       - name: Get wheel from CircleCI artifact
         run: |
-          WHEEL_PATH=$(python circleci.py artifact --job-id ${{ env.jobid }})
+          WHEEL_PATH=$(python circleci.py artifact --job-number ${{ env.job_number }})
           echo "wheel_path=$WHEEL_PATH" >> $GITHUB_ENV
 
       - uses: actions/upload-artifact@v3
