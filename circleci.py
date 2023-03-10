@@ -13,7 +13,7 @@ def get_artifact(
     vcs: str = "github",
     org: str = "finsberg",
     project: str = "cppyy-backend",
-    build: int = 0,
+    job_id: int = 0,
     **kwargs,
 ) -> int:
 
@@ -23,7 +23,7 @@ def get_artifact(
 
     conn.request(
         "GET",
-        f"/api/v2/project/{vcs}/{org}/{project}/{build}/artifacts",
+        f"/api/v2/project/{vcs}/{org}/{project}/{job_id}/artifacts",
         headers=headers,
     )
 
@@ -117,7 +117,7 @@ def main(argv: Sequence[str] | None = None) -> int:
     parser.add_argument("--vcs", default="github")
     parser.add_argument("--org", default="finsberg")
     parser.add_argument("--project", default="cppyy-backend")
-    parser.add_argument("--build", default=0)
+    parser.add_argument("--job-id", default=0)
     parser.add_argument("--build-aarch64-wheel", default=True)
 
     kwargs = vars(parser.parse_args(argv))
@@ -132,16 +132,6 @@ def main(argv: Sequence[str] | None = None) -> int:
     print("Invaild arguments")
     print(f"You entered: {kwargs}")
     return 1
-
-
-def test_main(capsys):
-    arguments = ["First argument", "-f", "--optional", "world"]
-    main(arguments)
-    out, err = capsys.readouterr()
-    assert (
-        out
-        == "You entered: {'f': True, 'optional': 'world', 'required': 'First argument'}\n"
-    )
 
 
 if __name__ == "__main__":

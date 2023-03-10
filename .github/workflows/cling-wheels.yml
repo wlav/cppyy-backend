@@ -153,9 +153,9 @@ jobs:
 
       - name: Get wheel from CircleCI artifact
         run: |
-          WHEEL_PATH=$(python circleci.py artifact --build ${{ env.jobid }})
+          WHEEL_PATH=$(python circleci.py artifact --job-id ${{ env.jobid }})
           echo "wheel_path=$WHEEL_PATH" >> $GITHUB_ENV
 
       - uses: actions/upload-artifact@v3
         with:
-          path: env.wheel_path
+          path: ${{ env.wheel_path }}
