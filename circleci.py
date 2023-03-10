@@ -70,6 +70,7 @@ def start_job(
     )
     res = conn.getresponse()
     pipeline_data = json.loads(res.read().decode("utf-8"))
+    time.sleep(1.0)
 
     # Get pipeline id
     conn.request(
@@ -80,6 +81,8 @@ def start_job(
     res = conn.getresponse()
     data = json.loads(res.read().decode("utf-8"))
 
+    time.sleep(1.0)
+
     # Get workflow id
     conn.request(
         "GET",
@@ -89,6 +92,8 @@ def start_job(
 
     res = conn.getresponse()
     workflow_data = json.loads(res.read().decode("utf-8"))
+
+    time.sleep(1.0)
 
     # Get job id
     conn.request(
