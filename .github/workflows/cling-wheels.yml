@@ -1,16 +1,6 @@
 name: Build and upload to PyPI
 
-on:
-  workflow_dispatch:
-    inputs:
-      build_aarch64_wheel:
-        description: "Whether to build aarch64 wheel on CircleCI"
-        default: false
-        type: boolean
-      branch:
-        description: "Which branch to target"
-        default: build-wheels-with-cibuildwheel
-        type: string
+on: [push]
 
 jobs:
   build-aarch64-wheels:
@@ -24,7 +14,8 @@ jobs:
           python-version: "3.9"
       - name: Trigger circleci build for ARM
         run: |
-          echo "Need to trigger circleci pipeline"
+          export JOBID=$(python3 circleci.py job)
+          echo "jobid=$JOBID" >> $GITHUB_ENV
 
   build_wheels:
     name: Build wheels on ${{ matrix.cibw.build }}
@@ -58,29 +49,12 @@ jobs:
               arch: x86_64
               build: "pp37-macosx_x86_64"
 
-          # - os: macos-11
-          #   name: mac-pypy-arm
-          #   cibw:
-          #     arch: arm64
-          #     build: "pp38-macosx_arm64"
-
           - os: ubuntu-20.04
             name: manylinux-x86_64
             cibw:
               arch: x86_64
               build: "cp36-manylinux_x86_64"
 
-          # - os: ubuntu-20.04
-          #   name: manylinux-arch64
-          #   cibw:
-          #     arch: aarch64
-          #     build: "cp36-manylinux_aarch64"
-
-          # - os: ubuntu-20.04
-          #   name: manylinux-pypy-arch64
-          #   cibw:
-          #     arch: aarch64
-          #     build: "pp37-manylinux_aarch64"
 
           - os: ubuntu-20.04
             name: manylinux-i686
@@ -93,24 +67,6 @@ jobs:
             cibw:
               arch: x86_64
               build: "pp37-manylinux_x86_64"
-
-          # - os: ubuntu-20.04
-          #   name: musllinux-x86_64
-          #   cibw:
-          #     arch: x86_64
-          #     build: "cp36-musllinux_x86_64"
-
-          # - os: ubuntu-20.04
-          #   name: musllinux-pypy-x86_64
-          #   cibw:
-          #     arch: x86_64
-          #     build: "pp37-musllinux_x86_64"
-
-          # - os: ubuntu-20.04
-          #   name: musllinux-i686
-          #   cibw:
-          #     arch: i686
-          #     build: "cp36-musllinux_i686"
 
           - os: windows-2019
             name: win32
@@ -181,3 +137,25 @@ jobs:
       - uses: actions/upload-artifact@v3
         with:
           path: ./cling/dist/*.tar.gz
+
+  upload_aarch64_wheel:
+    needs: build_wheels  # Just wait until this workflow is done - then aarch64 should be done
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Setup python
+        uses: actions/setup-python@v4
+        with:
+          python-version: "3.9"
+
+      - name: Get wheel from CircleCI artifact
+        run: |
+          WHEEL_PATH=$(python circleci.py artifact --build ${{ env.jobid }})
+          echo "wheel_path=$WHEEL_PATH" >> $GITHUB_ENV
+
+      - uses: actions/upload-artifact@v3
+        with:
+          path: env.wheel_path
