@@ -14,7 +14,7 @@ jobs:
           python-version: "3.10"
       - name: Trigger circleci build for ARM
         run: |
-          export JOBID=$(python3 circleci.py job)
+          export JOBID=$(python3 circleci.py job --token ${{ secrets.CIRCLE_API_TOKEN }})
           echo "jobid=$JOBID" >> $GITHUB_ENV
 
   build_wheels:
