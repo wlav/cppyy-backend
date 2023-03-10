@@ -11,7 +11,7 @@ jobs:
       - name: Setup python
         uses: actions/setup-python@v4
         with:
-          python-version: "3.9"
+          python-version: "3.10"
       - name: Trigger circleci build for ARM
         run: |
           export JOBID=$(python3 circleci.py job)
@@ -149,7 +149,7 @@ jobs:
       - name: Setup python
         uses: actions/setup-python@v4
         with:
-          python-version: "3.9"
+          python-version: "3.10"
 
       - name: Get wheel from CircleCI artifact
         run: |
