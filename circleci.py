@@ -11,7 +11,7 @@ import json
 def get_artifact(
     token: str,
     vcs: str = "github",
-    org: str = "finsberg",
+    org: str = "wlav",
     project: str = "cppyy-backend",
     job_number: int = 0,
     **kwargs,
@@ -42,7 +42,7 @@ def get_artifact(
 def start_job(
     token: str,
     vcs: str = "github",
-    org: str = "finsberg",
+    org: str = "wlav",
     project: str = "cppyy-backend",
     build_aarch64_wheel: bool = True,
     branch: str = "build-wheels-with-cibuildwheel",
@@ -115,7 +115,7 @@ def main(argv: Sequence[str] | None = None) -> int:
     parser.add_argument("--token", default=os.environ.get("CIRCLE_API_TOKEN"))
     parser.add_argument("mode", choices=["artifact", "job"])
     parser.add_argument("--vcs", default="github")
-    parser.add_argument("--org", default="finsberg")
+    parser.add_argument("--org", default="wlav")
     parser.add_argument("--project", default="cppyy-backend")
     parser.add_argument("--job-number", default=0)
     parser.add_argument("--build-aarch64-wheel", default=True)
