@@ -117,7 +117,18 @@ set(CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/cmake/modules)
 set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 
 #---Load some basic macros which are needed later for the confiuration and build----------------
-include(SearchRootCoreDeps)
+message(STATUS "Looking for python ...")
+set(Python_FIND_VIRTUALENV ONLY)
+find_package (Python COMPONENTS Interpreter)
+if (NOT Python_FOUND)
+   set(Python_FIND_VIRTUALENV STANDARD)
+   find_package (Python COMPONENTS Interpreter)
+endif()
+
+if (NOT Python_Interpreter_FOUND)
+   message(FATAL_ERROR "Python interpreter not found and python component required")
+endif()
+
 include(RootBuildOptions)
 include(RootMacros)
 include(CheckCompiler)
