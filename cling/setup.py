@@ -254,39 +254,39 @@ class my_install(_install):
      # remove allDict.cxx.pch as it's not portable (rebuild on first run, see cppyy)
         log.info('removing allDict.cxx.pch')
         os.remove(os.path.join(get_prefix(), 'etc', 'allDict.cxx.pch'))
-     # for manylinux, reset the default cxxversion to 17 if no user override
+     # for manylinux, reset the default cxxversion to 20 if no user override
         if not 'STDCXX' in os.environ and is_manylinux():
-            log.info('updating root-config to C++17 for manylinux')
+            log.info('updating root-config to C++20 for manylinux')
             inp = os.path.join(get_prefix(), 'bin', 'root-config')
             outp = inp+'.new'
             outfile = open(outp, 'w')
             for line in open(inp).readlines():
                 if line.find('cxxversionflag=', 0, 15) == 0:
-                    line = 'cxxversionflag="-std=c++1z "\n'
+                    line = 'cxxversionflag="-std=c++2a "\n'
                 elif line.find('features=', 0, 9) == 0:
-                    line = line.replace('cxx11', 'cxx17')
+                    line = line.replace('cxx14', 'cxx20')
                 outfile.write(line)
             outfile.close()
             os.rename(outp, inp)
             os.chmod(inp, stat.S_IMODE(os.lstat(inp).st_mode) | stat.S_IXUSR | stat.S_IXGRP | stat.S_IXOTH)
 
-            log.info('updating allCppflags.txt to C++17 for manylinux')
+            log.info('updating allCppflags.txt to C++20 for manylinux')
             inp = os.path.join(get_prefix(), 'etc', 'dictpch', 'allCppflags.txt')
             outp = inp+'.new'
             outfile = open(outp, 'w')
             for line in open(inp).readlines():
                 if '-std=' == line[:5]:
-                    line = '-std=c++1z\n'
+                    line = '-std=c++2a\n'
                 outfile.write(line)
             outfile.close()
             os.rename(outp, inp)
 
-            log.info('updating compiledata.h to C++17 for manylinux')
+            log.info('updating compiledata.h to C++20 for manylinux')
             inp = os.path.join(get_prefix(), 'include', 'compiledata.h')
             outp = inp+'.new'
             outfile = open(outp, 'w')
             for line in open(inp).readlines():
-                line = line.replace('-std=c++11', '-std=c++1z')
+                line = line.replace('-std=c++14', '-std=c++2a')
                 outfile.write(line)
             outfile.close()
             os.rename(outp, inp)
