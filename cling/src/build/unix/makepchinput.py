@@ -63,7 +63,7 @@ def getGuardedStlInclude(headerName):
 #-------------------------------------------------------------------------------
 def getSTLIncludes():
    """
-   Here we include the list of c++11/14/17 stl headers
+   Here we include the list of c++11/14/17/20 stl headers
    From http://en.cppreference.com/w/cpp/header
    valarray is removed because it causes lots of compilation at startup.
    codecvt, ctgmath, and cstdbool are removed as they are deprecated in C++17
@@ -163,6 +163,21 @@ def getSTLIncludes():
                      "charconv",
 #                    "execution",
                      "filesystem",
+                     # add C++20 headers
+                     "barrier",
+                     "bit",
+                     "compare",
+                     "concepts",
+                     "coroutine",
+                     "format",
+                     "latch",
+                     "numbers",
+                     "semaphore",
+                     "source_location",
+                     "span",
+                     "stop_token",
+                     "syncstream",
+                     "version",
                      )
 
    # CUDA headers go first, as some redeclare standard ones
