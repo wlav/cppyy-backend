@@ -1208,43 +1208,8 @@ bool Cppyy::IsSubclass(TCppScope_t derived, TCppScope_t base)
 ptrdiff_t Cppyy::GetBaseOffset(TCppScope_t derived, TCppScope_t base,
     TCppObject_t address, int direction, bool rerror)
 {
-    intptr_t offset = -1;
-    if (Cppyy::IsSubclass(derived, base)) {
-        offset = InterOp::GetBaseClassOffset(getSema(), derived, base);
-#ifdef PRINT_DEBUG
-        printf("~~~~~~~~~~~~~~~~~ BCO: %ld", offset);
-#endif
-    }
-// // calculate offsets between declared and actual type, up-cast: direction > 0; down-cast: direction < 0
-//     if (derived == base || !(base && derived))
-//         return (ptrdiff_t)0;
-//
-//     TClassRef& cd = type_from_handle(derived);
-//     TClassRef& cb = type_from_handle(base);
-//
-//     if (!cd.GetClass() || !cb.GetClass())
-//         return (ptrdiff_t)0;
-//
-//     ptrdiff_t offset = -1;
-//     if (!(cd->GetClassInfo() && cb->GetClassInfo())) {     // gInterpreter requirement
-//     // would like to warn, but can't quite determine error from intentional
-//     // hiding by developers, so only cover the case where we really should have
-//     // had a class info, but apparently don't:
-//         if (cd->IsLoaded()) {
-//         // warn to allow diagnostics
-//             std::ostringstream msg;
-//             msg << "failed offset calculation between " << cb->GetName() << " and " << cd->GetName();
-//             // TODO: propagate this warning to caller w/o use of Python C-API
-//             // PyErr_Warn(PyExc_RuntimeWarning, const_cast<char*>(msg.str().c_str()));
-//             std::cerr << "Warning: " << msg.str() << '\n';
-//         }
-//
-//     // return -1 to signal caller NOT to apply offset
-//         return rerror ? (ptrdiff_t)offset : 0;
-//     }
-//
-//     offset = gInterpreter->ClassInfo_GetBaseOffset(
-//         cd->GetClassInfo(), cb->GetClassInfo(), (void*)address, direction > 0);
+    intptr_t offset = InterOp::GetBaseClassOffset(getSema(), derived, base);
+    
     if (offset == -1)   // Cling error, treat silently
         return rerror ? (ptrdiff_t)offset : 0;
 
