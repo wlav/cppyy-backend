@@ -1155,7 +1155,7 @@ Cppyy::TCppScope_t Cppyy::GetBaseScope(TCppScope_t klass, TCppIndex_t ibase)
 
 bool Cppyy::IsSubclass(TCppScope_t derived, TCppScope_t base)
 {
-    return InterOp::IsSubclass(getSema(), derived, base);
+    return InterOp::IsSubclass(getInterp(), derived, base);
 }
 
 // bool Cppyy::IsSmartPtr(TCppType_t klass)
