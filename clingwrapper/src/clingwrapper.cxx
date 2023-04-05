@@ -879,6 +879,9 @@ size_t Cppyy::GetFunctionArgTypeoffset()
 // scope reflection information ----------------------------------------------
 bool Cppyy::IsNamespace(TCppScope_t scope)
 {
+    if (!scope)
+      return false;
+
     // Test if this scope represents a namespace.
     return InterOp::IsNamespace(scope) || 
         InterOp::GetGlobalScope(getSema()) == scope;
