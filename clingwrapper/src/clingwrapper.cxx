@@ -212,6 +212,7 @@ public:
                "#include <vector>\n"
                "#include <utility>\n"
                "#include <memory>\n"
+               "#include <functional>\n" // for the dispatcher code to use std::function
                "#include \"cling/Interpreter/Interpreter.h\"\n"
                "#include \"clang/Interpreter/InterOp.h\"";
         InterOp::Process(I, code);
