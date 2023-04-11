@@ -213,6 +213,12 @@ public:
                "#include <utility>\n"
                "#include <memory>\n"
                "#include <functional>\n" // for the dispatcher code to use std::function
+               "#include <map>\n" // FIXME: Replace with modules
+               "#include <sstream>\n" // FIXME: Replace with modules
+               "#include <array>\n" // FIXME: Replace with modules
+               "#include <deque>\n" // FIXME: Replace with modules
+               "#include <tuple>\n" // FIXME: Replace with modules
+               "#include <set>\n" // FIXME: Replace with modules
                "#include \"cling/Interpreter/Interpreter.h\"\n"
                "#include \"clang/Interpreter/InterOp.h\"";
         InterOp::Process(I, code);
