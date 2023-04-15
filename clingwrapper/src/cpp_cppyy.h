@@ -316,10 +316,12 @@ namespace Cppyy {
     bool IsStaticMethod(TCppMethod_t method);
 
 // // data member reflection information ----------------------------------------
+    // GetNumDatamembers is unused.
     // RPY_EXPORTED
     // TCppIndex_t GetNumDatamembers(TCppScope_t scope, bool accept_namespace = false) { return 0; }
     RPY_EXPORTED
     std::vector<TCppScope_t> GetDatamembers(TCppScope_t scope);
+    // GetDatamemberName is unused.
     // RPY_EXPORTED
     // std::string GetDatamemberName(TCppScope_t scope, TCppIndex_t idata) { return ""; }
     RPY_EXPORTED
@@ -350,10 +352,12 @@ namespace Cppyy {
     std::vector<long int> GetDimensions(TCppType_t type);
 
 // // enum properties -----------------------------------------------------------
+    // GetEnum is unused.
     // RPY_EXPORTED
     // TCppEnum_t  GetEnum(TCppScope_t scope, const std::string& enum_name) { return 0; }
     RPY_EXPORTED
     std::vector<TCppScope_t> GetEnumConstants(TCppScope_t scope);
+    // GetEnumDataName is unused.
     // RPY_EXPORTED
     // std::string GetEnumDataName(TCppEnum_t, TCppIndex_t idata) { return ""; }
     RPY_EXPORTED
