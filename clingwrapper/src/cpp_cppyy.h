@@ -359,7 +359,7 @@ namespace Cppyy {
 
     RPY_EXPORTED
     TCppScope_t InstantiateTemplateClass(
-        TCppScope_t tmpl, TCppType_t* types, size_t types_size);
+            TCppScope_t tmpl, InterOp::TemplateArgInfo* args, size_t args_size);
 
     RPY_EXPORTED
     void        DumpScope(TCppScope_t scope);
