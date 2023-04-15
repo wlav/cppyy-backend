@@ -1339,18 +1339,12 @@ std::string Cppyy::GetMethodArgTypeAsString(TCppMethod_t method, TCppIndex_t iar
         InterOp::GetFunctionArgType(method, iarg));
 }
 
-// std::string Cppyy::GetMethodArgDefault(TCppMethod_t method, TCppIndex_t iarg)
-// {
-//     if (method) {
-//         TFunction* f = m2f(method);
-//         TMethodArg* arg = (TMethodArg*)f->GetListOfMethodArgs()->At((int)iarg);
-//         const char* def = arg->GetDefault();
-//         if (def)
-//             return def;
-//     }
-//
-//     return "";
-// }
+std::string Cppyy::GetMethodArgDefault(TCppMethod_t method, TCppIndex_t iarg)
+{
+    if (!method)
+       return "";
+    return InterOp::GetFunctionArgDefault(method, iarg);
+}
 
 std::string Cppyy::GetMethodSignature(TCppMethod_t method, bool show_formal_args, TCppIndex_t max_args)
 {
