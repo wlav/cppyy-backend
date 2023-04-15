@@ -229,7 +229,7 @@ namespace Cppyy {
     RPY_EXPORTED
     bool        IsSubclass(TCppType_t derived, TCppType_t base);
     RPY_EXPORTED
-    bool        IsSmartPtr(TCppType_t type)  { return false; }
+    bool        IsSmartPtr(TCppScope_t klass);
     RPY_EXPORTED
     bool        GetSmartPtrInfo(const std::string&, TCppType_t* raw, TCppMethod_t* deref) { assert(0 && "GetSmartPtrInfo"); return false; }
     RPY_EXPORTED

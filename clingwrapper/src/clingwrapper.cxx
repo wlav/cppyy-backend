@@ -76,10 +76,6 @@ static std::set<std::string> g_builtins =
      "int", "unsigned int", "long", "unsigned long", "long long", "unsigned long long",
      "float", "double", "long double", "void"};
 
-// smart pointer types
-static std::set<std::string> gSmartPtrTypes =
-    {"std::auto_ptr", "std::shared_ptr", "std::unique_ptr", "std::weak_ptr"};
-
 // to filter out ROOT names
 static std::set<std::string> gInitialNames;
 static std::set<std::string> gRootSOs;
@@ -1199,15 +1195,11 @@ bool Cppyy::IsSubclass(TCppScope_t derived, TCppScope_t base)
     return InterOp::IsSubclass(getInterp(), derived, base);
 }
 
-// bool Cppyy::IsSmartPtr(TCppType_t klass)
-// {
-//     TClassRef& cr = type_from_handle(klass);
-//     const std::string& tn = cr->GetName();
-//     if (gSmartPtrTypes.find(tn.substr(0, tn.find("<"))) != gSmartPtrTypes.end())
-//         return true;
-//     return false;
-// }
-//
+bool Cppyy::IsSmartPtr(TCppScope_t klass)
+{
+    return InterOp::IsSmartPtrType(InterOp::GetTypeFromScope(klass));
+}
+
 // bool Cppyy::GetSmartPtrInfo(
 //     const std::string& tname, TCppType_t* raw, TCppMethod_t* deref)
 // {
@@ -2185,11 +2177,11 @@ int cppyy_is_namespace(cppyy_scope_t scope) {
 // int cppyy_is_subtype(cppyy_type_t derived, cppyy_type_t base) {
 //     return (int)Cppyy::IsSubclass(derived, base);
 // }
-//
-// int cppyy_is_smartptr(cppyy_type_t type) {
-//     return (int)Cppyy::IsSmartPtr(type);
-// }
-//
+
+  int cppyy_is_smartptr(cppyy_type_t type) {
+      return (int)Cppyy::IsSmartPtr((Cppyy::TCppType_t)type);
+  }
+
 // int cppyy_smartptr_info(const char* name, cppyy_type_t* raw, cppyy_method_t* deref) {
 //     return (int)Cppyy::GetSmartPtrInfo(name, raw, deref);
 // }
