@@ -281,7 +281,7 @@ namespace Cppyy {
     RPY_EXPORTED
     std::string GetMethodPrototype(TCppMethod_t, bool show_formal_args);
     RPY_EXPORTED
-    bool        IsConstMethod(TCppMethod_t) { return false; }
+    bool        IsConstMethod(TCppMethod_t);
 
     RPY_EXPORTED
     TCppIndex_t GetNumTemplatedMethods(TCppScope_t scope, bool accept_namespace = false) { assert(0 && "GetNumTemplatedMethods"); return 0; }

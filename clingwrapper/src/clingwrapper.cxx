@@ -1356,15 +1356,13 @@ std::string Cppyy::GetMethodPrototype(TCppMethod_t method, bool show_formal_args
     return InterOp::GetFunctionPrototype(method, show_formal_args);
 }
 
-// bool Cppyy::IsConstMethod(TCppMethod_t method)
-// {
-//     if (method) {
-//         TFunction* f = m2f(method);
-//         return f->Property() & kIsConstMethod;
-//     }
-//     return false;
-// }
-//
+bool Cppyy::IsConstMethod(TCppMethod_t method)
+{
+    if (!method)
+        return false;
+    return InterOp::IsConstMethod(method);
+}
+
 // Cppyy::TCppIndex_t Cppyy::GetNumTemplatedMethods(TCppScope_t scope, bool accept_namespace)
 // {
 //     if (!accept_namespace && IsNamespace(scope))
