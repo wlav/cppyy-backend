@@ -2,6 +2,7 @@
 #define CPYCPPYY_CPPYY_H
 
 // Standard
+#include <cassert>
 #include <set>
 #include <string>
 #include <vector>
@@ -105,14 +106,14 @@ namespace Cppyy {
     RPY_EXPORTED
     TCppScope_t GetGlobalScope();
     RPY_EXPORTED
-    TCppType_t  GetActualClass(TCppType_t klass, TCppObject_t obj) { return 0; }
+    TCppType_t  GetActualClass(TCppType_t klass, TCppObject_t obj) { assert(0 && "GetActualClass"); return 0; }
     RPY_EXPORTED
     size_t      SizeOf(TCppType_t klass);
     RPY_EXPORTED
-    size_t      SizeOf(const std::string &type) { return 0; }
+    size_t      SizeOf(const std::string &type) { assert(0 && "SizeOf"); return 0; }
 
     RPY_EXPORTED
-    bool        IsBuiltin(const std::string& type_name) { return false; }
+    bool        IsBuiltin(const std::string& type_name) { assert(0 && "IsBuiltin"); return false; }
 
     RPY_EXPORTED
     bool        IsBuiltin(TCppType_t type);
@@ -125,13 +126,13 @@ namespace Cppyy {
 //
 // // memory management ---------------------------------------------------------
     RPY_EXPORTED
-    TCppObject_t Allocate(TCppType_t type) { return 0; }
+    TCppObject_t Allocate(TCppType_t type) { assert(0 && "Allocate"); return 0; }
     RPY_EXPORTED
-    void         Deallocate(TCppType_t type, TCppObject_t instance) { return; }
+    void         Deallocate(TCppType_t type, TCppObject_t instance) { assert(0 && "Deallocate"); return; }
     RPY_EXPORTED
-    TCppObject_t Construct(TCppType_t type, void* arena = nullptr) { return 0; }
+    TCppObject_t Construct(TCppType_t type, void* arena = nullptr) { assert(0 && "Construct"); return 0; }
     RPY_EXPORTED
-    void         Destruct(TCppType_t type, TCppObject_t instance) { return; }
+    void         Destruct(TCppType_t type, TCppObject_t instance) { assert(0 && "Deconstruct"); return; }
 
 // method/function dispatching -----------------------------------------------
     RPY_EXPORTED
@@ -218,7 +219,7 @@ namespace Cppyy {
     RPY_EXPORTED
     bool        HasVirtualDestructor(TCppType_t type);
     RPY_EXPORTED
-    bool        HasComplexHierarchy(TCppType_t type) { return false; }
+    bool        HasComplexHierarchy(TCppType_t type) { assert(0 && "HasComplexHierarchy"); return false; }
     RPY_EXPORTED
     TCppIndex_t GetNumBases(TCppScope_t klass);
     RPY_EXPORTED
@@ -230,12 +231,12 @@ namespace Cppyy {
     RPY_EXPORTED
     bool        IsSmartPtr(TCppType_t type)  { return false; }
     RPY_EXPORTED
-    bool        GetSmartPtrInfo(const std::string&, TCppType_t* raw, TCppMethod_t* deref) { return false; }
+    bool        GetSmartPtrInfo(const std::string&, TCppType_t* raw, TCppMethod_t* deref) { assert(0 && "GetSmartPtrInfo"); return false; }
     RPY_EXPORTED
-    void        AddSmartPtrType(const std::string&) { return; }
+    void        AddSmartPtrType(const std::string&) { assert(0 && "AddSmartPtrType"); return; }
 
     RPY_EXPORTED
-    void        AddTypeReducer(const std::string& reducable, const std::string& reduced) { return; }
+    void        AddTypeReducer(const std::string& reducable, const std::string& reduced) { assert(0 && "AddTypeReducer"); return; }
 
 // // calculate offsets between declared and actual type, up-cast: direction > 0; down-cast: direction < 0
     RPY_EXPORTED
@@ -256,8 +257,9 @@ namespace Cppyy {
     std::string GetMethodName(TCppMethod_t);
     RPY_EXPORTED
     std::string GetMethodFullName(TCppMethod_t);
+    // GetMethodMangledName is unused.
     RPY_EXPORTED
-    std::string GetMethodMangledName(TCppMethod_t) { return ""; }
+    std::string GetMethodMangledName(TCppMethod_t) { assert(0 && "GetMethodMangledName"); return ""; }
     RPY_EXPORTED
     TCppType_t GetMethodReturnType(TCppMethod_t);
     RPY_EXPORTED
@@ -267,13 +269,13 @@ namespace Cppyy {
     RPY_EXPORTED
     TCppIndex_t GetMethodReqArgs(TCppMethod_t);
     RPY_EXPORTED
-    std::string GetMethodArgName(TCppMethod_t, TCppIndex_t iarg) { return ""; }
+    std::string GetMethodArgName(TCppMethod_t, TCppIndex_t iarg) { assert(0 && "GetMethodArgName"); return ""; }
     RPY_EXPORTED
     TCppType_t GetMethodArgType(TCppMethod_t, TCppIndex_t iarg);
     RPY_EXPORTED
     std::string GetMethodArgTypeAsString(TCppMethod_t method, TCppIndex_t iarg);
     RPY_EXPORTED
-    std::string GetMethodArgDefault(TCppMethod_t, TCppIndex_t iarg) { return ""; };
+    std::string GetMethodArgDefault(TCppMethod_t, TCppIndex_t iarg) { assert(0 && "GetMethodArgDefault"); return ""; };
     RPY_EXPORTED
     std::string GetMethodSignature(TCppMethod_t, bool show_formal_args, TCppIndex_t max_args = (TCppIndex_t)-1);
     RPY_EXPORTED
@@ -282,11 +284,11 @@ namespace Cppyy {
     bool        IsConstMethod(TCppMethod_t) { return false; }
 
     RPY_EXPORTED
-    TCppIndex_t GetNumTemplatedMethods(TCppScope_t scope, bool accept_namespace = false) { return 0; }
+    TCppIndex_t GetNumTemplatedMethods(TCppScope_t scope, bool accept_namespace = false) { assert(0 && "GetNumTemplatedMethods"); return 0; }
     RPY_EXPORTED
-    std::string GetTemplatedMethodName(TCppScope_t scope, TCppIndex_t imeth) { return 0; }
+    std::string GetTemplatedMethodName(TCppScope_t scope, TCppIndex_t imeth) { assert(0 && "GetTemplatedMethodName"); return 0; }
     RPY_EXPORTED
-    bool        IsTemplatedConstructor(TCppScope_t scope, TCppIndex_t imeth) { return 0; }
+    bool        IsTemplatedConstructor(TCppScope_t scope, TCppIndex_t imeth) { assert(0 && "IsTemplatedConstructor"); return 0; }
     RPY_EXPORTED
     bool        ExistsMethodTemplate(TCppScope_t scope, const std::string& name);
     RPY_EXPORTED
@@ -297,7 +299,7 @@ namespace Cppyy {
 
     RPY_EXPORTED
     TCppIndex_t  GetGlobalOperator(
-        TCppType_t scope, const std::string& lc, const std::string& rc, const std::string& op) { return 0; }
+        TCppType_t scope, const std::string& lc, const std::string& rc, const std::string& op) { assert(0 && "GetGlobalOperator");return 0; }
 
 // method properties ---------------------------------------------------------
     RPY_EXPORTED
