@@ -156,7 +156,7 @@ static struct Signalmap_t {
 // };
 
 static InterOp::TInterp_t getInterp() {
-    static InterOp::TInterp_t gInterp = InterOp::CreateInterpreter();
+    static InterOp::TInterp_t gInterp = InterOp::CreateInterpreter({"-std=c++17"});
     return gInterp;
 }
 
