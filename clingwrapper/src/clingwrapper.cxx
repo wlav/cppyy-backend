@@ -1320,15 +1320,13 @@ Cppyy::TCppIndex_t Cppyy::GetMethodReqArgs(TCppMethod_t method)
     return InterOp::GetFunctionRequiredArgs(method);
 }
 
-// std::string Cppyy::GetMethodArgName(TCppMethod_t method, TCppIndex_t iarg)
-// {
-//     if (method) {
-//         TFunction* f = m2f(method);
-//         TMethodArg* arg = (TMethodArg*)f->GetListOfMethodArgs()->At((int)iarg);
-//         return arg->GetName();
-//     }
-//     return "<unknown>";
-// }
+std::string Cppyy::GetMethodArgName(TCppMethod_t method, TCppIndex_t iarg)
+{
+    if (!method)
+        return "<unknown>";
+
+    return InterOp::GetFunctionArgName(method, iarg);
+}
 
 Cppyy::TCppType_t Cppyy::GetMethodArgType(TCppMethod_t method, TCppIndex_t iarg)
 {

@@ -269,7 +269,7 @@ namespace Cppyy {
     RPY_EXPORTED
     TCppIndex_t GetMethodReqArgs(TCppMethod_t);
     RPY_EXPORTED
-    std::string GetMethodArgName(TCppMethod_t, TCppIndex_t iarg) { assert(0 && "GetMethodArgName"); return ""; }
+    std::string GetMethodArgName(TCppMethod_t, TCppIndex_t iarg);
     RPY_EXPORTED
     TCppType_t GetMethodArgType(TCppMethod_t, TCppIndex_t iarg);
     RPY_EXPORTED
