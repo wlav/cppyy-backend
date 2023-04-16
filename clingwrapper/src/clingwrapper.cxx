@@ -597,21 +597,22 @@ size_t Cppyy::SizeOf(TCppType_t klass)
 //     if (dt) return dt->Size();
 //     return SizeOf(GetScope(type_name));
 // }
-//
-// bool Cppyy::IsBuiltin(const std::string& type_name)
-// {
-//     if (g_builtins.find(type_name) != g_builtins.end())
-//         return true;
-//
-//     const std::string& tclean = TClassEdit::CleanType(type_name.c_str(), 1);
-//     if (g_builtins.find(tclean) != g_builtins.end())
-//         return true;
-//
-//     if (strstr(tclean.c_str(), "std::complex"))
-//         return true;
-//
-//     return false;
-// }
+
+bool Cppyy::IsBuiltin(const std::string& type_name)
+{
+    static std::set<std::string> s_builtins =
+       {"bool", "char", "signed char", "unsigned char", "wchar_t", "short",
+        "unsigned short", "int", "unsigned int", "long", "unsigned long",
+        "long long", "unsigned long long", "float", "double", "long double",
+        "void"};
+     if (s_builtins.find(type_name) != s_builtins.end())
+         return true;
+
+    if (strstr(type_name.c_str(), "std::complex"))
+        return true;
+
+    return false;
+}
 
 bool Cppyy::IsBuiltin(TCppType_t type)
 {
