@@ -1354,7 +1354,8 @@ std::string Cppyy::GetMethodSignature(TCppMethod_t method, bool show_formal_args
 
 std::string Cppyy::GetMethodPrototype(TCppMethod_t method, bool show_formal_args)
 {
-    return InterOp::GetFunctionPrototype(method, show_formal_args);
+  assert(0 && "Unused");
+  return ""; // return InterOp::GetFunctionPrototype(method, show_formal_args);
 }
 
 bool Cppyy::IsConstMethod(TCppMethod_t method)
