@@ -1834,6 +1834,11 @@ std::vector<Cppyy::TCppScope_t> Cppyy::GetEnumConstants(TCppScope_t scope)
     return InterOp::GetEnumConstants(scope);
 }
 
+Cppyy::TCppType_t Cppyy::GetEnumConstantType(TCppScope_t scope)
+{
+    return InterOp::GetEnumConstantType(scope);
+}
+
 Cppyy::TCppIndex_t Cppyy::GetEnumDataValue(TCppScope_t scope)
 {
     return InterOp::GetEnumConstantValue(scope);

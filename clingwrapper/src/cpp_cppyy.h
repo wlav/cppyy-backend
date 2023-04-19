@@ -364,6 +364,8 @@ namespace Cppyy {
     // RPY_EXPORTED
     // std::string GetEnumDataName(TCppEnum_t, TCppIndex_t idata) { return ""; }
     RPY_EXPORTED
+    TCppType_t  GetEnumConstantType(TCppScope_t scope);
+    RPY_EXPORTED
     TCppIndex_t GetEnumDataValue(TCppScope_t scope);
 
     RPY_EXPORTED
