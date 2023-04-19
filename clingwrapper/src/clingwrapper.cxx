@@ -406,7 +406,13 @@ std::string Cppyy::ResolveName(const std::string& cppitem_name)
 
 
 Cppyy::TCppType_t Cppyy::ResolveType(TCppType_t type) {
-    return InterOp::GetCanonicalType(type);
+    Cppyy::TCppType_t canonType = InterOp::GetCanonicalType(type);
+
+    if (InterOp::IsEnumType(canonType)) {
+        return InterOp::GetIntegerTypeFromEnumType(canonType);
+    }
+
+    return canonType;
 }
 
 Cppyy::TCppType_t Cppyy::GetRealType(TCppType_t type) {
