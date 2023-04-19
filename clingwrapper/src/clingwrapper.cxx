@@ -908,9 +908,9 @@ bool Cppyy::IsAbstract(TCppScope_t scope)
     return InterOp::IsAbstract(scope);
 }
 
-bool Cppyy::IsEnum(TCppScope_t scope)
+bool Cppyy::IsEnumScope(TCppScope_t scope)
 {
-    return InterOp::IsEnum(scope);
+    return InterOp::IsEnumScope(scope);
 }
 
 bool Cppyy::IsEnumType(TCppType_t type)
