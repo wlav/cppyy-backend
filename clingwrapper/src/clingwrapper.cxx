@@ -919,6 +919,11 @@ bool Cppyy::IsEnumScope(TCppScope_t scope)
     return InterOp::IsEnumScope(scope);
 }
 
+bool Cppyy::IsEnumConstant(TCppScope_t scope)
+{
+    return InterOp::IsEnumConstant(scope);
+}
+
 bool Cppyy::IsEnumType(TCppType_t type)
 {
     return InterOp::IsEnumType(type);
