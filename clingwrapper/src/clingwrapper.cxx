@@ -424,6 +424,10 @@ bool Cppyy::IsClassType(TCppType_t type) {
 }
 
 Cppyy::TCppType_t Cppyy::GetType(const std::string &name) {
+    if (name.find("::") != std::string::npos)
+        throw std::runtime_error("Calling Cppyy::GetType with qualified name '"
+                                 + name + "'\n");
+
     return InterOp::GetType(getSema(), name);
 }
 
