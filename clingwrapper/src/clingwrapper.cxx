@@ -933,14 +933,11 @@ bool Cppyy::IsEnumType(TCppType_t type)
     return InterOp::IsEnumType(type);
 }
 
-// bool Cppyy::IsAggregate(TCppType_t type)
-// {
-// // Test if this type is a "plain old data" type
-//     TClassRef& cr = type_from_handle(type);
-//     if (cr.GetClass())
-//         return cr->ClassProperty() & kClassIsAggregate;
-//     return false;
-// }
+bool Cppyy::IsAggregate(TCppType_t type)
+{
+  // Test if this type is a "plain old data" type
+  return InterOp::IsAggregate(type);
+}
 
 bool Cppyy::IsDefaultConstructable(TCppScope_t scope)
 {

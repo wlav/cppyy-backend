@@ -198,9 +198,7 @@ namespace Cppyy {
     RPY_EXPORTED
     bool IsEnumType(TCppType_t type);
     RPY_EXPORTED
-    bool IsAggregate(TCppType_t type)  { return false; }
-//     RPY_EXPORTED
-//     bool NewIsAggregate(TCppType_t type);
+    bool IsAggregate(TCppType_t type);
     RPY_EXPORTED
     bool IsDefaultConstructable(TCppScope_t scope);
     RPY_EXPORTED
