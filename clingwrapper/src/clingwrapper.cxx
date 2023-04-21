@@ -438,11 +438,11 @@ Cppyy::TCppType_t Cppyy::GetType(const std::string &name, bool enable_slow_looku
         return nullptr;
     }
 
-    std::string using_name = "__Cppyy_GetType_" + std::to_string(var_count++);
+    std::string id = "__Cppyy_GetType_" + std::to_string(var_count++);
 
-    InterOp::Declare(getInterp(), ("using " + using_name + " = " + name + ";\n").c_str());
+    InterOp::Declare(getInterp(), ("using " + id + " = __typeof__(" + name + ");\n").c_str());
 
-    TCppScope_t lookup = InterOp::GetNamed(getSema(), using_name, 0);
+    TCppScope_t lookup = InterOp::GetNamed(getSema(), id, 0);
 
     return InterOp::GetUnderlyingType(InterOp::GetTypeFromScope(lookup));
 }
