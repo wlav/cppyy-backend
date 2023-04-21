@@ -217,6 +217,7 @@ public:
                "#include <map>\n" // FIXME: Replace with modules
                "#include <sstream>\n" // FIXME: Replace with modules
                "#include <array>\n" // FIXME: Replace with modules
+               "#include <list>\n" // FIXME: Replace with modules
                "#include <deque>\n" // FIXME: Replace with modules
                "#include <tuple>\n" // FIXME: Replace with modules
                "#include <set>\n" // FIXME: Replace with modules
