@@ -425,12 +425,26 @@ bool Cppyy::IsClassType(TCppType_t type) {
     return InterOp::IsRecordType(type);
 }
 
-Cppyy::TCppType_t Cppyy::GetType(const std::string &name) {
-    if (name.find("::") != std::string::npos)
-        throw std::runtime_error("Calling Cppyy::GetType with qualified name '"
-                                 + name + "'\n");
+Cppyy::TCppType_t Cppyy::GetType(const std::string &name, bool enable_slow_lookup /* = false */) {
+    static unsigned long long var_count = 0;
 
-    return InterOp::GetType(getSema(), name);
+    if (auto type = InterOp::GetType(getSema(), name))
+        return type;
+
+    if (!enable_slow_lookup) {
+        if (name.find("::") != std::string::npos)
+            throw std::runtime_error("Calling Cppyy::GetType with qualified name '"
+                                + name + "'\n");
+        return nullptr;
+    }
+
+    std::string using_name = "__Cppyy_GetType_" + std::to_string(var_count++);
+
+    InterOp::Declare(getInterp(), ("using " + using_name + " = " + name + ";\n").c_str());
+
+    TCppScope_t lookup = InterOp::GetNamed(getSema(), using_name, 0);
+
+    return InterOp::GetUnderlyingType(InterOp::GetTypeFromScope(lookup));
 }
 
 

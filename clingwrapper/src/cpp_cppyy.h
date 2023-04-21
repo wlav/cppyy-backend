@@ -84,7 +84,7 @@ namespace Cppyy {
     RPY_EXPORTED
     bool IsClassType(TCppType_t type);
     RPY_EXPORTED
-    TCppType_t GetType(const std::string &name);
+    TCppType_t GetType(const std::string &name, bool enable_slow_lookup = false);
     RPY_EXPORTED
     TCppType_t GetComplexType(const std::string &element_type);
     RPY_EXPORTED
