@@ -222,6 +222,7 @@ public:
                "#include <tuple>\n" // FIXME: Replace with modules
                "#include <set>\n" // FIXME: Replace with modules
                "#include <chrono>\n" // FIXME: Replace with modules
+               "#include <cmath>\n" // FIXME: Replace with modules
                "#include \"cling/Interpreter/Interpreter.h\"\n"
                "#include \"clang/Interpreter/InterOp.h\"";
         InterOp::Process(I, code);
