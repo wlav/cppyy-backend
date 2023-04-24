@@ -209,18 +209,31 @@ jobs:
         # Run the tests
         source .venv/bin/activate
         cd cppyy/test
-        make all || true
+        echo ::group::Prepare For Testing
+        make all
         python -m pip install --upgrade pip
         python -m pip install pytest
         python -m pip install pytest-xdist
-        
-        echo ::group::Test Logs
-        python -m pytest -n auto -sv --max-worker-restart 512 | tee test.log 2>&1
         echo ::endgroup::
-        
-        echo "TEST SUMMARY: \n"
-        tail -n1 test.log
-        echo "OF TOTAL $(python3 -m pytest  --collect-only -q | tail -n1)"
+        echo ::group::Crashing Test Logs
+        # See if we don't have a crash that went away
+        python -m pytest -n 1 -m "crashes" -sv --max-worker-restart 512 | tee test_crashed.log 2>&1
+        echo ::endgroup::
+        echo ::group::XFAIL Test Logs
+        # See if we don't have an xfail that went away
+        python -m pytest -m "not crashes" --runxfail -s  | tee test_xfailed.log 2>&1
+        echo ::endgroup::
+        echo ::group::Passing Test Logs
+        # Run the rest of the non-crashing tests.
+        python -m pytest -m "not crashes" -v | tee test_passing.log 2>&1
+        export PYTEST_RETCODE=$?
+        echo ::endgroup::
+        echo "Crashing Summary: \n"
+        tail -n1 test_crashed.log
+        echo "XFAIL Summary:"
+        tail -n1 test_xfailed.log
+        echo "Passing Summary:"
+        tail -n1 test_passing.log
     - name: Setup tmate session
       if: ${{ failure() }}
       uses: mxschmitt/action-tmate@v3
