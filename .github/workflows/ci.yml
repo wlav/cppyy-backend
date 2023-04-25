@@ -25,10 +25,16 @@ jobs:
             os: ubuntu-22.04
             compiler: gcc-9
             clang-runtime: '13'
+            cling: On
 #          - name: ubu22-gcc9-clang14
 #            os: ubuntu-22.04
 #            compiler: gcc-9
 #            clang-runtime: '14'
+          - name: ubu22-gcc9-clang16
+            os: ubuntu-22.04
+            compiler: gcc-9
+            clang-runtime: '16'
+            cling: Off
     steps:
     - uses: actions/checkout@v3
       with:
@@ -42,13 +48,18 @@ jobs:
         mkdir -p ./pr
         echo ${{ github.event.number }} > ./pr/NR
         echo ${{ github.repository }} > ./pr/REPO
-        
-        export CLING_HASH=$(git ls-remote https://github.com/root-project/cling.git HEAD| tr '\t' '-')
+
+        cling_on="${{ matrix.cling }}"
+        if [[ "${cling_on^^}" == "ON" ]]; then
+          export CLING_HASH=$(git ls-remote https://github.com/root-project/cling.git HEAD| tr '\t' '-')
+        else
+          export CLING_HASH="Repl"
+        fi
         # FIXME: We need something like cling-llvm to bump automatically...
-        export LLVM_HASH=$(git ls-remote https://github.com/root-project/llvm-project.git cling-llvm13 | tr '\t' '-')
+        export LLVM_HASH=$(git ls-remote https://github.com/root-project/llvm-project.git cling-llvm${{ matrix.clang-runtime}} | tr '\t' '-')
+        #patch in LLVM_HASH
         echo "CLING_HASH=$CLING_HASH" >> $GITHUB_ENV
         echo "LLVM_HASH=$LLVM_HASH" >> $GITHUB_ENV
-        
     - uses: nelonoel/branch-name@v1.0.1
     - name: Setup compiler on Linux
       if: runner.os == 'Linux'
@@ -56,7 +67,7 @@ jobs:
         # https://www.gnu.org/software/bash/manual/html_node/Shell-Parameter-Expansion.html
         vers="${compiler#*-}"
         os_codename="`cat /etc/os-release | grep UBUNTU_CODENAME | cut -d = -f 2`"
-        sudo apt update
+        ###sudo apt update
         if [[ "${{ matrix.compiler }}" == *"gcc"* ]]; then
           sudo apt install -y gcc-${vers} g++-${vers} lld
           echo "CC=gcc-${vers}" >> $GITHUB_ENV
@@ -77,8 +88,8 @@ jobs:
       if: runner.os == 'Linux'
       run: |
         # Install deps
-        sudo apt-get update
-        sudo apt-get install git g++ debhelper devscripts gnupg python3
+        ###sudo apt update
+        sudo apt install git g++ debhelper devscripts gnupg python3
         conda install -y -q -c conda-forge \
           distro \
           pytest
@@ -87,45 +98,66 @@ jobs:
       id: cache
       with:
         path: |
-          llvm-project/
-          cling/
+          llvm-project
+          ${{ matrix.cling=='On' && 'cling' || '' }}
         #key: ...-.x-patch-${{ hashFiles('patches/llvm/*') }}
         #key: ${{ env.CLING_HASH }}-${{ env.LLVM_HASH }}-${{ runner.os }}-${{ matrix.os }}-${{ matrix.compiler }}-clang-${{ matrix.clang-runtime }}.x
-        key: ${{ env.CLING_HASH }}-${{ runner.os }}-${{ matrix.os }}-${{ matrix.compiler }}-clang-${{ matrix.clang-runtime }}.x
-    - name: Build Cling on Linux if the cache is invalid
+        key: ${{ env.CLING_HASH }}-${{ runner.os }}-${{ matrix.os }}-${{ matrix.compiler }}-clang-${{ matrix.clang-runtime }}.x-patch-${{ hashFiles(format('patches/llvm/clang{0}-*.patch', matrix.clang-runtime)) || 'none' }}
+    - name: Build LLVM/Cling on Linux if the cache is invalid
       if: ${{ runner.os == 'Linux' && steps.cache.outputs.cache-hit != 'true' }}
       run: |
-        #if [[ "${{ steps.cling-build-cache.outputs.cache-hit }}" != "true" ]]; then
-        git clone --depth=1 https://github.com/root-project/cling.git
-        git clone --depth=1 -b cling-llvm13 https://github.com/root-project/llvm-project.git
+        cling_on="${{ matrix.cling }}"
+        if [[ "${cling_on^^}" == "ON" ]]; then
+          git clone --depth=1 https://github.com/root-project/cling.git
+          git clone --depth=1 -b cling-llvm${{ matrix.clang-runtime }} https://github.com/root-project/llvm-project.git
+        else # repl
+           git clone --depth=1 -b release/${{ matrix.clang-runtime }}.x https://github.com/llvm/llvm-project.git
+        fi
         cd llvm-project
+        # Apply patches
+        echo "Apply clang${{ matrix.clang-runtime }}-*.patch patches:"
+        [ -f ../patches/llvm/clang${{ matrix.clang-runtime }}-*.patch ] && ls -1 ../patches/llvm/clang${{ matrix.clang-runtime }}-*.patch && git apply ../patches/llvm/clang${{ matrix.clang-runtime }}-*.patch
+        # Build
         mkdir build
         cd build
-        cmake -DLLVM_ENABLE_PROJECTS=clang                  \
-              -DLLVM_EXTERNAL_PROJECTS=cling                \
-              -DLLVM_EXTERNAL_CLING_SOURCE_DIR=../../cling  \
-              -DLLVM_TARGETS_TO_BUILD="host;NVPTX"          \
-              -DCMAKE_BUILD_TYPE=Release                    \
-              -DLLVM_ENABLE_ASSERTIONS=ON                   \
-              -DLLVM_USE_LINKER=lld                         \
-              -DCLANG_ENABLE_STATIC_ANALYZER=OFF            \
-              -DCLANG_ENABLE_ARCMT=OFF                      \
-              -DCLANG_ENABLE_FORMAT=OFF                     \
-              -DCLANG_ENABLE_BOOTSTRAP=OFF                  \
-              ../llvm
-        cmake --build . --target clang --parallel $(nproc --all)
-        cmake --build . --target cling --parallel $(nproc --all)
-        # Now build gtest.a and gtest_main for InterOp to run its tests.
-        cmake --build . --target gtest_main --parallel $(nproc --all)
+        if [[ "${cling_on^^}" == "ON" ]]; then
+          cmake -DLLVM_ENABLE_PROJECTS=clang                  \
+                -DLLVM_EXTERNAL_PROJECTS=cling                \
+                -DLLVM_EXTERNAL_CLING_SOURCE_DIR=../../cling  \
+                -DLLVM_TARGETS_TO_BUILD="host;NVPTX"          \
+                -DCMAKE_BUILD_TYPE=Release                    \
+                -DLLVM_ENABLE_ASSERTIONS=ON                   \
+                -DLLVM_USE_LINKER=lld                         \
+                -DCLANG_ENABLE_STATIC_ANALYZER=OFF            \
+                -DCLANG_ENABLE_ARCMT=OFF                      \
+                -DCLANG_ENABLE_FORMAT=OFF                     \
+                -DCLANG_ENABLE_BOOTSTRAP=OFF                  \
+                ../llvm
+          cmake --build . --target clang --parallel $(nproc --all)
+          cmake --build . --target cling --parallel $(nproc --all)
+          # Now build gtest.a and gtest_main for InterOp to run its tests.
+          cmake --build . --target gtest_main --parallel $(nproc --all)
+        else
+          cmake -DLLVM_ENABLE_PROJECTS=clang                  \
+                -DLLVM_TARGETS_TO_BUILD="host;NVPTX"          \
+                -DCMAKE_BUILD_TYPE=Release                    \
+                -DLLVM_ENABLE_ASSERTIONS=ON                   \
+                -DLLVM_USE_LINKER=lld                         \
+                -DCLANG_ENABLE_STATIC_ANALYZER=OFF            \
+                -DCLANG_ENABLE_ARCMT=OFF                      \
+                -DCLANG_ENABLE_FORMAT=OFF                     \
+                -DCLANG_ENABLE_BOOTSTRAP=OFF                  \
+                ../llvm
+          cmake --build . --target clang clang-repl --parallel $(nproc --all)
+        fi
         cd ../../
-        #fi
     - name: Save Cache LLVM/Clang runtime build directory
       uses: actions/cache/save@v3
       if: ${{ steps.cache.outputs.cache-hit != 'true' }}
       with:
         path: |
-          llvm-project/
-          cling/
+          llvm-project
+          ${{ matrix.cling=='On' && 'cling' || '' }}
         key: ${{ steps.cache.outputs.cache-primary-key }}
     - name: Build and Install InterOp on Linux
       if: runner.os == 'Linux'
@@ -133,15 +165,41 @@ jobs:
         # Build InterOp next to cling and llvm-project.
         LLVM_DIR="$(realpath llvm-project)"
         LLVM_BUILD_DIR="$(realpath llvm-project/build)"
-        CLING_DIR="$(realpath cling)"
-        CLING_BUILD_DIR="$(realpath cling/build)"
-        CPLUS_INCLUDE_PATH="${CLING_DIR}/tools/cling/include:${CLING_BUILD_DIR}/include:${LLVM_DIR}/llvm/include:${LLVM_DIR}/clang/include:${LLVM_BUILD_DIR}/include:${LLVM_BUILD_DIR}/tools/clang/include"
+        cling_on="${{ matrix.cling }}"
+        if [[ "${cling_on^^}" == "ON" ]]; then
+          CLING_DIR="$(realpath cling)"
+          CLING_BUILD_DIR="$(realpath cling/build)"
+          CPLUS_INCLUDE_PATH="${CLING_DIR}/tools/cling/include:${CLING_BUILD_DIR}/include:${LLVM_DIR}/llvm/include:${LLVM_DIR}/clang/include:${LLVM_BUILD_DIR}/include:${LLVM_BUILD_DIR}/tools/clang/include"
+        else # repl
+          CPLUS_INCLUDE_PATH="${LLVM_DIR}/llvm/include:${LLVM_DIR}/clang/include:${LLVM_BUILD_DIR}/include:${LLVM_BUILD_DIR}/tools/clang/include"
+        fi
         git clone https://github.com/compiler-research/InterOp.git
         export INTEROP_DIR=$PWD/python/cppyy_backend/
         cd InterOp
-        mkdir build && cd build
+        mkdir build
+        cd build
         export INTEROP_BUILD_DIR=$PWD
-        cmake -DBUILD_SHARED_LIBS=ON -DUSE_CLING=ON -DCling_DIR=$LLVM_BUILD_DIR -DCMAKE_INSTALL_PREFIX=$INTEROP_DIR ../
+        cling_on="${{ matrix.cling }}"
+        if [[ "${cling_on^^}" == "ON" ]]; then
+          cmake -DCMAKE_BUILD_TYPE=Release  \
+                -DUSE_CLING=ON              \
+                -DUSE_REPL=OFF              \
+                -DCling_DIR=$LLVM_BUILD_DIR \
+                -DLLVM_DIR=$LLVM_BUILD_DIR  \
+                -DLLVM_USE_LINKER=lld       \
+                -DBUILD_SHARED_LIBS=ON      \
+                -DCMAKE_INSTALL_PREFIX=$INTEROP_DIR \
+                ../
+        else
+          cmake -DCMAKE_BUILD_TYPE=Release  \
+                -DUSE_CLING=OFF             \
+                -DUSE_REPL=ON               \
+                -DLLVM_DIR=$LLVM_BUILD_DIR  \
+                -DLLVM_USE_LINKER=lld       \
+                -DBUILD_SHARED_LIBS=ON      \
+                -DCMAKE_INSTALL_PREFIX=$INTEROP_DIR \
+                ../
+        fi
         cmake --build . --parallel $(nproc --all)
         cd ../..
         # We need INTEROP_DIR, LLVM_BUILD_DIR and CPLUS_INCLUDE_PATH later

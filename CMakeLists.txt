@@ -1,5 +1,6 @@
-project(cppyy-backend)
 cmake_minimum_required(VERSION 3.10)
+
+project(cppyy-backend)
 include(ExternalProject)
 
 set(CMAKE_FIND_PACKAGE_SORT_ORDER NATURAL)
