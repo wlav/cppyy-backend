@@ -440,8 +440,8 @@ Cppyy::TCppType_t Cppyy::GetType(const std::string &name, bool enable_slow_looku
     InterOp::Declare(getInterp(), ("using " + id + " = __typeof__(" + name + ");\n").c_str());
 
     TCppScope_t lookup = InterOp::GetNamed(getSema(), id, 0);
-
-    return InterOp::GetUnderlyingType(InterOp::GetTypeFromScope(lookup));
+    TCppType_t lookup_ty = InterOp::GetTypeFromScope(lookup);
+    return InterOp::GetCanonicalType(lookup_ty);
 }
 
 
