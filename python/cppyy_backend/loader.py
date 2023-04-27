@@ -44,12 +44,12 @@ def _load_helper(bkname):
             pkgpath = os.path.dirname(__file__)
         elif os.path.basename(pkgpath) in ['lib', 'bin']:
             pkgpath = os.path.dirname(pkgpath)
-        for dep in ['libcling']:
+        for dep in ['libclangInterOp']:
             for loc in ['lib', 'bin']:
                 fpath = os.path.join(pkgpath, loc, dep+soext)
                 if os.path.exists(fpath):
                     ldtype = ctypes.RTLD_GLOBAL
-                    #  if dep == 'libCling': ldtype = ctypes.RTLD_LOCAL
+                    #  if dep == 'libclangInterOp': ldtype = ctypes.RTLD_LOCAL
                     ctypes.CDLL(fpath, ldtype)
                     break
         return ctypes.CDLL(os.path.join(pkgpath, 'lib', bkname), ctypes.RTLD_GLOBAL), errors

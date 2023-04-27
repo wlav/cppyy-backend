@@ -26,7 +26,6 @@ cmake -DLLVM_ENABLE_PROJECTS=clang                \
     ../llvm
 cmake --build . --target clang --parallel $(nproc --all)
 cmake --build . --target cling --parallel $(nproc --all)
-cmake --build . --target libcling --parallel $(nproc --all)
 cmake --build . --target gtest_main --parallel $(nproc --all)
 ```
 
@@ -39,24 +38,22 @@ cd ../
 
 ### Install InterOp
 
-Clone the InterOp repo. Build it using cling and install:
+Clone the InterOp repo. Build it using cling and install. Note down the path to
+InterOp install directory. This will be referred to as `INTEROP_DIR`:
+
+```
+export INTEROP_DIR=$PWD/cppyy-backend/python/cppyy_backend
+```
 
 ```
 git clone https://github.com/compiler-research/InterOp.git
 cd InterOp
 mkdir build install && cd build
-cmake -DUSE_CLING=ON -DCling_DIR=$LLVM_DIR/build -DCMAKE_INSTALL_PREFIX=$PWD/../install ..
+INTEROP_BUILD_DIR=$(PWD)
+cmake -DBUILD_SHARED_LIBS=ON -DUSE_CLING=ON -DCling_DIR=$LLVM_DIR/build -DCMAKE_INSTALL_PREFIX=$INTEROP_DIR ..
 cmake --build . --target install
 ```
 
-Note down the path to InterOp install directory. This will be referred to as
-`INTEROP_DIR`:
-
-```
-cd ../install
-export INTEROP_DIR=$PWD
-cd ../..
-```
 
 ### Install cppyy-backend
 
@@ -66,10 +63,12 @@ Clone the repo, build it and copy library files into `python/cppyy-backend` dire
 git clone https://github.com/compiler-research/cppyy-backend.git
 cd cppyy-backend
 mkdir python/cppyy_backend/lib build && cd build
+# Install InterOp first to appear in python/cppyy_backend/
+(cd $INTEROP_BUILD_DIR --build . --target install)
+
 cmake -DInterOp_DIR=$INTEROP_DIR ..
 cmake --build .
 cp libcppyy-backend.so ../python/cppyy_backend/lib/
-cp $LLVM_DIR/build/lib/libcling.so ../python/cppyy_backend/lib/
 ```
 
 Note down the path to `cppyy-backend/python` directory as "CB_PYTHON_DIR":

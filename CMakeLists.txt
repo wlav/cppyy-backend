@@ -16,13 +16,6 @@ add_library(cppyy-backend SHARED
 target_include_directories(cppyy-backend PRIVATE clingwrapper/src)
 
 
-add_library(libInterOp IMPORTED STATIC GLOBAL)
-
-set(_interop_static_archive_name ${CMAKE_LIBRARY_OUTPUT_DIRECTORY}${CMAKE_STATIC_LIBRARY_PREFIX}clangInterOp${CMAKE_STATIC_LIBRARY_SUFFIX})
-if("${CMAKE_GENERATOR}" STREQUAL "Ninja")
-    set(_interop_byproducts ${_interop_static_archive_name})
-endif()
-
 if(DEFINED InterOp_DIR)
     set(_interop_install_dir ${InterOp_DIR})
 else()
@@ -70,33 +63,4 @@ endif()
 set_source_files_properties(clingwrapper/src/clingwrapper.cxx
   PROPERTIES COMPILE_DEFINITIONS "INTEROP_DIR=\"${_interop_install_dir}\"")
 
-set_property(TARGET libInterOp PROPERTY IMPORTED_LOCATION ${_interop_install_dir}/lib/${_interop_static_archive_name})
-
-if (APPLE)
-set(_interop_link_flags -Wl,-force_load $<TARGET_FILE:libInterOp> -Wl)
-elseif(MSVC)
-set(_interop_link_flags "-WHOLEARCHIVE:" $<TARGET_FILE:libInterOp>)
-else()
-set(_interop_link_flags -Wl,--whole-archive $<TARGET_FILE:libInterOp> -Wl,--no-whole-archive)
-endif()
-target_link_libraries(cppyy-backend PUBLIC ${_interop_link_flags})
-
-add_dependencies(cppyy-backend libInterOp)
-
-# set(CLING_LIBS
-#     ${PROJECT_SOURCE_DIR}/../cling/builddir/lib/libclingInterpreter.a
-#     # clangAST
-#     # clangBasic
-#     # clangLex
-# )
-
 target_include_directories(cppyy-backend PUBLIC ${_interop_install_dir}/include)
-
-# target_link_libraries(cppyy-backend ${CLING_LIBS})
-# target_link_libraries(cppyy-backend ${PROJECT_SOURCE_DIR}/../cling/builddir/lib/libcling.so)
-
-# get_cmake_property(_variableNames VARIABLES)
-# list (SORT _variableNames)
-# foreach (_variableName ${_variableNames})
-#     message(STATUS "${_variableName}=${${_variableName}}")
-# endforeach()
