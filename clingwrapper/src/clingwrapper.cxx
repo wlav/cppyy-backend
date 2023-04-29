@@ -219,7 +219,6 @@ public:
                "#include <set>\n" // FIXME: Replace with modules
                "#include <chrono>\n" // FIXME: Replace with modules
                "#include <cmath>\n" // FIXME: Replace with modules
-               "#include \"cling/Interpreter/Interpreter.h\"\n"
                "#include \"clang/Interpreter/InterOp.h\"";
         InterOp::Process(I, code);
 
@@ -230,9 +229,17 @@ public:
         InterOp::Declare(I, 
             "namespace __cppyy_internal { template<class C1, class C2>"
             " bool is_not_equal(const C1& c1, const C2& c2) { return (bool)(c1 != c2); } }");
-        InterOp::Process(I, 
-            "namespace cling { namespace runtime {"
-            " DynamicLibraryManager *gDLM = gCling->getDynamicLibraryManager(); } }");
+
+        // Define gCling when we run with clang-repl.
+        // FIXME: We should get rid of all the uses of gCling as this seems to
+        // break encapsulation.
+        std::stringstream InterpPtrSS;
+        InterpPtrSS << "#ifndef __CLING__\n"
+                    << "namespace cling { namespace runtime {\n"
+                    << "void* gCling=(void*)" << static_cast<void*>(I)
+                    << ";\n }}\n"
+                    << "#endif \n";
+        InterOp::Process(I, InterpPtrSS.str().c_str());
 
     // helper for multiple inheritance
         InterOp::Declare(I, "namespace __cppyy_internal { struct Sep; }");
