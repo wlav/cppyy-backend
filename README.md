@@ -48,9 +48,9 @@ export INTEROP_DIR=$PWD/cppyy-backend/python/cppyy_backend
 ```
 git clone https://github.com/compiler-research/InterOp.git
 cd InterOp
-mkdir build install && cd build
+mkdir build && cd build
 INTEROP_BUILD_DIR=$(PWD)
-cmake -DBUILD_SHARED_LIBS=ON -DUSE_CLING=ON -DCling_DIR=$LLVM_DIR/build -DCMAKE_INSTALL_PREFIX=$INTEROP_DIR ..
+cmake -DBUILD_SHARED_LIBS=ON -DUSE_CLING=ON -DUSE_REPL=Off -DCling_DIR=$LLVM_DIR/build -DCMAKE_INSTALL_PREFIX=$INTEROP_DIR ..
 cmake --build . --target install
 ```
 
@@ -62,9 +62,9 @@ Clone the repo, build it and copy library files into `python/cppyy-backend` dire
 ```
 git clone https://github.com/compiler-research/cppyy-backend.git
 cd cppyy-backend
-mkdir python/cppyy_backend/lib build && cd build
+mkdir -p python/cppyy_backend/lib build && cd build
 # Install InterOp first to appear in python/cppyy_backend/
-(cd $INTEROP_BUILD_DIR --build . --target install)
+(cd $INTEROP_BUILD_DIR && cmake --build . --target install)
 
 cmake -DInterOp_DIR=$INTEROP_DIR ..
 cmake --build .
@@ -86,7 +86,6 @@ python3 -m venv .venv
 source .venv/bin/activate
 ```
 
-Clone the repo, checkout `rm-root-meta` branch and build it:
 ```
 git clone https://github.com/compiler-research/CPyCppyy.git
 cd CPyCppyy
@@ -103,7 +102,6 @@ cd ../..
 
 ### Install cppyy
 
-Clone the repo, checkout `rm-root-meta` branch and install:
 ```
 git clone https://github.com/compiler-research/cppyy.git
 cd cppyy
@@ -141,5 +139,6 @@ python -c "import cppyy"
 ```
 cd cppyy/test
 make all
+python -m pip install pytest
 python -m pytest -sv
 ```
