@@ -259,7 +259,6 @@ jobs:
         # We need PYTHONPATH later
         echo "PYTHONPATH=$PYTHONPATH" >> $GITHUB_ENV
     - name: Run the tests on Linux
-      continue-on-error: true
       if: runner.os == 'Linux'
       run: |
         # Run the tests
@@ -281,7 +280,8 @@ jobs:
         echo ::endgroup::
         echo ::group::Passing Test Logs
         # Run the rest of the non-crashing tests.
-        python -m pytest -m "not crashes" -v | tee test_passing.log 2>&1
+        set -o pipefail
+        python -m pytest -m "not crashes and not xfail" -v | tee test_passing.log 2>&1
         export PYTEST_RETCODE=$?
         echo ::endgroup::
         echo "Crashing Summary: \n"
@@ -290,6 +290,7 @@ jobs:
         tail -n1 test_xfailed.log
         echo "Passing Summary:"
         tail -n1 test_passing.log
+        exit $PYTEST_RETCODE
     - name: Setup tmate session
       if: ${{ failure() }}
       uses: mxschmitt/action-tmate@v3
