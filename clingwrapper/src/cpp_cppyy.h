@@ -126,13 +126,13 @@ namespace Cppyy {
 //
 // // memory management ---------------------------------------------------------
     RPY_EXPORTED
-    TCppObject_t Allocate(TCppType_t type) { assert(0 && "Allocate"); return 0; }
+    TCppObject_t Allocate(TCppScope_t scope);
     RPY_EXPORTED
-    void         Deallocate(TCppType_t type, TCppObject_t instance) { assert(0 && "Deallocate"); return; }
+    void         Deallocate(TCppScope_t scope, TCppObject_t instance);
     RPY_EXPORTED
-    TCppObject_t Construct(TCppType_t type, void* arena = nullptr) { assert(0 && "Construct"); return 0; }
+    TCppObject_t Construct(TCppScope_t scope, void* arena = nullptr);
     RPY_EXPORTED
-    void         Destruct(TCppType_t type, TCppObject_t instance) { assert(0 && "Deconstruct"); return; }
+    void         Destruct(TCppScope_t scope, TCppObject_t instance);
 
 // method/function dispatching -----------------------------------------------
     RPY_EXPORTED

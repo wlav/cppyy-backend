@@ -496,11 +496,11 @@ std::string Cppyy::ResolveEnum(TCppScope_t handle)
 Cppyy::TCppScope_t Cppyy::GetScope(const std::string& name,
                                    TCppScope_t parent_scope)
 {
-    if (name.find("::") != std::string::npos) {
-#ifdef PRINT_DEBUG
-        printf("Wrong call to GetScope\n");
-#endif
-    }
+#ifndef NDEBUG
+    if (name.find("::") != std::string::npos)
+        throw std::runtime_error("Calling Cppyy::GetScope with qualified name '"
+                                 + name + "'\n");
+#endif // NDEBUG
 
     return InterOp::GetScope(getSema(), name, parent_scope);
 }
@@ -657,43 +657,25 @@ bool Cppyy::IsComplete(TCppScope_t scope)
 }
 
 // // memory management ---------------------------------------------------------
-// Cppyy::TCppObject_t Cppyy::Allocate(TCppType_t type)
-// {
-//     TClassRef& cr = type_from_handle(type);
-//     return (TCppObject_t)::operator new(gInterpreter->ClassInfo_Size(cr->GetClassInfo()));
-// }
-//
-// void Cppyy::Deallocate(TCppType_t /* type */, TCppObject_t instance)
-// {
-//     ::operator delete(instance);
-// }
-//
-// Cppyy::TCppObject_t Cppyy::Construct(TCppType_t type)
-// {
-//     TClassRef& cr = type_from_handle(type);
-//     return (TCppObject_t)cr->New();
-// }
-//
-// static std::map<Cppyy::TCppType_t, bool> sHasOperatorDelete;
-// void Cppyy::Destruct(TCppType_t type, TCppObject_t instance)
-// {
-//     TClassRef& cr = type_from_handle(type);
-//     if (cr->ClassProperty() & (kClassHasExplicitDtor | kClassHasImplicitDtor))
-//         cr->Destructor((void*)instance);
-//     else {
-//         ::CppyyLegacy::DelFunc_t fdel = cr->GetDelete();
-//         if (fdel) fdel((void*)instance);
-//         else {
-//             auto ib = sHasOperatorDelete.find(type);
-//             if (ib == sHasOperatorDelete.end()) {
-//                 TFunction* f = (TFunction*)cr->GetMethodAllAny("operator delete");
-//                 sHasOperatorDelete[type] = (bool)(f && (f->Property() & kIsPublic));
-//                 ib = sHasOperatorDelete.find(type);
-//             }
-//             ib->second ? cr->Destructor((void*)instance) : free((void*)instance);
-//         }
-//     }
-// }
+Cppyy::TCppObject_t Cppyy::Allocate(TCppScope_t scope)
+{
+    return InterOp::Allocate(scope);
+}
+
+void Cppyy::Deallocate(TCppScope_t scope, TCppObject_t instance)
+{
+    InterOp::Deallocate(scope, instance);
+}
+
+Cppyy::TCppObject_t Cppyy::Construct(TCppScope_t scope, void* arena/*=nullptr*/)
+{
+    return InterOp::Construct(getInterp(), scope, arena);
+}
+
+void Cppyy::Destruct(TCppScope_t scope, TCppObject_t instance)
+{
+    InterOp::Destruct(getInterp(), instance, scope);
+}
 
 static inline
 bool copy_args(Parameter* args, size_t nargs, void** vargs)
@@ -1936,11 +1918,11 @@ size_t cppyy_size_of_klass(cppyy_type_t klass) {
 //
 //
 // [> memory management ------------------------------------------------------ <]
-// cppyy_object_t cppyy_allocate(cppyy_type_t type) {
+// cppyy_object_t cppyy_allocate(cppyy_scope_t type) {
 //     return cppyy_object_t(Cppyy::Allocate(type));
 // }
 //
-// void cppyy_deallocate(cppyy_type_t type, cppyy_object_t self) {
+// void cppyy_deallocate(cppyy_scope_t type, cppyy_object_t self) {
 //     Cppyy::Deallocate(type, (void*)self);
 // }
 //
