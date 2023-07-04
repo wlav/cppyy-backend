@@ -1674,7 +1674,8 @@ std::string Cppyy::GetMethodArgType(TCppMethod_t method, TCppIndex_t iarg)
         if (ft.rfind("enum ", 0) != std::string::npos) {   // special case to preserve 'enum' tag
             std::string arg_type = arg->GetTypeNormalizedName();
             return arg_type.insert(arg_type.rfind("const ", 0) == std::string::npos ? 0 : 6, "enum ");
-        }
+        } else if (ft.find("int8_t") != std::string::npos) // do not result int8_t and uint8_t typedefs
+            return ft;
 
         return arg->GetTypeNormalizedName();
     }
