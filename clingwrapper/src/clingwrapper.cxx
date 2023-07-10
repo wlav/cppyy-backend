@@ -1028,10 +1028,27 @@ Cppyy::TCppFuncAddr_t Cppyy::GetFunctionAddress(TCppMethod_t method, bool check_
         sig << "template " << fn << ";";
         gInterpreter->ProcessLine(sig.str().c_str());
     } else {
-        std::string sfn = std::string("&")+fn;
+        std::ostringstream sig;
+
+        std::string sfn = fn;
         std::string::size_type pos = sfn.find('(');
         if (pos != std::string::npos) sfn = sfn.substr(0, pos);
-        gInterpreter->Calc(sfn.c_str());
+
+    // start cast
+        sig << '(' << f->GetReturnTypeName() << " (";
+
+    // add scope for methods
+        pos = sfn.rfind(':');
+        if (pos != std::string::npos) sig << sfn.substr(0, pos-1) << "::";
+
+    // finalize cast
+        sig << "*)" << GetMethodSignature(method, false)
+                    << ((f->Property() & kIsConstMethod) ? " const" : "")
+            << ')';
+
+    // load address
+        sig << '&' << sfn;
+        gInterpreter->Calc(sig.str().c_str());
     }
 
     return (TCppFuncAddr_t)gInterpreter->FindSym(f->GetMangledName());
