@@ -2,7 +2,7 @@ diff --git a/src/interpreter/cling/lib/Interpreter/DeclUnloader.cpp b/src/interp
 index 467139e2d8..69d94e37b8 100644
 --- a/src/interpreter/cling/lib/Interpreter/DeclUnloader.cpp
 +++ b/src/interpreter/cling/lib/Interpreter/DeclUnloader.cpp
-@@ -547,6 +547,7 @@ bool DeclUnloader::VisitRedeclarable(clang::Redeclarable<T>* R, DeclContext* DC)
+@@ -513,6 +513,7 @@ bool DeclUnloader::VisitRedeclarable(clang::Redeclarable<T>* R, DeclContext* DC)
        StaticVarCollector(FunctionDecl* FD, Vars& V) : m_V(V) {
          TraverseStmt(FD->getBody());
        }

@@ -104,7 +104,8 @@ TClingClassInfo::TClingClassInfo(cling::Interpreter *interp, const char *name)
                                    &type, /* intantiateTemplate= */ true );
    if (!decl) {
       std::string strname{name};
-      std::string::size_type pos = strname.rfind("::(anonymous)");
+      std::string::size_type pos = strname.rfind("::(unnamed)");
+      if (pos == std::string::npos) pos = strname.rfind("::(anonymous)");
       if (pos != std::string::npos && strname.find("TString") == std::string::npos) {
          const clang::Decl* anon = lh.findScope(strname.substr(0, pos),
                                    gDebug > 5 ? cling::LookupHelper::WithDiagnostics

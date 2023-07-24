@@ -132,7 +132,21 @@ namespace TStreamerInfoActions {
       ClassDef(TConfiguredAction,0); // A configured action
    };
 
-   struct TIDNode;
+   struct TNestedIDs;
+
+   // A 'node' in the list of StreamerElement ID, either
+   // the index of the element in the current streamerInfo
+   // or a set of unfolded/extracted StreamerElement for a sub-object.
+   struct TIDNode {
+      TIDNode() = default;
+      TIDNode(Int_t id) : fElemID(id), fElement(nullptr), fInfo(nullptr) {}
+      TIDNode(TStreamerInfo *info, Int_t offset);
+      Int_t fElemID = -1;
+      TStreamerElement *fElement = nullptr;
+      TStreamerInfo *fInfo = nullptr;
+      std::unique_ptr<TNestedIDs> fNestedIDs;
+   };
+
    using TIDs = std::vector<TIDNode>;
 
    // Hold information about unfolded/extracted StreamerElement for
@@ -151,20 +165,9 @@ namespace TStreamerInfoActions {
       TIDs           fIDs;
    };
 
-   // A 'node' in the list of StreamerElement ID, either
-   // the index of the element in the current streamerInfo
-   // or a set of unfolded/extracted StreamerElement for a sub-object.
-   struct TIDNode {
-      TIDNode() = default;
-      TIDNode(Int_t id) : fElemID(id), fElement(nullptr), fInfo(nullptr) {}
-      TIDNode(TStreamerInfo *info, Int_t offset) : fElemID(-1), fElement(nullptr), fInfo(nullptr)  {
-         fNestedIDs = std::make_unique<TNestedIDs>(info, offset);
-      }
-      Int_t fElemID = -1;
-      TStreamerElement *fElement = nullptr;
-      TStreamerInfo *fInfo = nullptr;
-      std::unique_ptr<TNestedIDs> fNestedIDs;
-   };
+   inline TIDNode::TIDNode(TStreamerInfo *info, Int_t offset) : fElemID(-1), fElement(nullptr), fInfo(nullptr)  {
+       fNestedIDs = std::make_unique<TNestedIDs>(info, offset);
+   }
 
    typedef std::vector<TConfiguredAction> ActionContainer_t;
    class TActionSequence : public TObject {

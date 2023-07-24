@@ -2,7 +2,7 @@ diff --git a/src/interpreter/cling/lib/Interpreter/CIFactory.cpp b/src/interpret
 index 1213179cba..774e31c24d 100644
 --- a/src/interpreter/cling/lib/Interpreter/CIFactory.cpp
 +++ b/src/interpreter/cling/lib/Interpreter/CIFactory.cpp
-@@ -90,11 +92,13 @@ namespace {
+@@ -93,11 +95,13 @@ namespace {
    }
  
    class AdditionalArgList {
@@ -18,7 +18,7 @@ index 1213179cba..774e31c24d 100644
      void addArgument(const char* arg, std::string value = std::string()) {
        m_Saved.push_back(std::make_pair(arg,std::move(value)));
      }
-@@ -108,16 +112,23 @@ namespace {
+@@ -111,16 +115,23 @@ namespace {
    static void ReadCompilerIncludePaths(const char* Compiler,
                                         llvm::SmallVectorImpl<char>& Buf,
                                         AdditionalArgList& Args,
@@ -38,12 +38,12 @@ index 1213179cba..774e31c24d 100644
 +    llvm::SmallString<512> recInc(resourcePath);
 +    llvm::sys::path::append(recInc, "include");
 +    if (llvm::sys::fs::exists(recInc.str()))
-+      resourceIncDir = recInc.str();
++      resourceIncDir = recInc.str().str();
 +
      if (FILE *PF = ::popen(CppInclQuery.c_str(), "r")) {
        Buf.resize(Buf.capacity_in_bytes());
        while (fgets(&Buf[0], Buf.capacity_in_bytes(), PF) && Buf[0]) {
-@@ -129,8 +140,15 @@ namespace {
+@@ -132,8 +143,15 @@ namespace {
              if (Verbose)
                cling::utils::LogNonExistantDirectory(Path);
            }
@@ -60,7 +60,7 @@ index 1213179cba..774e31c24d 100644
          }
        }
        ::pclose(PF);
-@@ -208,6 +226,21 @@ namespace {
+@@ -211,6 +229,21 @@ namespace {
      static AdditionalArgList sArguments;
      if (sArguments.empty()) {
        const bool Verbose = opts.Verbose;
@@ -82,7 +82,7 @@ index 1213179cba..774e31c24d 100644
  #ifdef _MSC_VER
        // When built with access to the proper Windows APIs, try to actually find
        // the correct include paths first. Init for UnivSDK.empty check below.
-@@ -298,14 +331,14 @@ namespace {
+@@ -301,14 +334,14 @@ namespace {
              clang.append(" -stdlib=libstdc++");
    #endif
            }
@@ -99,7 +99,7 @@ index 1213179cba..774e31c24d 100644
    #endif
    // Then try the include directory cling was built with
    #ifdef CLING_CXX_INCL
-@@ -315,7 +348,7 @@ namespace {
+@@ -318,7 +351,7 @@ namespace {
    // Finally try the absolute path i.e.: '/usr/bin/g++'
    #ifdef CLING_CXX_PATH
          if (sArguments.empty())
@@ -108,7 +108,7 @@ index 1213179cba..774e31c24d 100644
    #endif
  
          if (sArguments.empty()) {
-@@ -365,28 +389,16 @@ namespace {
+@@ -368,28 +392,16 @@ namespace {
            }
          }
        }

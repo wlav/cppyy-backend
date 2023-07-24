@@ -2,7 +2,7 @@ diff --git a/src/interpreter/cling/lib/Interpreter/CIFactory.cpp b/src/interpret
 index 80d1b1c52a..58edb8c26d 100644
 --- a/src/interpreter/cling/lib/Interpreter/CIFactory.cpp
 +++ b/src/interpreter/cling/lib/Interpreter/CIFactory.cpp
-@@ -53,6 +53,8 @@
+@@ -56,6 +56,8 @@
  #include <limits>
  #include <memory>
  
@@ -11,7 +11,7 @@ index 80d1b1c52a..58edb8c26d 100644
  using namespace clang;
  using namespace cling;
  
-@@ -342,7 +344,27 @@ namespace {
+@@ -345,7 +347,27 @@ namespace {
        }
  
    #ifdef CLING_OSX_SYSROOT
@@ -44,7 +44,7 @@ diff --git a/src/interpreter/cling/lib/Interpreter/IncrementalParser.cpp b/src/i
 index 2593c21fb2..dbe8caa04b 100644
 --- a/src/interpreter/cling/lib/Interpreter/IncrementalParser.cpp
 +++ b/src/interpreter/cling/lib/Interpreter/IncrementalParser.cpp
-@@ -89,20 +89,7 @@ namespace {
+@@ -88,20 +88,7 @@ namespace {
        "  Failed to extract C++ standard library version.\n";
      }
  

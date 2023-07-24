@@ -538,7 +538,7 @@ std::string Cppyy::ResolveEnum(const std::string& enum_type)
 
 // remove qualifiers and desugar the type before resolving
     std::string et_short = TClassEdit::ShortType(enum_type.c_str(), 1);
-    if (et_short.find("(anonymous") == std::string::npos) {
+    if (et_short.find("(anonymous") == std::string::npos && et_short.find("(unnamed") == std::string::npos) {
         TEnum* ee = nullptr;
 
         std::string scope_name = extract_namespace(et_short);
@@ -775,10 +775,12 @@ void Cppyy::Deallocate(TCppType_t /* type */, TCppObject_t instance)
     ::operator delete(instance);
 }
 
-Cppyy::TCppObject_t Cppyy::Construct(TCppType_t type)
+Cppyy::TCppObject_t Cppyy::Construct(TCppType_t type, void* arena)
 {
     TClassRef& cr = type_from_handle(type);
-    return (TCppObject_t)cr->New();
+    if (arena)
+        return (TCppObject_t)cr->New(arena, TClass::kRealNew);
+    return (TCppObject_t)cr->New(TClass::kRealNew);
 }
 
 static std::map<Cppyy::TCppType_t, bool> sHasOperatorDelete;
@@ -940,6 +942,7 @@ T CallT(Cppyy::TCppMethod_t method, Cppyy::TCppObject_t self, size_t nargs, void
     T t{};
     if (WrapperCall(method, nargs, args, (void*)self, &t))
         return t;
+    throw std::runtime_error("failed to resolve function");
     return (T)-1;
 }
 
@@ -1036,27 +1039,27 @@ Cppyy::TCppFuncAddr_t Cppyy::GetFunctionAddress(TCppMethod_t method, bool check_
         sig << "template " << fn << ";";
         gInterpreter->ProcessLine(sig.str().c_str());
     } else {
-    // create a statement that can resolve overloaded functions
-    // for example: "(double (*)(double)) &std::tanh"
-        std::string sfn(fn);
-        std::string addrstr;
-        addrstr.reserve(128);
-        addrstr.push_back('(');
-        addrstr.append(Cppyy::GetMethodResultType(method));
-        addrstr.append(" (");
+        std::ostringstream sig;
 
-        if (gInterpreter->FunctionDeclId_IsMethod(m2d(method))) {
-            std::string::size_type colon = sfn.rfind("::");
-            if (colon != std::string::npos) addrstr.append(sfn.substr(0, colon+2));
-        }
+        std::string sfn = fn;
+        std::string::size_type pos = sfn.find('(');
+        if (pos != std::string::npos) sfn = sfn.substr(0, pos);
 
-        addrstr.append("*)");
-        addrstr.append(Cppyy::GetMethodSignature(method, false));
-        addrstr.append(") &");
+    // start cast
+        sig << '(' << f->GetReturnTypeName() << " (";
 
-        addrstr.append(sfn.substr(0, sfn.find('(')));
+    // add scope for methods
+        pos = sfn.rfind(':');
+        if (pos != std::string::npos) sig << sfn.substr(0, pos-1) << "::";
 
-        gInterpreter->Calc(addrstr.c_str());
+    // finalize cast
+        sig << "*)" << GetMethodSignature(method, false)
+                    << ((f->Property() & kIsConstMethod) ? " const" : "")
+            << ')';
+
+    // load address
+        sig << '&' << sfn;
+        gInterpreter->Calc(sig.str().c_str());
     }
 
     return (TCppFuncAddr_t)gInterpreter->FindSym(f->GetMangledName());
@@ -1252,7 +1255,7 @@ void Cppyy::GetAllCppNames(TCppScope_t scope, std::set<std::string>& cppnames)
             false /* all */, scope == GLOBAL_HANDLE ? nullptr : cr->GetName());
         while (gInterpreter->ClassInfo_Next(ci)) {
             const char* className = gInterpreter->ClassInfo_FullName(ci);
-            if (strstr(className, "(anonymous)"))
+            if (strstr(className, "(anonymous)") || strstr(className, "(unnamed)"))
                 continue;
             cond_add(scope, ns_scope, cppnames, className);
         }
@@ -1699,7 +1702,8 @@ std::string Cppyy::GetMethodArgType(TCppMethod_t method, TCppIndex_t iarg)
         if (ft.rfind("enum ", 0) != std::string::npos) {   // special case to preserve 'enum' tag
             std::string arg_type = arg->GetTypeNormalizedName();
             return arg_type.insert(arg_type.rfind("const ", 0) == std::string::npos ? 0 : 6, "enum ");
-        }
+        } else if (ft.find("int8_t") != std::string::npos) // do not result int8_t and uint8_t typedefs
+            return ft;
 
         return arg->GetTypeNormalizedName();
     }
@@ -2154,11 +2158,11 @@ std::string Cppyy::GetDatamemberType(TCppScope_t scope, TCppIndex_t idata)
     // this is the only place where anonymous structs are uniquely identified, so setup
     // a class if needed, such that subsequent GetScope() and GetScopedFinalName() calls
     // return the uniquely named class
-        auto declid = m->GetTagDeclId();
+        auto declid = m->GetTagDeclId(); //GetDeclId();
         if (declid && (m->Property() & (kIsClass | kIsStruct | kIsUnion)) &&\
-                fullType.find("(anonymous)") != std::string::npos) {
+                (fullType.find("(anonymous)") != std::string::npos || fullType.find("(unnamed)") != std::string::npos)) {
 
-        // use the (fixed) tag decl address to guarantee a unique name, even when there
+        // use the (fixed) decl id address to guarantee a unique name, even when there
         // are multiple anonymous structs in the parent scope
             std::ostringstream fulls;
             fulls << fullType << "@" << (void*)declid;
@@ -2360,7 +2364,7 @@ bool Cppyy::IsEnumData(TCppScope_t scope, TCppIndex_t idata)
         std::string ti = m->GetTypeName();
 
     // can't check anonymous enums by type name, so just accept them as enums
-        if (ti.rfind("(anonymous)") != std::string::npos)
+        if (ti.rfind("(anonymous)") != std::string::npos || ti.rfind("(unnamed)") != std::string::npos)
             return m->Property() & kIsEnum;
 
     // since there seems to be no distinction between data of enum type and enum values,

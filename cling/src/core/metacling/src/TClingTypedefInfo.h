@@ -77,7 +77,7 @@ public:
    long                 Property() const;
    int                  Size() const;
    const char          *TrueName(const CppyyLegacy::TMetaUtils::TNormalizedCtxt &normCtxt) const;
-   const char          *Name() override;
+   const char          *Name() const override;
    const char          *Title();
 
 };

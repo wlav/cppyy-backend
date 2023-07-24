@@ -14,11 +14,11 @@ Bridge between cling::Value and ROOT.
 */
 
 #include "TClingValue.h"
+
 #include "cling/Interpreter/Value.h"
 #include "llvm/Support/raw_ostream.h"
 
 #include <cassert>
-
 
 namespace CppyyLegacy {
 
@@ -72,11 +72,11 @@ Double_t TClingValue::GetAsDouble() const {
 }
 
 Long_t TClingValue::GetAsLong() const {
-   return ToCV().getLL();
+   return ToCV().getLongLong();
 }
 
 ULong_t TClingValue::GetAsUnsignedLong() const {
-   return ToCV().getULL();
+   return ToCV().getULongLong();
 }
 
 void* TClingValue::GetAsPointer() const {

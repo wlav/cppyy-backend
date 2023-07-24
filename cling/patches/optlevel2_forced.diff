@@ -2,7 +2,7 @@ diff --git a/src/interpreter/cling/lib/Interpreter/CIFactory.cpp b/src/interpret
 index f97c86032f..69321c5579 100644
 --- a/src/interpreter/cling/lib/Interpreter/CIFactory.cpp
 +++ b/src/interpreter/cling/lib/Interpreter/CIFactory.cpp
-@@ -1641,9 +1641,10 @@ static void stringifyPreprocSetting(PreprocessorOptions& PPOpts,
+@@ -1661,9 +1661,10 @@ static void stringifyPreprocSetting(PreprocessorOptions& PPOpts,
  
      // Set CodeGen options.
      CodeGenOptions& CGOpts = CI->getCodeGenOpts();
@@ -18,7 +18,7 @@ diff --git a/src/interpreter/cling/lib/Interpreter/IncrementalParser.cpp b/src/i
 index 4b971bb02e..cbea6870db 100644
 --- a/src/interpreter/cling/lib/Interpreter/IncrementalParser.cpp
 +++ b/src/interpreter/cling/lib/Interpreter/IncrementalParser.cpp
-@@ -19,7 +19,6 @@
+@@ -18,7 +18,6 @@
  #include "DefinitionShadower.h"
  #include "DeviceKernelInliner.h"
  #include "DynamicLookup.h"
@@ -26,7 +26,7 @@ index 4b971bb02e..cbea6870db 100644
  #include "TransactionPool.h"
  #include "ValueExtractionSynthesizer.h"
  #include "ValuePrinterSynthesizer.h"
-@@ -996,15 +995,8 @@ namespace cling {
+@@ -1003,15 +1002,8 @@ namespace cling {
      ASTTransformers.emplace_back(new AutoSynthesizer(TheSema));
      ASTTransformers.emplace_back(new EvaluateTSynthesizer(TheSema));
      if (hasCodeGenerator() && !m_Interpreter->getOptions().NoRuntime) {
@@ -47,7 +47,7 @@ diff --git a/src/interpreter/cling/lib/Interpreter/BackendPasses.cpp b/src/inter
 index cb3308c360..873bc682ea 100644
 --- a/src/interpreter/cling/lib/Interpreter/BackendPasses.cpp
 +++ b/src/interpreter/cling/lib/Interpreter/BackendPasses.cpp
-@@ -229,6 +229,9 @@ void BackendPasses::CreatePasses(llvm::Module& M, int OptLevel)
+@@ -382,6 +382,9 @@ void BackendPasses::CreatePasses(llvm::Module& M, int OptLevel)
      // Inlining = CGOpts.NoInlining;
    }
 

@@ -118,12 +118,12 @@ class my_cmake_build(_build):
             stdcxx = os.environ['STDCXX']
         except KeyError:
             if is_manylinux():
-                stdcxx = '11'
+                stdcxx = '14'
             else:
-                stdcxx = '17'
+                stdcxx = '20'
 
-        if not stdcxx in ['11', '14', '17', '20']:
-            log.fatal('FATAL: envar STDCXX should be one of 11, 14, 17, or 20')
+        if not stdcxx in ['14', '17', '20']:
+            log.fatal('FATAL: envar STDCXX should be one of 14, 17, or 20')
             sys.exit(1)
 
         stdcxx='-DCMAKE_CXX_STANDARD='+stdcxx
@@ -155,8 +155,11 @@ class my_cmake_build(_build):
         CMAKE_COMMAND.append('-DCMAKE_BUILD_TYPE='+get_build_type())
         if 'win32' in sys.platform:
             import platform
-            if '64' in platform.architecture()[0]:
-                CMAKE_COMMAND += ['-Thost=x64', '-DCMAKE_GENERATOR_PLATFORM=x64']
+            bits = platform.architecture()[0]
+            if '64' in bits:
+                CMAKE_COMMAND += ['-A x64', '-Thost=x64', '-DCMAKE_GENERATOR_PLATFORM=x64']
+            elif '32' in bits:
+                CMAKE_COMMAND += ['-Thost=x86', '-DCMAKE_GENERATOR_PLATFORM=win32']
         elif 'darwin' in sys.platform:
             import platform
             if 'arm64' in platform.machine():
@@ -251,39 +254,39 @@ class my_install(_install):
      # remove allDict.cxx.pch as it's not portable (rebuild on first run, see cppyy)
         log.info('removing allDict.cxx.pch')
         os.remove(os.path.join(get_prefix(), 'etc', 'allDict.cxx.pch'))
-     # for manylinux, reset the default cxxversion to 17 if no user override
+     # for manylinux, reset the default cxxversion to 20 if no user override
         if not 'STDCXX' in os.environ and is_manylinux():
-            log.info('updating root-config to C++17 for manylinux')
+            log.info('updating root-config to C++20 for manylinux')
             inp = os.path.join(get_prefix(), 'bin', 'root-config')
             outp = inp+'.new'
             outfile = open(outp, 'w')
             for line in open(inp).readlines():
                 if line.find('cxxversionflag=', 0, 15) == 0:
-                    line = 'cxxversionflag="-std=c++1z "\n'
+                    line = 'cxxversionflag="-std=c++2a "\n'
                 elif line.find('features=', 0, 9) == 0:
-                    line = line.replace('cxx11', 'cxx17')
+                    line = line.replace('cxx14', 'cxx20')
                 outfile.write(line)
             outfile.close()
             os.rename(outp, inp)
             os.chmod(inp, stat.S_IMODE(os.lstat(inp).st_mode) | stat.S_IXUSR | stat.S_IXGRP | stat.S_IXOTH)
 
-            log.info('updating allCppflags.txt to C++17 for manylinux')
+            log.info('updating allCppflags.txt to C++20 for manylinux')
             inp = os.path.join(get_prefix(), 'etc', 'dictpch', 'allCppflags.txt')
             outp = inp+'.new'
             outfile = open(outp, 'w')
             for line in open(inp).readlines():
                 if '-std=' == line[:5]:
-                    line = '-std=c++1z\n'
+                    line = '-std=c++2a\n'
                 outfile.write(line)
             outfile.close()
             os.rename(outp, inp)
 
-            log.info('updating compiledata.h to C++17 for manylinux')
+            log.info('updating compiledata.h to C++20 for manylinux')
             inp = os.path.join(get_prefix(), 'include', 'compiledata.h')
             outp = inp+'.new'
             outfile = open(outp, 'w')
             for line in open(inp).readlines():
-                line = line.replace('-std=c++11', '-std=c++1z')
+                line = line.replace('-std=c++14', '-std=c++2a')
                 outfile.write(line)
             outfile.close()
             os.rename(outp, inp)
@@ -388,8 +391,7 @@ setup(
 
     setup_requires=['wheel'],
 
-    include_package_data=True,
-    package_data={'': ['cmake/*.cmake', 'pkg_templates/*.in', 'pkg_templates/*.py']},
+    package_data={'cppyy_backend': ['cmake/*.cmake', 'pkg_templates/*.in', 'pkg_templates/*.py']},
 
     package_dir={'': 'python'},
     packages=find_packages('python', include=['cppyy_backend']),

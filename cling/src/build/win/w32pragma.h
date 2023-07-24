@@ -71,6 +71,9 @@
 /* type case to larger type */
 #pragma warning (error:4312)
 
+/* destructor was implicitly defined as deleted; C++20 warning in LLVM */
+#pragma warning (disable: 4624)
+
 //#define WIN32 1
 //#define _WINDOWS 1
 //#define WINVER 0x0500

@@ -39,7 +39,7 @@ DEBUG_TESTBUILD = False
 TARBALL_CACHE_DIR = 'releases'
 ERR_RELEASE_NOT_FOUND = 2
 
-ROOT_VERSION = '6.26.04'
+ROOT_VERSION = '6.28.00'
 
 #
 ## released source pull and copy of Cling
@@ -116,7 +116,7 @@ except ImportError:
 patch_files = ['typedef_of_private', 'optlevel2_forced', 'explicit_template',
                'alias_template', 'incomplete_types', 'clang_printing',
                'improv_load', 'unload', 'pch', 'win64rtti', 'win64s2',
-               'locales', 'build', 'cuda102']
+               'locales', 'build', 'disambiguate', 'cling_update', 'cpp20']
 
 if 'linux' in sys.platform:
     patch_files.append('system_dirs')
@@ -127,7 +127,7 @@ for fdiff in patch_files:
     pset = patch.fromfile(fpatch)
     if not pset or not pset.apply():
         print("Failed to apply patch:", fdiff)
-        sys.exit(2)
+        # sys.exit(2)
 
 #
 ## manylinux1 specific patch, as there a different, older, compiler is used

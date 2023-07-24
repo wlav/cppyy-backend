@@ -1,4 +1,4 @@
-/// \file ROOT/rhysd_span.h
+/// \file ROOT/span.hxx
 /// \ingroup Base StdExt
 /// \author Axel Naumann <axel@cern.ch>
 /// \date 2015-09-06
@@ -13,6 +13,14 @@
 
 #ifndef ROOT_RHYSD_SPAN_H
 #define ROOT_RHYSD_SPAN_H
+
+#if __cplusplus >= 202002
+# if __has_include(<span>)
+#  include <span>
+# endif
+#endif
+
+#if !defined(__cpp_lib_span)
 
 // Necessary to compile in c++11 mode
 #if __cplusplus >= 201402L
@@ -581,4 +589,5 @@ span<T> make_view(std::initializer_list<T> const& l)
 } // inline namespace __CppyyLegacy
 } // namespace std
 
+#endif // !defined(__cpp_lib_span)
 #endif

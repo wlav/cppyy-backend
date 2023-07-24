@@ -53,6 +53,7 @@ source code):
   Ellis Breen
   Antonio Cuni
   Aditi Dutta
+  Henrik Finsberg
   Shaheed Haque
   Dennis Hemker
   Jean Hominal
