@@ -58,6 +58,7 @@ source code):
   Dennis Hemker
   Jean Hominal
   Jonsomi
+  Baidyanath Kundu
   Alvaro Moran
   Tarmo Pikaro
   Matti Picus
