@@ -55,6 +55,13 @@ TClingTypeInfo::TClingTypeInfo(cling::Interpreter *interp, const char *name)
 
 ////////////////////////////////////////////////////////////////////////////////
 
+void *TClingTypeInfo::QualTypePtr() const
+{
+   return fQualType.getAsOpaquePtr();
+}
+
+////////////////////////////////////////////////////////////////////////////////
+
 void TClingTypeInfo::Init(const char *name)
 {
    fQualType = clang::QualType();

@@ -461,6 +461,24 @@ public:
 // additional virtual methods at the end for build-time backwards compatibility
    virtual DeclId_t GetTagDeclId(DataMemberInfo_t *info) const = 0;
    virtual ClassInfo_t  *ClassInfo_FactoryWithScope(Bool_t /*all*/ = kTRUE, const char* /*scope*/ = nullptr) const = 0;
+
+// additional MethodArgInfo interface
+   virtual TypeInfo_t *MethodArgInfo_TypeInfo(MethodArgInfo_t * /* marginfo */) const {return 0;}
+
+// additional TypeInfo interface
+   virtual void  *TypeInfo_QualTypePtr(TypeInfo_t * /* tinfo */) const {return 0;}
+
+// QualType Opaque Ptr interface
+   virtual Bool_t IsSameType(const void * /* QualTypePtr1 */, const void * /* QualTypePtr2 */) const {return 0;}
+   virtual Bool_t IsIntegerType(const void * /* QualTypePtr */) const {return 0;}
+   virtual Bool_t IsSignedIntegerType(const void * /* QualTypePtr */) const {return 0;}
+   virtual Bool_t IsUnsignedIntegerType(const void * /* QualTypePtr */) const {return 0;}
+   virtual Bool_t IsFloatingType(const void * /* QualTypePtr */) const {return 0;}
+   virtual Bool_t IsPointerType(const void * /* QualTypePtr */) const {return 0;}
+   virtual Bool_t IsVoidPointerType(const void * /* QualTypePtr */) const {return 0;}
+
+// FunctionDecl interface 
+   virtual Bool_t FunctionDeclId_IsMethod(DeclId_t /* fdeclid */) const {return 0;}
 };
 
 } // namespace CppyyLegacy

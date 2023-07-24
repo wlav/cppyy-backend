@@ -48,6 +48,7 @@ public:
    const char    *GetFullTypeName() const;
    std::string    GetTypeNormalizedName() const;
    Long_t         Property() const;
+   TypeInfo_t    *GetTypeInfo() const;
 
    void           Update(MethodArgInfo_t *info);
 

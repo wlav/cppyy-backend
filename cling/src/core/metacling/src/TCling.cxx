@@ -8250,6 +8250,14 @@ std::string TCling::MethodArgInfo_TypeNormalizedName(MethodArgInfo_t* marginfo) 
    return info->Type()->NormalizedName(*fNormalizedCtxt);
 }
 
+////////////////////////////////////////////////////////////////////////////////
+
+TypeInfo_t* TCling::MethodArgInfo_TypeInfo(MethodArgInfo_t *marginfo) const
+{
+   TClingMethodArgInfo* info = (TClingMethodArgInfo*) marginfo;
+   return (TypeInfo_t*) info->Type();
+}
+
 //______________________________________________________________________________
 //
 //  TypeInfo interface
@@ -8340,6 +8348,14 @@ const char* TCling::TypeInfo_TrueName(TypeInfo_t* tinfo) const
 {
    TClingTypeInfo* TClinginfo = (TClingTypeInfo*) tinfo;
    return TClinginfo->TrueName(*fNormalizedCtxt);
+}
+
+////////////////////////////////////////////////////////////////////////////////
+
+void* TCling::TypeInfo_QualTypePtr(TypeInfo_t* tinfo) const
+{
+   TClingTypeInfo* TClinginfo = (TClingTypeInfo*) tinfo;
+   return TClinginfo->QualTypePtr();
 }
 
 
@@ -8442,6 +8458,71 @@ const char* TCling::TypedefInfo_Title(TypedefInfo_t* tinfo) const
 {
    TClingTypedefInfo* TClinginfo = (TClingTypedefInfo*) tinfo;
    return TClinginfo->Title();
+}
+
+////////////////////////////////////////////////////////////////////////////////
+
+bool TCling::IsSameType(const void * QualTypePtr1, const void * QualTypePtr2) const
+{
+   clang::QualType QT1 = clang::QualType::getFromOpaquePtr(QualTypePtr1);
+   clang::QualType QT2 = clang::QualType::getFromOpaquePtr(QualTypePtr2);
+   return fInterpreter->getCI()->getASTContext().hasSameType(QT1, QT2);
+}
+
+////////////////////////////////////////////////////////////////////////////////
+
+bool TCling::IsIntegerType(const void * QualTypePtr) const
+{
+   clang::QualType QT = clang::QualType::getFromOpaquePtr(QualTypePtr);
+   return QT->hasIntegerRepresentation();
+}
+
+////////////////////////////////////////////////////////////////////////////////
+
+bool TCling::IsSignedIntegerType(const void * QualTypePtr) const
+{
+   clang::QualType QT = clang::QualType::getFromOpaquePtr(QualTypePtr);
+   return QT->hasSignedIntegerRepresentation();
+}
+
+////////////////////////////////////////////////////////////////////////////////
+
+bool TCling::IsUnsignedIntegerType(const void * QualTypePtr) const
+{
+   clang::QualType QT = clang::QualType::getFromOpaquePtr(QualTypePtr);
+   return QT->hasUnsignedIntegerRepresentation();
+}
+
+////////////////////////////////////////////////////////////////////////////////
+
+bool TCling::IsFloatingType(const void * QualTypePtr) const
+{
+   clang::QualType QT = clang::QualType::getFromOpaquePtr(QualTypePtr);
+   return QT->hasFloatingRepresentation();
+}
+
+////////////////////////////////////////////////////////////////////////////////
+
+bool TCling::IsPointerType(const void * QualTypePtr) const
+{
+   clang::QualType QT = clang::QualType::getFromOpaquePtr(QualTypePtr);
+   return QT->hasPointerRepresentation();
+}
+
+////////////////////////////////////////////////////////////////////////////////
+
+bool TCling::IsVoidPointerType(const void * QualTypePtr) const
+{
+   clang::QualType QT = clang::QualType::getFromOpaquePtr(QualTypePtr);
+   return QT->isVoidPointerType();
+}
+
+////////////////////////////////////////////////////////////////////////////////
+
+bool TCling::FunctionDeclId_IsMethod(DeclId_t fdeclid) const
+{
+   clang::FunctionDecl *FD = (clang::FunctionDecl *) fdeclid;
+   return llvm::isa_and_nonnull<clang::CXXMethodDecl>(FD);
 }
 
 ////////////////////////////////////////////////////////////////////////////////
