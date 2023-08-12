@@ -2,7 +2,7 @@ diff --git a/src/interpreter/cling/lib/Interpreter/CIFactory.cpp b/src/interpret
 index f97c86032f..69321c5579 100644
 --- a/src/interpreter/cling/lib/Interpreter/CIFactory.cpp
 +++ b/src/interpreter/cling/lib/Interpreter/CIFactory.cpp
-@@ -1661,9 +1661,10 @@ static void stringifyPreprocSetting(PreprocessorOptions& PPOpts,
+@@ -1664,9 +1664,10 @@ static void stringifyPreprocSetting(PreprocessorOptions& PPOpts,
  
      // Set CodeGen options.
      CodeGenOptions& CGOpts = CI->getCodeGenOpts();
@@ -26,7 +26,7 @@ index 4b971bb02e..cbea6870db 100644
  #include "TransactionPool.h"
  #include "ValueExtractionSynthesizer.h"
  #include "ValuePrinterSynthesizer.h"
-@@ -1003,15 +1002,8 @@ namespace cling {
+@@ -1004,15 +1003,8 @@ namespace cling {
      ASTTransformers.emplace_back(new AutoSynthesizer(TheSema));
      ASTTransformers.emplace_back(new EvaluateTSynthesizer(TheSema));
      if (hasCodeGenerator() && !m_Interpreter->getOptions().NoRuntime) {

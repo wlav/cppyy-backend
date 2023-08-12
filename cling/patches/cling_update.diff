@@ -18,41 +18,6 @@ index 57b4984edd..b0081c5aee 100644
    endif()
  endif()
  
-diff --git a/src/interpreter/cling/include/cling/Interpreter/ClangInternalState.h b/src/interpreter/cling/include/cling/Interpreter/ClangInternalState.h
-index e9972ca88d..f3e5e21d08 100644
---- a/src/interpreter/cling/include/cling/Interpreter/ClangInternalState.h
-+++ b/src/interpreter/cling/include/cling/Interpreter/ClangInternalState.h
-@@ -79,7 +79,7 @@ namespace cling {
-     ///
-     bool differentContent(const std::string& file1, const std::string& file2,
-                           const char* type = nullptr, bool verbose = false,
--               const llvm::SmallVectorImpl<llvm::StringRef>* ignores = 0) const;
-+               const llvm::SmallVectorImpl<llvm::StringRef>* ignores = nullptr) const;
- 
-     ///\brief Return the llvm::Module this state is bound too.
-     ///
-@@ -95,7 +95,7 @@ namespace cling {
-                                       const clang::Preprocessor& PP);
-   private:
-     llvm::raw_fd_ostream* createOutputFile(llvm::StringRef OutFile,
--                                           std::string* TempPathName = 0,
-+                                           std::string* TempPathName = nullptr,
-                                            bool RemoveFileOnSignal = true);
-   };
- } // end namespace cling
-diff --git a/src/interpreter/cling/include/cling/Interpreter/DynamicLibraryManager.h b/src/interpreter/cling/include/cling/Interpreter/DynamicLibraryManager.h
-index 406e54f2a8..d4868971f2 100644
---- a/src/interpreter/cling/include/cling/Interpreter/DynamicLibraryManager.h
-+++ b/src/interpreter/cling/include/cling/Interpreter/DynamicLibraryManager.h
-@@ -208,7 +208,7 @@ namespace cling {
-     ///\param[out] exists - sets if the file exists. Useful to distinguish if it
-     ///            is a library but of incompatible file format.
-     ///
--    static bool isSharedLibrary(llvm::StringRef libFullPath, bool* exists = 0);
-+    static bool isSharedLibrary(llvm::StringRef libFullPath, bool *exists = nullptr);
-   };
- } // end namespace cling
- #endif // CLING_DYNAMIC_LIBRARY_MANAGER_H
 diff --git a/src/interpreter/cling/include/cling/Interpreter/DynamicLookupRuntimeUniverse.h b/src/interpreter/cling/include/cling/Interpreter/DynamicLookupRuntimeUniverse.h
 index 3550275754..8942810f20 100644
 --- a/src/interpreter/cling/include/cling/Interpreter/DynamicLookupRuntimeUniverse.h
@@ -70,64 +35,6 @@ diff --git a/src/interpreter/cling/include/cling/Interpreter/Interpreter.h b/src
 index 4cf115eba4..bb6223b4b6 100644
 --- a/src/interpreter/cling/include/cling/Interpreter/Interpreter.h
 +++ b/src/interpreter/cling/include/cling/Interpreter/Interpreter.h
-@@ -255,7 +255,7 @@ namespace cling {
-     ///
-     CompilationResult DeclareInternal(const std::string& input,
-                                       const CompilationOptions& CO,
--                                      Transaction** T = 0) const;
-+                                      Transaction** T = nullptr) const;
- 
-     ///\brief Worker function, building block for interpreter's public
-     /// interfaces.
-@@ -272,8 +272,8 @@ namespace cling {
-     ///
-     CompilationResult EvaluateInternal(const std::string& input,
-                                        CompilationOptions CO,
--                                       Value* V = 0,
--                                       Transaction** T = 0,
-+                                       Value* V = nullptr,
-+                                       Transaction** T = nullptr,
-                                        size_t wrapPoint = 0);
- 
-     ///\brief Worker function to code complete after all the mechanism
-@@ -312,7 +312,7 @@ namespace cling {
-     ///\returns The result of the execution.
-     ///
-     ExecutionResult RunFunction(const clang::FunctionDecl* FD,
--                                Value* res = 0);
-+                                Value* res = nullptr);
- 
-     ///\brief Compile the function definition and return its Decl.
-     ///
-@@ -357,7 +357,7 @@ namespace cling {
-     ///\param[in] extraLibHandle - resolve symbols also from this dylib
-     ///\param[in] noRuntime - flag to control the presence of runtime universe
-     ///
--    Interpreter(int argc, const char* const* argv, const char* llvmdir = 0,
-+    Interpreter(int argc, const char* const* argv, const char* llvmdir = nullptr,
-                 const ModuleFileExtensions& moduleExtensions = {},
-                 void *extraLibHandle = nullptr, bool noRuntime = false)
-         : Interpreter(argc, argv, llvmdir, moduleExtensions, extraLibHandle,
-@@ -374,7 +374,7 @@ namespace cling {
-     ///\param[in] noRuntime - flag to control the presence of runtime universe
-     ///
-     Interpreter(const Interpreter& parentInterpreter, int argc,
--                const char* const* argv, const char* llvmdir = 0,
-+                const char* const* argv, const char* llvmdir = nullptr,
-                 const ModuleFileExtensions& moduleExtensions = {},
-                 void *extraLibHandle = nullptr, bool noRuntime = true);
- 
-@@ -521,8 +521,8 @@ namespace cling {
-     ///
-     ///\returns Whether the operation was fully successful.
-     ///
--    CompilationResult process(const std::string& input, Value* V = 0,
--                              Transaction** T = 0,
-+    CompilationResult process(const std::string& input, Value* V = nullptr,
-+                              Transaction** T = nullptr,
-                               bool disableValuePrinting = false);
- 
-     ///\brief Parses input line, which doesn't contain statements. No code
 @@ -537,7 +537,7 @@ namespace cling {
      ///\returns Whether the operation was fully successful.
      ///
@@ -137,149 +44,6 @@ index 4cf115eba4..bb6223b4b6 100644
      /// Loads a C++ Module with a given name by synthesizing an Import decl.
      /// This routine checks if there is a modulemap in the current directory
      /// and loads it.
-@@ -594,7 +594,7 @@ namespace cling {
-     ///
-     ///\returns Whether the operation was fully successful.
-     ///
--    CompilationResult declare(const std::string& input, Transaction** T = 0);
-+    CompilationResult declare(const std::string& input, Transaction** T = nullptr);
- 
-     ///\brief Compiles input line, which contains only expressions.
-     ///
-@@ -623,7 +623,7 @@ namespace cling {
-     ///
-     ///\returns Whether the operation was fully successful.
-     ///
--    CompilationResult echo(const std::string& input, Value* V = 0);
-+    CompilationResult echo(const std::string& input, Value* V = nullptr);
- 
-     ///\brief Compiles input line and runs.
-     ///
-@@ -673,7 +673,7 @@ namespace cling {
-     ///\returns result of the compilation.
-     ///
-     CompilationResult loadHeader(const std::string& filename,
--                                 Transaction** T = 0);
-+                                 Transaction** T = nullptr);
- 
-     ///\brief Loads header file or shared library.
-     ///
-@@ -685,7 +685,7 @@ namespace cling {
-     ///
-     CompilationResult loadFile(const std::string& filename,
-                                bool allowSharedLib = true,
--                               Transaction** T = 0);
-+                               Transaction** T = nullptr);
- 
-     ///\brief Unloads (forgets) a transaction from AST and JITed symbols.
-     ///
-@@ -810,7 +810,7 @@ namespace cling {
-     ///\param[in]  D       - the global's Decl to find
-     ///\param[out] fromJIT - whether the symbol was JITted.
-     void* getAddressOfGlobal(const clang::GlobalDecl& D,
--                             bool* fromJIT = 0) const;
-+                             bool* fromJIT = nullptr) const;
- 
-     ///\brief Gets the address of an existing global and whether it was JITted.
-     ///
-@@ -820,7 +820,7 @@ namespace cling {
-     ///\param[in]  SymName - the name of the global to search
-     ///\param[out] fromJIT - whether the symbol was JITted.
-     ///
--    void* getAddressOfGlobal(llvm::StringRef SymName, bool* fromJIT = 0) const;
-+    void* getAddressOfGlobal(llvm::StringRef SymName, bool* fromJIT = nullptr) const;
- 
-     ///\brief Get a given macro definition by name.
-     ///
-@@ -860,7 +860,7 @@ namespace cling {
-                         clang::ASTContext& Ctx,
-                         llvm::raw_ostream& out,
-                         bool enableMacros = false,
--                        llvm::raw_ostream* logs = 0,
-+                        llvm::raw_ostream* logs = nullptr,
-                         IgnoreFilesFunc_t ignoreFiles =
-                           [](const clang::PresumedLoc&) { return false;}) const;
- 
-diff --git a/src/interpreter/cling/include/cling/Interpreter/LookupHelper.h b/src/interpreter/cling/include/cling/Interpreter/LookupHelper.h
-index 7f25944af5..6e6e281470 100644
---- a/src/interpreter/cling/include/cling/Interpreter/LookupHelper.h
-+++ b/src/interpreter/cling/include/cling/Interpreter/LookupHelper.h
-@@ -102,7 +102,7 @@ namespace cling {
-     ///
-     const clang::Decl* findScope(llvm::StringRef className,
-                                  DiagSetting diagOnOff,
--                                 const clang::Type** resultType = 0,
-+                                 const clang::Type** resultType = nullptr,
-                                  bool instantiateTemplate = true) const;
- 
- 
-diff --git a/src/interpreter/cling/include/cling/Interpreter/Transaction.h b/src/interpreter/cling/include/cling/Interpreter/Transaction.h
-index 1ce7639117..d16344cf3c 100644
---- a/src/interpreter/cling/include/cling/Interpreter/Transaction.h
-+++ b/src/interpreter/cling/include/cling/Interpreter/Transaction.h
-@@ -74,11 +74,11 @@ namespace cling {
-       ConsumerCallInfo m_Call;
-       DelayCallInfo(clang::DeclGroupRef DGR, ConsumerCallInfo CCI)
-         : m_DGR(DGR), m_Call(CCI) {}
--      inline bool operator==(const DelayCallInfo& rhs) {
-+      inline bool operator==(const DelayCallInfo& rhs) const {
-         return m_DGR.getAsOpaquePtr() == rhs.m_DGR.getAsOpaquePtr()
-           && m_Call == rhs.m_Call;
-       }
--      inline bool operator!=(const DelayCallInfo& rhs) {
-+      inline bool operator!=(const DelayCallInfo& rhs) const {
-         return !operator==(rhs);
-       }
-       void dump() const;
-@@ -100,10 +100,10 @@ namespace cling {
-       MacroDirectiveInfo(clang::IdentifierInfo* II,
-                          const clang::MacroDirective* MD)
-                 : m_II(II), m_MD(MD) {}
--      inline bool operator==(const MacroDirectiveInfo& rhs) {
-+      inline bool operator==(const MacroDirectiveInfo& rhs) const {
-         return m_II == rhs.m_II && m_MD == rhs.m_MD;
-       }
--      inline bool operator!=(const MacroDirectiveInfo& rhs) {
-+      inline bool operator!=(const MacroDirectiveInfo& rhs) const {
-         return !operator==(rhs);
-       }
-       void dump(const clang::Preprocessor& PP) const;
-@@ -272,22 +272,22 @@ namespace cling {
-     const_nested_iterator nested_begin() const {
-       if (hasNestedTransactions())
-         return m_NestedTransactions->begin();
--      return 0;
-+      return nullptr;
-     }
-     const_nested_iterator nested_end() const {
-       if (hasNestedTransactions())
-         return m_NestedTransactions->end();
--      return 0;
-+      return nullptr;
-     }
-     const_reverse_nested_iterator rnested_begin() const {
-       if (hasNestedTransactions())
-         return m_NestedTransactions->rbegin();
--      return const_reverse_nested_iterator(0);
-+      return const_reverse_nested_iterator(nullptr);
-     }
-     const_reverse_nested_iterator rnested_end() const {
-       if (hasNestedTransactions())
-         return m_NestedTransactions->rend();
--      return const_reverse_nested_iterator(0);
-+      return const_reverse_nested_iterator(nullptr);
-     }
- 
-     /// Macro iteration
-@@ -432,7 +432,7 @@ namespace cling {
- 
-     Transaction* getLastNestedTransaction() const {
-       if (!hasNestedTransactions())
--        return 0;
-+        return nullptr;
-       return m_NestedTransactions->back();
-     }
- 
 diff --git a/src/interpreter/cling/include/cling/Interpreter/Value.h b/src/interpreter/cling/include/cling/Interpreter/Value.h
 index 829b89ddf3..65375856f9 100644
 --- a/src/interpreter/cling/include/cling/Interpreter/Value.h
@@ -716,107 +480,6 @@ index 829b89ddf3..65375856f9 100644
  } // end namespace cling
  
  #endif // CLING_VALUE_H
-diff --git a/src/interpreter/cling/include/cling/MetaProcessor/MetaSema.h b/src/interpreter/cling/include/cling/MetaProcessor/MetaSema.h
-index c83a462892..d4b553802e 100644
---- a/src/interpreter/cling/include/cling/MetaProcessor/MetaSema.h
-+++ b/src/interpreter/cling/include/cling/MetaProcessor/MetaSema.h
-@@ -61,7 +61,7 @@ namespace cling {
-     ///\param[out] transaction - Transaction containing the loaded file.
-     ///
-     ActionResult actOnLCommand(llvm::StringRef file,
--                               Transaction** transaction = 0);
-+                               Transaction** transaction = nullptr);
- 
-     ///\brief O command sets the optimization level.
-     ///
-diff --git a/src/interpreter/cling/include/cling/Utils/AST.h b/src/interpreter/cling/include/cling/Utils/AST.h
-index 0e549e512e..4e0be2ce70 100644
---- a/src/interpreter/cling/include/cling/Utils/AST.h
-+++ b/src/interpreter/cling/include/cling/Utils/AST.h
-@@ -77,9 +77,9 @@ namespace utils {
-     ///\returns 0 if the operation wasn't successful.
-     ///
-     clang::Expr* GetOrCreateLastExpr(clang::FunctionDecl* FD,
--                                     int* FoundAt = 0,
-+                                     int* FoundAt = nullptr,
-                                      bool omitDeclStmts = true,
--                                     clang::Sema* S = 0);
-+                                     clang::Sema* S = nullptr);
- 
-     ///\brief Return true if the class or template is declared directly in the
-     /// std namespace (modulo inline namespace).
-@@ -196,7 +196,7 @@ namespace utils {
-     ///
-     clang::NamespaceDecl* Namespace(clang::Sema* S,
-                                     const char* Name,
--                                    const clang::DeclContext* Within = 0);
-+                                    const clang::DeclContext* Within = nullptr);
- 
-     ///\brief Quick lookup for a single named declaration in a given
-     /// declaration context.
-@@ -209,7 +209,7 @@ namespace utils {
-     ///
-     clang::NamedDecl* Named(clang::Sema* S,
-                             llvm::StringRef Name,
--                            const clang::DeclContext* Within = 0);
-+                            const clang::DeclContext* Within = nullptr);
- 
-     ///\brief Quick lookup for a single named declaration in a given
-     /// declaration context.
-@@ -222,7 +222,7 @@ namespace utils {
-     ///
-     clang::NamedDecl* Named(clang::Sema* S,
-                             const char* Name,
--                            const clang::DeclContext* Within = 0);
-+                            const clang::DeclContext* Within = nullptr);
- 
-     ///\brief Quick lookup for a single namespace declaration in a given
-     /// declaration context.
-@@ -236,7 +236,7 @@ namespace utils {
-     ///
-     clang::NamedDecl* Named(clang::Sema* S,
-                             const clang::DeclarationName& Name,
--                            const clang::DeclContext* Within = 0);
-+                            const clang::DeclContext* Within = nullptr);
- 
-     ///\brief Quick lookup for a single named tag declaration ( enums, classes,
-     /// structs, and unions) in a given declaration context.
-@@ -249,7 +249,7 @@ namespace utils {
-     ///
-     clang::TagDecl* Tag(clang::Sema* S,
-                         llvm::StringRef Name,
--                        const clang::DeclContext* Within = 0);
-+                        const clang::DeclContext* Within = nullptr);
- 
-     ///\brief Quick lookup for a single named tag declaration ( enums, classes,
-     /// structs, and unions) in a given declaration context.
-@@ -262,7 +262,7 @@ namespace utils {
-     ///
-     clang::TagDecl* Tag(clang::Sema* S,
-                         const char* Name,
--                        const clang::DeclContext* Within = 0);
-+                        const clang::DeclContext* Within = nullptr);
- 
-     ///\brief Quick lookup for a single named tag declaration ( enums, classes,
-     /// structs, and unions) in a given declaration context.
-@@ -275,7 +275,7 @@ namespace utils {
-     ///
-     clang::TagDecl* Tag(clang::Sema* S,
-                         const clang::DeclarationName& Name,
--                        const clang::DeclContext* Within = 0);
-+                        const clang::DeclContext* Within = nullptr);
- 
-     ///\brief Quick lookup for a name in possible a declaration context.
-     ///
-@@ -289,7 +289,7 @@ namespace utils {
-     ///\returns the found result if single, -1 if multiple or 0 if not found.
-     ///
-     void Named(clang::Sema* S, clang::LookupResult& R,
--               const clang::DeclContext* Within = 0);
-+               const clang::DeclContext* Within = nullptr);
- 
-   }
- 
 diff --git a/src/interpreter/cling/include/cling/libc_msvc.modulemap b/src/interpreter/cling/include/cling/libc_msvc.modulemap
 index b5636b943e..9424a062c4 100644
 --- a/src/interpreter/cling/include/cling/libc_msvc.modulemap
@@ -829,143 +492,6 @@ index b5636b943e..9424a062c4 100644
      export *
      header "complex.h"
    }
-diff --git a/src/interpreter/cling/include/cling/std.modulemap b/src/interpreter/cling/include/cling/std.modulemap
-index 6f466ddbbb..713aeaafd4 100644
---- a/src/interpreter/cling/include/cling/std.modulemap
-+++ b/src/interpreter/cling/include/cling/std.modulemap
-@@ -63,6 +63,11 @@ module "std" [system] {
-     export *
-     header "cmath"
-   }
-+  module "compare" {
-+    requires cplusplus20
-+    export *
-+    header "compare"
-+  }
-   module "complex" {
-     export *
-     header "complex"
-@@ -71,6 +76,11 @@ module "std" [system] {
-     export *
-     header "complex.h"
-   }
-+  module "concepts" {
-+    requires cplusplus20
-+    export *
-+    header "concepts"
-+  }
-   module "condition_variable" {
-     export *
-     header "condition_variable"
-@@ -172,6 +182,7 @@ module "std" [system] {
-   }
-   module "future" {
-     export *
-+    export bits_alloc_traits_h
-     header "future"
-   }
- /*  module "hash_map" {
-@@ -362,6 +373,11 @@ module "std" [system] {
-     export *
-     header "valarray"
-   }
-+  module "variant" {
-+    requires cplusplus17
-+    export *
-+    header "variant"
-+  }
-   module "vector" {
-     export *
-     header "vector"
-@@ -375,10 +391,10 @@ module "std" [system] {
-     export *
-     header "cuchar"
-   }
--  //module "experimental/algorithm" {
--  //  export *
--  //  header "experimental/algorithm"
--  //}
-+  module "experimental/string_view" {
-+    export *
-+    header "experimental/string_view"
-+  }
-   module "ext/functional" {
-     export *
-     header "ext/functional"
-@@ -396,6 +412,15 @@ module "std" [system] {
-     export *
-     header "ext/numeric"
-   }
-+  module "ext/type_traits.h" {
-+    export *
-+    header "ext/type_traits.h"
-+  }
-+
-+  module "bits_alloc_traits_h" {
-+    export *
-+    header "bits/alloc_traits.h"
-+  }
-   module "bits/allocator.h" {
-     export *
-     header "bits/allocator.h"
-@@ -416,14 +441,29 @@ module "std" [system] {
-     export *
-     header "bits/ios_base.h"
-   }
-+  module "bits/iterator_concepts.h" {
-+    requires cplusplus20
-+    export *
-+    header "bits/iterator_concepts.h"
-+  }
-   module "bits/locale_facets.h" {
-     export *
-     header "bits/locale_facets.h"
-   }
--  module "bits/stl_algobase.h" {
-+  module "bits_stl_algobase_h" {
-     export *
-     header "bits/stl_algobase.h"
-   }
-+  module "bits_stl_iterator_h" {
-+    export bits_stl_algobase_h
-+    export *
-+    header "bits/stl_iterator.h"
-+  }
-+  module "bits/stl_iterator_base_types.h" {
-+    export *
-+    export bits_stl_algobase_h
-+    header "bits/stl_iterator_base_types.h"
-+  }
-   module "bits/stl_map.h" {
-     export *
-     export bits_stl_tree_h
-@@ -437,4 +477,26 @@ module "std" [system] {
-     export *
-     header "bits/stl_tree.h"
-   }
-+  module "bits/ranges_algo.h" {
-+    requires cplusplus20
-+    export *
-+    export utility
-+    header "bits/ranges_algo.h"
-+  }
-+  module "bits/ranges_algobase.h" {
-+    requires cplusplus20
-+    export *
-+    header "bits/ranges_algobase.h"
-+  }
-+  module "bits/ranges_base.h" {
-+    requires cplusplus20
-+    export *
-+    export bits_stl_iterator_h
-+    header "bits/ranges_base.h"
-+  }
-+  module "bits/uniform_int_dist.h" {
-+    export *
-+    export bits_stl_algobase_h
-+    header "bits/uniform_int_dist.h"
-+  }
- }
 diff --git a/src/interpreter/cling/include/cling/std_msvc.modulemap b/src/interpreter/cling/include/cling/std_msvc.modulemap
 index cef3b5e5b6..2dff2bc04d 100644
 --- a/src/interpreter/cling/include/cling/std_msvc.modulemap
@@ -1031,74 +557,6 @@ index cef3b5e5b6..2dff2bc04d 100644
 +    header "__msvc_iter_core.hpp"
 +  }
  }
-diff --git a/src/interpreter/cling/lib/Interpreter/ASTTransformer.h b/src/interpreter/cling/lib/Interpreter/ASTTransformer.h
-index 0f0ee2d0d0..ef63257376 100644
---- a/src/interpreter/cling/lib/Interpreter/ASTTransformer.h
-+++ b/src/interpreter/cling/lib/Interpreter/ASTTransformer.h
-@@ -46,7 +46,7 @@ namespace cling {
-     ///\param[in] S - The semantic analysis object.
-     ///
-     ASTTransformer(clang::Sema* S):
--      m_Sema(S), m_Consumer(0), m_Transaction(nullptr) {}
-+      m_Sema(S), m_Consumer(nullptr), m_Transaction(nullptr) {}
-     virtual ~ASTTransformer();
- 
-     ///\brief Retrieves the semantic analysis object used for this transaction
-diff --git a/src/interpreter/cling/lib/Interpreter/AutoSynthesizer.cpp b/src/interpreter/cling/lib/Interpreter/AutoSynthesizer.cpp
-index f49c77de1c..b1d4448fde 100644
---- a/src/interpreter/cling/lib/Interpreter/AutoSynthesizer.cpp
-+++ b/src/interpreter/cling/lib/Interpreter/AutoSynthesizer.cpp
-@@ -23,7 +23,7 @@ namespace cling {
-     llvm::DenseSet<NamedDecl*> m_HandledDecls;
-   private:
-   public:
--    AutoFixer(Sema* S) : m_Sema(S), m_FoundDRE(0) {}
-+    AutoFixer(Sema* S) : m_Sema(S), m_FoundDRE(nullptr) {}
- 
-     CompoundStmt* Fix(CompoundStmt* CS) {
-       if (!CS->size())
-diff --git a/src/interpreter/cling/lib/Interpreter/CIFactory.cpp b/src/interpreter/cling/lib/Interpreter/CIFactory.cpp
-index 698f7eb634..b5b5df2e8e 100644
---- a/src/interpreter/cling/lib/Interpreter/CIFactory.cpp
-+++ b/src/interpreter/cling/lib/Interpreter/CIFactory.cpp
-@@ -1279,6 +1279,13 @@ namespace {
- #if __APPLE__ && __arm64__
-     argvCompile.push_back("--target=arm64-apple-darwin20.3.0");
- #endif
-+#if __aarch64__
-+    // Disable outline-atomics on AArch64; the routines __aarch64_* are defined
-+    // in the static library libgcc.a and not necessarily included in libCling
-+    // or otherwise present in the process, so the interpreter has a hard time
-+    // finding them.
-+    argvCompile.push_back("-mno-outline-atomics");
-+#endif
- 
-     // Variables for storing the memory of the C-string arguments.
-     // FIXME: We shouldn't use C-strings in the first place, but just use
-@@ -1414,10 +1421,6 @@ namespace {
-     }
- 
-     llvm::Triple TheTriple(llvm::sys::getProcessTriple());
--#ifdef _WIN32
--    // COFF format currently needs a few changes in LLVM to function properly.
--    TheTriple.setObjectFormat(llvm::Triple::COFF);
--#endif
-     clang::driver::Driver Drvr(argv[0], TheTriple.getTriple(), *Diags);
-     //Drvr.setWarnMissingInput(false);
-     Drvr.setCheckInputsExist(false); // think foo.C(12)
-diff --git a/src/interpreter/cling/lib/Interpreter/ClangInternalState.cpp b/src/interpreter/cling/lib/Interpreter/ClangInternalState.cpp
-index 25b5a801cb..255ef4e3db 100644
---- a/src/interpreter/cling/lib/Interpreter/ClangInternalState.cpp
-+++ b/src/interpreter/cling/lib/Interpreter/ClangInternalState.cpp
-@@ -308,7 +308,7 @@ namespace cling {
-   void ClangInternalState::printLLVMModule(llvm::raw_ostream& Out,
-                                            const llvm::Module& M,
-                                            CodeGenerator& CG) {
--    M.print(Out, /*AssemblyAnnotationWriter*/ 0);
-+    M.print(Out, /*AssemblyAnnotationWriter*/ nullptr);
-     CG.print(Out);
-   }
- 
 diff --git a/src/interpreter/cling/lib/Interpreter/DeclExtractor.cpp b/src/interpreter/cling/lib/Interpreter/DeclExtractor.cpp
 index 45b2892f0a..55e9041981 100644
 --- a/src/interpreter/cling/lib/Interpreter/DeclExtractor.cpp
@@ -1704,11 +1162,8 @@ diff --git a/src/interpreter/cling/lib/Interpreter/IncrementalJIT.cpp b/src/inte
 index 5342945ed1..04bebf0558 100644
 --- a/src/interpreter/cling/lib/Interpreter/IncrementalJIT.cpp
 +++ b/src/interpreter/cling/lib/Interpreter/IncrementalJIT.cpp
-@@ -15,11 +15,14 @@
- #include "cling/Utils/Output.h"
- #include "cling/Utils/Utils.h"
- 
-+#include <clang/Basic/TargetInfo.h>
+@@ -18,11 +18,13 @@
+ #include <clang/Basic/TargetInfo.h>
  #include <clang/Basic/TargetOptions.h>
  #include <clang/Frontend/CompilerInstance.h>
  
@@ -1719,7 +1174,9 @@ index 5342945ed1..04bebf0558 100644
  #include <llvm/ExecutionEngine/Orc/RTDyldObjectLinkingLayer.h>
  #include <llvm/ExecutionEngine/SectionMemoryManager.h>
  #include <llvm/IR/LLVMContext.h>
-@@ -29,6 +32,7 @@
+ #include <llvm/Support/raw_ostream.h>
+ #include <llvm/Support/Host.h>
+@@ -30,6 +33,7 @@
  #include <llvm/Target/TargetMachine.h>
  
  using namespace llvm;
@@ -1727,7 +1184,7 @@ index 5342945ed1..04bebf0558 100644
  using namespace llvm::orc;
  
  namespace {
-@@ -185,6 +189,117 @@ namespace {
+@@ -186,6 +190,117 @@ namespace {
      bool needsToReserveAllocationSpace() override { return true; }
    };
  
@@ -1845,46 +1302,10 @@ index 5342945ed1..04bebf0558 100644
  
    /// A DynamicLibrarySearchGenerator that uses ResourceTracker to remember
    /// which symbols were resolved through dlsym during a transaction's reign.
-@@ -262,8 +377,6 @@ Error RTDynamicLibrarySearchGenerator::tryToGenerate(
-     JITDylibLookupFlags JDLookupFlags, const SymbolLookupSet &Symbols) {
-   orc::SymbolMap NewSymbols;
- 
--  bool HasGlobalPrefix = (GlobalPrefix != '\0');
--
-   for (auto &KV : Symbols) {
-     auto &Name = KV.first;
- 
-@@ -273,11 +386,10 @@ Error RTDynamicLibrarySearchGenerator::tryToGenerate(
-     if (Allow && !Allow(Name))
-       continue;
- 
--    if (HasGlobalPrefix && (*Name).front() != GlobalPrefix)
--      continue;
-+    bool StripGlobalPrefix = (GlobalPrefix != '\0' && (*Name).front() == GlobalPrefix);
- 
--    std::string Tmp((*Name).data() + HasGlobalPrefix,
--                    (*Name).size() - HasGlobalPrefix);
-+    std::string Tmp((*Name).data() + StripGlobalPrefix,
-+                    (*Name).size() - StripGlobalPrefix);
-     if (void *Addr = Dylib.getAddressOfSymbol(Tmp.c_str())) {
-       NewSymbols[Name] = JITEvaluatedSymbol(
-           static_cast<JITTargetAddress>(reinterpret_cast<uintptr_t>(Addr)),
-@@ -291,67 +403,64 @@ Error RTDynamicLibrarySearchGenerator::tryToGenerate(
+@@ -289,8 +402,24 @@ Error RTDynamicLibrarySearchGenerator::tryToGenerate(
    return JD.define(absoluteSymbols(std::move(NewSymbols)), CurrentRT());
  }
  
--static std::unique_ptr<TargetMachine>
--CreateHostTargetMachine(const clang::CompilerInstance& CI) {
--  const clang::TargetOptions& TargetOpts = CI.getTargetOpts();
--  const clang::CodeGenOptions& CGOpt = CI.getCodeGenOpts();
--  const std::string& Triple = TargetOpts.Triple;
--
--  std::string Error;
--  const Target *TheTarget = TargetRegistry::lookupTarget(Triple, Error);
--  if (!TheTarget) {
--    cling::errs() << "cling::IncrementalExecutor: unable to find target:\n"
--                  << Error;
--    return std::unique_ptr<TargetMachine>();
 +static bool UseJITLink(const Triple& TT) {
 +  bool jitLink = false;
 +  // Default to JITLink on macOS and RISC-V, as done in (recent) LLVM by
@@ -1893,73 +1314,41 @@ index 5342945ed1..04bebf0558 100644
 +      (TT.isOSBinFormatMachO() &&
 +       (TT.getArch() == Triple::aarch64 || TT.getArch() == Triple::x86_64))) {
 +    jitLink = true;
-   }
++  }
 +  // Finally, honor the user's choice by setting an environment variable.
 +  if (const char* clingJitLink = std::getenv("CLING_JITLINK")) {
 +    jitLink = cling::utils::ConvertEnvValueToBool(clingJitLink);
 +  }
 +  return jitLink;
 +}
- 
-+static std::unique_ptr<TargetMachine>
++ 
+ static std::unique_ptr<TargetMachine>
+-CreateTargetMachine(const clang::CompilerInstance& CI) {
 +CreateTargetMachine(const clang::CompilerInstance& CI, bool JITLink) {
    CodeGenOpt::Level OptLevel = CodeGenOpt::Default;
--  switch (CGOpt.OptimizationLevel) {
-+  switch (CI.getCodeGenOpts().OptimizationLevel) {
+   switch (CI.getCodeGenOpts().OptimizationLevel) {
      case 0: OptLevel = CodeGenOpt::None; break;
-     case 1: OptLevel = CodeGenOpt::Less; break;
-     case 2: OptLevel = CodeGenOpt::Default; break;
-     case 3: OptLevel = CodeGenOpt::Aggressive; break;
-     default: OptLevel = CodeGenOpt::Default;
-   }
+@@ -303,19 +417,35 @@ Error RTDynamicLibrarySearchGenerator::tryToGenerate(
 +
 +  const Triple &TT = CI.getTarget().getTriple();
 +
    using namespace llvm::orc;
--  auto JTMB = JITTargetMachineBuilder::detectHost();
--  if (!JTMB)
--    logAllUnhandledErrors(JTMB.takeError(), llvm::errs(),
--                          "Error detecting host");
+-  auto JTMB = JITTargetMachineBuilder(CI.getTarget().getTriple());
 +  auto JTMB = JITTargetMachineBuilder(TT);
-+  JTMB.addFeatures(CI.getTargetOpts().Features);
+   JTMB.addFeatures(CI.getTargetOpts().Features);
 +  JTMB.getOptions().MCOptions.ABIName = CI.getTarget().getABI().str();
  
--  JTMB->setCodeGenOptLevel(OptLevel);
-+  JTMB.setCodeGenOptLevel(OptLevel);
+   JTMB.setCodeGenOptLevel(OptLevel);
  #ifdef _WIN32
--  JTMB->getOptions().EmulatedTLS = false;
-+  JTMB.getOptions().EmulatedTLS = false;
+   JTMB.getOptions().EmulatedTLS = false;
  #endif // _WIN32
  
  #if defined(__powerpc64__) || defined(__PPC64__)
    // We have to use large code model for PowerPC64 because TOC and text sections
    // can be more than 2GB apart.
--  JTMB->setCodeModel(CodeModel::Large);
-+  JTMB.setCodeModel(CodeModel::Large);
+   JTMB.setCodeModel(CodeModel::Large);
  #endif
  
--  std::unique_ptr<TargetMachine> TM = cantFail(JTMB->createTargetMachine());
--
--  // Forcefully disable GlobalISel, it might be enabled on AArch64 without
--  // optimizations. In tests on an Apple M1 after the upgrade to LLVM 9, this
--  // new instruction selection framework emits branches / calls that expect all
--  // code to be reachable in +/- 128 MB. This cannot be guaranteed during JIT,
--  // which generates code into allocated pages on the heap and could span the
--  // entire address space of the process.
--  //
--  // TODO:
--  // 1. Try to reproduce the problem with vanilla lli of LLVM 9 to check that
--  //    this is not related to the way Cling incrementally JITs and executes.
--  // 2. Figure out exactly why GlobalISel emits different branch instructions,
--  //    and whether this is a problem in the framework or of the generated IR.
--  // 3. Verify if the same happens with LLVM 11/12 (whatever Cling will move to
--  //    next), and possibly fix the underlying issue in LLVM upstream's `main`.
--  //
--  // FIXME: Lift this restriction and allow the target to enable GlobalISel,
--  // if deemed ready by upstream developers.
--  TM->setGlobalISel(false);
--
--  return TM;
 +  if (JITLink) {
 +    // Set up the TargetMachine as otherwise done by
 +    // LLJITBuilderState::prepareForConstruction.
@@ -1972,21 +1361,22 @@ index 5342945ed1..04bebf0558 100644
 +      JTMB.setCodeModel(CodeModel::Small);
 +  }
 +
-+  return cantFail(JTMB.createTargetMachine());
+   return cantFail(JTMB.createTargetMachine());
  }
  } // unnamed namespace
  
-@@ -365,16 +474,31 @@ IncrementalJIT::IncrementalJIT(
+@@ -329,17 +474,31 @@ IncrementalJIT::IncrementalJIT(
      std::unique_ptr<llvm::orc::ExecutorProcessControl> EPC, Error& Err,
      void *ExtraLibHandle, bool Verbose)
      : SkipHostProcessLookup(false),
--      TM(CreateHostTargetMachine(CI)),
+-      TM(CreateTargetMachine(CI)),
 +      m_JITLink(UseJITLink(CI.getTarget().getTriple())),
 +      m_TM(CreateTargetMachine(CI, m_JITLink)),
        SingleThreadedContext(std::make_unique<LLVMContext>()) {
    ErrorAsOutParameter _(&Err);
  
    LLJITBuilder Builder;
+-  Builder.setDataLayout(TM->createDataLayout());
 +  Builder.setDataLayout(m_TM->createDataLayout());
    Builder.setExecutorProcessControl(std::move(EPC));
  
@@ -2010,7 +1400,7 @@ index 5342945ed1..04bebf0558 100644
      auto GetMemMgr = []() { return std::make_unique<ClingMemoryManager>(); };
      auto Layer =
          std::make_unique<RTDyldObjectLinkingLayer>(ES, std::move(GetMemMgr));
-@@ -404,7 +528,7 @@ IncrementalJIT::IncrementalJIT(
+@@ -369,7 +529,7 @@ IncrementalJIT::IncrementalJIT(
  
    Builder.setCompileFunctionCreator([&](llvm::orc::JITTargetMachineBuilder)
    -> llvm::Expected<std::unique_ptr<llvm::orc::IRCompileLayer::IRCompiler>> {
@@ -2019,7 +1409,7 @@ index 5342945ed1..04bebf0558 100644
    });
  
    if (Expected<std::unique_ptr<LLJIT>> JitInstance = Builder.create()) {
-@@ -424,7 +548,7 @@ IncrementalJIT::IncrementalJIT(
+@@ -389,7 +549,7 @@ IncrementalJIT::IncrementalJIT(
        m_CompiledModules[Unsafe] = std::move(TSM);
      });
  
@@ -2028,7 +1418,7 @@ index 5342945ed1..04bebf0558 100644
  
    // Process symbol resolution
    auto HostProcessLookup
-@@ -539,7 +663,7 @@ IncrementalJIT::addOrReplaceDefinition(StringRef Name,
+@@ -504,7 +664,7 @@ IncrementalJIT::addOrReplaceDefinition(StringRef Name,
      return KnownAddr;
  
    llvm::SmallString<128> LinkerMangledName;
@@ -2065,7 +1455,7 @@ diff --git a/src/interpreter/cling/lib/Interpreter/IncrementalParser.cpp b/src/i
 index 1c6ca43cd6..6a63777b59 100644
 --- a/src/interpreter/cling/lib/Interpreter/IncrementalParser.cpp
 +++ b/src/interpreter/cling/lib/Interpreter/IncrementalParser.cpp
-@@ -346,7 +346,7 @@ namespace cling {
+@@ -347,7 +347,7 @@ namespace cling {
        m_CI->createPCHExternalASTSource(PCHFileName,
                                         DisableValidationForModuleKind::All,
                                         true /*AllowPCHWithCompilerErrors*/,
@@ -2074,7 +1464,7 @@ index 1c6ca43cd6..6a63777b59 100644
                                         true /*OwnsDeserializationListener*/);
        result.push_back(endTransaction(PchT));
        if (Trap.hasErrorOccurred()) {
-@@ -752,13 +752,13 @@ namespace cling {
+@@ -753,13 +753,13 @@ namespace cling {
  
      if (Transaction* Parent = T.getParent()) {
        Parent->removeNestedTransaction(&T);
@@ -2090,7 +1480,7 @@ index 1c6ca43cd6..6a63777b59 100644
        } else {
          // If T is not the last transaction it must not be a previous
          // transaction either, but a "disconnected" one, i.e. one that
-@@ -851,7 +851,7 @@ namespace cling {
+@@ -852,7 +852,7 @@ namespace cling {
      Preprocessor& PP = m_CI->getPreprocessor();
      if (!PP.getCurrentLexer()) {
         PP.EnterSourceFile(m_CI->getSourceManager().getMainFileID(),
@@ -2099,7 +1489,7 @@ index 1c6ca43cd6..6a63777b59 100644
      }
      assert(PP.isIncrementalProcessingEnabled() && "Not in incremental mode!?");
      PP.enableIncrementalProcessing();
-@@ -896,7 +896,7 @@ namespace cling {
+@@ -897,7 +897,7 @@ namespace cling {
      m_MemoryBuffers.push_back(std::make_pair(MBNonOwn, FID));
  
      // NewLoc only used for diags.
@@ -2138,112 +1528,6 @@ index 8c9082088e..582e2bd575 100644
 +        return nullptr;
        return m_Transactions.back();
      }
- 
-diff --git a/src/interpreter/cling/lib/Interpreter/Interpreter.cpp b/src/interpreter/cling/lib/Interpreter/Interpreter.cpp
-index 0a3337e33f..2996db25fd 100644
---- a/src/interpreter/cling/lib/Interpreter/Interpreter.cpp
-+++ b/src/interpreter/cling/lib/Interpreter/Interpreter.cpp
-@@ -399,7 +399,7 @@ namespace cling {
-     // and the ASTContext. For that to happen we shut down the IncrementalParser
-     // explicitly, before the implicit destruction (through the unique_ptr) of
-     // the callbacks.
--    m_IncrParser.reset(0);
-+    m_IncrParser.reset(nullptr);
-   }
- 
-   Transaction* Interpreter::Initialize(bool NoRuntime, bool SyntaxOnly,
-@@ -439,13 +439,13 @@ namespace cling {
-     const char* Linkage = LangOpts.CPlusPlus ? "extern \"C\"" : "";
-     if (!NoRuntime) {
-       if (LangOpts.CPlusPlus) {
--        Strm << "#include \"cling/Interpreter/RuntimeUniverse.h\"\n";
-+        Strm << "#include <cling/Interpreter/RuntimeUniverse.h>\n";
-         if (EmitDefinitions)
-           Strm << "namespace cling { class Interpreter; namespace runtime { "
-                   "Interpreter* gCling=(Interpreter*)" << ThisP << ";\n"
-                   "RuntimeOptions* gClingOpts=(RuntimeOptions*)" << &this->m_RuntimeOptions << ";}}\n";
-       } else {
--        Strm << "#include \"cling/Interpreter/CValuePrinter.h\"\n"
-+        Strm << "#include <cling/Interpreter/CValuePrinter.h>\n"
-              << "void* gCling";
-         if (EmitDefinitions)
-           Strm << "=(void*)" << ThisP;
-@@ -1267,7 +1267,7 @@ namespace cling {
-                      clang::diag::Severity::Warning, SourceLocation());
- 
-     if (CR != cling::Interpreter::kSuccess)
--      return 0;
-+      return nullptr;
- 
-     for (cling::Transaction::const_iterator I = T->decls_begin(),
-            E = T->decls_end(); I != E; ++I) {
-@@ -1285,7 +1285,7 @@ namespace cling {
-         }
-       }
-     }
--    return 0;
-+    return nullptr;
-   }
- 
-   void*
-@@ -1296,7 +1296,7 @@ namespace cling {
-     //
- 
-     if (isInSyntaxOnlyMode())
--      return 0;
-+      return nullptr;
- 
-     if (ifUnique) {
-       if (void* Addr = (void*)getAddressOfGlobal(name)) {
-@@ -1307,7 +1307,7 @@ namespace cling {
-     Transaction* T = nullptr;
-     const FunctionDecl* FD = DeclareCFunction(name, code, withAccessControl, T);
-     if (!FD || !T)
--      return 0;
-+      return nullptr;
- 
-     //  Get the wrapper function pointer from the ExecutionEngine (the JIT).
-     return m_Executor->getPointerToGlobalFromJIT(name);
-@@ -1440,16 +1440,16 @@ namespace cling {
-     // Clang doc says:
-     // "LookupFrom is set when this is a \#include_next directive, it
-     // specifies the file to start searching from."
--    const DirectoryLookup* FromDir = 0;
--    const FileEntry* FromFile = 0;
--    const DirectoryLookup* CurDir = 0;
-+    const DirectoryLookup* FromDir = nullptr;
-+    const FileEntry* FromFile = nullptr;
-+    const DirectoryLookup* CurDir = nullptr;
-     Preprocessor& PP = getCI()->getPreprocessor();
-     // PP::LookupFile uses it to issue 'nice' diagnostic
-     SourceLocation fileNameLoc;
-     auto FE = PP.LookupFile(fileNameLoc, canonicalFile, isAngled, FromDir,
--                            FromFile, CurDir, /*SearchPath*/0,
--                            /*RelativePath*/ 0, /*suggestedModule*/0,
--                            0 /*IsMapped*/, /*IsFrameworkFound*/ nullptr,
-+                            FromFile, CurDir, /*SearchPath*/nullptr,
-+                            /*RelativePath*/ nullptr, /*suggestedModule*/nullptr,
-+                            /*IsMapped*/ nullptr, /*IsFrameworkFound*/ nullptr,
-                             /*SkipCache*/ false, /*OpenFile*/ false,
-                             /*CacheFail*/ false);
-     if (FE)
-@@ -1692,7 +1692,7 @@ namespace cling {
-     if (!m_DynamicLookupDeclared && value) {
-       // No dynlookup for the dynlookup header!
-       m_DynamicLookupEnabled = false;
--      declare("#include \"cling/Interpreter/DynamicLookupRuntimeUniverse.h\"");
-+      declare("#include <cling/Interpreter/DynamicLookupRuntimeUniverse.h>");
-     }
-     m_DynamicLookupDeclared = true;
- 
-@@ -1748,7 +1748,7 @@ namespace cling {
-                                         bool* fromJIT /*=0*/) const {
-     // Return a symbol's address, and whether it was jitted.
-     if (isInSyntaxOnlyMode())
--      return 0;
-+      return nullptr;
-     return m_Executor->getAddressOfGlobal(SymName, fromJIT);
-   }
  
 diff --git a/src/interpreter/cling/lib/Interpreter/InterpreterCallbacks.cpp b/src/interpreter/cling/lib/Interpreter/InterpreterCallbacks.cpp
 index 974a5d1eed..d9736e0e2f 100644
@@ -3572,30 +2856,6 @@ index 4ca2a86560..28764e3e91 100644
  
    // We modify using the interpreter, now the binary sees the new value.
    interp.process("setAnotherGlobal(7.777); getAnotherGlobal();");
-diff --git a/src/interpreter/cling/tools/driver/CMakeLists.txt b/src/interpreter/cling/tools/driver/CMakeLists.txt
-index 77d6a2870d..d107dd7d02 100644
---- a/src/interpreter/cling/tools/driver/CMakeLists.txt
-+++ b/src/interpreter/cling/tools/driver/CMakeLists.txt
-@@ -9,9 +9,9 @@
- # Keep symbols for JIT resolution
- set(LLVM_NO_DEAD_STRIP 1)
- 
-+set(LLVM_LINK_COMPONENTS Support)
- if(BUILD_SHARED_LIBS)
-   set(LIBS
--    LLVMSupport
- 
-     clangFrontendTool
- 
-@@ -25,8 +25,6 @@ if(BUILD_SHARED_LIBS)
-   )
- else()
-   set(LIBS
--    LLVMSupport
--
-     clangASTMatchers
-     clangFrontendTool
- 
 diff --git a/src/interpreter/cling/tools/plugins/clad/CMakeLists.txt b/src/interpreter/cling/tools/plugins/clad/CMakeLists.txt
 index fb4a3ae28f..44443b1873 100644
 --- a/src/interpreter/cling/tools/plugins/clad/CMakeLists.txt
