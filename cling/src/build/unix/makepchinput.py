@@ -168,7 +168,8 @@ def getSTLIncludes():
                      "bit",
                      "compare",
                      "concepts",
-                     "coroutine",
+                     # drop coroutine for now as it requires -fcoroutines on Linux/gcc
+                     # "coroutine",
                      "format",
                      "latch",
                      "numbers",
