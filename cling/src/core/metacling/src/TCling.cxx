@@ -8479,6 +8479,15 @@ bool TCling::IsIntegerType(const void * QualTypePtr) const
 
 ////////////////////////////////////////////////////////////////////////////////
 
+bool TCling::IsIntegralType(const void * QualTypePtr) const
+{
+   clang::QualType QT = clang::QualType::getFromOpaquePtr(QualTypePtr);
+   const clang::ASTContext& astContext = fInterpreter->getCI()->getASTContext();
+   return QT->isIntegralType(astContext);
+} 
+
+////////////////////////////////////////////////////////////////////////////////
+
 bool TCling::IsSignedIntegerType(const void * QualTypePtr) const
 {
    clang::QualType QT = clang::QualType::getFromOpaquePtr(QualTypePtr);
@@ -8517,6 +8526,33 @@ bool TCling::IsVoidPointerType(const void * QualTypePtr) const
    return QT->isVoidPointerType();
 }
 
+////////////////////////////////////////////////////////////////////////////////
+
+TypeInfo_t* TCling::GetNonReferenceType(const void * QualTypePtr) const
+{
+   clang::QualType QT = clang::QualType::getFromOpaquePtr(QualTypePtr);
+   clang::QualType QT1 = QT.getNonReferenceType();
+   return (TypeInfo_t*) new TClingTypeInfo(GetInterpreterImpl(), QT1);
+
+}
+////////////////////////////////////////////////////////////////////////////////
+
+TypeInfo_t* TCling::GetUnqualifiedType(const void * QualTypePtr) const
+{
+   clang::QualType QT = clang::QualType::getFromOpaquePtr(QualTypePtr);
+   clang::QualType QT1 = QT.getUnqualifiedType();
+   return (TypeInfo_t*) new TClingTypeInfo(GetInterpreterImpl(), QT1);
+
+}
+////////////////////////////////////////////////////////////////////////////////
+
+TypeInfo_t* TCling::GetPointerType(const void * QualTypePtr) const
+{
+   clang::QualType QT = clang::QualType::getFromOpaquePtr(QualTypePtr);
+   clang::QualType QT1 = QT->getPointeeType();
+   return (TypeInfo_t*) new TClingTypeInfo(GetInterpreterImpl(), QT1);
+
+}
 ////////////////////////////////////////////////////////////////////////////////
 
 bool TCling::FunctionDeclId_IsMethod(DeclId_t fdeclid) const
