@@ -1721,9 +1721,9 @@ Cppyy::TCppIndex_t Cppyy::CompareMethodArgType(TCppMethod_t method, TCppIndex_t 
         TypeInfo_t *reqti = gInterpreter->TypeInfo_Factory(req_type.c_str());
         void *reqqtp = gInterpreter->TypeInfo_QualTypePtr(reqti);
 
-        if(GetArgScore(argqtp, reqqtp) < 10)
+        if(ArgSimilarityScore(argqtp, reqqtp) < 10)
         {
-            return GetArgScore(argqtp, reqqtp);
+            return ArgSimilarityScore(argqtp, reqqtp);
         }
         else // Match using underlying types
         {   
@@ -1736,14 +1736,14 @@ Cppyy::TCppIndex_t Cppyy::CompareMethodArgType(TCppMethod_t method, TCppIndex_t 
             argqtp = gInterpreter->TypeInfo_QualTypePtr(gInterpreter->GetUnqualifiedType(gInterpreter->TypeInfo_QualTypePtr(arg_ul)));
             reqqtp = gInterpreter->TypeInfo_QualTypePtr(gInterpreter->GetUnqualifiedType(gInterpreter->TypeInfo_QualTypePtr(req_ul)));
             
-            return GetArgScore(argqtp, reqqtp);
+            return ArgSimilarityScore(argqtp, reqqtp);
         }
         
     }
     return INT_MAX; // Method is not valid
 }
 
-Cppyy::TCppIndex_t Cppyy::GetArgScore(void *argqtp, void *reqqtp)
+Cppyy::TCppIndex_t Cppyy::ArgSimilarityScore(void *argqtp, void *reqqtp)
 {
     // This scoring is not based on any particular rules
         if (gInterpreter->IsSameType(argqtp, reqqtp))
