@@ -580,7 +580,7 @@ private: // Private Utility Functions and Classes
    virtual ClassInfo_t  *ClassInfo_FactoryWithScope(Bool_t /*all*/ = kTRUE, const char* /*scope*/ = nullptr) const;
 
 public:
-// additional MethodArgInfo interface 
+// additional MethodArgInfo interface
    virtual TypeInfo_t* MethodArgInfo_TypeInfo(MethodArgInfo_t *marginfo) const;
 
 // additional TypeInfo interface
