@@ -1715,7 +1715,6 @@ Cppyy::TCppIndex_t Cppyy::CompareMethodArgType(TCppMethod_t method, TCppIndex_t 
     if (method) {
         TFunction* f = m2f(method);
         TMethodArg* arg = (TMethodArg *)f->GetListOfMethodArgs()->At((int)iarg);
-
         void *argqtp = gInterpreter->TypeInfo_QualTypePtr(arg->GetTypeInfo());
 
         TypeInfo_t *reqti = gInterpreter->TypeInfo_Factory(req_type.c_str());
@@ -1758,10 +1757,8 @@ Cppyy::TCppIndex_t Cppyy::ArgSimilarityScore(void *argqtp, void *reqqtp)
         else if ((gInterpreter->IsIntegerType(argqtp) && gInterpreter->IsIntegerType(reqqtp)))
             return 3;
         else if ((gInterpreter->IsIntegralType(argqtp) && gInterpreter->IsIntegralType(reqqtp)))
-            {
             return 4;
-            }
-        else if ((gInterpreter->IsPointerType(argqtp) && gInterpreter->IsPointerType(reqqtp)))
+        else if ((gInterpreter->IsVoidPointerType(argqtp) && gInterpreter->IsPointerType(reqqtp)))
             return 5;
         else 
             return 10; // Penalize heavily for no possible match
