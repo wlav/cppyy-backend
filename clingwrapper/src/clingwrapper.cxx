@@ -586,6 +586,28 @@ std::string Cppyy::ResolveEnum(const std::string& enum_type)
     return restype;     // should default to some int variant
 }
 
+static Cppyy::TCppIndex_t ArgSimilarityScore(void *argqtp, void *reqqtp)
+{
+    // This scoring is not based on any particular rules
+        if (gInterpreter->IsSameType(argqtp, reqqtp))
+            return 0; // Best match
+        else if ((gInterpreter->IsSignedIntegerType(argqtp) && gInterpreter->IsSignedIntegerType(reqqtp)) || 
+                 (gInterpreter->IsUnsignedIntegerType(argqtp) && gInterpreter->IsUnsignedIntegerType(reqqtp)) ||
+                 (gInterpreter->IsFloatingType(argqtp) && gInterpreter->IsFloatingType(reqqtp)))
+            return 1;
+        else if ((gInterpreter->IsSignedIntegerType(argqtp) && gInterpreter->IsUnsignedIntegerType(reqqtp)) ||
+                 (gInterpreter->IsFloatingType(argqtp) && gInterpreter->IsUnsignedIntegerType(reqqtp)))
+            return 2;
+        else if ((gInterpreter->IsIntegerType(argqtp) && gInterpreter->IsIntegerType(reqqtp)))
+            return 3;
+        else if ((gInterpreter->IsIntegralType(argqtp) && gInterpreter->IsIntegralType(reqqtp)))
+            return 4;
+        else if ((gInterpreter->IsVoidPointerType(argqtp) && gInterpreter->IsPointerType(reqqtp)))
+            return 5;
+        else 
+            return 10; // Penalize heavily for no possible match
+}
+
 Cppyy::TCppScope_t Cppyy::GetScope(const std::string& sname)
 {
 // First, try cache
@@ -1740,28 +1762,6 @@ Cppyy::TCppIndex_t Cppyy::CompareMethodArgType(TCppMethod_t method, TCppIndex_t 
         
     }
     return INT_MAX; // Method is not valid
-}
-
-Cppyy::TCppIndex_t Cppyy::ArgSimilarityScore(void *argqtp, void *reqqtp)
-{
-    // This scoring is not based on any particular rules
-        if (gInterpreter->IsSameType(argqtp, reqqtp))
-            return 0; // Best match
-        else if ((gInterpreter->IsSignedIntegerType(argqtp) && gInterpreter->IsSignedIntegerType(reqqtp)) || 
-                 (gInterpreter->IsUnsignedIntegerType(argqtp) && gInterpreter->IsUnsignedIntegerType(reqqtp)) ||
-                 (gInterpreter->IsFloatingType(argqtp) && gInterpreter->IsFloatingType(reqqtp)))
-            return 1;
-        else if ((gInterpreter->IsSignedIntegerType(argqtp) && gInterpreter->IsUnsignedIntegerType(reqqtp)) ||
-                 (gInterpreter->IsFloatingType(argqtp) && gInterpreter->IsUnsignedIntegerType(reqqtp)))
-            return 2;
-        else if ((gInterpreter->IsIntegerType(argqtp) && gInterpreter->IsIntegerType(reqqtp)))
-            return 3;
-        else if ((gInterpreter->IsIntegralType(argqtp) && gInterpreter->IsIntegralType(reqqtp)))
-            return 4;
-        else if ((gInterpreter->IsVoidPointerType(argqtp) && gInterpreter->IsPointerType(reqqtp)))
-            return 5;
-        else 
-            return 10; // Penalize heavily for no possible match
 }
 
 std::string Cppyy::GetMethodArgDefault(TCppMethod_t method, TCppIndex_t iarg)
