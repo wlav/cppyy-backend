@@ -1742,12 +1742,10 @@ Cppyy::TCppIndex_t Cppyy::CompareMethodArgType(TCppMethod_t method, TCppIndex_t 
         TypeInfo_t *reqti = gInterpreter->TypeInfo_Factory(req_type.c_str());
         void *reqqtp = gInterpreter->TypeInfo_QualTypePtr(reqti);
 
-        if(ArgSimilarityScore(argqtp, reqqtp) < 10)
-        {
+        if (ArgSimilarityScore(argqtp, reqqtp) < 10) {
             return ArgSimilarityScore(argqtp, reqqtp);
         }
-        else // Match using underlying types
-        {   
+        else { // Match using underlying types   
             if(gInterpreter->IsPointerType(argqtp))
                 argqtp = gInterpreter->TypeInfo_QualTypePtr(gInterpreter->GetPointerType(argqtp));
 
@@ -1758,8 +1756,7 @@ Cppyy::TCppIndex_t Cppyy::CompareMethodArgType(TCppMethod_t method, TCppIndex_t 
             reqqtp = gInterpreter->TypeInfo_QualTypePtr(gInterpreter->GetUnqualifiedType(gInterpreter->TypeInfo_QualTypePtr(req_ul)));
             
             return ArgSimilarityScore(argqtp, reqqtp);
-        }
-        
+        }    
     }
     return INT_MAX; // Method is not valid
 }
