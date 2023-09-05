@@ -473,16 +473,18 @@ public:
    virtual Bool_t IsIntegerType(const void * /* QualTypePtr */) const {return 0;}
    virtual Bool_t IsSignedIntegerType(const void * /* QualTypePtr */) const {return 0;}
    virtual Bool_t IsUnsignedIntegerType(const void * /* QualTypePtr */) const {return 0;}
-   virtual Bool_t IsIntegralType(const void * /* QualTypePtr */) const {return 0;}
    virtual Bool_t IsFloatingType(const void * /* QualTypePtr */) const {return 0;}
    virtual Bool_t IsPointerType(const void * /* QualTypePtr */) const {return 0;}
    virtual Bool_t IsVoidPointerType(const void * /* QualTypePtr */) const {return 0;}
-   virtual TypeInfo_t *GetNonReferenceType(const void * /* QualTypePtr */) const {return 0;}
-   virtual TypeInfo_t *GetUnqualifiedType(const void * /* QualTypePtr */) const {return 0;}
-   virtual TypeInfo_t *GetPointerType(const void * /* QualTypePtr */) const {return 0;}
    
 // FunctionDecl interface 
    virtual Bool_t FunctionDeclId_IsMethod(DeclId_t /* fdeclid */) const {return 0;}
+
+// additional QualType Opaque Ptr interface
+   virtual Bool_t IsIntegralType(const void * /* QualTypePtr */) const {return 0;}
+   virtual TypeInfo_t *GetNonReferenceType(const void * /* QualTypePtr */) const {return 0;}
+   virtual TypeInfo_t *GetUnqualifiedType(const void * /* QualTypePtr */) const {return 0;}
+   virtual TypeInfo_t *GetPointerType(const void * /* QualTypePtr */) const {return 0;}
 };
 
 } // namespace CppyyLegacy
