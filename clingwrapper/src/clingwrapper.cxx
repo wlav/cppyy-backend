@@ -586,6 +586,28 @@ std::string Cppyy::ResolveEnum(const std::string& enum_type)
     return restype;     // should default to some int variant
 }
 
+static Cppyy::TCppIndex_t ArgSimilarityScore(void *argqtp, void *reqqtp)
+{
+    // This scoring is not based on any particular rules
+        if (gInterpreter->IsSameType(argqtp, reqqtp))
+            return 0; // Best match
+        else if ((gInterpreter->IsSignedIntegerType(argqtp) && gInterpreter->IsSignedIntegerType(reqqtp)) || 
+                 (gInterpreter->IsUnsignedIntegerType(argqtp) && gInterpreter->IsUnsignedIntegerType(reqqtp)) ||
+                 (gInterpreter->IsFloatingType(argqtp) && gInterpreter->IsFloatingType(reqqtp)))
+            return 1;
+        else if ((gInterpreter->IsSignedIntegerType(argqtp) && gInterpreter->IsUnsignedIntegerType(reqqtp)) ||
+                 (gInterpreter->IsFloatingType(argqtp) && gInterpreter->IsUnsignedIntegerType(reqqtp)))
+            return 2;
+        else if ((gInterpreter->IsIntegerType(argqtp) && gInterpreter->IsIntegerType(reqqtp)))
+            return 3;
+        else if ((gInterpreter->IsIntegralType(argqtp) && gInterpreter->IsIntegralType(reqqtp)))
+            return 4;
+        else if ((gInterpreter->IsVoidPointerType(argqtp) && gInterpreter->IsPointerType(reqqtp)))
+            return 5;
+        else 
+            return 10; // Penalize heavily for no possible match
+}
+
 Cppyy::TCppScope_t Cppyy::GetScope(const std::string& sname)
 {
 // First, try cache
@@ -1720,22 +1742,21 @@ Cppyy::TCppIndex_t Cppyy::CompareMethodArgType(TCppMethod_t method, TCppIndex_t 
         TypeInfo_t *reqti = gInterpreter->TypeInfo_Factory(req_type.c_str());
         void *reqqtp = gInterpreter->TypeInfo_QualTypePtr(reqti);
 
-        // This scoring is not based on any particular rules
-        if (gInterpreter->IsSameType(argqtp, reqqtp))
-            return 0; // Best match
-        else if ((gInterpreter->IsSignedIntegerType(argqtp) && gInterpreter->IsSignedIntegerType(reqqtp)) || 
-                 (gInterpreter->IsUnsignedIntegerType(argqtp) && gInterpreter->IsUnsignedIntegerType(reqqtp)) ||
-                 (gInterpreter->IsFloatingType(argqtp) && gInterpreter->IsFloatingType(reqqtp)))
-            return 1;
-        else if ((gInterpreter->IsSignedIntegerType(argqtp) && gInterpreter->IsUnsignedIntegerType(reqqtp)) ||
-                 (gInterpreter->IsFloatingType(argqtp) && gInterpreter->IsUnsignedIntegerType(reqqtp)))
-            return 2;
-        else if ((gInterpreter->IsIntegerType(argqtp) && gInterpreter->IsIntegerType(reqqtp)))
-            return 3;
-        else if ((gInterpreter->IsVoidPointerType(argqtp) && gInterpreter->IsPointerType(reqqtp)))
-            return 4;
-        else 
-            return 10; // Penalize heavily for no possible match
+        if (ArgSimilarityScore(argqtp, reqqtp) < 10) {
+            return ArgSimilarityScore(argqtp, reqqtp);
+        }
+        else { // Match using underlying types   
+            if(gInterpreter->IsPointerType(argqtp))
+                argqtp = gInterpreter->TypeInfo_QualTypePtr(gInterpreter->GetPointerType(argqtp));
+
+            // Handles reference types and strips qualifiers
+            TypeInfo_t *arg_ul = gInterpreter->GetNonReferenceType(argqtp);
+            TypeInfo_t *req_ul = gInterpreter->GetNonReferenceType(reqqtp);
+            argqtp = gInterpreter->TypeInfo_QualTypePtr(gInterpreter->GetUnqualifiedType(gInterpreter->TypeInfo_QualTypePtr(arg_ul)));
+            reqqtp = gInterpreter->TypeInfo_QualTypePtr(gInterpreter->GetUnqualifiedType(gInterpreter->TypeInfo_QualTypePtr(req_ul)));
+            
+            return ArgSimilarityScore(argqtp, reqqtp);
+        }    
     }
     return INT_MAX; // Method is not valid
 }

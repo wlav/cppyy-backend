@@ -591,12 +591,17 @@ public:
    virtual bool IsIntegerType(const void * QualTypePtr) const;
    virtual bool IsSignedIntegerType(const void * QualTypePtr) const;
    virtual bool IsUnsignedIntegerType(const void * QualTypePtr) const;
+   virtual bool IsIntegralType(const void * QualTypePtr) const;
    virtual bool IsFloatingType(const void * QualTypePtr) const;
    virtual bool IsPointerType(const void * QualTypePtr) const;
    virtual bool IsVoidPointerType(const void * QualTypePtr) const;
 
 // FunctionDecl interface 
    bool FunctionDeclId_IsMethod(DeclId_t fdeclid) const;
+
+   virtual TypeInfo_t* GetNonReferenceType(const void * QualTypePtr) const;
+   virtual TypeInfo_t* GetUnqualifiedType(const void * QualTypePtr) const;
+   virtual TypeInfo_t* GetPointerType(const void * QualTypePtr) const;
 };
 
 } // namespace CppyyLegacy
