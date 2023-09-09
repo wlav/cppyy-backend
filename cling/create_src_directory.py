@@ -39,7 +39,7 @@ DEBUG_TESTBUILD = False
 TARBALL_CACHE_DIR = 'releases'
 ERR_RELEASE_NOT_FOUND = 2
 
-ROOT_VERSION = '6.28.04'
+ROOT_VERSION = '6.28.06'
 
 #
 ## released source pull and copy of Cling

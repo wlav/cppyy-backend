@@ -2,7 +2,7 @@ diff --git a/src/interpreter/cling/CMakeLists.txt b/src/interpreter/cling/CMakeL
 index 57b4984edd..b0081c5aee 100644
 --- a/src/interpreter/cling/CMakeLists.txt
 +++ b/src/interpreter/cling/CMakeLists.txt
-@@ -180,8 +180,13 @@ else() # Building as part of LLVM
+@@ -184,8 +184,13 @@ else() # Building as part of LLVM
      include(${LLVMCONFIG_FILE})
    endif()
    if (NOT CLANG_INCLUDE_DIRS)
@@ -31,19 +31,6 @@ index 3550275754..8942810f20 100644
        return T();
      }
  
-diff --git a/src/interpreter/cling/include/cling/Interpreter/Interpreter.h b/src/interpreter/cling/include/cling/Interpreter/Interpreter.h
-index 4cf115eba4..bb6223b4b6 100644
---- a/src/interpreter/cling/include/cling/Interpreter/Interpreter.h
-+++ b/src/interpreter/cling/include/cling/Interpreter/Interpreter.h
-@@ -537,7 +537,7 @@ namespace cling {
-     ///\returns Whether the operation was fully successful.
-     ///
-     CompilationResult parse(const std::string& input,
--                            Transaction** T = 0) const;
-+                            Transaction** T = nullptr) const;
-     /// Loads a C++ Module with a given name by synthesizing an Import decl.
-     /// This routine checks if there is a modulemap in the current directory
-     /// and loads it.
 diff --git a/src/interpreter/cling/include/cling/Interpreter/Value.h b/src/interpreter/cling/include/cling/Interpreter/Value.h
 index 829b89ddf3..65375856f9 100644
 --- a/src/interpreter/cling/include/cling/Interpreter/Value.h
@@ -558,7 +545,7 @@ index cef3b5e5b6..2dff2bc04d 100644
 +  }
  }
 diff --git a/src/interpreter/cling/lib/Interpreter/DeclExtractor.cpp b/src/interpreter/cling/lib/Interpreter/DeclExtractor.cpp
-index 45b2892f0a..55e9041981 100644
+index 19b01e9f94..8fbbaa6b05 100644
 --- a/src/interpreter/cling/lib/Interpreter/DeclExtractor.cpp
 +++ b/src/interpreter/cling/lib/Interpreter/DeclExtractor.cpp
 @@ -220,7 +220,7 @@ namespace cling {
@@ -570,7 +557,7 @@ index 45b2892f0a..55e9041981 100644
    }
  
    void DeclExtractor::createUniqueName(std::string& out) {
-@@ -239,58 +239,60 @@ namespace cling {
+@@ -239,57 +239,59 @@ namespace cling {
  
      std::string FunctionName = "__fd";
      createUniqueName(FunctionName);
@@ -593,9 +580,8 @@ index 45b2892f0a..55e9041981 100644
 -        IntegerLiteral* ZeroLit
 -          = IntegerLiteral::Create(*m_Context, ZeroInt, m_Context->IntTy,
 -                                   SourceLocation());
--        Stmts.push_back(m_Sema->ActOnReturnStmt(ZeroLit->getExprLoc(),
--                                                ZeroLit,
--                                                m_Sema->getCurScope()).get());
+-        Stmts.push_back(m_Sema->BuildReturnStmt(ZeroLit->getExprLoc(),
+-                                                ZeroLit).get());
 -      }
 -
 -      // Wrap Stmts into a function body.
@@ -646,9 +632,8 @@ index 45b2892f0a..55e9041981 100644
 +      IntegerLiteral* ZeroLit
 +        = IntegerLiteral::Create(*m_Context, ZeroInt, m_Context->IntTy,
 +                                 SourceLocation());
-+      Stmts.push_back(m_Sema->ActOnReturnStmt(ZeroLit->getExprLoc(),
-+                                              ZeroLit,
-+                                              m_Sema->getCurScope()).get());
++      Stmts.push_back(
++          m_Sema->BuildReturnStmt(ZeroLit->getExprLoc(), ZeroLit).get());
      }
 -    llvm_unreachable("Must be able to enforce init order.");
 +
@@ -681,60 +666,6 @@ index 45b2892f0a..55e9041981 100644
    }
  
    ///\brief Checks for clashing names when trying to extract a declaration.
-@@ -340,7 +342,7 @@ namespace cling {
- 
-     IdentifierInfo* Name = NewTD->getIdentifier();
-     // If this is not a definition, it must have a name.
--    assert((Name != 0 || NewTD->isThisDeclarationADefinition()) &&
-+    assert((Name != nullptr || NewTD->isThisDeclarationADefinition()) &&
-            "Nameless record must be a definition!");
- 
-     // Figure out the underlying type if this a enum declaration. We need to do
-@@ -367,7 +369,7 @@ namespace cling {
-         // integral type; any cv-qualification is ignored.
- 
-         SourceLocation UnderlyingLoc;
--        TypeSourceInfo* TI = 0;
-+        TypeSourceInfo* TI = nullptr;
-         if ((TI = ED->getIntegerTypeSourceInfo()))
-           UnderlyingLoc = TI->getTypeLoc().getBeginLoc();
- 
-@@ -560,7 +562,7 @@ namespace cling {
-               Kind = PrevTagDecl->getTagKind();
-             else {
-               // Recover by making this an anonymous redefinition.
--              Name = 0;
-+              Name = nullptr;
-               Previous.clear();
-               Invalid = true;
-             }
-@@ -622,7 +624,7 @@ namespace cling {
-                   // If this is a redefinition, recover by making this
-                   // struct be anonymous, which will make any later
-                   // references get the previous definition.
--                  Name = 0;
-+                  Name = nullptr;
-                   Previous.clear();
-                   Invalid = true;
-                 }
-@@ -635,7 +637,7 @@ namespace cling {
-                   m_Sema->Diag(NameLoc, diag::err_nested_redefinition) << Name;
-                   m_Sema->Diag(PrevTagDecl->getLocation(),
-                                diag::note_previous_definition);
--                  Name = 0;
-+                  Name = nullptr;
-                   Previous.clear();
-                   Invalid = true;
-                 }
-@@ -689,7 +691,7 @@ namespace cling {
-           // issue an error and recover by making this tag be anonymous.
-           m_Sema->Diag(NameLoc, diag::err_redefinition_different_kind) << Name;
-           m_Sema->Diag(PrevDecl->getLocation(), diag::note_previous_definition);
--          Name = 0;
-+          Name = nullptr;
-           Invalid = true;
-         }
- 
 diff --git a/src/interpreter/cling/lib/Interpreter/DeclUnloader.cpp b/src/interpreter/cling/lib/Interpreter/DeclUnloader.cpp
 index 5d13259cd4..e33ed31912 100644
 --- a/src/interpreter/cling/lib/Interpreter/DeclUnloader.cpp
@@ -778,7 +709,7 @@ index 5d13259cd4..e33ed31912 100644
            This->addSpecialization(FTSI, InsertPos);
          }
  #ifndef NDEBUG
-@@ -736,7 +736,7 @@ bool DeclUnloader::VisitRedeclarable(clang::Redeclarable<T>* R, DeclContext* DC)
+@@ -749,7 +749,7 @@ bool DeclUnloader::VisitRedeclarable(clang::Redeclarable<T>* R, DeclContext* DC)
        // Hopefully LSD->isExternCContext() means that it already does exist
        ExternCContextDecl* ECD = m_Sema->Context.getExternCContextDecl();
        StoredDeclsMap* Map = ECD ? ECD->getLookupPtr() : nullptr;
@@ -787,7 +718,7 @@ index 5d13259cd4..e33ed31912 100644
        for (Decl* D : LSD->noload_decls()) {
          if (NamedDecl* ND = dyn_cast<NamedDecl>(D)) {
  
-@@ -909,7 +909,7 @@ bool DeclUnloader::VisitRedeclarable(clang::Redeclarable<T>* R, DeclContext* DC)
+@@ -922,7 +922,7 @@ bool DeclUnloader::VisitRedeclarable(clang::Redeclarable<T>* R, DeclContext* DC)
      const MacroInfo* MI = MD->getMacroInfo();
  
      // If the macro is not defined, this is a noop undef, just return.
@@ -796,118 +727,10 @@ index 5d13259cd4..e33ed31912 100644
        return false;
  
      // Remove the pair from the macros
-@@ -983,13 +983,13 @@ bool DeclUnloader::VisitRedeclarable(clang::Redeclarable<T>* R, DeclContext* DC)
-       This->getCommonPtr()->Specializations.clear();
- 
-       //Readd the collected specializations.
--      void* InsertPos = 0;
--      ClassTemplateSpecializationDecl* CTSD = 0;
-+      void* InsertPos = nullptr;
-+      ClassTemplateSpecializationDecl* CTSD = nullptr;
-       for (size_t i = 0, e = specializations.size(); i < e; ++i) {
-         CTSD = specializations[i];
-         assert(CTSD && "Must not be null.");
-         // Avoid assertion on add.
--        CTSD->SetNextInBucket(0);
-+        CTSD->SetNextInBucket(nullptr);
-         This->AddSpecialization(CTSD, InsertPos);
-       }
-     }
-@@ -1019,13 +1019,13 @@ bool DeclUnloader::VisitRedeclarable(clang::Redeclarable<T>* R, DeclContext* DC)
-       This->getPartialSpecializations().clear();
- 
-       //Readd the collected specializations.
--      void* InsertPos = 0;
--      ClassTemplatePartialSpecializationDecl* CTPSD = 0;
-+      void* InsertPos = nullptr;
-+      ClassTemplatePartialSpecializationDecl* CTPSD = nullptr;
-       for (size_t i = 0, e = specializations.size(); i < e; ++i) {
-         CTPSD = specializations[i];
-         assert(CTPSD && "Must not be null.");
-         // Avoid assertion on add.
--        CTPSD->SetNextInBucket(0);
-+        CTPSD->SetNextInBucket(nullptr);
-         This->AddPartialSpecialization(CTPSD, InsertPos);
-       }
-     }
-diff --git a/src/interpreter/cling/lib/Interpreter/DynamicLibraryManager.cpp b/src/interpreter/cling/lib/Interpreter/DynamicLibraryManager.cpp
-index 73c6fed44d..09babd0b33 100644
---- a/src/interpreter/cling/lib/Interpreter/DynamicLibraryManager.cpp
-+++ b/src/interpreter/cling/lib/Interpreter/DynamicLibraryManager.cpp
-@@ -404,7 +404,7 @@ namespace cling {
-     if (!isLibraryLoaded(canonicalLoadedLib))
-       return;
- 
--    DyLibHandle dyLibHandle = 0;
-+    DyLibHandle dyLibHandle = nullptr;
-     for (DyLibs::const_iterator I = m_DyLibs.begin(), E = m_DyLibs.end();
-          I != E; ++I) {
-       if (I->second == canonicalLoadedLib) {
 diff --git a/src/interpreter/cling/lib/Interpreter/DynamicLookup.cpp b/src/interpreter/cling/lib/Interpreter/DynamicLookup.cpp
 index e426a2e272..2d6bcb224c 100644
 --- a/src/interpreter/cling/lib/Interpreter/DynamicLookup.cpp
 +++ b/src/interpreter/cling/lib/Interpreter/DynamicLookup.cpp
-@@ -153,9 +153,9 @@ namespace cling {
- 
-   // Constructors
-   EvaluateTSynthesizer::EvaluateTSynthesizer(Sema* S)
--    : ASTTransformer(S), m_EvalDecl(0), m_LifetimeHandlerDecl(0),
--      m_LHgetMemoryDecl(0), m_DynamicExprInfoDecl(0), m_DeclContextDecl(0),
--      m_gCling(0), m_CurDeclContext(0), m_Context(&S->getASTContext()),
-+    : ASTTransformer(S), m_EvalDecl(nullptr), m_LifetimeHandlerDecl(nullptr),
-+      m_LHgetMemoryDecl(nullptr), m_DynamicExprInfoDecl(nullptr), m_DeclContextDecl(nullptr),
-+      m_gCling(nullptr), m_CurDeclContext(nullptr), m_Context(&S->getASTContext()),
-       m_UniqueNameCounter(0), m_NestedCompoundStmts(0)
-   { }
- 
-@@ -266,7 +266,7 @@ namespace cling {
-           D->dump();
-           if (NewBody.hasSingleNode())
-             NewBody.getAs<Expr>()->dump();
--          return Result(0, false); // Signal a fatal error.
-+          return Result(nullptr, false); // Signal a fatal error.
-         }
-         FD->setBody(NewBody.getAsSingleNode());
-       }
-@@ -527,9 +527,9 @@ namespace cling {
-                                               /*IsArrow=*/false,
-                                               SS,
-                                               m_NoSLoc,
--                                              /*FirstQualifierInScope=*/0,
-+                                              /*FirstQualifierInScope=*/nullptr,
-                                               MemberLookup,
--                                              /*TemplateArgs=*/0,
-+                                              /*TemplateArgs=*/nullptr,
-                                               /*Scope*/nullptr).get();
-         // 3.3 Build the actual call
-         Scope* S = m_Sema->getScopeForContext(m_Sema->CurContext);
-@@ -719,7 +719,7 @@ namespace cling {
-     // 3. Build the array of addresses
-     QualType VarAddrTy = m_Sema->BuildArrayType(m_Context->VoidPtrTy,
-                                                 ArrayType::Normal,
--                                                /*ArraySize*/0,
-+                                                /*ArraySize*/nullptr,
-                                                 /*IndexTypeQuals*/0,
-                                                 m_NoRange,
-                                                 DeclarationName() );
-@@ -734,7 +734,7 @@ namespace cling {
-       if (!UnOp) {
-         // Not good, return what we had.
-         cling::errs() << "Error while creating dynamic expression for:\n  ";
--        SubTree->printPretty(cling::errs(), 0 /*PrinterHelper*/,
-+        SubTree->printPretty(cling::errs(), nullptr /*PrinterHelper*/,
-                              m_Context->getPrintingPolicy(), 2);
-         cling::errs() << "\n";
- #ifndef NDEBUG
-@@ -768,7 +768,7 @@ namespace cling {
-                               CK_ArrayToPointerDecay);
- 
-     // Is the result of the expression to be printed or not
--    Expr* VPReq = 0;
-+    Expr* VPReq = nullptr;
-     if (ValuePrinterReq)
-       VPReq = m_Sema->ActOnCXXBoolLiteral(m_NoSLoc, tok::kw_true).get();
-     else
 @@ -958,7 +958,7 @@ namespace cling {
        Value res = Interp->Evaluate(ctor.c_str(), DC,
                                     ExprInfo->isValuePrinterRequested()
@@ -917,247 +740,6 @@ index e426a2e272..2d6bcb224c 100644
      }
  
      LifetimeHandler::~LifetimeHandler() {
-diff --git a/src/interpreter/cling/lib/Interpreter/ForwardDeclPrinter.cpp b/src/interpreter/cling/lib/Interpreter/ForwardDeclPrinter.cpp
-index 075f235c3b..f85b68113d 100644
---- a/src/interpreter/cling/lib/Interpreter/ForwardDeclPrinter.cpp
-+++ b/src/interpreter/cling/lib/Interpreter/ForwardDeclPrinter.cpp
-@@ -217,9 +217,9 @@ namespace cling {
- 
-        auto FE = PP.LookupFile(fileNameLoc, FileName, isAngled, FromDir,
-                                FromFile,
--                               CurDir, /*SearchPath*/ 0,
--                               /*RelativePath*/ 0, /*suggestedModule*/ 0,
--                               /*IsMapped*/ 0, /*IsFramework*/ nullptr,
-+                               CurDir, /*SearchPath*/ nullptr,
-+                               /*RelativePath*/ nullptr, /*suggestedModule*/ nullptr,
-+                               /*IsMapped*/ nullptr, /*IsFramework*/ nullptr,
-                                /*SkipCache*/ false,
-                                /*OpenFile*/ false, /*CacheFail*/ true);
-        // Return true if we can '#include' the given filename
-@@ -456,7 +456,7 @@ namespace cling {
-     }
- 
-     if (const FunctionType *AFT = Ty->getAs<FunctionType>()) {
--      const FunctionProtoType *FT = 0;
-+      const FunctionProtoType *FT = nullptr;
-       if (D->hasWrittenPrototype())
-         FT = dyn_cast<FunctionProtoType>(AFT);
- 
-@@ -525,7 +525,7 @@ namespace cling {
-         if (isComputedNoexcept(FT->getExceptionSpecType())) {
-           Proto += "(";
-           llvm::raw_string_ostream EOut(Proto);
--          FT->getNoexceptExpr()->printPretty(EOut, 0, SubPolicy,
-+          FT->getNoexceptExpr()->printPretty(EOut, nullptr, SubPolicy,
-                                              m_Indentation);
-           EOut.flush();
-           //Proto += EOut.str()
-@@ -570,8 +570,8 @@ namespace cling {
- 
-             Init = Init->IgnoreParens();
- 
--            Expr *SimpleInit = 0;
--            Expr **Args = 0;
-+            Expr *SimpleInit = nullptr;
-+            Expr **Args = nullptr;
-             unsigned NumArgs = 0;
-             if (ParenListExpr *ParenList = dyn_cast<ParenListExpr>(Init)) {
-               Args = ParenList->getExprs();
-@@ -584,7 +584,7 @@ namespace cling {
-               SimpleInit = Init;
- 
-             if (SimpleInit)
--              SimpleInit->printPretty(Out(), 0, m_Policy, m_Indentation);
-+              SimpleInit->printPretty(Out(), nullptr, m_Policy, m_Indentation);
-             else {
-               for (unsigned I = 0; I != NumArgs; ++I) {
-                 if (isa<CXXDefaultArgExpr>(Args[I]))
-@@ -592,7 +592,7 @@ namespace cling {
- 
-                 if (I)
-                   Out() << ", ";
--                Args[I]->printPretty(Out(), 0, m_Policy, m_Indentation);
-+                Args[I]->printPretty(Out(), nullptr, m_Policy, m_Indentation);
-               }
-             }
-           }
-@@ -662,7 +662,7 @@ namespace cling {
- 
-     if (D->isBitField()) {
-       Out() << " : ";
--      D->getBitWidth()->printPretty(Out(), 0, m_Policy, m_Indentation);
-+      D->getBitWidth()->printPretty(Out(), nullptr, m_Policy, m_Indentation);
-     }
- 
-     Expr *Init = D->getInClassInitializer();
-@@ -671,7 +671,7 @@ namespace cling {
-         Out() << " ";
-       else
-         Out() << " = ";
--      Init->printPretty(Out(), 0, m_Policy, m_Indentation);
-+      Init->printPretty(Out(), nullptr, m_Policy, m_Indentation);
-     }
-     prettyPrintAttributes(D);
-     Out() << ';' << closeBraces << '\n';
-@@ -772,7 +772,7 @@ namespace cling {
-             }
-           }
-           if (! isEnumConst)
--            Init->printPretty(Out(), 0, m_Policy, m_Indentation);
-+            Init->printPretty(Out(), nullptr, m_Policy, m_Indentation);
- 
-         }
-       if ((D->getInitStyle() == VarDecl::CallInit) && !isa<ParenListExpr>(Init))
-@@ -791,7 +791,7 @@ namespace cling {
-     std::string closeBraces = PrintEnclosingDeclContexts(Out(),
-                                                          D->getDeclContext());
-     Out() << "__asm (";
--    D->getAsmString()->printPretty(Out(), 0, m_Policy, m_Indentation);
-+    D->getAsmString()->printPretty(Out(), nullptr, m_Policy, m_Indentation);
-     Out() << ");" << closeBraces << '\n';
-   }
- 
-@@ -804,9 +804,9 @@ namespace cling {
-     std::string closeBraces = PrintEnclosingDeclContexts(Out(),
-                                                          D->getDeclContext());
-     Out() << "static_assert(";
--    D->getAssertExpr()->printPretty(Out(), 0, m_Policy, m_Indentation);
-+    D->getAssertExpr()->printPretty(Out(), nullptr, m_Policy, m_Indentation);
-     Out() << ", ";
--    D->getMessage()->printPretty(Out(), 0, m_Policy, m_Indentation);
-+    D->getMessage()->printPretty(Out(), nullptr, m_Policy, m_Indentation);
-     Out() << ");" << closeBraces << '\n';
-   }
- 
-@@ -941,7 +941,7 @@ namespace cling {
-             = utils::TypeName::GetFullyQualifiedType(ArgQT, m_Ctx);
-           Visit(ArgFQQT);
-           if (m_SkipFlag) {
--            skipDecl(0, "type template param default failed");
-+            skipDecl(nullptr, "type template param default failed");
-             return;
-           }
-           Stream << " = ";
-@@ -964,7 +964,7 @@ namespace cling {
-           if (DeclRefExpr* DRE = dyn_cast<DeclRefExpr>(DefArg)) {
-             Visit(DRE->getFoundDecl());
-             if (m_SkipFlag) {
--              skipDecl(0, "expression template param default failed");
-+              skipDecl(nullptr, "expression template param default failed");
-               return;
-             }
-           } else if (isa<IntegerLiteral>(DefArg)
-@@ -974,9 +974,9 @@ namespace cling {
-                      || isa<FloatingLiteral>(DefArg)
-                      || isa<StringLiteral>(DefArg)) {
-             Stream << " = ";
--            DefArg->printPretty(Stream, 0, m_Policy, m_Indentation);
-+            DefArg->printPretty(Stream, nullptr, m_Policy, m_Indentation);
-           } else {
--            skipDecl(0, "expression template param default not a literal");
-+            skipDecl(nullptr, "expression template param default not a literal");
-             return;
-           }
-         }
-@@ -1013,7 +1013,7 @@ namespace cling {
- 
-     PrintTemplateParameters(Stream, D->getTemplateParameters());
-     if (m_SkipFlag) {
--      skipDecl(0, "Template parameters failed");
-+      skipDecl(nullptr, "Template parameters failed");
-       return;
-     }
- 
-@@ -1302,12 +1302,12 @@ namespace cling {
-     case clang::NestedNameSpecifier::TypeSpec: // fall-through:
-     case clang::NestedNameSpecifier::TypeSpecWithTemplate:
-       // We cannot fwd declare nested types.
--      skipDecl(0, "NestedNameSpec TypeSpec/TypeSpecWithTemplate");
-+      skipDecl(nullptr, "NestedNameSpec TypeSpec/TypeSpecWithTemplate");
-       break;
-     default:
-       Log() << "VisitNestedNameSpecifier: Unexpected kind "
-             << NNS->getKind() << '\n';
--      skipDecl(0, 0);
-+      skipDecl(nullptr, nullptr);
-       break;
-    };
-   }
-@@ -1332,7 +1332,7 @@ namespace cling {
-         //Implement that if important functions are marked so.
-         //Not important, as users do not need hints
-         //about using Deleted functions
--    if (D->getIdentifier() == 0
-+    if (D->getIdentifier() == nullptr
-         || D->getNameAsString()[0] == '_'
-         || D->getStorageClass() == SC_Static
-         || D->isCXXClassMember()
-@@ -1438,7 +1438,7 @@ namespace cling {
-     for(; DC && !DC->isTranslationUnit(); DC = DC->getParent()) {
-       if (!isa<NamespaceDecl>(DC) && !isa<LinkageSpecDecl>(DC)) {
-         Log() << "Skipping unhandled " << DC->getDeclKindName() << '\n';
--        skipDecl(0, 0);
-+        skipDecl(nullptr, nullptr);
-         return "";
-       }
-       DeclCtxs.push_back(DC);
-diff --git a/src/interpreter/cling/lib/Interpreter/ForwardDeclPrinter.h b/src/interpreter/cling/lib/Interpreter/ForwardDeclPrinter.h
-index a4b0c68c93..8e3f784589 100644
---- a/src/interpreter/cling/lib/Interpreter/ForwardDeclPrinter.h
-+++ b/src/interpreter/cling/lib/Interpreter/ForwardDeclPrinter.h
-@@ -166,7 +166,7 @@ namespace cling {
- 
-     void PrintTemplateParameters(llvm::raw_ostream& Stream,
-                                  clang::TemplateParameterList *Params,
--                                 const clang::TemplateArgumentList *Args = 0);
-+                                 const clang::TemplateArgumentList *Args = nullptr);
-     void prettyPrintAttributes(clang::Decl *D);
- 
-     bool isOperator(clang::FunctionDecl* D);
-@@ -270,7 +270,7 @@ namespace cling {
-       largestream m_Stream;
-       bool m_HavePopped;
-     public:
--      StreamRAII(ForwardDeclPrinter& pr, clang::PrintingPolicy* pol = 0):
-+      StreamRAII(ForwardDeclPrinter& pr, clang::PrintingPolicy* pol = nullptr):
-         m_pr(pr), m_oldPol(pr.m_Policy), m_HavePopped(false) {
-         m_pr.m_StreamStack.push(&static_cast<llvm::raw_ostream&>(m_Stream));
-         if (pol)
-diff --git a/src/interpreter/cling/lib/Interpreter/IncrementalExecutor.cpp b/src/interpreter/cling/lib/Interpreter/IncrementalExecutor.cpp
-index 592d67975a..25f01de4d0 100644
---- a/src/interpreter/cling/lib/Interpreter/IncrementalExecutor.cpp
-+++ b/src/interpreter/cling/lib/Interpreter/IncrementalExecutor.cpp
-@@ -277,7 +277,7 @@ IncrementalExecutor::getPointerToGlobalFromJIT(llvm::StringRef name) const {
-   void* addr = m_JIT->getSymbolAddress(name, false /*no dlsym*/);
- 
-   if (diagnoseUnresolvedSymbols(name, "symbol"))
--    return 0;
-+    return nullptr;
-   return addr;
- }
- 
-diff --git a/src/interpreter/cling/lib/Interpreter/IncrementalExecutor.h b/src/interpreter/cling/lib/Interpreter/IncrementalExecutor.h
-index 535172831e..e50f20bb15 100644
---- a/src/interpreter/cling/lib/Interpreter/IncrementalExecutor.h
-+++ b/src/interpreter/cling/lib/Interpreter/IncrementalExecutor.h
-@@ -183,7 +183,7 @@ namespace cling {
- 
-     ///\brief Runs a wrapper function.
-     ExecutionResult executeWrapper(llvm::StringRef function,
--                                   Value* returnValue = 0) const;
-+                                   Value* returnValue = nullptr) const;
-     ///\brief Replaces a symbol (function) to the execution engine.
-     ///
-     /// Allows runtime declaration of a function passing its pointer for being
-@@ -216,7 +216,7 @@ namespace cling {
-     ///\param[out] fromJIT - whether the symbol was JITted.
-     ///
-     void*
--    getAddressOfGlobal(llvm::StringRef mangledName, bool* fromJIT = 0) const;
-+    getAddressOfGlobal(llvm::StringRef mangledName, bool *fromJIT = nullptr) const;
- 
-     ///\brief Return the address of a global from the JIT (as
-     /// opposed to dynamic libraries). Forces the emission of the symbol if
 diff --git a/src/interpreter/cling/lib/Interpreter/IncrementalJIT.cpp b/src/interpreter/cling/lib/Interpreter/IncrementalJIT.cpp
 index 5342945ed1..04bebf0558 100644
 --- a/src/interpreter/cling/lib/Interpreter/IncrementalJIT.cpp
@@ -1176,15 +758,15 @@ index 5342945ed1..04bebf0558 100644
  #include <llvm/IR/LLVMContext.h>
  #include <llvm/Support/raw_ostream.h>
  #include <llvm/Support/Host.h>
-@@ -30,6 +33,7 @@
- #include <llvm/Target/TargetMachine.h>
+@@ -34,6 +37,7 @@
+ #endif
  
  using namespace llvm;
 +using namespace llvm::jitlink;
  using namespace llvm::orc;
  
  namespace {
-@@ -186,6 +190,117 @@ namespace {
+@@ -190,6 +194,117 @@ namespace {
      bool needsToReserveAllocationSpace() override { return true; }
    };
  
@@ -1302,9 +884,10 @@ index 5342945ed1..04bebf0558 100644
  
    /// A DynamicLibrarySearchGenerator that uses ResourceTracker to remember
    /// which symbols were resolved through dlsym during a transaction's reign.
-@@ -289,8 +402,24 @@ Error RTDynamicLibrarySearchGenerator::tryToGenerate(
-   return JD.define(absoluteSymbols(std::move(NewSymbols)), CurrentRT());
- }
+@@ -319,10 +433,26 @@ Error RTDynamicLibrarySearchGenerator::tryToGenerate(
+     return JD.define(absoluteSymbols(std::move(Symbols)));
+   }
+ };
  
 +static bool UseJITLink(const Triple& TT) {
 +  bool jitLink = false;
@@ -1321,14 +904,15 @@ index 5342945ed1..04bebf0558 100644
 +  }
 +  return jitLink;
 +}
-+ 
++
  static std::unique_ptr<TargetMachine>
 -CreateTargetMachine(const clang::CompilerInstance& CI) {
 +CreateTargetMachine(const clang::CompilerInstance& CI, bool JITLink) {
    CodeGenOpt::Level OptLevel = CodeGenOpt::Default;
    switch (CI.getCodeGenOpts().OptimizationLevel) {
      case 0: OptLevel = CodeGenOpt::None; break;
-@@ -303,19 +417,35 @@ Error RTDynamicLibrarySearchGenerator::tryToGenerate(
+     case 1: OptLevel = CodeGenOpt::Less; break;
+@@ -334,19 +448,35 @@ Error RTDynamicLibrarySearchGenerator::tryToGenerate(
 +
 +  const Triple &TT = CI.getTarget().getTriple();
 +
@@ -1363,9 +947,9 @@ index 5342945ed1..04bebf0558 100644
 +
    return cantFail(JTMB.createTargetMachine());
  }
- } // unnamed namespace
  
-@@ -329,17 +474,31 @@ IncrementalJIT::IncrementalJIT(
+ #if defined(__linux__) && defined(__GLIBC__)
+@@ -386,17 +532,31 @@ IncrementalJIT::IncrementalJIT(
      std::unique_ptr<llvm::orc::ExecutorProcessControl> EPC, Error& Err,
      void *ExtraLibHandle, bool Verbose)
      : SkipHostProcessLookup(false),
@@ -1400,7 +984,7 @@ index 5342945ed1..04bebf0558 100644
      auto GetMemMgr = []() { return std::make_unique<ClingMemoryManager>(); };
      auto Layer =
          std::make_unique<RTDyldObjectLinkingLayer>(ES, std::move(GetMemMgr));
-@@ -369,7 +529,7 @@ IncrementalJIT::IncrementalJIT(
+@@ -426,7 +586,7 @@ IncrementalJIT::IncrementalJIT(
  
    Builder.setCompileFunctionCreator([&](llvm::orc::JITTargetMachineBuilder)
    -> llvm::Expected<std::unique_ptr<llvm::orc::IRCompileLayer::IRCompiler>> {
@@ -1409,7 +993,7 @@ index 5342945ed1..04bebf0558 100644
    });
  
    if (Expected<std::unique_ptr<LLJIT>> JitInstance = Builder.create()) {
-@@ -389,7 +549,7 @@ IncrementalJIT::IncrementalJIT(
+@@ -446,7 +606,7 @@ IncrementalJIT::IncrementalJIT(
        m_CompiledModules[Unsafe] = std::move(TSM);
      });
  
@@ -1418,7 +1002,7 @@ index 5342945ed1..04bebf0558 100644
  
    // Process symbol resolution
    auto HostProcessLookup
-@@ -504,7 +664,7 @@ IncrementalJIT::addOrReplaceDefinition(StringRef Name,
+@@ -572,7 +732,7 @@ IncrementalJIT::addOrReplaceDefinition(StringRef Name,
      return KnownAddr;
  
    llvm::SmallString<128> LinkerMangledName;
@@ -1431,7 +1015,7 @@ diff --git a/src/interpreter/cling/lib/Interpreter/IncrementalJIT.h b/src/interp
 index c05458c241..170cc40320 100644
 --- a/src/interpreter/cling/lib/Interpreter/IncrementalJIT.h
 +++ b/src/interpreter/cling/lib/Interpreter/IncrementalJIT.h
-@@ -93,7 +93,7 @@ public:
+@@ -99,7 +99,7 @@ public:
  
    /// @brief Get the TargetMachine used by the JIT.
    /// Non-const because BackendPasses need to update OptLevel.
@@ -1440,7 +1024,7 @@ index c05458c241..170cc40320 100644
  
  private:
    std::unique_ptr<llvm::orc::LLJIT> Jit;
-@@ -109,8 +109,9 @@ private:
+@@ -115,8 +115,9 @@ private:
    std::map<const Transaction*, llvm::orc::ResourceTrackerSP> m_ResourceTrackers;
    std::map<const llvm::Module *, llvm::orc::ThreadSafeModule> m_CompiledModules;
  
@@ -1451,128 +1035,6 @@ index c05458c241..170cc40320 100644
  
    // TODO: We only need the context for materialization. Instead of defining it
    // here we might want to pass one in on a per-module basis.
-diff --git a/src/interpreter/cling/lib/Interpreter/IncrementalParser.cpp b/src/interpreter/cling/lib/Interpreter/IncrementalParser.cpp
-index 1c6ca43cd6..6a63777b59 100644
---- a/src/interpreter/cling/lib/Interpreter/IncrementalParser.cpp
-+++ b/src/interpreter/cling/lib/Interpreter/IncrementalParser.cpp
-@@ -347,7 +347,7 @@ namespace cling {
-       m_CI->createPCHExternalASTSource(PCHFileName,
-                                        DisableValidationForModuleKind::All,
-                                        true /*AllowPCHWithCompilerErrors*/,
--                                       0 /*DeserializationListener*/,
-+                                       nullptr /*DeserializationListener*/,
-                                        true /*OwnsDeserializationListener*/);
-       result.push_back(endTransaction(PchT));
-       if (Trap.hasErrorOccurred()) {
-@@ -753,13 +753,13 @@ namespace cling {
- 
-     if (Transaction* Parent = T.getParent()) {
-       Parent->removeNestedTransaction(&T);
--      T.setParent(0);
-+      T.setParent(nullptr);
-     } else {
-       if (&T == m_Transactions.back()) {
-         // Remove from the queue
-         m_Transactions.pop_back();
-         if (!m_Transactions.empty())
--          m_Transactions.back()->setNext(0);
-+          m_Transactions.back()->setNext(nullptr);
-       } else {
-         // If T is not the last transaction it must not be a previous
-         // transaction either, but a "disconnected" one, i.e. one that
-@@ -852,7 +852,7 @@ namespace cling {
-     Preprocessor& PP = m_CI->getPreprocessor();
-     if (!PP.getCurrentLexer()) {
-        PP.EnterSourceFile(m_CI->getSourceManager().getMainFileID(),
--                          0, SourceLocation());
-+             nullptr, SourceLocation());
-     }
-     assert(PP.isIncrementalProcessingEnabled() && "Not in incremental mode!?");
-     PP.enableIncrementalProcessing();
-@@ -897,7 +897,7 @@ namespace cling {
-     m_MemoryBuffers.push_back(std::make_pair(MBNonOwn, FID));
- 
-     // NewLoc only used for diags.
--    PP.EnterSourceFile(FID, /*DirLookup*/0, NewLoc);
-+    PP.EnterSourceFile(FID, /*DirLookup*/nullptr, NewLoc);
-     m_Consumer->getTransaction()->setBufferFID(FID);
- 
-     DiagnosticsEngine& Diags = getCI()->getDiagnostics();
-diff --git a/src/interpreter/cling/lib/Interpreter/IncrementalParser.h b/src/interpreter/cling/lib/Interpreter/IncrementalParser.h
-index 8c9082088e..582e2bd575 100644
---- a/src/interpreter/cling/lib/Interpreter/IncrementalParser.h
-+++ b/src/interpreter/cling/lib/Interpreter/IncrementalParser.h
-@@ -174,7 +174,7 @@ namespace cling {
-     ///
-     const Transaction* getFirstTransaction() const {
-       if (m_Transactions.empty())
--        return 0;
-+        return nullptr;
-       return m_Transactions.front();
-     }
- 
-@@ -182,7 +182,7 @@ namespace cling {
-     ///
-     Transaction* getLastTransaction() {
-       if (m_Transactions.empty())
--        return 0;
-+        return nullptr;
-       return m_Transactions.back();
-     }
- 
-@@ -190,7 +190,7 @@ namespace cling {
-     ///
-     const Transaction* getLastTransaction() const {
-       if (m_Transactions.empty())
--        return 0;
-+        return nullptr;
-       return m_Transactions.back();
-     }
- 
-diff --git a/src/interpreter/cling/lib/Interpreter/InterpreterCallbacks.cpp b/src/interpreter/cling/lib/Interpreter/InterpreterCallbacks.cpp
-index 974a5d1eed..d9736e0e2f 100644
---- a/src/interpreter/cling/lib/Interpreter/InterpreterCallbacks.cpp
-+++ b/src/interpreter/cling/lib/Interpreter/InterpreterCallbacks.cpp
-@@ -232,7 +232,7 @@ namespace cling {
- 
-   public:
-     InterpreterExternalSemaSource(InterpreterCallbacks* C)
--      : m_Callbacks(C), m_Sema(0) {}
-+      : m_Callbacks(C), m_Sema(nullptr) {}
- 
-     ~InterpreterExternalSemaSource() {
-       // FIXME: Another gross hack due to the missing multiplexing AST external
-@@ -250,7 +250,7 @@ namespace cling {
-     }
- 
-     void ForgetSema() override {
--      m_Sema = 0;
-+      m_Sema = nullptr;
-     }
- 
-     InterpreterCallbacks* getCallbacks() const { return m_Callbacks; }
-@@ -297,7 +297,7 @@ namespace cling {
-                              bool enableExternalSemaSourceCallbacks/* = false*/,
-                         bool enableDeserializationListenerCallbacks/* = false*/,
-                                              bool enablePPCallbacks/* = false*/)
--    : m_Interpreter(interp), m_ExternalSemaSource(0), m_PPCallbacks(0),
-+    : m_Interpreter(interp), m_ExternalSemaSource(nullptr), m_PPCallbacks(nullptr),
-       m_IsRuntime(false) {
-     Sema& SemaRef = interp->getSema();
-     ASTReader* Reader = m_Interpreter->getCI()->getASTReader().get();
-diff --git a/src/interpreter/cling/lib/Interpreter/LookupHelper.cpp b/src/interpreter/cling/lib/Interpreter/LookupHelper.cpp
-index f87341ea49..593d67a7c4 100644
---- a/src/interpreter/cling/lib/Interpreter/LookupHelper.cpp
-+++ b/src/interpreter/cling/lib/Interpreter/LookupHelper.cpp
-@@ -519,7 +519,7 @@ namespace cling {
- 
-   const Decl* LookupHelper::findScope(llvm::StringRef className,
-                                       DiagSetting diagOnOff,
--                                      const Type** resultType /* = 0 */,
-+                                      const Type** resultType /* = nullptr */,
-                                       bool instantiateTemplate/*=true*/) const {
- 
-     //
 diff --git a/src/interpreter/cling/lib/Interpreter/Value.cpp b/src/interpreter/cling/lib/Interpreter/Value.cpp
 index 52be4a4437..b7aed930be 100644
 --- a/src/interpreter/cling/lib/Interpreter/Value.cpp
@@ -1874,595 +1336,6 @@ index 7841226774..f16f9406fc 100644
  
        case clang::BuiltinType::Float:
          return executePrintValue<float>(V, V.getFloat());
-diff --git a/src/interpreter/cling/lib/MetaProcessor/Display.cpp b/src/interpreter/cling/lib/MetaProcessor/Display.cpp
-index 7c74eecc01..22032c7967 100644
---- a/src/interpreter/cling/lib/MetaProcessor/Display.cpp
-+++ b/src/interpreter/cling/lib/MetaProcessor/Display.cpp
-@@ -71,7 +71,7 @@ bool HasUDT(const Decl* decl)
- //______________________________________________________________________________
- int NumberOfElements(const ArrayType* type)
- {
--  assert(type != 0 && "NumberOfElements, 'type' parameter is null");
-+  assert(type != nullptr && "NumberOfElements, 'type' parameter is null");
- 
-   if (const ConstantArrayType* const arrayType = dyn_cast<ConstantArrayType>(type)) {
-     //We can calculate only the size of constant size array.
-@@ -98,7 +98,7 @@ static void AppendAnyDeclLocation(const CompilerInstance* compiler,
-                                   const char* formatNull,
-                                   const char* filenameNull)
- {
--  assert(compiler != 0 && "AppendAnyDeclLocation, 'compiler' parameter is null");
-+  assert(compiler != nullptr && "AppendAnyDeclLocation, 'compiler' parameter is null");
- 
-   llvm::raw_string_ostream rss(textLine);
-   llvm::formatted_raw_ostream frss(rss);
-@@ -130,7 +130,7 @@ static void AppendAnyDeclLocation(const CompilerInstance* compiler,
- void AppendClassDeclLocation(const CompilerInstance* compiler, const CXXRecordDecl* classDecl,
-                              std::string& textLine, bool verbose)
- {
--  assert(classDecl != 0 && "AppendClassDeclLocation, 'classDecl' parameter is null");
-+  assert(classDecl != nullptr && "AppendClassDeclLocation, 'classDecl' parameter is null");
- 
-   //Location has a fixed format - from G__display_class.
-   static const char* formatShort = "%-25s%5d";
-@@ -148,8 +148,8 @@ void AppendMemberFunctionLocation(const CompilerInstance* compiler, const Decl*
- {
-   //Location has a fixed format - from G__display_class.
- 
--  assert(compiler != 0 && "AppendMemberFunctionLocation, 'compiler' parameter is null");
--  assert(decl != 0 && "AppendMemberFunctionLocation, 'decl' parameter is null");
-+  assert(compiler != nullptr && "AppendMemberFunctionLocation, 'compiler' parameter is null");
-+  assert(decl != nullptr && "AppendMemberFunctionLocation, 'decl' parameter is null");
- 
-   llvm::raw_string_ostream rss(textLine);
-   llvm::formatted_raw_ostream frss(rss);
-@@ -171,7 +171,7 @@ void AppendDeclLocation(const CompilerInstance* compiler, const Decl* decl,
- void AppendMacroLocation(const CompilerInstance* compiler, const MacroInfo* macroInfo,
-                          std::string& textLine)
- {
--  assert(macroInfo != 0 && "AppendMacroLocation, 'macroInfo' parameter is null");
-+  assert(macroInfo != nullptr && "AppendMacroLocation, 'macroInfo' parameter is null");
- 
-   //TODO: check what does location for macro definition really means -
-   //macro can be defined many times, what do we have in a TranslationUnit in this case?
-@@ -184,7 +184,7 @@ void AppendMacroLocation(const CompilerInstance* compiler, const MacroInfo* macr
- //______________________________________________________________________________
- void AppendClassKeyword(const CXXRecordDecl* classDecl, std::string& name)
- {
--  assert(classDecl != 0 && "AppendClassKeyword, 'classDecl' parameter is null");
-+  assert(classDecl != nullptr && "AppendClassKeyword, 'classDecl' parameter is null");
- 
-   name += classDecl->getKindName();
-   name += ' ';
-@@ -193,7 +193,7 @@ void AppendClassKeyword(const CXXRecordDecl* classDecl, std::string& name)
- //______________________________________________________________________________
- void AppendClassName(const CXXRecordDecl* classDecl, std::string& name)
- {
--  assert(classDecl != 0 && "AppendClassName, 'classDecl' parameter is null");
-+  assert(classDecl != nullptr && "AppendClassName, 'classDecl' parameter is null");
- 
-   const LangOptions langOpts;
-   PrintingPolicy printingPolicy(langOpts);
-@@ -211,7 +211,7 @@ void AppendClassName(const CXXRecordDecl* classDecl, std::string& name)
- //______________________________________________________________________________
- void AppendMemberAccessSpecifier(const Decl* memberDecl, std::string& name)
- {
--  assert(memberDecl != 0 && "AppendMemberAccessSpecifier, 'memberDecl' parameter is 0");
-+  assert(memberDecl != nullptr && "AppendMemberAccessSpecifier, 'memberDecl' parameter is 0");
- 
-   switch (memberDecl->getAccess()) {
-   case AS_private:
-@@ -229,7 +229,7 @@ void AppendMemberAccessSpecifier(const Decl* memberDecl, std::string& name)
- //______________________________________________________________________________
- void AppendConstructorSignature(const CXXConstructorDecl* ctorDecl, std::string& name)
- {
--  assert(ctorDecl != 0 && "AppendConstructorSignature, 'ctorDecl' parameter is null");
-+  assert(ctorDecl != nullptr && "AppendConstructorSignature, 'ctorDecl' parameter is null");
- 
-   const QualType type = ctorDecl->getType();
-   assert(isa<FunctionType>(type) == true && "AppendConstructorSignature, ctorDecl->getType is not a FunctionType");
-@@ -272,7 +272,7 @@ void AppendConstructorSignature(const CXXConstructorDecl* ctorDecl, std::string&
- //______________________________________________________________________________
- void AppendMemberFunctionSignature(const Decl* methodDecl, std::string& name)
- {
--  assert(methodDecl != 0 && "AppendMemberFunctionSignature, 'methodDecl' parameter is null");
-+  assert(methodDecl != nullptr && "AppendMemberFunctionSignature, 'methodDecl' parameter is null");
-   assert(methodDecl->getKind() != Decl::CXXConstructor && "AppendMemberFunctionSignature, called for a ctor declaration");
- 
-   llvm::raw_string_ostream out(name);
-@@ -289,7 +289,7 @@ void AppendMemberFunctionSignature(const Decl* methodDecl, std::string& name)
- void AppendObjectDeclaration(const Decl* objDecl, const PrintingPolicy& policy,
-                              bool printInstantiation, std::string& name)
- {
--  assert(objDecl != 0 && "AppendObjectDeclaration, 'objDecl' parameter is null");
-+  assert(objDecl != nullptr && "AppendObjectDeclaration, 'objDecl' parameter is null");
- 
-   llvm::raw_string_ostream out(name);
-   objDecl->print(out, policy, 0, printInstantiation);
-@@ -318,8 +318,8 @@ void AppendBaseClassSpecifiers(base_decl_iterator base, std::string& textLine)
- void AppendClassSize(const CompilerInstance* compiler, const RecordDecl* decl,
-                      std::string& textLine)
- {
--  assert(compiler != 0 && "AppendClassSize, 'compiler' parameter is null");
--  assert(decl != 0 && "AppendClassSize, 'decl' parameter is null");
-+  assert(compiler != nullptr && "AppendClassSize, 'compiler' parameter is null");
-+  assert(decl != nullptr && "AppendClassSize, 'decl' parameter is null");
- 
-   if (dyn_cast<ClassTemplatePartialSpecializationDecl>(decl)) {
-     textLine += "SIZE: (NA)";
-@@ -337,8 +337,8 @@ void AppendClassSize(const CompilerInstance* compiler, const RecordDecl* decl,
- template<class Decl>
- void AppendUDTSize(const CompilerInstance* compiler, const Decl* decl, std::string& textLine)
- {
--  assert(compiler != 0 && "AppendUDTSize, 'compiler' parameter is null");
--  assert(decl != 0 && "AppendUDTSize, 'decl' parameter is null");
-+  assert(compiler != nullptr && "AppendUDTSize, 'compiler' parameter is null");
-+  assert(decl != nullptr && "AppendUDTSize, 'decl' parameter is null");
- 
-   std::string formatted;
- 
-@@ -372,9 +372,9 @@ void AppendUDTSize(const CompilerInstance* compiler, const Decl* decl, std::stri
- void AppendBaseClassOffset(const CompilerInstance* compiler, const CXXRecordDecl* completeClass,
-                            const CXXRecordDecl* baseClass, bool isVirtual, std::string& textLine)
- {
--  assert(compiler != 0 && "AppendBaseClassOffset, 'compiler' parameter is null");
--  assert(completeClass != 0 && "AppendBaseClassOffset, 'completeClass' parameter is null");
--  assert(baseClass != 0 && "AppendBaseClassOffset, 'baseClass' parameter is null");
-+  assert(compiler != nullptr && "AppendBaseClassOffset, 'compiler' parameter is null");
-+  assert(completeClass != nullptr && "AppendBaseClassOffset, 'completeClass' parameter is null");
-+  assert(baseClass != nullptr && "AppendBaseClassOffset, 'baseClass' parameter is null");
- 
-   const ASTRecordLayout& layout = compiler->getASTContext().getASTRecordLayout(completeClass);
- 
-@@ -391,9 +391,9 @@ void AppendBaseClassOffset(const CompilerInstance* compiler, const CXXRecordDecl
- void AppendDataMemberOffset(const CompilerInstance* compiler, const CXXRecordDecl* classDecl,
-                             const FieldDecl* fieldDecl, std::string& textLine)
- {
--  assert(compiler != 0 && "AppendDataMemberOffset, 'compiler' parameter is null");
--  assert(classDecl != 0 && "AppendDataMemberOffset, 'classDecl' parameter is null");
--  assert(fieldDecl != 0 && "AppendDataMemberOffset, 'fieldDecl' parameter is null");
-+  assert(compiler != nullptr && "AppendDataMemberOffset, 'compiler' parameter is null");
-+  assert(classDecl != nullptr && "AppendDataMemberOffset, 'classDecl' parameter is null");
-+  assert(fieldDecl != nullptr && "AppendDataMemberOffset, 'fieldDecl' parameter is null");
- 
-   const ASTRecordLayout& layout = compiler->getASTContext().getASTRecordLayout(classDecl);
- 
-@@ -428,7 +428,7 @@ FILEPrintHelper::FILEPrintHelper(llvm::raw_ostream& stream)
- //______________________________________________________________________________
- void FILEPrintHelper::Print(const char* msg)const
- {
--  assert(msg != 0 && "Print, 'msg' parameter is null");
-+  assert(msg != nullptr && "Print, 'msg' parameter is null");
-   // We want to keep stdout and fStream in sync if fStream is different.
-   fflush(stdout);
-   fStream << msg;
-@@ -471,7 +471,7 @@ private:
-   void ProcessTypeOfMember(const Decl* decl, unsigned nSpaces)const
-   {
-     //Extract the type of declaration and process it.
--    assert(decl != 0 && "ProcessTypeOfMember, 'decl' parameter is null");
-+    assert(decl != nullptr && "ProcessTypeOfMember, 'decl' parameter is null");
- 
-     if (const ArrayType* const arrayType = decl->getType()->getAsArrayTypeUnsafe()) {
-       if (const Type* const elType = arrayType->getBaseElementTypeUnsafe()) {
-@@ -510,7 +510,7 @@ ClassPrinter::ClassPrinter(llvm::raw_ostream& stream, const cling::Interpreter*
-              fInterpreter(interpreter),
-              fVerbose(false)
- {
--  assert(interpreter != 0 && "ClassPrinter, 'compiler' parameter is null");
-+  assert(interpreter != nullptr && "ClassPrinter, 'compiler' parameter is null");
- }
- 
- 
-@@ -518,13 +518,13 @@ ClassPrinter::ClassPrinter(llvm::raw_ostream& stream, const cling::Interpreter*
- void ClassPrinter::DisplayAllClasses()const
- {
-   //Just in case asserts were deleted from ctor:
--  assert(fInterpreter != 0 && "DisplayAllClasses, fCompiler is null");
-+  assert(fInterpreter != nullptr && "DisplayAllClasses, fCompiler is null");
- 
-   const CompilerInstance* const compiler = fInterpreter->getCI();
--  assert(compiler != 0 && "DisplayAllClasses, compiler instance is null");
-+  assert(compiler != nullptr && "DisplayAllClasses, compiler instance is null");
- 
-   const TranslationUnitDecl* const tuDecl = compiler->getASTContext().getTranslationUnitDecl();
--  assert(tuDecl != 0 && "DisplayAllClasses, translation unit is empty");
-+  assert(tuDecl != nullptr && "DisplayAllClasses, translation unit is empty");
- 
-   fOut.Print("List of classes\n");
-   // Could trigger deserialization of decls.
-@@ -565,8 +565,8 @@ void ClassPrinter::SetVerbose(bool verbose)
- void ClassPrinter::ProcessDecl(decl_iterator decl)const
- {
-   //Just in case asserts were deleted from ctor:
--  assert(fInterpreter != 0 && "ProcessDecl, fInterpreter is null");
--  assert(*decl != 0 && "ProcessDecl, 'decl' parameter is not a valid iterator");
-+  assert(fInterpreter != nullptr && "ProcessDecl, fInterpreter is null");
-+  assert(*decl != nullptr && "ProcessDecl, 'decl' parameter is not a valid iterator");
- 
-   switch (decl->getKind()) {
-   case Decl::Namespace:
-@@ -605,14 +605,14 @@ void ClassPrinter::ProcessDecl(decl_iterator decl)const
- void ClassPrinter::ProcessBlockDecl(decl_iterator decl)const
- {
-   //Just in case asserts were deleted from ctor:
--  assert(fInterpreter != 0 && "ProcessBlockDecl, fInterpreter is null");
--  assert(*decl != 0 && "ProcessBlockDecl, 'decl' parameter is not a valid iterator");
-+  assert(fInterpreter != nullptr && "ProcessBlockDecl, fInterpreter is null");
-+  assert(*decl != nullptr && "ProcessBlockDecl, 'decl' parameter is not a valid iterator");
-   assert(decl->getKind() == Decl::Block && "ProcessBlockDecl, decl->getKind() != BlockDecl");
- 
-   //Block can contain nested (arbitrary deep) class declarations.
-   //Though, I'm not sure if have block in our code.
-   const BlockDecl* const blockDecl = dyn_cast<BlockDecl>(*decl);
--  assert(blockDecl != 0 && "ProcessBlockDecl, internal error - decl is not a BlockDecl");
-+  assert(blockDecl != nullptr && "ProcessBlockDecl, internal error - decl is not a BlockDecl");
- 
-   // Could trigger deserialization of decls.
-   Interpreter::PushTransactionRAII RAII(const_cast<Interpreter*>(fInterpreter));
-@@ -624,12 +624,12 @@ void ClassPrinter::ProcessBlockDecl(decl_iterator decl)const
- void ClassPrinter::ProcessFunctionDecl(decl_iterator decl)const
- {
-   //Just in case asserts were deleted from ctor:
--  assert(fInterpreter != 0 && "ProcessFunctionDecl, fInterpreter is null");
--  assert(*decl != 0 && "ProcessFunctionDecl, 'decl' parameter is not a valid iterator");
-+  assert(fInterpreter != nullptr && "ProcessFunctionDecl, fInterpreter is null");
-+  assert(*decl != nullptr && "ProcessFunctionDecl, 'decl' parameter is not a valid iterator");
- 
-   //Function can contain class declarations, we have to check this.
-   const FunctionDecl* const functionDecl = dyn_cast<FunctionDecl>(*decl);
--  assert(functionDecl != 0 && "ProcessFunctionDecl, internal error - decl is not a FunctionDecl");
-+  assert(functionDecl != nullptr && "ProcessFunctionDecl, internal error - decl is not a FunctionDecl");
- 
-   // Could trigger deserialization of decls.
-   Interpreter::PushTransactionRAII RAII(const_cast<Interpreter*>(fInterpreter));
-@@ -641,13 +641,13 @@ void ClassPrinter::ProcessFunctionDecl(decl_iterator decl)const
- void ClassPrinter::ProcessNamespaceDecl(decl_iterator decl)const
- {
-   //Just in case asserts were deleted from ctor:
--  assert(fInterpreter != 0 && "ProcessNamespaceDecl, fInterpreter is null");
--  assert(*decl != 0 && "ProcessNamespaceDecl, 'decl' parameter is not a valid iterator");
-+  assert(fInterpreter != nullptr && "ProcessNamespaceDecl, fInterpreter is null");
-+  assert(*decl != nullptr && "ProcessNamespaceDecl, 'decl' parameter is not a valid iterator");
-   assert(decl->getKind() == Decl::Namespace && "ProcessNamespaceDecl, decl->getKind() != Namespace");
- 
-   //Namespace can contain nested (arbitrary deep) class declarations.
-   const NamespaceDecl* const namespaceDecl = dyn_cast<NamespaceDecl>(*decl);
--  assert(namespaceDecl != 0 && "ProcessNamespaceDecl, 'decl' parameter is not a NamespaceDecl");
-+  assert(namespaceDecl != nullptr && "ProcessNamespaceDecl, 'decl' parameter is not a NamespaceDecl");
- 
-   // Could trigger deserialization of decls.
-   Interpreter::PushTransactionRAII RAII(const_cast<Interpreter*>(fInterpreter));
-@@ -659,11 +659,11 @@ void ClassPrinter::ProcessNamespaceDecl(decl_iterator decl)const
- void ClassPrinter::ProcessLinkageSpecDecl(decl_iterator decl)const
- {
-   //Just in case asserts were deleted from ctor:
--  assert(fInterpreter != 0 && "ProcessLinkageSpecDecl, fInterpreter is null");
--  assert(*decl != 0 && "ProcessLinkageSpecDecl, 'decl' parameter is not a valid iterator");
-+  assert(fInterpreter != nullptr && "ProcessLinkageSpecDecl, fInterpreter is null");
-+  assert(*decl != nullptr && "ProcessLinkageSpecDecl, 'decl' parameter is not a valid iterator");
- 
-   const LinkageSpecDecl* const linkageSpec = dyn_cast<LinkageSpecDecl>(*decl);
--  assert(linkageSpec != 0 && "ProcessLinkageSpecDecl, decl is not a LinkageSpecDecl");
-+  assert(linkageSpec != nullptr && "ProcessLinkageSpecDecl, decl is not a LinkageSpecDecl");
- 
-   // Could trigger deserialization of decls.
-   Interpreter::PushTransactionRAII RAII(const_cast<Interpreter*>(fInterpreter));
-@@ -674,11 +674,11 @@ void ClassPrinter::ProcessLinkageSpecDecl(decl_iterator decl)const
- //______________________________________________________________________________
- void ClassPrinter::ProcessClassDecl(decl_iterator decl) const
- {
--  assert(fInterpreter != 0 && "ProcessClassDecl, fInterpreter is null");
--  assert(*decl != 0 && "ProcessClassDecl, 'decl' parameter is not a valid iterator");
-+  assert(fInterpreter != nullptr && "ProcessClassDecl, fInterpreter is null");
-+  assert(*decl != nullptr && "ProcessClassDecl, 'decl' parameter is not a valid iterator");
- 
-   const CXXRecordDecl* const classDecl = dyn_cast<CXXRecordDecl>(*decl);
--  assert(classDecl != 0 && "ProcessClassDecl, internal error, declaration is not a CXXRecordDecl");
-+  assert(classDecl != nullptr && "ProcessClassDecl, internal error, declaration is not a CXXRecordDecl");
- 
-   if (!classDecl->hasDefinition()) {
-     DisplayClassFwdDecl(classDecl);
-@@ -698,11 +698,11 @@ void ClassPrinter::ProcessClassDecl(decl_iterator decl) const
- //______________________________________________________________________________
- void ClassPrinter::ProcessClassTemplateDecl(decl_iterator decl)const
- {
--  assert(fInterpreter != 0 && "ProcessClassDecl, fInterpreter is null");
--  assert(*decl != 0 && "ProcessClassDecl, 'decl' parameter is not a valid iterator");
-+  assert(fInterpreter != nullptr && "ProcessClassDecl, fInterpreter is null");
-+  assert(*decl != nullptr && "ProcessClassDecl, 'decl' parameter is not a valid iterator");
- 
-   ClassTemplateDecl *templateDecl = dyn_cast<ClassTemplateDecl>(*decl);
--  assert(templateDecl != 0 && "ProcessClassTemplateDecl, internal error, declaration is not a ClassTemplateDecl");
-+  assert(templateDecl != nullptr && "ProcessClassTemplateDecl, internal error, declaration is not a ClassTemplateDecl");
- 
-   templateDecl = templateDecl->getCanonicalDecl();
- 
-@@ -720,14 +720,14 @@ void ClassPrinter::ProcessClassTemplateDecl(decl_iterator decl)const
- //______________________________________________________________________________
- void ClassPrinter::DisplayClassDecl(const CXXRecordDecl* classDecl)const
- {
--  assert(classDecl != 0 && "DisplayClassDecl, 'classDecl' parameter is null");
--  assert(fInterpreter != 0 && "DisplayClassDecl, fInterpreter is null");
-+  assert(classDecl != nullptr && "DisplayClassDecl, 'classDecl' parameter is null");
-+  assert(fInterpreter != nullptr && "DisplayClassDecl, fInterpreter is null");
- 
-   // Could trigger deserialization of decls.
-   Interpreter::PushTransactionRAII RAII(const_cast<Interpreter*>(fInterpreter));
- 
-   classDecl = classDecl->getDefinition();
--  assert(classDecl != 0 && "DisplayClassDecl, invalid decl - no definition");
-+  assert(classDecl != nullptr && "DisplayClassDecl, invalid decl - no definition");
- 
-   if (fSeenDecls.find(classDecl) != fSeenDecls.end())
-     return;
-@@ -787,8 +787,8 @@ void ClassPrinter::DisplayClassDecl(const CXXRecordDecl* classDecl)const
- //______________________________________________________________________________
- void ClassPrinter::DisplayClassFwdDecl(const CXXRecordDecl* classDecl)const
- {
--  assert(classDecl != 0 && "DisplayClassDecl, 'classDecl' parameter is null");
--  assert(fInterpreter != 0 && "DisplayClassDecl, fInterpreter is null");
-+  assert(classDecl != nullptr && "DisplayClassDecl, 'classDecl' parameter is null");
-+  assert(fInterpreter != nullptr && "DisplayClassDecl, fInterpreter is null");
- 
-   if (classDecl->isImplicit() || fSeenDecls.find(classDecl) != fSeenDecls.end())
-     return;
-@@ -830,8 +830,8 @@ void ClassPrinter::DisplayClassFwdDecl(const CXXRecordDecl* classDecl)const
- //______________________________________________________________________________
- void ClassPrinter::DisplayBasesAsList(const CXXRecordDecl* classDecl)const
- {
--  assert(fInterpreter != 0 && "DisplayBasesAsList, fInterpreter is null");
--  assert(classDecl != 0 && "DisplayBasesAsList, 'classDecl' parameter is 0");
-+  assert(fInterpreter != nullptr && "DisplayBasesAsList, fInterpreter is null");
-+  assert(classDecl != nullptr && "DisplayBasesAsList, 'classDecl' parameter is 0");
-   assert(classDecl->hasDefinition() == true && "DisplayBasesAsList, 'classDecl' is invalid");
-   assert(fVerbose == false && "DisplayBasesAsList, called in a verbose output");
- 
-@@ -863,10 +863,10 @@ void ClassPrinter::DisplayBasesAsList(const CXXRecordDecl* classDecl)const
- //______________________________________________________________________________
- void ClassPrinter::DisplayBasesAsTree(const CXXRecordDecl* classDecl, unsigned nSpaces)const
- {
--  assert(classDecl != 0 && "DisplayBasesAsTree, 'classDecl' parameter is null");
-+  assert(classDecl != nullptr && "DisplayBasesAsTree, 'classDecl' parameter is null");
-   assert(classDecl->hasDefinition() == true && "DisplayBasesAsTree, 'classDecl' is invalid");
- 
--  assert(fInterpreter != 0 && "DisplayBasesAsTree, fInterpreter is null");
-+  assert(fInterpreter != nullptr && "DisplayBasesAsTree, fInterpreter is null");
-   assert(fVerbose == true && "DisplayBasesAsTree, call in a simplified output");
- 
-   std::string textLine;
-@@ -901,7 +901,7 @@ void ClassPrinter::DisplayBasesAsTree(const CXXRecordDecl* classDecl, unsigned n
- //______________________________________________________________________________
- void ClassPrinter::DisplayMemberFunctions(const CXXRecordDecl* classDecl)const
- {
--  assert(classDecl != 0 && "DisplayMemberFunctions, 'classDecl' parameter is null");
-+  assert(classDecl != nullptr && "DisplayMemberFunctions, 'classDecl' parameter is null");
- 
-   typedef CXXRecordDecl::method_iterator method_iterator;
-   typedef CXXRecordDecl::ctor_iterator ctor_iterator;
-@@ -946,7 +946,7 @@ void ClassPrinter::DisplayMemberFunctions(const CXXRecordDecl* classDecl)const
-   for (decl_iterator decl = classDecl->decls_begin(); decl != classDecl->decls_end(); ++decl) {
-     if (decl->getKind() == Decl::FunctionTemplate) {
-       const FunctionTemplateDecl* const ftDecl = dyn_cast<FunctionTemplateDecl>(*decl);
--      assert(ftDecl != 0 && "DisplayMemberFunctions, decl is not a function template");
-+      assert(ftDecl != nullptr && "DisplayMemberFunctions, decl is not a function template");
- 
-       textLine.clear();
-       AppendMemberFunctionLocation(fInterpreter->getCI(), *decl, textLine);
-@@ -975,7 +975,7 @@ void ClassPrinter::DisplayMemberFunctions(const CXXRecordDecl* classDecl)const
- //______________________________________________________________________________
- void ClassPrinter::DisplayDataMembers(const CXXRecordDecl* classDecl, unsigned nSpaces)const
- {
--  assert(classDecl != 0 && "DisplayDataMembers, 'classDecl' parameter is null");
-+  assert(classDecl != nullptr && "DisplayDataMembers, 'classDecl' parameter is null");
- 
-   typedef RecordDecl::field_iterator field_iterator;
-   typedef EnumDecl::enumerator_iterator enumerator_iterator;
-@@ -1018,7 +1018,7 @@ void ClassPrinter::DisplayDataMembers(const CXXRecordDecl* classDecl, unsigned n
-   for (decl_iterator decl = classDecl->decls_begin(); decl != classDecl->decls_end(); ++decl) {
-     if (decl->getKind() == Decl::Enum) {
-       const EnumDecl* enumDecl = dyn_cast<EnumDecl>(*decl);
--      assert(enumDecl != 0 && "DisplayDataMembers, decl->getKind() == Enum, but decl is not a EnumDecl");
-+      assert(enumDecl != nullptr && "DisplayDataMembers, decl->getKind() == Enum, but decl is not a EnumDecl");
-       //it's not really clear, if I should really check this.
-       if (enumDecl->isComplete() && (enumDecl = enumDecl->getDefinition())) {
-         //if (fSeenDecls.find(enumDecl) == fSeenDecls.end()) {
-@@ -1053,7 +1053,7 @@ void ClassPrinter::DisplayDataMembers(const CXXRecordDecl* classDecl, unsigned n
-       }
-     } else if (decl->getKind() == Decl::Var) {
-       const VarDecl* const varDecl = dyn_cast<VarDecl>(*decl);
--      assert(varDecl != 0 && "DisplayDataMembers, decl->getKind() == Var, but decl is not a VarDecl");
-+      assert(varDecl != nullptr && "DisplayDataMembers, decl->getKind() == Var, but decl is not a VarDecl");
-       if (varDecl->getStorageClass() == SC_Static) {
-         //I hope, this is a static data-member :)
-         textLine.clear();
-@@ -1106,7 +1106,7 @@ GlobalsPrinter::GlobalsPrinter(llvm::raw_ostream& stream, const cling::Interpret
-            : fOut(stream),
-              fInterpreter(interpreter)
- {
--  assert(interpreter != 0 && "GlobalsPrinter, 'compiler' parameter is null");
-+  assert(interpreter != nullptr && "GlobalsPrinter, 'compiler' parameter is null");
- }
- 
- //______________________________________________________________________________
-@@ -1138,13 +1138,13 @@ void GlobalsPrinter::DisplayGlobals()const
- {
-   typedef Preprocessor::macro_iterator macro_iterator;
- 
--  assert(fInterpreter != 0 && "DisplayGlobals, fInterpreter is null");
-+  assert(fInterpreter != nullptr && "DisplayGlobals, fInterpreter is null");
- 
-   const CompilerInstance* const compiler = fInterpreter->getCI();
--  assert(compiler != 0 && "DisplayGlobals, compiler instance is null");
-+  assert(compiler != nullptr && "DisplayGlobals, compiler instance is null");
- 
-   const TranslationUnitDecl* const tuDecl = compiler->getASTContext().getTranslationUnitDecl();
--  assert(tuDecl != 0 && "DisplayGlobals, translation unit is empty");
-+  assert(tuDecl != nullptr && "DisplayGlobals, translation unit is empty");
- 
-   // Could trigger deserialization of decls.
-   Interpreter::PushTransactionRAII RAII(const_cast<Interpreter*>(fInterpreter));
-@@ -1174,13 +1174,13 @@ void GlobalsPrinter::DisplayGlobal(const std::string& name)const
- 
-   //TODO: is it ok to compare 'name' with decl->getNameAsString() ??
- 
--  assert(fInterpreter != 0 && "DisplayGlobal, fInterpreter is null");
-+  assert(fInterpreter != nullptr && "DisplayGlobal, fInterpreter is null");
- 
-   const CompilerInstance* const compiler = fInterpreter->getCI();
--  assert(compiler != 0 && "DisplayGlobal, compiler instance is null");
-+  assert(compiler != nullptr && "DisplayGlobal, compiler instance is null");
- 
-   const TranslationUnitDecl* const tuDecl = compiler->getASTContext().getTranslationUnitDecl();
--  assert(tuDecl != 0 && "DisplayGlobal, translation unit is empty");
-+  assert(tuDecl != nullptr && "DisplayGlobal, translation unit is empty");
- 
-   unsigned count = 0;
- 
-@@ -1209,8 +1209,8 @@ void GlobalsPrinter::DisplayGlobal(const std::string& name)const
- //______________________________________________________________________________
- void GlobalsPrinter::DisplayVarDecl(const VarDecl* varDecl) const
- {
--  assert(fInterpreter != 0 && "DisplayVarDecl, fInterpreter is null");
--  assert(varDecl != 0 && "DisplayVarDecl, 'varDecl' parameter is null");
-+  assert(fInterpreter != nullptr && "DisplayVarDecl, fInterpreter is null");
-+  assert(varDecl != nullptr && "DisplayVarDecl, 'varDecl' parameter is null");
- 
-   const LangOptions langOpts;
-   PrintingPolicy printingPolicy(langOpts);
-@@ -1240,8 +1240,8 @@ void GlobalsPrinter::DisplayVarDecl(const VarDecl* varDecl) const
- //______________________________________________________________________________
- void GlobalsPrinter::DisplayEnumeratorDecl(const EnumConstantDecl* enumerator)const
- {
--  assert(fInterpreter != 0 && "DisplayEnumeratorDecl, fInterpreter is null");
--  assert(enumerator != 0 && "DisplayEnumeratorDecl, 'enumerator' parameter is null");
-+  assert(fInterpreter != nullptr && "DisplayEnumeratorDecl, fInterpreter is null");
-+  assert(enumerator != nullptr && "DisplayEnumeratorDecl, 'enumerator' parameter is null");
- 
-   const LangOptions langOpts;
-   PrintingPolicy printingPolicy(langOpts);
-@@ -1342,9 +1342,9 @@ void NamespacePrinter::Print()const
- void NamespacePrinter::ProcessNamespaceDeclaration(decl_iterator declIt,
-                                 const std::string& enclosingNamespaceName)const
- {
--  assert(fInterpreter != 0 &&
-+  assert(fInterpreter != nullptr &&
-          "ProcessNamespaceDeclaration, fInterpreter is null");
--  assert(*declIt != 0 &&
-+  assert(*declIt != nullptr &&
-          "ProcessNamespaceDeclaration, parameter 'decl' is not a valid iterator");
- 
-   if (const auto nsDecl = dyn_cast<NamespaceDecl>(*declIt)) {
-@@ -1405,19 +1405,19 @@ TypedefPrinter::TypedefPrinter(llvm::raw_ostream& stream, const Interpreter* int
-                   : fOut(stream),
-                     fInterpreter(interpreter)
- {
--  assert(interpreter != 0 && "TypedefPrinter, parameter 'interpreter' is null");
-+  assert(interpreter != nullptr && "TypedefPrinter, parameter 'interpreter' is null");
- }
- 
- //______________________________________________________________________________
- void TypedefPrinter::DisplayTypedefs()const
- {
--  assert(fInterpreter != 0 && "DisplayTypedefs, fInterpreter is null");
-+  assert(fInterpreter != nullptr && "DisplayTypedefs, fInterpreter is null");
- 
-   const CompilerInstance* const compiler = fInterpreter->getCI();
--  assert(compiler != 0 && "DisplayTypedefs, compiler instance is null");
-+  assert(compiler != nullptr && "DisplayTypedefs, compiler instance is null");
- 
-   const TranslationUnitDecl* const tuDecl = compiler->getASTContext().getTranslationUnitDecl();
--  assert(tuDecl != 0 && "DisplayTypedefs, translation unit is empty");
-+  assert(tuDecl != nullptr && "DisplayTypedefs, translation unit is empty");
- 
-   fOut.Print("List of typedefs\n");
-   ProcessNestedDeclarations(tuDecl);
-@@ -1450,7 +1450,7 @@ void TypedefPrinter::DisplayTypedef(const std::string& typedefName)const
- //______________________________________________________________________________
- void TypedefPrinter::ProcessNestedDeclarations(const DeclContext* decl)const
- {
--  assert(decl != 0 && "ProcessNestedDeclarations, parameter 'decl' is null");
-+  assert(decl != nullptr && "ProcessNestedDeclarations, parameter 'decl' is null");
-   // Could trigger deserialization of decls.
-   Interpreter::PushTransactionRAII RAII(const_cast<Interpreter*>(fInterpreter));
-   for (decl_iterator it = decl->decls_begin(), eIt = decl->decls_end(); it != eIt; ++it)
-@@ -1460,8 +1460,8 @@ void TypedefPrinter::ProcessNestedDeclarations(const DeclContext* decl)const
- //______________________________________________________________________________
- void TypedefPrinter::ProcessDecl(decl_iterator decl)const
- {
--  assert(fInterpreter != 0 && "ProcessDecl, fInterpreter is null");
--  assert(*decl != 0 && "ProcessDecl, parameter 'decl' is not a valid iterator");
-+  assert(fInterpreter != nullptr && "ProcessDecl, fInterpreter is null");
-+  assert(*decl != nullptr && "ProcessDecl, parameter 'decl' is not a valid iterator");
- 
-   switch (decl->getKind()) {
-   case Decl::Typedef:
-@@ -1490,9 +1490,9 @@ void TypedefPrinter::ProcessDecl(decl_iterator decl)const
- //______________________________________________________________________________
- void TypedefPrinter::DisplayTypedefDecl(TypedefNameDecl* typedefDecl)const
- {
--  assert(typedefDecl != 0
-+  assert(typedefDecl != nullptr
-          && "DisplayTypedefDecl, parameter 'typedefDecl' is null");
--  assert(fInterpreter != 0 && "DisplayTypedefDecl, fInterpreter is null");
-+  assert(fInterpreter != nullptr && "DisplayTypedefDecl, fInterpreter is null");
- 
-   std::string textLine;
-   AppendDeclLocation(fInterpreter->getCI(), typedefDecl, textLine);
-@@ -1524,7 +1524,7 @@ void TypedefPrinter::DisplayTypedefDecl(TypedefNameDecl* typedefDecl)const
- void DisplayClass(llvm::raw_ostream& stream, const Interpreter* interpreter,
-                   const char* className, bool verbose)
- {
--  assert(interpreter != 0 && "DisplayClass, 'interpreter' parameter is null");
-+  assert(interpreter != nullptr && "DisplayClass, 'interpreter' parameter is null");
- 
-   ClassPrinter printer(stream, interpreter);
-   printer.SetVerbose(verbose);
-@@ -1540,7 +1540,7 @@ void DisplayClass(llvm::raw_ostream& stream, const Interpreter* interpreter,
- //______________________________________________________________________________
- void DisplayNamespaces(llvm::raw_ostream &stream, const Interpreter *interpreter)
- {
--  assert(interpreter != 0 && "DisplayNamespaces, parameter 'interpreter' is null");
-+  assert(interpreter != nullptr && "DisplayNamespaces, parameter 'interpreter' is null");
-   Interpreter::PushTransactionRAII RAII(const_cast<Interpreter*>(interpreter));
- 
-   NamespacePrinter printer(stream, interpreter);
-@@ -1551,7 +1551,7 @@ void DisplayNamespaces(llvm::raw_ostream &stream, const Interpreter *interpreter
- //______________________________________________________________________________
- void DisplayGlobals(llvm::raw_ostream& stream, const Interpreter* interpreter)
- {
--  assert(interpreter != 0 && "DisplayGlobals, 'interpreter' parameter is null");
-+  assert(interpreter != nullptr && "DisplayGlobals, 'interpreter' parameter is null");
- 
-   GlobalsPrinter printer(stream, interpreter);
-   // Could trigger deserialization of decls.
-@@ -1563,7 +1563,7 @@ void DisplayGlobals(llvm::raw_ostream& stream, const Interpreter* interpreter)
- void DisplayGlobal(llvm::raw_ostream& stream, const Interpreter* interpreter,
-                    const std::string& name)
- {
--  assert(interpreter != 0 && "DisplayGlobal, 'interpreter' parameter is null");
-+  assert(interpreter != nullptr && "DisplayGlobal, 'interpreter' parameter is null");
- 
-   GlobalsPrinter printer(stream, interpreter);
-   // Could trigger deserialization of decls.
-@@ -1574,7 +1574,7 @@ void DisplayGlobal(llvm::raw_ostream& stream, const Interpreter* interpreter,
- //______________________________________________________________________________
- void DisplayTypedefs(llvm::raw_ostream &stream, const Interpreter *interpreter)
- {
--   assert(interpreter != 0 && "DisplayTypedefs, parameter 'interpreter' is null");
-+   assert(interpreter != nullptr && "DisplayTypedefs, parameter 'interpreter' is null");
- 
-    TypedefPrinter printer(stream, interpreter);
-    // Could trigger deserialization of decls.
-@@ -1586,7 +1586,7 @@ void DisplayTypedefs(llvm::raw_ostream &stream, const Interpreter *interpreter)
- void DisplayTypedef(llvm::raw_ostream &stream, const Interpreter *interpreter,
-                     const std::string &name)
- {
--   assert(interpreter != 0 && "DisplayTypedef, parameter 'interpreter' is null");
-+   assert(interpreter != nullptr && "DisplayTypedef, parameter 'interpreter' is null");
- 
-    TypedefPrinter printer(stream, interpreter);
-    printer.DisplayTypedef(name);
 diff --git a/src/interpreter/cling/lib/MetaProcessor/MetaSema.cpp b/src/interpreter/cling/lib/MetaProcessor/MetaSema.cpp
 index abad20f990..ace4fb2f9f 100644
 --- a/src/interpreter/cling/lib/MetaProcessor/MetaSema.cpp
@@ -2476,15 +1349,6 @@ index abad20f990..ace4fb2f9f 100644
      cling::Transaction* T = nullptr;
      if (actOnLCommand(file, &T) != AR_Success || !T)
        return AR_Failure;
-@@ -193,7 +193,7 @@ namespace cling {
-     auto interpreterHasTransaction = [] (const Interpreter& Interp,
-                                          const Transaction* T) {
-       for (const Transaction* I = Interp.getFirstTransaction();
--           I != 0; I = I->getNext())
-+           I != nullptr; I = I->getNext())
-         if (I == T)
-           return true;
-       return false;
 @@ -469,7 +469,7 @@ namespace cling {
        clang::ASTContext& Ctx = m_Interpreter.getCI()->getASTContext();
        if (result) {
@@ -2592,224 +1456,6 @@ diff --git a/src/interpreter/cling/lib/Utils/AST.cpp b/src/interpreter/cling/lib
 index 1126ac6382..d41e9b3590 100644
 --- a/src/interpreter/cling/lib/Utils/AST.cpp
 +++ b/src/interpreter/cling/lib/Utils/AST.cpp
-@@ -30,7 +30,7 @@ namespace {
-   static D* LookupResult2Decl(clang::LookupResult& R)
-   {
-     if (R.empty())
--      return 0;
-+      return nullptr;
- 
-     R.resolveKind();
- 
-@@ -112,7 +112,7 @@ namespace utils {
-     if (FoundAt)
-       *FoundAt = -1;
- 
--    Expr* result = 0;
-+    Expr* result = nullptr;
-     if (CompoundStmt* CS = dyn_cast<CompoundStmt>(FD->getBody())) {
-       ArrayRef<Stmt*> Stmts
-         = llvm::makeArrayRef(CS->body_begin(), CS->size());
-@@ -126,7 +126,7 @@ namespace utils {
-         *FoundAt = indexOfLastExpr;
- 
-       if (indexOfLastExpr < 0)
--        return 0;
-+        return nullptr;
- 
-       if ( (result = dyn_cast<Expr>(Stmts[indexOfLastExpr])) )
-         return result;
-@@ -196,7 +196,7 @@ namespace utils {
-   GetFullyQualifiedTemplateName(const ASTContext& Ctx, TemplateName &tname) {
- 
-     bool changed = false;
--    NestedNameSpecifier *NNS = 0;
-+    NestedNameSpecifier *NNS = nullptr;
- 
-     TemplateDecl *argtdecl = tname.getAsTemplateDecl();
-     QualifiedTemplateName *qtname = tname.getAsQualifiedTemplateName();
-@@ -208,7 +208,7 @@ namespace utils {
-         changed = true;
-         NNS = qNNS;
-       } else {
--        NNS = 0;
-+        NNS = nullptr;
-       }
-     } else {
-       NNS = CreateNestedNameSpecifierForScopeOf(Ctx, argtdecl, true);
-@@ -362,7 +362,7 @@ namespace utils {
- 
-     if (const Type *type = scope->getAsType()) {
-       // Find decl context.
--      const TagDecl* TD = 0;
-+      const TagDecl* TD = nullptr;
-       if (const TagType* tagdecltype = dyn_cast<TagType>(type)) {
-         TD = tagdecltype->getDecl();
-       } else {
-@@ -391,7 +391,7 @@ namespace utils {
-                                     NestedNameSpecifier *original_prefix,
-                              const Transform::Config& TypeConfig) {
-     // We have to also desugar the prefix.
--    NestedNameSpecifier* prefix = 0;
-+    NestedNameSpecifier* prefix = nullptr;
-     if (declContext) {
-       // We had a scope prefix as input, let see if it is still
-       // the same as the scope of the result and if it is, then
-@@ -402,7 +402,7 @@ namespace utils {
-         const NamespaceDecl *new_ns =dyn_cast<NamespaceDecl>(declContext);
-         if (new_ns) {
-           new_ns = new_ns->getCanonicalDecl();
--          NamespaceDecl *old_ns = 0;
-+          NamespaceDecl *old_ns = nullptr;
-           if (original_prefix) {
-             original_prefix->getAsNamespace();
-             if (NamespaceAliasDecl *alias =
-@@ -551,7 +551,7 @@ namespace utils {
-         desugared = etype->getNamedType();
-       } else {
- 
--        Decl* decl = 0;
-+        Decl* decl = nullptr;
-         const TypedefType* typedeftype =
-           dyn_cast_or_null<TypedefType>(&(*desugared));
-         if (typedeftype) {
-@@ -576,7 +576,7 @@ namespace utils {
-             outer_scope = SelectPrefix(Ctx,decl->getDeclContext(),
-                                        outer_scope,TypeConfig);
-           } else {
--            outer_scope = 0;
-+            outer_scope = nullptr;
-           }
-         } else if (outer_scope) {
-           outer_scope = GetPartiallyDesugaredNNS(Ctx, outer_scope, TypeConfig);
-@@ -675,7 +675,7 @@ namespace utils {
- 
-     if (Analyze::IsStdClass(Template)) {
-       static const char *stls[] =  //container names
--        {"vector","list","deque","map","multimap","set","multiset",0};
-+        {"vector","list","deque","map","multimap","set","multiset",nullptr};
-       static unsigned int values[] =       //number of default arg.
-         {1,1,1,2,2,2,2};
-       StringRef name = Template.getName();
-@@ -1045,7 +1045,7 @@ namespace utils {
-     // NOTE: however we problably want to add the std::vector typedefs
-     // to the list of things to skip!
- 
--    NestedNameSpecifier* original_prefix = 0;
-+    NestedNameSpecifier* original_prefix = nullptr;
-     Qualifiers prefix_qualifiers;
-     const ElaboratedType* etype_input
-       = dyn_cast<ElaboratedType>(QT.getTypePtr());
-@@ -1063,7 +1063,7 @@ namespace utils {
-           prefix_qualifiers = QT.getLocalQualifiers();
-           QT = QualType(etype_input->getNamedType().getTypePtr(),0);
-         } else {
--          original_prefix = 0;
-+          original_prefix = nullptr;
-         }
-       }
-     }
-@@ -1108,7 +1108,7 @@ namespace utils {
-                                            fullyQualifyTmpltArg);
-     }
- 
--    NestedNameSpecifier* prefix = 0;
-+    NestedNameSpecifier* prefix = nullptr;
-     const ElaboratedType* etype
-       = dyn_cast<ElaboratedType>(QT.getTypePtr());
-     if (etype) {
-@@ -1123,7 +1123,7 @@ namespace utils {
-       // in which case we want to add it ... but we can't really preserve
-       // the typedef in this case ...
- 
--      Decl *decl = 0;
-+      Decl *decl = nullptr;
-       const TypedefType* typedeftype =
-         dyn_cast_or_null<TypedefType>(QT.getTypePtr());
-       if (typedeftype) {
-@@ -1156,7 +1156,7 @@ namespace utils {
-                 // Same type, use the original spelling
-                 prefix
-                   = GetPartiallyDesugaredNNS(Ctx, original_prefix, TypeConfig);
--                outer = 0; // Cancel the later creation.
-+                outer = nullptr; // Cancel the later creation.
-               }
-             } else {
-               const NamespaceDecl *old_ns = original_prefix->getAsNamespace();
-@@ -1174,7 +1174,7 @@ namespace utils {
-                 // This is the same namespace, use the original prefix
-                 // as a starting point.
-                 prefix = GetFullyQualifiedNameSpecifier(Ctx,original_prefix);
--                outer = 0; // Cancel the later creation.
-+                outer = nullptr; // Cancel the later creation.
-               }
-             }
-           } else { // if (!original_prefix)
-@@ -1420,14 +1420,14 @@ namespace utils {
-       if (const clang::TagDecl* TD = dyn_cast<clang::TagDecl>(Within)) {
-         if (!TD->getDefinition()) {
-           // No definition, no lookup result.
--          return 0;
-+          return nullptr;
-         }
-       }
-       S->LookupQualifiedName(R, const_cast<DeclContext*>(Within));
-     }
- 
-     if (R.empty())
--      return 0;
-+      return nullptr;
- 
-     R.resolveKind();
- 
-@@ -1536,7 +1536,7 @@ namespace utils {
-         return TypeName::CreateNestedNameSpecifier(Ctx, TD, FullyQualified);
-       }
-     }
--    return 0;
-+    return nullptr;
-   }
- 
-   static NestedNameSpecifier*
-@@ -1547,9 +1547,9 @@ namespace utils {
-     // Create a nested name specifier for the declaring context of the type.
- 
-     if (!TypePtr)
--      return 0;
-+      return nullptr;
- 
--    Decl *decl = 0;
-+    Decl *decl = nullptr;
-     if (const TypedefType* typedeftype = llvm::dyn_cast<TypedefType>(TypePtr)) {
-       decl = typedeftype->getDecl();
-     } else {
-@@ -1561,7 +1561,7 @@ namespace utils {
-     }
- 
-     if (!decl)
--      return 0;
-+      return nullptr;
- 
-     return CreateNestedNameSpecifierForScopeOf(Ctx, decl, FullyQualified);
-   }
-@@ -1573,7 +1573,7 @@ namespace utils {
-       // Ignore inline namespace;
-       Namesp = dyn_cast_or_null<NamespaceDecl>(Namesp->getDeclContext());
-     }
--    if (!Namesp) return 0;
-+    if (!Namesp) return nullptr;
- 
-     bool FullyQualified = true; // doesn't matter, DeclContexts are namespaces
-     return NestedNameSpecifier::Create(Ctx, CreateOuterNNS(Ctx, Namesp,
-@@ -1658,7 +1658,7 @@ namespace utils {
-       QT = Ctx.getQualifiedType(QT, quals);
-     }
- 
--    NestedNameSpecifier* prefix = 0;
-+    NestedNameSpecifier* prefix = nullptr;
-     Qualifiers prefix_qualifiers;
-     if (const ElaboratedType* etype_input
-         = llvm::dyn_cast<ElaboratedType>(QT.getTypePtr())) {
 @@ -1672,9 +1672,9 @@ namespace utils {
              && !(ns && ns->isAnonymousNamespace())) {
            prefix_qualifiers = QT.getLocalQualifiers();
