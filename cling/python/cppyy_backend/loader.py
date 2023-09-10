@@ -33,7 +33,7 @@ def _load_helper(bkname):
 
  # normal load, allowing for user overrides of LD_LIBRARY_PATH
     try:
-        return ctypes.CDLL(bkname, ctypes.RTLD_GLOBAL)
+        return ctypes.CDLL(bkname, ctypes.RTLD_GLOBAL), errors
     except OSError as e:
         errors.add(str(e))
 
