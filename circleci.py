@@ -35,7 +35,10 @@ def get_artifact(
 
     urllib.request.urlretrieve(url, path)
     time.sleep(1.0)
-    print(path)
+    if not path:
+        print('wheelhouse/cppyy_cling-6.28.0-py2.py3-none-linux_aarch64.whl')
+    else:
+        print(path)
     return 0
 
 
