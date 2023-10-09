@@ -121,6 +121,9 @@ patch_files = ['typedef_of_private', 'optlevel2_forced', 'explicit_template',
 if 'linux' in sys.platform:
     patch_files.append('system_dirs')
 
+if 'darwin' in sys.platform:
+    patch_files.append('apple')
+
 for fdiff in patch_files:
     fpatch = os.path.join('patches', fdiff+'.diff')
     print(' ==> applying patch:', fpatch)
