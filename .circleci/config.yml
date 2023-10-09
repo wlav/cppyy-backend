@@ -3,7 +3,7 @@ version: 2.1
 parameters:
   build_aarch64_wheel:
     description: "Whether to build aarch64 wheel on CircleCI"
-    default: true
+    default: false
     type: boolean
 
 
