@@ -17,7 +17,7 @@ jobs:
       - name: Trigger circleci build for ARM
         id: aarch64-job-number
         run: |
-          export JOB_NUMBER=$(python3 circleci.py job --token ${{ secrets.CIRCLE_API_TOKEN }})
+          export JOB_NUMBER=$(python circleci.py job --token ${{ secrets.CIRCLE_API_TOKEN }})
           echo "job_number=$JOB_NUMBER" >> "$GITHUB_OUTPUT"
 
   build_wheels:
