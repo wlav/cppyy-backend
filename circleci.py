@@ -105,6 +105,8 @@ def start_job(
     res = conn.getresponse()
     job_data = json.loads(res.read().decode("utf-8"))
 
+    print(job_data)
+
     print(job_data["items"][0]["job_number"])
     return 0
 
