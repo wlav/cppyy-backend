@@ -19,7 +19,7 @@ jobs:
         STDCXX: 20
         MAKE_NPROCS: 4
     steps:
-      - checkout            
+      - checkout
       - run:
           name: Build the Linux aarch64 wheels.
           command: |
@@ -39,4 +39,4 @@ workflows:
     when: << pipeline.parameters.build_aarch64_wheel >>
     jobs:
       - linux-aarch64-wheels
-   
+
