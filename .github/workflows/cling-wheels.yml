@@ -17,7 +17,7 @@ jobs:
       - name: Trigger circleci build for ARM
         id: aarch64-job-number
         run: |
-          export JOB_NUMBER=$(python circleci.py job --token ${{ secrets.CIRCLE_API_TOKEN }})
+          export JOB_NUMBER=$(python3 circleci.py job --token ${{ secrets.CIRCLE_API_TOKEN }})
           echo "job_number=$JOB_NUMBER" >> "$GITHUB_OUTPUT"
 
   build_wheels:
@@ -27,6 +27,8 @@ jobs:
     env:
       CIBW_BUILD: "${{ matrix.cibw.build || '*' }}"
       CIBW_ARCHS_LINUX: "${{ matrix.cibw.arch || 'auto' }}"
+      CIBW_MANYLINUX_X86_64_IMAGE: manylinux2014
+      CIBW_MANYLINUX_I686_IMAGE: manylinux2014
       CIBW_ARCHS_MACOS: "${{ matrix.cibw.arch || 'auto' }}"
       CIBW_ARCHS_WINDOWS: "${{ matrix.cibw.arch || 'auto' }}"
 
@@ -52,20 +54,20 @@ jobs:
               arch: x86_64
               build: "pp37-macosx_x86_64"
 
-          - os: ubuntu-20.04
+          - os: ubuntu-latest
             name: manylinux-x86_64
             cibw:
               arch: x86_64
               build: "cp36-manylinux_x86_64"
 
 
-          - os: ubuntu-20.04
+          - os: ubuntu-latest
             name: manylinux-i686
             cibw:
               arch: i686
               build: "cp36-manylinux_i686"
 
-          - os: ubuntu-20.04
+          - os: ubuntu-latest
             name: manylinux-pypy-x86_64
             cibw:
               arch: x86_64
