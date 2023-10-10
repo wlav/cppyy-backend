@@ -108,7 +108,7 @@ index 1213179cba..774e31c24d 100644
    #endif
  
          if (sArguments.empty()) {
-@@ -368,28 +392,16 @@ namespace {
+@@ -378,28 +402,16 @@ namespace {
            }
          }
        }

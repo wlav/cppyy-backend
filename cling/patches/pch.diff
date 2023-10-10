@@ -11,7 +11,7 @@ index 80d1b1c52a..58edb8c26d 100644
  using namespace clang;
  using namespace cling;
  
-@@ -345,7 +347,27 @@ namespace {
+@@ -345,7 +347,37 @@ namespace {
        }
  
    #ifdef CLING_OSX_SYSROOT
@@ -24,6 +24,16 @@ index 80d1b1c52a..58edb8c26d 100644
 +        } else {
 +        // attempt to find a proper sysroot, or leave it up to Clang and user
 +        // defined variables such as SDKROOT and MACOSX_DEPLOYMENT_TARGET
++        // first, strip Xcode version number if any and if it does not exist
++          std::string::size_type xpos1 = sysroot.find("Xcode_");
++          std::string::size_type xpos2 = xpos1 != std::string::npos ? sysroot.find(".app", xpos1) : xpos1;
++          if (xpos1 != std::string::npos && xpos2 != std::string::npos) {
++            if (stat(sysroot.substr(0, xpos2+4).c_str(), &buf) != 0 &&
++              stat(sysroot.substr(0, xpos1  ).c_str(), &buf) == 0) {
++              sysroot = sysroot.substr(0, xpos1) + "Xcode.app" + sysroot.substr(xpos2+4, std::string::npos);
++            }
++          }
++        // similarly, strip SDK version number as needed
 +          std::string::size_type pos = sysroot.rfind("SDKs/MacOSX");
 +          if (pos != std::string::npos) {
 +            if (getenv("MACOSX_DEPLOYMENT_TARGET"))
