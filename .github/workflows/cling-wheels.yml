@@ -21,12 +21,12 @@ jobs:
           echo "job_number=$JOB_NUMBER" >> "$GITHUB_OUTPUT"
 
   build_wheels:
-    name: Build wheels on ${{ matrix.cibw.build }}
+    name: Build wheels on ${{ matrix.platform_id }}
     runs-on: ${{ matrix.os }}
 
     env:
       CIBW_BUILD: cp${{ matrix.python }}-${{ matrix.platform_id }}
-      CIBW_ARCHS: all
+      CIBW_ARCHS: auto
       CIBW_MANYLINUX_X86_64_IMAGE: ${{ matrix.manylinux_image }}
       CIBW_MANYLINUX_I686_IMAGE: ${{ matrix.manylinux_image }}
 
@@ -59,7 +59,7 @@ jobs:
           - os: windows-latest
             name: win32
             python: 310
-            platform_id: x86
+            platform_id: win32
 
           - os: windows-latest
             name: win_amd64
@@ -87,7 +87,7 @@ jobs:
           platforms: all
 
       - name: customize mac-arm-64
-        if: contains(matrix.os, 'macos') && matrix.cibw.arch == 'arm64'
+        if: contains(matrix.os, 'macos') && matrix.platform_id == 'macosx_arm64'
         run: |
           echo 'MACOSX_DEPLOYMENT_TARGET=10.15' >> "$GITHUB_ENV"
 
