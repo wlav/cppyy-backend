@@ -69,6 +69,7 @@ def start_job(
         headers,
     )
     res = conn.getresponse()
+    print("pipeline data:", res.read().decode("utf-8"))
     pipeline_data = json.loads(res.read().decode("utf-8"))
     time.sleep(1.0)
 
@@ -103,12 +104,12 @@ def start_job(
     )
 
     res = conn.getresponse()
-    print("conn response:\n", res.read().decode("utf-8"))
-    #job_data = json.loads(res.read().decode("utf-8"))
+    print("job data:\n", res.read().decode("utf-8"))
+    job_data = json.loads(res.read().decode("utf-8"))
 
-    #print(job_data)
+    print(job_data)
 
-    #print(job_data["items"][0]["job_number"])
+    print(job_data["items"][0]["job_number"])
     return 0
 
 
