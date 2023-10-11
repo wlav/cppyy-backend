@@ -51,13 +51,13 @@ jobs:
           - os: ubuntu-latest
             name: manylinux2014-x86_64
             python: 310
-            platform_id: manylinux_x86_64
+            platform_id: manylinux2014_x86_64
             manylinux_image: manylinux2014
 
           - os: ubuntu-latest
             name: manylinux2014-i686
             python: 310
-            platform_id: manylinux_i686
+            platform_id: manylinux2014_i686
             manylinux_image: manylinux2014
 
           - os: windows-latest
