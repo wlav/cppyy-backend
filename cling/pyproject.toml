@@ -1,12 +1,12 @@
 [build-system]
-requires = ["cmake", "setuptools", "wheel", "numpy"]
+requires = ["cmake", "setuptools", "wheel"]
 
 [tool.cibuildwheel]
 archs = ["auto"]
 build-frontend = "pip"
 dependency-versions = "pinned"
 build-verbosity = "1"
-build = "cp39-manylinux_{x86_64,aarch64} cp39-macosx_{x86_64,arm64} cp39-{win_amd64,win32}"
+build = "cp39-manylinux_{x86_64,i686,aarch64} cp310-macosx_{x86_64,arm64} cp310-{win_amd64,win32,win_arm64}"
 
 
 before-all = "cd cling && python create_src_directory.py"
