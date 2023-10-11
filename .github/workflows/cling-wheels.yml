@@ -30,6 +30,7 @@ jobs:
       CLING_CMAKE_BUILD_TARGET: "${{ matrix.cibw.arch || '' }}"
       CIBW_MANYLINUX_X86_64_IMAGE: ${{ matrix.manylinux_image }}
       CIBW_MANYLINUX_I686_IMAGE: ${{ matrix.manylinux_image }}
+      CIBW_BUILD_VERBOSITY: 1
 
     strategy:
       fail-fast: false
@@ -51,13 +52,13 @@ jobs:
           - os: ubuntu-latest
             name: manylinux2014-x86_64
             python: 310
-            platform_id: manylinux2014_x86_64
+            platform_id: manylinux_x86_64
             manylinux_image: manylinux2014
 
           - os: ubuntu-latest
             name: manylinux2014-i686
             python: 310
-            platform_id: manylinux2014_i686
+            platform_id: manylinux_i686
             manylinux_image: manylinux2014
 
           - os: windows-latest
@@ -70,7 +71,7 @@ jobs:
             python: 310
             platform_id: win_amd64
 
-          # cross-compilation platform (disabled)
+          # cross-compilation platform
           - os: windows-latest
             name: win32-arm64
             python: 310
