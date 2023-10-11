@@ -26,7 +26,8 @@ jobs:
 
     env:
       CIBW_BUILD: cp${{ matrix.python }}-${{ matrix.platform_id }}
-      CIBW_ARCHS: auto
+      CIBW_ARCHS: "${{ matrix.cibw.arch || 'auto' }}"
+      CLING_CMAKE_BUILD_TARGET: "${{ matrix.cibw.arch || '' }}"
       CIBW_MANYLINUX_X86_64_IMAGE: ${{ matrix.manylinux_image }}
       CIBW_MANYLINUX_I686_IMAGE: ${{ matrix.manylinux_image }}
 
@@ -39,10 +40,13 @@ jobs:
             python: 310
             platform_id: macosx_x86_64
 
+          # cross-compilation platform
           - os: macos-latest
             name: mac-cpython-arm
             python: 310
             platform_id: macosx_arm64
+            cibw:
+              arch: arm64
 
           - os: ubuntu-latest
             name: manylinux2014-x86_64
@@ -66,10 +70,13 @@ jobs:
             python: 310
             platform_id: win_amd64
 
+          # cross-compilation platform (disabled)
           - os: windows-latest
             name: win32-arm64
             python: 310
             platform_id: win_arm64
+            cibw:
+              arch: ARM64
 
     steps:
       - uses: actions/checkout@v3
