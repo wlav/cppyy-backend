@@ -25,71 +25,51 @@ jobs:
     runs-on: ${{ matrix.os }}
 
     env:
-      CIBW_BUILD: "${{ matrix.cibw.build || '*' }}"
-      CIBW_ARCHS_LINUX: "${{ matrix.cibw.arch || 'auto' }}"
-      CIBW_MANYLINUX_X86_64_IMAGE: manylinux2014
-      CIBW_MANYLINUX_I686_IMAGE: manylinux2014
-      CIBW_ARCHS_MACOS: "${{ matrix.cibw.arch || 'auto' }}"
-      CIBW_ARCHS_WINDOWS: "${{ matrix.cibw.arch || 'auto' }}"
+      CIBW_BUILD: cp${{ matrix.python }}-${{ matrix.platform_id }}
+      CIBW_ARCHS: all
+      CIBW_MANYLINUX_X86_64_IMAGE: ${{ matrix.manylinux_image }}
+      CIBW_MANYLINUX_I686_IMAGE: ${{ matrix.manylinux_image }}
 
     strategy:
       fail-fast: false
       matrix:
         include:
-          - os: macos-11
+          - os: macos-latest
             name: mac-cpython
-            cibw:
-              arch: x86_64
-              build: "cp36-macosx_x86_64"
+            python: 310
+            platform_id: macosx_x86_64
 
-          - os: macos-11
+          - os: macos-latest
             name: mac-cpython-arm
-            cibw:
-              arch: arm64
-              build: "cp38-macosx_arm64"
-
-          - os: macos-11
-            name: mac-pypy
-            cibw:
-              arch: x86_64
-              build: "pp37-macosx_x86_64"
+            python: 310
+            platform_id: macosx_arm64
 
           - os: ubuntu-latest
-            name: manylinux-x86_64
-            cibw:
-              arch: x86_64
-              build: "cp36-manylinux_x86_64"
-
-
-          - os: ubuntu-latest
-            name: manylinux-i686
-            cibw:
-              arch: i686
-              build: "cp36-manylinux_i686"
+            name: manylinux2014-x86_64
+            python: 310
+            platform_id: manylinux_x86_64
+            manylinux_image: manylinux2014
 
           - os: ubuntu-latest
-            name: manylinux-pypy-x86_64
-            cibw:
-              arch: x86_64
-              build: "pp37-manylinux_x86_64"
+            name: manylinux2014-i686
+            python: 310
+            platform_id: manylinux_i686
+            manylinux_image: manylinux2014
 
-          - os: windows-2019
+          - os: windows-latest
             name: win32
-            cibw:
-              arch: x86
-              build: "cp36-win32"
+            python: 310
+            platform_id: x86
 
-          - os: windows-2019
+          - os: windows-latest
             name: win_amd64
-            cibw:
-              arch: AMD64
-              build: "cp36-win_amd64"
+            python: 310
+            platform_id: win_amd64
 
-          - os: windows-2019
+          - os: windows-latest
             name: win32-arm64
-            cibw:
-              arch: ARM64
-              build: "cp39-win_arm64"
+            python: 310
+            platform_id: win_arm64
 
     steps:
       - uses: actions/checkout@v3
