@@ -30,7 +30,6 @@ jobs:
       CLING_CMAKE_BUILD_TARGET: "${{ matrix.cibw.arch || '' }}"
       CIBW_MANYLINUX_X86_64_IMAGE: ${{ matrix.manylinux_image }}
       CIBW_MANYLINUX_I686_IMAGE: ${{ matrix.manylinux_image }}
-      VERBOSE: 1
 
     strategy:
       fail-fast: false
@@ -41,13 +40,14 @@ jobs:
             python: 310
             platform_id: macosx_x86_64
 
-          # cross-compilation platform
-          - os: macos-latest
-            name: mac-cpython-arm
-            python: 310
-            platform_id: macosx_arm64
-            cibw:
-              arch: arm64
+          # cross-compilation platform, disabled because tools build
+          # during the build process won't run
+          #- os: macos-latest
+          #  name: mac-cpython-arm
+          #  python: 310
+          #  platform_id: macosx_arm64
+          #  cibw:
+          #    arch: arm64
 
           - os: ubuntu-latest
             name: manylinux2014-x86_64
@@ -72,7 +72,8 @@ jobs:
             platform_id: win_amd64
 
           # cross-compilation platform (requires cross-compilation setup
-          # for cmake configuration)
+          # for cmake configuration), disabled because tools build during
+          # the build process won't run
           #- os: windows-latest
           #  name: win32-arm64
           #  python: 310
