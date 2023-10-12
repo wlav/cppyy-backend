@@ -27,7 +27,6 @@ jobs:
     env:
       CIBW_BUILD: cp${{ matrix.python }}-${{ matrix.platform_id }}
       CIBW_ARCHS: "${{ matrix.cibw.arch || 'auto' }}"
-      CLING_CMAKE_BUILD_TARGET: "${{ matrix.cibw.arch || '' }}"
       CIBW_MANYLINUX_X86_64_IMAGE: ${{ matrix.manylinux_image }}
       CIBW_MANYLINUX_I686_IMAGE: ${{ matrix.manylinux_image }}
 
