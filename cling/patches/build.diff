@@ -32,7 +32,7 @@ diff --git a/src/interpreter/cling/lib/Interpreter/CIFactory.cpp b/src/interpret
 index 1ab35553fa..b7c99ba281 100644
 --- a/src/interpreter/cling/lib/Interpreter/CIFactory.cpp
 +++ b/src/interpreter/cling/lib/Interpreter/CIFactory.cpp
-@@ -422,7 +422,10 @@ namespace {
+@@ -458,7 +458,10 @@ namespace {
        Opts.CXXExceptions = 1;
      }
  
