@@ -196,10 +196,14 @@ public:
 // Iterator of linked list.                                             //
 //                                                                      //
 //////////////////////////////////////////////////////////////////////////
-class TListIter : public TIterator,
-                  public std::iterator<std::bidirectional_iterator_tag,
-                                       TObject*, std::ptrdiff_t,
-                                       const TObject**, const TObject*&> {
+class TListIter : public TIterator {
+public:
+   using iterator_category = std::bidirectional_iterator_tag;
+   using value_type = TObject *;
+   using difference_type = std::ptrdiff_t;
+   using pointer = TObject **;
+   using const_pointer = const TObject **;
+   using reference = const TObject *&;
 
 protected:
    using TObjLinkPtr_t = std::shared_ptr<TObjLink>;

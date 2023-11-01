@@ -120,10 +120,14 @@ public:
 //                                                                      //
 //////////////////////////////////////////////////////////////////////////
 
-class TObjArrayIter : public TIterator,
-                      public std::iterator<std::bidirectional_iterator_tag, // TODO: ideally it should be a  randomaccess_iterator_tag
-                                           TObject*, std::ptrdiff_t,
-                                           const TObject**, const TObject*&> {
+class TObjArrayIter : public TIterator {
+public:
+   using iterator_category = std::bidirectional_iterator_tag;
+   using value_type = TObject *;
+   using difference_type = std::ptrdiff_t;
+   using pointer = TObject **;
+   using const_pointer = const TObject **;
+   using reference = const TObject *&;
 
 private:
    const TObjArray  *fArray;     //array being iterated

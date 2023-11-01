@@ -91,10 +91,14 @@ public:
 //                                                                      //
 //////////////////////////////////////////////////////////////////////////
 
-class TOrdCollectionIter : public TIterator,
-                           public std::iterator<std::bidirectional_iterator_tag,
-                                                TObject*, std::ptrdiff_t,
-                                                const TObject**, const TObject*&> {
+class TOrdCollectionIter : public TIterator {
+public:
+   using iterator_category = std::bidirectional_iterator_tag;
+   using value_type = TObject *;
+   using difference_type = std::ptrdiff_t;
+   using pointer = TObject **;
+   using const_pointer = const TObject **;
+   using reference = const TObject *&;
 
 private:
    const TOrdCollection  *fCol;       //collection being iterated
