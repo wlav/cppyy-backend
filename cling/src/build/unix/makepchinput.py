@@ -187,6 +187,14 @@ def getSTLIncludes():
        allHeadersPartContent += getGuardedStlInclude(header)
    allHeadersPartContent += "#endif\n#endif\n"
 
+   # Special case for limits.h in gcc11 and later
+   allHeadersPartContent += '#if defined(__linux__) && defined(__GNUC__)\n' +\
+                            '#include <climits>\n' +\
+                            '#ifndef _POSIX_SEM_VALUE_MAX\n' +\
+                            '#if __has_include (<syslimits.h>)\n' +\
+                            '#include <syslimits.h>\n' +\
+                            '#endif\n#endif\n#endif\n'
+
    allHeadersPartContent += "// STL headers\n"
 
    for header in stlHeadersList:
