@@ -912,7 +912,11 @@ index 5342945ed1..04bebf0558 100644
    switch (CI.getCodeGenOpts().OptimizationLevel) {
      case 0: OptLevel = CodeGenOpt::None; break;
      case 1: OptLevel = CodeGenOpt::Less; break;
-@@ -334,19 +448,35 @@ Error RTDynamicLibrarySearchGenerator::tryToGenerate(
+@@ -330,23 +448,39 @@ Error RTDynamicLibrarySearchGenerator::tryToGenerate(
+     case 3: OptLevel = CodeGenOpt::Aggressive; break;
+     default: OptLevel = CodeGenOpt::Default;
+   }
+
 +
 +  const Triple &TT = CI.getTarget().getTriple();
 +

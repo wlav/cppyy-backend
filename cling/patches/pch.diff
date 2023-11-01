@@ -11,7 +11,7 @@ index 80d1b1c52a..58edb8c26d 100644
  using namespace clang;
  using namespace cling;
  
-@@ -345,7 +347,37 @@ namespace {
+@@ -345,7 +347,63 @@ namespace {
        }
  
    #ifdef CLING_OSX_SYSROOT
@@ -40,11 +40,37 @@ index 80d1b1c52a..58edb8c26d 100644
 +              sysroot = sysroot.substr(0, pos+11) + getenv("MACOSX_DEPLOYMENT_TARGET") + ".sdk";
 +            else
 +              sysroot = sysroot.substr(0, pos+11)+".sdk";  // generic location
-+            if (stat(sysroot.c_str(), &buf) == 0)
-+              sArguments.addArgument("-isysroot", sysroot.c_str());
-+            else
-+              cling::errs() << "Warning: sysroot \"" << sysroot << "\" not found (ignoring for now).";
 +          }
++          if (stat(sysroot.c_str(), &buf) != 0) {
++          // final attempt, query xcrun
++            std::string SdkPathQuery("xcrun --show-sdk-path");
++            if (Verbose)
++              cling::log() << "Looking for sysroot:\n  " << SdkPathQuery << "\n";
++
++            if (FILE *PF = ::popen(SdkPathQuery.c_str(), "r")) {
++              llvm::SmallVector<char, PATH_MAX> Buf;
++              Buf.resize(Buf.capacity_in_bytes());
++              while (fgets(&Buf[0], Buf.capacity_in_bytes(), PF) && Buf[0]) {
++                llvm::StringRef Path(&Buf[0]);
++                Path = Path.trim();
++                if (!Path.empty()) {
++                  if (!llvm::sys::fs::is_directory(Path)) {
++                    if (Verbose)
++                      cling::utils::LogNonExistantDirectory(Path);
++                  }
++                  else {
++                      sysroot = Path.str();
++                      break;
++                  }
++                }
++                ::pclose(PF);
++              }
++            }
++          }
++          if (stat(sysroot.c_str(), &buf) == 0)
++            sArguments.addArgument("-isysroot", sysroot.c_str());
++          else
++            cling::errs() << "Warning: sysroot \"" << sysroot << "\" not found (ignoring for now).";
 +        }
 +      }
    #endif

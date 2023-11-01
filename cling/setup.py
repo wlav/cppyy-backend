@@ -150,6 +150,9 @@ class my_cmake_build(_build):
         CMAKE_COMMAND = ['cmake', srcdir, '-Wno-dev',
                 stdcxx, '-DLLVM_ENABLE_TERMINFO=0', '-DLLVM_ENABLE_ASSERTIONS=0',
                 '-Dminimal=ON', '-Dbuiltin_cling=ON', '-Druntime_cxxmodules=OFF', '-Dbuiltin_zlib=ON']
+        if 'CIBW_MANYLINUX_X86_64_IMAGE' in os.environ or 'CIBW_MANYLINUX_I686_IMAGE' in os.environ:
+            print("enabling _GLIBCXX_USE_CXX11_ABI")
+            CMAKE_COMMAND.append('-DCMAKE_CXX_FLAGS=-D_GLIBCXX_USE_CXX11_ABI=1')
         if 'darwin' in sys.platform:
             CMAKE_COMMAND.append('-Dlibcxx=ON')
         CMAKE_COMMAND.append('-DCMAKE_BUILD_TYPE='+get_build_type())
@@ -162,7 +165,7 @@ class my_cmake_build(_build):
                 CMAKE_COMMAND += ['-Thost=x86', '-DCMAKE_GENERATOR_PLATFORM=win32']
         elif 'darwin' in sys.platform:
             import platform
-            if 'arm64' in platform.machine() or 'arm64' in os.getenv("CLING_CMAKE_BUILD_TARGET"):
+            if 'arm64' in platform.machine():
                 CMAKE_COMMAND += ['-DLLVM_TARGETS_TO_BUILD=ARM;AArch64;NVPTX']
         CMAKE_COMMAND.append('-DCMAKE_INSTALL_PREFIX='+prefix)
 
