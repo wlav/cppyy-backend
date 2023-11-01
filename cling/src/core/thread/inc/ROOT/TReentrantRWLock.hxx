@@ -17,6 +17,17 @@
 #include "ROOT/TSpinMutex.hxx"
 #include "TVirtualRWMutex.h"
 
+#if defined(__linux__) && defined(__GNUC__)
+#include <climits>
+#ifndef _POSIX_SEM_VALUE_MAX
+// workaround for cases where gcc's limits.h is pulled in by clang's include_next,
+// as opposed to the system limits.h that defines the posix limits
+#if __has_include (<syslimits.h>)
+#include <syslimits.h>
+#endif
+#endif
+#endif
+
 #include <atomic>
 #include <condition_variable>
 #include <thread>
