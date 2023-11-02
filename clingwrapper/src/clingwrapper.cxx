@@ -313,6 +313,17 @@ public:
                "#include <utility>";
         gInterpreter->ProcessLine(code);
 
+    // force std::string instantation, otherwise Clang 13+ fails to JIT these symbols
+    // when public string methods are used that call _M_use_local_data (introduced in
+    // gcc12) in conjunction with the PCH, after:
+    //  https://github.com/sxs-collaboration/spectre/pull/5222/files#diff-093aadf224e5fee0d33ae1810f2f1c23304fb5ca398ba6b96c4e7918e0811729
+       gInterpreter->Declare(
+           "#if defined(__GLIBCXX__) && __GLIBCXX__ >= 20220506\n"
+           "template std::string::pointer  std::string::_M_use_local_data();\n"
+           "template std::wstring::pointer std::wstring::_M_use_local_data();\n"
+           "#endif\n"
+        );
+
     // create helpers for comparing thingies
         gInterpreter->Declare(
             "namespace __cppyy_internal { template<class C1, class C2>"
@@ -591,7 +602,7 @@ static Cppyy::TCppIndex_t ArgSimilarityScore(void *argqtp, void *reqqtp)
     // This scoring is not based on any particular rules
         if (gInterpreter->IsSameType(argqtp, reqqtp))
             return 0; // Best match
-        else if ((gInterpreter->IsSignedIntegerType(argqtp) && gInterpreter->IsSignedIntegerType(reqqtp)) || 
+        else if ((gInterpreter->IsSignedIntegerType(argqtp) && gInterpreter->IsSignedIntegerType(reqqtp)) ||
                  (gInterpreter->IsUnsignedIntegerType(argqtp) && gInterpreter->IsUnsignedIntegerType(reqqtp)) ||
                  (gInterpreter->IsFloatingType(argqtp) && gInterpreter->IsFloatingType(reqqtp)))
             return 1;
@@ -604,7 +615,7 @@ static Cppyy::TCppIndex_t ArgSimilarityScore(void *argqtp, void *reqqtp)
             return 4;
         else if ((gInterpreter->IsVoidPointerType(argqtp) && gInterpreter->IsPointerType(reqqtp)))
             return 5;
-        else 
+        else
             return 10; // Penalize heavily for no possible match
 }
 
@@ -1072,7 +1083,12 @@ Cppyy::TCppFuncAddr_t Cppyy::GetFunctionAddress(TCppMethod_t method, bool check_
 
     // add scope for methods
         pos = sfn.rfind(':');
-        if (pos != std::string::npos) sig << sfn.substr(0, pos-1) << "::";
+        if (pos != std::string::npos) {
+            std::string scope_name = sfn.substr(0, pos-1);
+            TCppScope_t scope = GetScope(scope_name);
+            if (scope && !IsNamespace(scope))
+                sig << scope_name << "::";
+        }
 
     // finalize cast
         sig << "*)" << GetMethodSignature(method, false)
@@ -1745,7 +1761,7 @@ Cppyy::TCppIndex_t Cppyy::CompareMethodArgType(TCppMethod_t method, TCppIndex_t 
         if (ArgSimilarityScore(argqtp, reqqtp) < 10) {
             return ArgSimilarityScore(argqtp, reqqtp);
         }
-        else { // Match using underlying types   
+        else { // Match using underlying types
             if(gInterpreter->IsPointerType(argqtp))
                 argqtp = gInterpreter->TypeInfo_QualTypePtr(gInterpreter->GetPointerType(argqtp));
 
@@ -1754,9 +1770,9 @@ Cppyy::TCppIndex_t Cppyy::CompareMethodArgType(TCppMethod_t method, TCppIndex_t 
             TypeInfo_t *req_ul = gInterpreter->GetNonReferenceType(reqqtp);
             argqtp = gInterpreter->TypeInfo_QualTypePtr(gInterpreter->GetUnqualifiedType(gInterpreter->TypeInfo_QualTypePtr(arg_ul)));
             reqqtp = gInterpreter->TypeInfo_QualTypePtr(gInterpreter->GetUnqualifiedType(gInterpreter->TypeInfo_QualTypePtr(req_ul)));
-            
+
             return ArgSimilarityScore(argqtp, reqqtp);
-        }    
+        }
     }
     return INT_MAX; // Method is not valid
 }
