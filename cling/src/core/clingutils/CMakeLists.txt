@@ -41,7 +41,7 @@ ROOT_INSTALL_HEADERS()
 
 set(CLANG_RESOURCE_DIR_STEM)
 if (builtin_clang)
-  set(CLANG_RESOURCE_DIR_STEM ${CMAKE_BINARY_DIR}/interpreter/llvm/src/${CMAKE_CFG_INTDIR}/lib/clang)
+  set(CLANG_RESOURCE_DIR_STEM ${CMAKE_BINARY_DIR}/interpreter/llvm-project/llvm/${CMAKE_CFG_INTDIR}/lib/clang)
   set(CLANG_RESOURCE_DIR_VERSION ${LLVM_VERSION})
 else ()
   set(CLANG_RESOURCE_DIR_STEM ${LLVM_LIBRARY_DIR}/clang)
@@ -107,10 +107,10 @@ set(stamp_file ${CMAKE_BINARY_DIR}${CMAKE_FILES_DIRECTORY}/LLVMRES.stamp)
 if(MSVC)
   add_custom_command(OUTPUT ${stamp_file}
         COMMAND ${CMAKE_COMMAND} -E make_directory ${CMAKE_BINARY_DIR}/etc/cling/lib/clang/${CLANG_RESOURCE_DIR_VERSION}/include
+        ${copy_commands}
         COMMAND ${CMAKE_COMMAND} -E copy_directory
         ${CLANG_RESOURCE_DIR}
         ${CMAKE_BINARY_DIR}/etc/cling/lib/clang/${CLANG_RESOURCE_DIR_VERSION}/include
-        ${copy_commands}
         COMMAND ${CMAKE_COMMAND} -E touch ${stamp_file}
         DEPENDS ${files_to_copy}
         COMMENT "Copying LLVM resource and header files")
@@ -120,15 +120,6 @@ else()
         COMMAND ${CMAKE_COMMAND} -E copy_directory
         ${CLANG_RESOURCE_DIR}
         ${CMAKE_BINARY_DIR}/etc/cling/lib/clang/${CLANG_RESOURCE_DIR_VERSION}/include
-        COMMAND ${CMAKE_COMMAND} -E copy
-        ${CMAKE_SOURCE_DIR}/interpreter/llvm/ROOT/assert.h
-        ${CMAKE_BINARY_DIR}/etc/cling/lib/clang/${CLANG_RESOURCE_DIR_VERSION}/include/assert.h
-        COMMAND ${CMAKE_COMMAND} -E copy
-        ${CMAKE_SOURCE_DIR}/interpreter/llvm/ROOT/stdlib.h
-        ${CMAKE_BINARY_DIR}/etc/cling/lib/clang/${CLANG_RESOURCE_DIR_VERSION}/include/stdlib.h
-        COMMAND ${CMAKE_COMMAND} -E copy
-        ${CMAKE_SOURCE_DIR}/interpreter/llvm/ROOT/unistd.h
-        ${CMAKE_BINARY_DIR}/etc/cling/lib/clang/${CLANG_RESOURCE_DIR_VERSION}/include/unistd.h
         ${copy_commands}
         COMMAND ${CMAKE_COMMAND} -E touch ${stamp_file}
         DEPENDS ${files_to_copy}

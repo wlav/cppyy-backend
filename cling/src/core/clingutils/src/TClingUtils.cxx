@@ -58,9 +58,6 @@
 #include "llvm/Support/Path.h"
 #include "llvm/Support/FileSystem.h"
 
-// Intentionally access non-public header ...
-#include "../../../interpreter/llvm/src/tools/clang/lib/Sema/HackForDefaultTemplateArg.h"
-
 #include "TClingUtils.h"
 
 #ifdef _WIN32
@@ -2686,7 +2683,6 @@ clang::QualType CppyyLegacy::TMetaUtils::AddDefaultParameters(clang::QualType in
             {
                // We may induce template instantiation
                cling::Interpreter::PushTransactionRAII clingRAII(const_cast<cling::Interpreter*>(&interpreter));
-               clang::sema::HackForDefaultTemplateArg raii;
                bool HasDefaultArgs;
                clang::TemplateArgumentLoc ArgType = S.SubstDefaultTemplateArgumentIfAvailable(
                                                                                               Template,
@@ -3292,7 +3288,6 @@ static bool areEqualTypes(const clang::TemplateArgument& tArg,
    {
       clang::Sema& S = interp.getCI()->getSema();
       cling::Interpreter::PushTransactionRAII clingRAII(const_cast<cling::Interpreter*>(&interp));
-      clang::sema::HackForDefaultTemplateArg raii; // Hic sunt leones
       bool HasDefaultArgs;
       TemplateArgumentLoc defTArgLoc = S.SubstDefaultTemplateArgumentIfAvailable(Template,
                                                                                  TemplateLoc,

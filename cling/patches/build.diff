@@ -2,7 +2,7 @@ diff --git a/src/interpreter/CMakeLists.txt b/src/interpreter/CMakeLists.txt
 index 39dc895cce..6d616cb354 100644
 --- a/src/interpreter/CMakeLists.txt
 +++ b/src/interpreter/CMakeLists.txt
-@@ -490,7 +490,8 @@ else()
+@@ -472,7 +472,8 @@ else()
    set(Clang_DIR "${LLVM_BINARY_DIR}/lib/cmake/clang/")
  endif()
  
@@ -16,7 +16,7 @@ diff --git a/src/interpreter/CMakeLists.txt b/src/interpreter/CMakeLists.txt
 index 7002e43f36..dfdf718685 100644
 --- a/src/interpreter/CMakeLists.txt
 +++ b/src/interpreter/CMakeLists.txt
-@@ -513,7 +513,10 @@ if (builtin_cling)
+@@ -495,7 +495,10 @@ if (builtin_cling)
      set(CLING_CXXFLAGS " ${LLVM_DEFS} -DNOMINMAX -D_XKEYCHECK_H")
    else()
      # FIXME: Work hard to remove -Wno-shadow and -Wno-unused-parameter
@@ -32,7 +32,7 @@ diff --git a/src/interpreter/cling/lib/Interpreter/CIFactory.cpp b/src/interpret
 index 1ab35553fa..b7c99ba281 100644
 --- a/src/interpreter/cling/lib/Interpreter/CIFactory.cpp
 +++ b/src/interpreter/cling/lib/Interpreter/CIFactory.cpp
-@@ -432,7 +432,10 @@ namespace {
+@@ -458,7 +458,10 @@ namespace {
        Opts.CXXExceptions = 1;
      }
  

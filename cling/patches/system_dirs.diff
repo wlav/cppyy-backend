@@ -108,8 +108,8 @@ index 1213179cba..774e31c24d 100644
    #endif
  
          if (sArguments.empty()) {
-@@ -378,28 +402,16 @@ namespace {
-           }
+@@ -404,28 +435,16 @@ namespace {
+             cling::errs() << "Warning: sysroot \"" << sysroot << "\" not found (ignoring for now).";
          }
        }
    #endif

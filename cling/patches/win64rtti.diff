@@ -1,7 +1,7 @@
-diff --git a/src/interpreter/llvm/src/tools/clang/lib/CodeGen/MicrosoftCXXABI.cpp b/src/interpreter/llvm/src/tools/clang/lib/CodeGen/MicrosoftCXXABI.cpp
+diff --git a/src/interpreter/llvm-project/clang/lib/CodeGen/MicrosoftCXXABI.cpp b/src/interpreter/llvm-project/clang/lib/CodeGen/MicrosoftCXXABI.cpp
 index 1bd2937e47..108b5d6e66 100644
---- a/src/interpreter/llvm/src/tools/clang/lib/CodeGen/MicrosoftCXXABI.cpp
-+++ b/src/interpreter/llvm/src/tools/clang/lib/CodeGen/MicrosoftCXXABI.cpp
+--- a/src/interpreter/llvm-project/clang/lib/CodeGen/MicrosoftCXXABI.cpp
++++ b/src/interpreter/llvm-project/clang/lib/CodeGen/MicrosoftCXXABI.cpp
 @@ -524,10 +524,11 @@ public:
          getImageRelativeType(CGM.Int8PtrTy),
          getImageRelativeType(getClassHierarchyDescriptorType()->getPointerTo()),
