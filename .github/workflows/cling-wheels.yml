@@ -112,7 +112,6 @@ jobs:
       - name: Build wheels
         timeout-minutes: 600
         run: |
-          echo 'CPPYY_CIBW_BUILD=1' >> "$GITHUB_ENV"
           python -m cibuildwheel cling --output-dir wheelhouse
 
       - uses: actions/upload-artifact@v3
