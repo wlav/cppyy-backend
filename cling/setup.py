@@ -251,9 +251,6 @@ class my_install(_install):
             raise DistutilsSetupError('Failed to install cppyy-cling')
         if env_make: os.putenv("MAKE", env_make)
 
-     # remove allDict.cxx.pch as it's not portable (rebuild on first run, see cppyy)
-        log.info('removing allDict.cxx.pch')
-        os.remove(os.path.join(get_prefix(), 'etc', 'allDict.cxx.pch'))
      # for manylinux, reset the default cxxversion to 20 if no user override
         if not 'STDCXX' in os.environ and is_manylinux():
             log.info('updating root-config to C++20 for manylinux')

@@ -280,19 +280,6 @@ def isDirForPCH(dirName, expPyROOT):
    PCHPatternsWhitelist = ["interpreter/",
                            "core/",
                            "io/io",
-                           "net/net",
-                           "math/",
-                           "hist/",
-                           "tree/",
-                           "graf2d",
-                           "graf3d/ftgl",
-                           "graf3d/g3d",
-                           "graf3d/gl",
-                           "gui/gui",
-                           "gui/fitpanel",
-                           "rootx",
-                           "roofit/",
-                           "tmva",
                            "main"]
    if expPyROOT:
       PCHPatternsWhitelist.append("bindings/tpython")
