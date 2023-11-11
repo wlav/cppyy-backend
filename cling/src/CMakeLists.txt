@@ -361,6 +361,14 @@ if(runtime_cxxmodules)
 else()
   get_property(incdirs DIRECTORY PROPERTY INCLUDE_DIRECTORIES)
 
+  if(WIN32)
+    list(APPEND incdirs
+      ${CMAKE_SOURCE_DIR}/graf2d/win32gdk/gdk/src
+      ${CMAKE_SOURCE_DIR}/graf2d/win32gdk/gdk/src/gdk
+      ${CMAKE_SOURCE_DIR}/graf2d/win32gdk/gdk/src/glib
+    )
+  endif()
+
   foreach(d ${incdirs})
     if(NOT "${d}" MATCHES "AFTER|BEFORE|INTERFACE|PRIVATE|PUBLIC|SYSTEM")
       set(__allIncludes ${__allIncludes} -I${d})
@@ -388,9 +396,9 @@ else()
       ${CMAKE_SOURCE_DIR}/build/unix/makepchinput.py
       ${CMAKE_SOURCE_DIR}/etc/dictpch/makepch.py
   )
-  #add_custom_target(onepcm ALL DEPENDS etc/allDict.cxx.pch)
-  #install(FILES ${CMAKE_BINARY_DIR}/etc/allDict.cxx.pch DESTINATION ${CMAKE_INSTALL_SYSCONFDIR})
-  #install(DIRECTORY ${CMAKE_BINARY_DIR}/etc/dictpch DESTINATION ${CMAKE_INSTALL_SYSCONFDIR})
+  add_custom_target(onepcm ALL DEPENDS etc/allDict.cxx.pch)
+  install(FILES ${CMAKE_BINARY_DIR}/etc/allDict.cxx.pch DESTINATION ${CMAKE_INSTALL_SYSCONFDIR})
+  install(DIRECTORY ${CMAKE_BINARY_DIR}/etc/dictpch DESTINATION ${CMAKE_INSTALL_SYSCONFDIR})
 endif()
 
 # FIXME: move installation of PCMS in ROOT_GENERATE_DICTIONARY().
