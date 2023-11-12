@@ -695,6 +695,14 @@ Cppyy::TCppType_t Cppyy::GetActualClass(TCppType_t klass, TCppObject_t obj)
     if (!(cr->ClassProperty() & kClassHasVirtual))
         return klass;   // not polymorphic: no RTTI info available
 
+// TODO: ios class casting (ostream, streambuf, etc.) fails with a crash in GetActualClass()
+// below on Mac ARM (it's likely that the found actual class was replaced, maybe because
+// there are duplicates from pcm/pch?); filter them out for now as it's usually unnecessary
+// anyway to autocast these
+    std::string clName = cr->GetName();
+    if (clName.find("std::", 0, 5) == 0 && clName.find("stream") != std::string::npos)
+        return klass;
+
 #ifdef _WIN64
 // Cling does not provide a consistent ImageBase address for calculating relative addresses
 // as used in Windows 64b RTTI. So, check for our own RTTI extension instead. If that fails,
