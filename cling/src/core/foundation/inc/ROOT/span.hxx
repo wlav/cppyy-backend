@@ -17,10 +17,11 @@
 #if __cplusplus >= 202002
 # if __has_include(<span>)
 #  include <span>
+#  define CPPYY_SPAN_INCLUDED 1
 # endif
 #endif
 
-#if !defined(__cpp_lib_span)
+#if !defined(CPPYY_SPAN_INCLUDED)
 
 // Necessary to compile in c++11 mode
 #if __cplusplus >= 201402L
