@@ -77,8 +77,8 @@ if (setjmp(gExcJumBuf) == 0) {
 //  https://github.com/sxs-collaboration/spectre/pull/5222/files#diff-093aadf224e5fee0d33ae1810f2f1c23304fb5ca398ba6b96c4e7918e0811729
 #if defined(__GLIBCXX__) && __GLIBCXX__ >= 20220506
 template class std::allocator<char>;
-template class std::string<char>;
-template class std::wstring<wchar_t>;
+template class std::basic_string<char>;
+template class std::basic_string<wchar_t>;
 #endif
 
 using namespace CppyyLegacy;
