@@ -1,4 +1,4 @@
-import codecs, glob, os, sys, subprocess
+import codecs, glob, os, sys, sysconfig, subprocess
 from setuptools import setup, find_packages, Extension
 from distutils import log
 
@@ -135,6 +135,13 @@ class my_install(_install):
         # depending on goal, copy over pre-installed tree
         if hasattr(self, 'bdist_dir') and self.bdist_dir:
             install_path = self.bdist_dir
+        elif "purelib" in sysconfig.get_paths():
+            # this is illogical but cppyy-cling is treated as pure and the backend
+            # needs to be co-located with it to be found; purelib and platlib are
+            # the same on many platforms, but not all (eg. not on Fedora)
+            # TODO: fix this in cppyy-cling to install in platlib, or the loader to
+            #       look into platlib, then remove this
+            install_path = sysconfig.get_paths()["purelib"]
         else:
             install_path = self.install_lib
         return install_path
