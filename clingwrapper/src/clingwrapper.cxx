@@ -71,6 +71,15 @@ if (setjmp(gExcJumBuf) == 0) {
 #define _CLING_CATCH_UNCAUGHT
 #endif
 
+// force std::string and allocator instantation, otherwise Clang 13+ fails to JIT
+// symbols that rely on some private helpers (e.g. _M_use_local_data) when used in
+// in conjunction with the PCH; hat tip:
+//  https://github.com/sxs-collaboration/spectre/pull/5222/files#diff-093aadf224e5fee0d33ae1810f2f1c23304fb5ca398ba6b96c4e7918e0811729
+#if defined(__GLIBCXX__) && __GLIBCXX__ >= 20220506
+template class std::allocator<char>;
+template class std::string<char>;
+template class std::wstring<wchar_t>;
+#endif
 
 using namespace CppyyLegacy;
 
@@ -312,17 +321,6 @@ public:
                "#include <vector>\n"
                "#include <utility>";
         gInterpreter->ProcessLine(code);
-
-    // force std::string instantation, otherwise Clang 13+ fails to JIT these symbols
-    // when public string methods are used that call _M_use_local_data (introduced in
-    // gcc12) in conjunction with the PCH, after:
-    //  https://github.com/sxs-collaboration/spectre/pull/5222/files#diff-093aadf224e5fee0d33ae1810f2f1c23304fb5ca398ba6b96c4e7918e0811729
-       gInterpreter->Declare(
-           "#if defined(__GLIBCXX__) && __GLIBCXX__ >= 20220506\n"
-           "template std::string::pointer  std::string::_M_use_local_data();\n"
-           "template std::wstring::pointer std::wstring::_M_use_local_data();\n"
-           "#endif\n"
-        );
 
     // create helpers for comparing thingies
         gInterpreter->Declare(
