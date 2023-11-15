@@ -1,6 +1,6 @@
 name: Build and upload to PyPI
 
-on: [push]
+on: [workflow_dispatch]
 
 jobs:
   #build-aarch64-wheels:
