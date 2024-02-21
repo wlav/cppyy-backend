@@ -262,7 +262,7 @@ private:
 public:
    enum EStripType   { kLeading = 0x1, kTrailing = 0x2, kBoth = 0x3 };
    enum ECaseCompare { kExact, kIgnoreCase };
-   static const Ssiz_t kNPOS = CppyyLegacy::kNPOS;
+   static constexpr Ssiz_t kNPOS = CppyyLegacy::kNPOS;
 
    TString();                           // Null string
    explicit TString(Ssiz_t ic);         // Suggested capacity

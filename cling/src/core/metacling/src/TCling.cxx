@@ -4533,6 +4533,9 @@ TInterpreter::DeclId_t TCling::GetDataMember(ClassInfo_t *opaque_cl, const char 
    DeclId_t d;
    TClingClassInfo *cl = (TClingClassInfo*)opaque_cl;
 
+   // Could trigger deserialization of decls.
+   cling::Interpreter::PushTransactionRAII RAII(GetInterpreterImpl());
+
    if (cl) {
       d = cl->GetDataMember(name);
       // We check if the decl of the data member has an annotation which indicates
@@ -4563,8 +4566,6 @@ TInterpreter::DeclId_t TCling::GetDataMember(ClassInfo_t *opaque_cl, const char 
    LookupResult R(SemaR, DName, SourceLocation(), Sema::LookupOrdinaryName,
                   Sema::ForExternalRedeclaration);
 
-   // Could trigger deserialization of decls.
-   cling::Interpreter::PushTransactionRAII RAII(GetInterpreterImpl());
    cling::utils::Lookup::Named(&SemaR, R);
 
    LookupResult::Filter F = R.makeFilter();
