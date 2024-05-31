@@ -378,7 +378,10 @@ intptr_t TClingDataMemberInfo::Offset()
    const Decl *D = GetDecl();
    ASTContext& C = D->getASTContext();
    if (const FieldDecl *FldD = dyn_cast<FieldDecl>(D)) {
-      // The current member is a non-static data member.
+      // The current member is a non-static data member; add a transaction as
+      // the lookup could trigger deserialization
+      cling::Interpreter::PushTransactionRAII RAII(fInterp);
+
       const clang::RecordDecl *RD = FldD->getParent();
       const clang::ASTRecordLayout &Layout = C.getASTRecordLayout(RD);
       uint64_t bits = Layout.getFieldOffset(FldD->getFieldIndex());
