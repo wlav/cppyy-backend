@@ -994,7 +994,7 @@ rtype Cppyy::Call##typecode(TCppMethod_t method, TCppObject_t self, size_t nargs
 void Cppyy::CallV(TCppMethod_t method, TCppObject_t self, size_t nargs, void* args)
 {
     if (!WrapperCall(method, nargs, args, (void*)self, nullptr))
-        return /* TODO ... report error */;
+        throw std::runtime_error("failed to resolve function");
 }
 
 CPPYY_IMP_CALL(B,  unsigned char)
