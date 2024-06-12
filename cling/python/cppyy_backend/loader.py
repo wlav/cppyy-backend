@@ -145,6 +145,8 @@ def _is_uptodate(pchname, incpath):
     force_rebuild = os.environ.get('CLING_REBUILD_PCH', '')
     if force_rebuild == '1' or force_rebuild.lower() == 'true':
        return False
+    elif force_rebuild == '0' or force_rebuild.lower() == 'false':
+       return True
 
   # it's unlikely there's a C++ compiler available when distributed as a
   # frozen bundle, so accept the PCH if any exists
