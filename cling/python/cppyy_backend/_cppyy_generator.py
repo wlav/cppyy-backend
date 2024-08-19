@@ -92,7 +92,7 @@ class SourceProcessor(object):
 
     def _read(self, source):
         lines = []
-        with open(source, "rU") as f:
+        with open(source, "r") as f:
             for line in f:
                 lines.append(line)
         return lines
