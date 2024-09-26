@@ -121,7 +121,7 @@ static clang::NestedNameSpecifier* AddDefaultParametersNNS(const clang::ASTConte
                                                            clang::NestedNameSpecifier* scope,
                                                            const cling::Interpreter &interpreter,
                                                            const CppyyLegacy::TMetaUtils::TNormalizedCtxt &normCtxt) {
-   if (!scope) return 0;
+   if (!scope) return nullptr;
 
    const clang::Type* scope_type = scope->getAsType();
    if (scope_type) {
@@ -170,7 +170,7 @@ static clang::NestedNameSpecifier* ReSubstTemplateArgNNS(const clang::ASTContext
                                                          clang::NestedNameSpecifier *scope,
                                                          const clang::Type *instance)
 {
-   if (!scope) return 0;
+   if (!scope) return nullptr;
 
    const clang::Type* scope_type = scope->getAsType();
    if (scope_type) {
@@ -219,8 +219,7 @@ static const clang::FieldDecl *GetDataMemberFromAll(const clang::CXXRecordDecl &
          return *field_iter;
       }
    }
-   return 0;
-
+   return nullptr;
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -696,7 +695,7 @@ bool CppyyLegacy::TMetaUtils::IsBase(const clang::FieldDecl &m, const char* base
    }
 
    const clang::NamedDecl *base
-      = ScopeSearch(basename, interp, true /*diagnose*/, 0);
+      = ScopeSearch(basename, interp, true /*diagnose*/, nullptr);
 
    if (base) {
       return IsBase(CRD, llvm::dyn_cast<clang::CXXRecordDecl>( base ),
@@ -715,7 +714,7 @@ int CppyyLegacy::TMetaUtils::ElementStreamer(std::ostream& finalString,
                                       const char *tcl)
 {
    static const clang::CXXRecordDecl *TObject_decl
-      = CppyyLegacy::TMetaUtils::ScopeSearch("CppyyLegacy::TObject", interp, true /*diag*/, 0);
+      = CppyyLegacy::TMetaUtils::ScopeSearch("CppyyLegacy::TObject", interp, true /*diag*/, nullptr);
    enum {
       kBIT_ISTOBJECT     = 0x10000000,
       kBIT_HASSTREAMER   = 0x20000000,
@@ -753,7 +752,7 @@ int CppyyLegacy::TMetaUtils::ElementStreamer(std::ostream& finalString,
    if (tiName == "std::string*") kase |= kBIT_ISSTRING;
 
 
-   if (tcl == 0) {
+   if (!tcl) {
       tcl = " internal error in rootcling ";
    }
    //    if (strcmp(objType,"std::string")==0) RStl::Instance().GenerateTClassFor( "std::string", interp, normCtxt  );
@@ -972,7 +971,7 @@ const clang::CXXMethodDecl *GetMethodWithProto(const clang::Decl* cinfo,
 
 namespace CppyyLegacy {
    namespace TMetaUtils {
-      RConstructorType::RConstructorType(const char *type_of_arg, const cling::Interpreter &interp) : fArgTypeName(type_of_arg),fArgType(0)
+      RConstructorType::RConstructorType(const char *type_of_arg, const cling::Interpreter &interp) : fArgTypeName(type_of_arg),fArgType(nullptr)
       {
          const cling::LookupHelper& lh = interp.getLookupHelper();
          // We can not use findScope since the type we are given are usually,
@@ -997,15 +996,14 @@ bool CppyyLegacy::TMetaUtils::HasIOConstructor(const clang::CXXRecordDecl *cl,
 {
    if (cl->isAbstract()) return false;
 
-   for (RConstructorTypes::const_iterator ctorTypeIt = ctorTypes.begin();
-        ctorTypeIt!=ctorTypes.end(); ++ctorTypeIt) {
+   for (auto & ctorType : ctorTypes) {
 
-      auto ioCtorCat = CppyyLegacy::TMetaUtils::CheckConstructor(cl, *ctorTypeIt, interp);
+      auto ioCtorCat = CppyyLegacy::TMetaUtils::CheckConstructor(cl, ctorType, interp);
 
       if (EIOCtorCategory::kAbsent == ioCtorCat)
          continue;
 
-      std::string proto( ctorTypeIt->GetName() );
+      std::string proto( ctorType.GetName() );
       bool defaultCtor = proto.empty();
       if (defaultCtor) {
          arg.clear();
@@ -1366,21 +1364,15 @@ bool CppyyLegacy::TMetaUtils::hasOpaqueTypedef(clang::QualType instanceType, con
       // do the template thing.
       const clang::TemplateSpecializationType* TST
       = llvm::dyn_cast<const clang::TemplateSpecializationType>(instanceType.getTypePtr());
-      if (TST==0) {
+      if (!TST) {
    //         std::string type_name;
    //         type_name =  GetQualifiedName( instanceType, *clxx );
    //         fprintf(stderr,"ERROR: Could not findS TST for %s\n",type_name.c_str());
          return false;
       }
-      for(clang::TemplateSpecializationType::iterator
-          I = TST->begin(), E = TST->end();
-          I!=E; ++I)
-      {
-         if (I->getKind() == clang::TemplateArgument::Type) {
-   //            std::string arg;
-   //            arg = GetQualifiedName( I->getAsType(), *clxx );
-   //            fprintf(stderr,"DEBUG: looking at %s\n", arg.c_str());
-            result |= CppyyLegacy::TMetaUtils::hasOpaqueTypedef(I->getAsType(), normCtxt);
+      for (const clang::TemplateArgument &TA : TST->template_arguments()) {
+         if (TA.getKind() == clang::TemplateArgument::Type) {
+            result |= CppyyLegacy::TMetaUtils::hasOpaqueTypedef(TA.getAsType(), normCtxt);
          }
       }
    }
@@ -1395,7 +1387,7 @@ bool CppyyLegacy::TMetaUtils::hasOpaqueTypedef(const AnnotatedRecordDecl &cl,
                                         const TNormalizedCtxt &normCtxt)
 {
    const clang::CXXRecordDecl* clxx =  llvm::dyn_cast<clang::CXXRecordDecl>(cl.GetRecordDecl());
-   if (clxx->getTemplateSpecializationKind() == clang::TSK_Undeclared) return false;
+   if (!clxx || clxx->getTemplateSpecializationKind() == clang::TSK_Undeclared) return false;
 
    clang::QualType instanceType = interp.getLookupHelper().findType(cl.GetNormalizedName(),
                                                                     cling::LookupHelper::WithDiagnostics);
@@ -1539,7 +1531,7 @@ void CppyyLegacy::TMetaUtils::WriteClassInit(std::ostream& finalString,
    }
 
    if (HasIOConstructor(decl, args, ctorTypes, interp)) {
-      finalString << "   static void *new_" << mappedname.c_str() << "(void *p = 0);" << "\n";
+      finalString << "   static void *new_" << mappedname.c_str() << "(void *p = nullptr);" << "\n";
 
       if (args.size()==0 && NeedDestructor(decl, interp))
       {
@@ -1571,11 +1563,11 @@ void CppyyLegacy::TMetaUtils::WriteClassInit(std::ostream& finalString,
 
    finalString << "   static TGenericClassInfo *GenerateInitInstanceLocal(const " << csymbol << "*)" << "\n" << "   {" << "\n";
 
-   finalString << "      " << csymbol << " *ptr = 0;" << "\n";
+   finalString << "      " << csymbol << " *ptr = nullptr;" << "\n";
 
    //fprintf(fp, "      static ::CppyyLegacy::ClassInfo< %s > \n",classname.c_str());
    if (ClassInfo__HasMethod(decl,"IsA",interp) ) {
-      finalString << "      static ::CppyyLegacy::TVirtualIsAProxy* isa_proxy = new ::CppyyLegacy::TInstrumentedIsAProxy< "  << csymbol << " >(0);" << "\n";
+      finalString << "      static ::CppyyLegacy::TVirtualIsAProxy* isa_proxy = new ::CppyyLegacy::TInstrumentedIsAProxy< "  << csymbol << " >(nullptr);" << "\n";
    }
    else {
       finalString << "      static ::CppyyLegacy::TVirtualIsAProxy* isa_proxy = new ::CppyyLegacy::TIsAProxy(typeid(" << csymbol << "));" << "\n";
@@ -1691,7 +1683,7 @@ void CppyyLegacy::TMetaUtils::WriteClassInit(std::ostream& finalString,
             methodTCP="Insert";
             break;
       }
-      // FIXME Workaround: for the moment we do not generate coll proxies with unique ptrs sincelast
+      // FIXME Workaround: for the moment we do not generate coll proxies with unique ptrs since
       // they imply copies and therefore do not compile.
       auto classNameForIO = TClassEdit::GetNameForIO(classname);
       finalString << "      instance.AdoptCollectionProxyInfo(TCollectionProxyInfo::Generate(TCollectionProxyInfo::" << methodTCP << "< " << classNameForIO.c_str() << " >()));" << "\n";
@@ -1978,10 +1970,10 @@ bool CppyyLegacy::TMetaUtils::HasCustomOperatorNewPlacement(const char *which, c
       ctxtnewPlacement = operatornewPlacement->getParent();
    }
 
-   if (ctxtnewPlacement == 0) {
+   if (!ctxtnewPlacement) {
       return false;
    }
-   if (ctxtnew == 0) {
+   if (!ctxtnew) {
       // Only a new with placement, no hiding
       return true;
    }
@@ -1992,17 +1984,17 @@ bool CppyyLegacy::TMetaUtils::HasCustomOperatorNewPlacement(const char *which, c
    }
    const clang::CXXRecordDecl* clnew = llvm::dyn_cast<clang::CXXRecordDecl>(ctxtnew);
    const clang::CXXRecordDecl* clnewPlacement = llvm::dyn_cast<clang::CXXRecordDecl>(ctxtnewPlacement);
-   if (clnew == 0 && clnewPlacement == 0) {
+   if (!clnew && !clnewPlacement) {
       // They are both in different namespaces, I am not sure of the rules.
       // we probably ought to find which one is closest ... for now bail
       // (because rootcling was also bailing on that).
       return true;
    }
-   if (clnew != 0 && clnewPlacement == 0) {
+   if (clnew && !clnewPlacement) {
       // operator new is class method hiding the outer scope operator new with placement.
       return false;
    }
-   if (clnew == 0 && clnewPlacement != 0) {
+   if (!clnew && clnewPlacement) {
       // operator new is a not class method and can not hide new with placement which is a method
       return true;
    }
@@ -2565,7 +2557,7 @@ clang::QualType CppyyLegacy::TMetaUtils::AddDefaultParameters(clang::QualType in
 
    // Treat the Scope.
    bool prefix_changed = false;
-   clang::NestedNameSpecifier* prefix = 0;
+   clang::NestedNameSpecifier* prefix = nullptr;
    clang::Qualifiers prefix_qualifiers = instanceType.getLocalQualifiers();
    const clang::ElaboratedType* etype
       = llvm::dyn_cast<clang::ElaboratedType>(instanceType.getTypePtr());
@@ -2608,12 +2600,12 @@ clang::QualType CppyyLegacy::TMetaUtils::AddDefaultParameters(clang::QualType in
       unsigned int dropDefault = normCtxt.GetConfig().DropDefaultArg(*Template);
 
       llvm::SmallVector<clang::TemplateArgument, 4> desArgs;
+      llvm::SmallVector<clang::TemplateArgument, 4> canonArgs;
+      llvm::ArrayRef<clang::TemplateArgument> template_arguments = TST->template_arguments();
       unsigned int Idecl = 0, Edecl = TSTdecl->getTemplateArgs().size();
       unsigned int maxAddArg = TSTdecl->getTemplateArgs().size() - dropDefault;
-      for(clang::TemplateSpecializationType::iterator
-             I = TST->begin(), E = TST->end();
-          Idecl != Edecl;
-          I!=E ? ++I : 0, ++Idecl, ++Param) {
+      for (const clang::TemplateArgument *I = template_arguments.begin(), *E = template_arguments.end(); Idecl != Edecl;
+           I != E ? ++I : nullptr, ++Idecl, ++Param) {
 
          if (I != E) {
 
@@ -2635,7 +2627,10 @@ clang::QualType CppyyLegacy::TMetaUtils::AddDefaultParameters(clang::QualType in
                         desArgs.push_back(*I);
                         continue;
                      }
-                     clang::TemplateName templateNameWithNSS ( Ctx.getQualifiedTemplateName(nns, false, templateDecl) );
+                     clang::TemplateName UnderlyingTN(templateDecl);
+                     if (clang::UsingShadowDecl *USD = templateName.getAsUsingShadowDecl())
+                        UnderlyingTN = clang::TemplateName(USD);
+                     clang::TemplateName templateNameWithNSS ( Ctx.getQualifiedTemplateName(nns, false, UnderlyingTN) );
                      desArgs.push_back(clang::TemplateArgument(templateNameWithNSS));
                      mightHaveChanged = true;
                      continue;
@@ -2690,6 +2685,7 @@ clang::QualType CppyyLegacy::TMetaUtils::AddDefaultParameters(clang::QualType in
                                                                                               RAngleLoc,
                                                                                               TTP,
                                                                                               desArgs,
+                                                                                              canonArgs,
                                                                                               HasDefaultArgs);
                // The substition can fail, in which case there would have been compilation
                // error printed on the screen.
@@ -3004,7 +3000,7 @@ std::string CppyyLegacy::TMetaUtils::GetFileName(const clang::Decl& decl,
 
    const FileEntry *headerFE = sourceManager.getFileEntryForID(headerFID);
    while (includeLoc.isValid() && sourceManager.isInSystemHeader(includeLoc)) {
-      const DirectoryLookup *foundDir = 0;
+      ConstSearchDirIterator *foundDir = nullptr;
       // use HeaderSearch on the basename, to make sure it takes a header from
       // the include path (e.g. not from /usr/include/bits/)
       assert(headerFE && "Couldn't find FileEntry from FID!");
@@ -3053,7 +3049,7 @@ std::string CppyyLegacy::TMetaUtils::GetFileName(const clang::Decl& decl,
    // points to the same file as the long version. If such a short version
    // exists it will be returned. If it doesn't the long version is returned.
    bool isAbsolute = llvm::sys::path::is_absolute(headerFileName);
-   llvm::Optional<clang::FileEntryRef> FELong;
+   clang::OptionalFileEntryRef FELong;
    // Find the longest available match.
    for (llvm::sys::path::const_iterator
            IDir = llvm::sys::path::begin(headerFileName),
@@ -3069,7 +3065,7 @@ std::string CppyyLegacy::TMetaUtils::GetFileName(const clang::Decl& decl,
       assert(trailingPart.data() + trailingPart.size()
              == headerFileName.data() + headerFileName.size()
              && "Mismatched partitioning of file name!");
-      const DirectoryLookup* FoundDir = 0;
+      ConstSearchDirIterator *FoundDir = nullptr;
       FELong = HdrSearch.LookupFile(trailingPart, SourceLocation(),
                                     true /*isAngled*/, 0/*FromDir*/, FoundDir,
                                     ArrayRef<std::pair<const FileEntry *, const DirectoryEntry *>>(),
@@ -3093,7 +3089,7 @@ std::string CppyyLegacy::TMetaUtils::GetFileName(const clang::Decl& decl,
       assert(trailingPart.data() + trailingPart.size()
              == headerFileName.data() + headerFileName.size()
              && "Mismatched partitioning of file name!");
-      const DirectoryLookup* FoundDir = 0;
+      ConstSearchDirIterator *FoundDir = nullptr;
       // Can we find it, and is it the same file as the long version?
       // (or are we back to the previously found spelling, which is fine, too)
       if (HdrSearch.LookupFile(trailingPart, SourceLocation(),
@@ -3288,12 +3284,14 @@ static bool areEqualTypes(const clang::TemplateArgument& tArg,
    {
       clang::Sema& S = interp.getCI()->getSema();
       cling::Interpreter::PushTransactionRAII clingRAII(const_cast<cling::Interpreter*>(&interp));
+      llvm::SmallVector<clang::TemplateArgument, 4> canonArgs;
       bool HasDefaultArgs;
       TemplateArgumentLoc defTArgLoc = S.SubstDefaultTemplateArgumentIfAvailable(Template,
                                                                                  TemplateLoc,
                                                                                  LAngleLoc,
                                                                                  ttpdPtr,
                                                                                  preceedingTArgs,
+                                                                                 canonArgs,
                                                                                  HasDefaultArgs);
       // The substition can fail, in which case there would have been compilation
       // error printed on the screen.
@@ -3526,7 +3524,8 @@ static void KeepNParams(clang::QualType& normalizedType,
    llvm::SmallVector<TemplateArgument, 4> argsToKeep;
 
    const int nArgs = tArgs.size();
-   const int nNormArgs = normalizedTst->getNumArgs();
+   const auto &normArgs = normalizedTst->template_arguments();
+   const int nNormArgs = normArgs.size();
 
    bool mightHaveChanged = false;
 
@@ -3544,7 +3543,7 @@ static void KeepNParams(clang::QualType& normalizedType,
       if (formal == nNormArgs || inst == nNormArgs) break;
 
       const TemplateArgument& tArg = tArgs.get(formal);
-      TemplateArgument normTArg(normalizedTst->getArgs()[inst]);
+      TemplateArgument normTArg(normArgs[inst]);
 
       bool shouldKeepArg = nArgsToKeep < 0 || inst < nArgsToKeep;
       if (isStdDropDefault) shouldKeepArg = false;
@@ -3562,7 +3561,7 @@ static void KeepNParams(clang::QualType& normalizedType,
             // in the template instance.  So to avoid inadvertenly dropping those
             // arguments we just process all remaining argument and exit the main loop.
             for( ; inst != nNormArgs; ++inst) {
-               normTArg = normalizedTst->getArgs()[inst];
+               normTArg = normArgs[inst];
                mightHaveChanged |= RecurseKeepNParams(normTArg, tArg, interp, normCtxt, astCtxt);
                argsToKeep.push_back(normTArg);
             }
@@ -4200,10 +4199,8 @@ static bool hasSomeTypedefSomewhere(const clang::Type* T) {
       return Visit(STST->getReplacementType().getTypePtr());
     }
     bool VisitTemplateSpecializationType(const TemplateSpecializationType* TST) {
-      for (int I = 0, N = TST->getNumArgs(); I < N; ++I) {
-        const TemplateArgument& TA = TST->getArg(I);
-        if (TA.getKind() == TemplateArgument::Type
-            && Visit(TA.getAsType().getTypePtr()))
+      for (const TemplateArgument &TA : TST->template_arguments()) {
+            if (TA.getKind() == TemplateArgument::Type && Visit(TA.getAsType().getTypePtr()))
           return true;
       }
       return false;
@@ -4212,7 +4209,7 @@ static bool hasSomeTypedefSomewhere(const clang::Type* T) {
       return false; // shrug...
     }
     bool VisitTypeOfType(const TypeOfType* TOT) {
-      return TOT->getUnderlyingType().getTypePtr();
+      return TOT->getUnmodifiedType().getTypePtr();
     }
     bool VisitElaboratedType(const ElaboratedType* ET) {
       NestedNameSpecifier* NNS = ET->getQualifier();
@@ -4374,7 +4371,7 @@ clang::QualType CppyyLegacy::TMetaUtils::ReSubstTemplateArg(clang::QualType inpu
       // Make sure it got replaced from this template
       const clang::ClassTemplateDecl *replacedCtxt = 0;
 
-      const clang::DeclContext *replacedDeclCtxt = substType->getReplacedParameter()->getDecl()->getDeclContext();
+      const clang::DeclContext *replacedDeclCtxt = substType->getReplacedParameter()->getDeclContext();
       const clang::CXXRecordDecl *decl = llvm::dyn_cast<clang::CXXRecordDecl>(replacedDeclCtxt);
       unsigned int index = substType->getReplacedParameter()->getIndex();
       if (decl) {
@@ -4434,17 +4431,22 @@ clang::QualType CppyyLegacy::TMetaUtils::ReSubstTemplateArg(clang::QualType inpu
 
       if ((replacedCtxt && replacedCtxt->getCanonicalDecl() == TSTdecl->getSpecializedTemplate()->getCanonicalDecl())
           || /* the following is likely just redundant */
-          substType->getReplacedParameter()->getDecl()
+          substType->getReplacedParameter()
           == TSTdecl->getSpecializedTemplate ()->getTemplateParameters()->getParam(index))
       {
-         if ( index >= TST->getNumArgs() ) {
+         const auto &TAs = TST->template_arguments();
+         if (index >= TAs.size()) {
             // The argument replaced was a default template argument that is
             // being listed as part of the instance ...
             // so we probably don't really know how to spell it ... we would need to recreate it
             // (See AddDefaultParameters).
             return input;
+         } else if (TAs[index].getKind() == clang::TemplateArgument::Type) {
+            return TAs[index].getAsType();
          } else {
-            return TST->getArg(index).getAsType();
+            // The argument is (likely) a value or expression and there is nothing for us
+            // to change
+            return input;
          }
       }
    }
@@ -4456,16 +4458,16 @@ clang::QualType CppyyLegacy::TMetaUtils::ReSubstTemplateArg(clang::QualType inpu
    if (inputTST) {
       bool mightHaveChanged = false;
       llvm::SmallVector<clang::TemplateArgument, 4> desArgs;
-      for(clang::TemplateSpecializationType::iterator I = inputTST->begin(), E = inputTST->end();
-          I != E; ++I) {
-         if (I->getKind() != clang::TemplateArgument::Type) {
-            desArgs.push_back(*I);
+      for (const clang::TemplateArgument &TA : inputTST->template_arguments()) {
+         if (TA.getKind() != clang::TemplateArgument::Type) {
+            desArgs.push_back(TA);
             continue;
          }
 
-         clang::QualType SubTy = I->getAsType();
+         clang::QualType SubTy = TA.getAsType();
          // Check if the type needs more desugaring and recurse.
-         if (llvm::isa<clang::SubstTemplateTypeParmType>(SubTy)
+         if (llvm::isa<clang::ElaboratedType>(SubTy)
+             || llvm::isa<clang::SubstTemplateTypeParmType>(SubTy)
              || llvm::isa<clang::TemplateSpecializationType>(SubTy)) {
             clang::QualType newSubTy = ReSubstTemplateArg(SubTy,instance);
             mightHaveChanged = SubTy != newSubTy;
@@ -4473,7 +4475,7 @@ clang::QualType CppyyLegacy::TMetaUtils::ReSubstTemplateArg(clang::QualType inpu
                desArgs.push_back(clang::TemplateArgument(newSubTy));
             }
          } else
-            desArgs.push_back(*I);
+            desArgs.push_back(TA);
       }
 
       // If desugaring happened allocate new type in the AST.

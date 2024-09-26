@@ -324,7 +324,7 @@ def isDirForPCH(dirName, expPyROOT):
 def getLinesFromDict(marker, dictFileName):
    """
    Search for the line marker
-   in the dictionary and save all lines until the line '0'
+   in the dictionary and save all lines until the line 'nullptr'
    Return them as List
    """
    selectedLines = []
@@ -337,7 +337,7 @@ def getLinesFromDict(marker, dictFileName):
          recording = True
          continue
 
-      if recording and "0" == line[0]: break
+      if recording and "nullptr" == line[0:7]: break
 
       if recording:
          selectedLines.append(line[:-1])

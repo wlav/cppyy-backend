@@ -78,11 +78,17 @@ TModuleGenerator::TModuleGenerator(CompilerInstance *CI,
    // .pcm -> .pch
    if (IsPCH()) fModuleFileName[fModuleFileName.length() - 1] = 'h';
 
-   // Add a random string to the filename to avoid races
-   llvm::SmallString<10> resultPath("%%%%%%%%%%");
-   llvm::sys::fs::getPotentiallyUniqueFileName(resultPath.str(), resultPath);
-   fUmbrellaName = fModuleDirName + fDictionaryName + resultPath.c_str() + "_dictUmbrella.h";
-   fContentName = fModuleDirName + fDictionaryName + resultPath.c_str() + "_dictContent.h";
+   // Add a random string to the filename to avoid races.
+   auto makeTempFile = [&](const char *suffix) {
+      llvm::SmallString<64> resultPath;
+      std::string pattern = fModuleDirName + fDictionaryName + "%%%%%%%%%%" + suffix;
+      llvm::sys::fs::createUniqueFile(pattern, resultPath); // NOTE: this creates the (empty) file
+      // Return the full buffer, so caller can use `.c_str()` on the temporary.
+      return resultPath;
+   };
+
+   fUmbrellaName = makeTempFile("_dictUmbrella.h").c_str();
+   fContentName = makeTempFile("_dictContent.h").c_str();
 }
 
 TModuleGenerator::~TModuleGenerator()
@@ -112,10 +118,10 @@ TModuleGenerator::GetSourceFileKind(const char *filename) const
       // via the FileManager.
       clang::Preprocessor &PP = fCI->getPreprocessor();
       clang::HeaderSearch &HdrSearch = PP.getHeaderSearchInfo();
-      const clang::DirectoryLookup *CurDir = 0;
+      clang::ConstSearchDirIterator *CurDir = nullptr;
       auto hdrFileEntry
          =  HdrSearch.LookupFile(filename, clang::SourceLocation(),
-                                 true /*isAngled*/, 0 /*FromDir*/, CurDir,
+                                 true /*isAngled*/, nullptr /*FromDir*/, CurDir,
                                  clang::ArrayRef<std::pair<const clang::FileEntry*,
                                                            const clang::DirectoryEntry*>>(),
                                  nullptr /*SearchPath*/,/*RelativePath*/ nullptr,
@@ -289,7 +295,7 @@ std::ostream &TModuleGenerator::WritePPIncludes(std::ostream &out) const
       if (fInlineInputHeaders){
          bool headerFound = FindHeader(incl,fullHeaderPath);
          if (!headerFound){
-            CppyyLegacy::TMetaUtils::Error(0, "Cannot find header %s: cannot inline it.\n", fullHeaderPath.c_str());
+            CppyyLegacy::TMetaUtils::Error(nullptr, "Cannot find header %s: cannot inline it.\n", fullHeaderPath.c_str());
             continue;
          }
 
@@ -313,7 +319,7 @@ std::ostream &TModuleGenerator::WriteStringVec(const std::vector<std::string> &v
    for (auto const & theStr : vec) {
       out << "\"" << theStr << "\",\n";
    }
-   out << "0" << std::endl;
+   out << "nullptr" << std::endl;
    return out;
 }
 
@@ -337,7 +343,7 @@ std::ostream &TModuleGenerator::WriteStringPairVec(const StringPairVec_t &vec,
       }
       out << "\",\n";
    }
-   out << "0" << std::endl;
+   out << "nullptr" << std::endl;
    return out;
 }
 
@@ -365,7 +371,7 @@ void TModuleGenerator::WriteRegistrationSourceImpl(std::ostream& out,
 
    out << "    static const char* fwdDeclCode = " << fwdDeclStringRAW << ";\n"
        << "    static const char* payloadCode = " << payloadCodeWrapped << ";\n";
-   // classesHeaders may depen on payloadCode
+   // classesHeaders may depend on payloadCode
    out << "    static const char* classesHeaders[] = {\n"
        << headersClassesMapString
        << "\n};\n";
@@ -467,7 +473,7 @@ void TModuleGenerator::WriteRegistrationSource(std::ostream &out, const std::str
    auto findAndAddToInlineHeaders = [&](const std::string& hdrName) {
       bool headerFound = FindHeader(hdrName,hdrFullPath);
       if (!headerFound) {
-         CppyyLegacy::TMetaUtils::Error(0, "Cannot find header %s: cannot inline it.\n", hdrName.c_str());
+         CppyyLegacy::TMetaUtils::Error(nullptr, "Cannot find header %s: cannot inline it.\n", hdrName.c_str());
       } else {
          std::ifstream headerFile(hdrFullPath.c_str());
          const std::string headerFileAsStr((std::istreambuf_iterator<char>(headerFile)),
@@ -574,12 +580,12 @@ bool TModuleGenerator::FindHeader(const std::string &hdrName, std::string &hdrFu
    }
    clang::Preprocessor &PP = fCI->getPreprocessor();
    clang::HeaderSearch &HdrSearch = PP.getHeaderSearchInfo();
-   const clang::DirectoryLookup *CurDir = 0;
+   clang::ConstSearchDirIterator *CurDir = nullptr;
    if (auto hdrFileEntry
          =  HdrSearch.LookupFile(hdrName, clang::SourceLocation(),
-                                 true /*isAngled*/, 0 /*FromDir*/, CurDir,
+                                 true /*isAngled*/, nullptr /*FromDir*/, CurDir,
                                  clang::ArrayRef<std::pair<const clang::FileEntry*,
-                                                         const clang::DirectoryEntry*>>(),
+                                                           const clang::DirectoryEntry*>>(),
                                  nullptr /*SearchPath*/, nullptr /*RelativePath*/,
                                  nullptr /*RequestingModule*/, nullptr/*SuggestedModule*/,
                                  nullptr /*IsMapped*/, nullptr /*IsFrameworkFound*/)) {

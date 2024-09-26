@@ -98,7 +98,7 @@ void TClingCallbacks::InclusionDirective(clang::SourceLocation sLoc/*HashLoc*/,
                                          llvm::StringRef FileName,
                                          bool /*IsAngled*/,
                                          clang::CharSourceRange /*FilenameRange*/,
-                                         const clang::FileEntry *FE,
+                                         const clang::OptionalFileEntryRef FE,
                                          llvm::StringRef /*SearchPath*/,
                                          llvm::StringRef /*RelativePath*/,
                                          const clang::Module * Imported,
@@ -146,8 +146,7 @@ bool TClingCallbacks::LibraryLoadingFailed(const std::string& errmessage, const 
 // Preprocessor callbacks used to handle special cases like for example:
 // #include "myMacro.C+"
 //
-bool TClingCallbacks::FileNotFound(llvm::StringRef FileName,
-                                   llvm::SmallVectorImpl<char> &RecoveryPath) {
+bool TClingCallbacks::FileNotFound(llvm::StringRef FileName) {
    // Method called via Callbacks->FileNotFound(Filename, RecoveryPath)
    // in Preprocessor::HandleIncludeDirective(), initially allowing to
    // change the include path, and allowing us to compile code via ACLiC
@@ -395,7 +394,7 @@ bool TClingCallbacks::LookupObject(clang::TagDecl* Tag) {
 // filename.
 //
 bool TClingCallbacks::tryAutoParseInternal(llvm::StringRef Name, LookupResult &R,
-                                           Scope *S, const FileEntry* FE /*=0*/) {
+                                           Scope *S, clang::OptionalFileEntryRef FE) {
    if (!fROOTSpecialNamespace) {
       // init error or rootcling
       return false;

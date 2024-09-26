@@ -3564,9 +3564,9 @@ public:
 
    virtual void InclusionDirective(clang::SourceLocation /*HashLoc*/, const clang::Token & /*IncludeTok*/,
                                    llvm::StringRef FileName, bool IsAngled, clang::CharSourceRange /*FilenameRange*/,
-                                   const clang::FileEntry * /*File*/, llvm::StringRef /*SearchPath*/,
+                                   clang::OptionalFileEntryRef /*File*/, llvm::StringRef /*SearchPath*/,
                                    llvm::StringRef /*RelativePath*/, const clang::Module * /*Imported*/,
-                                   clang::SrcMgr::CharacteristicKind /*FileType*/)
+                                   clang::SrcMgr::CharacteristicKind /*FileType*/) override
    {
       if (isLocked) return;
       if (IsAngled) return;
@@ -3606,7 +3606,8 @@ public:
          Preprocessor& PP = m_Interpreter->getCI()->getPreprocessor();
          HeaderSearch& HS = PP.getHeaderSearchInfo();
          // FIXME: Reduce to CoreLegacy.Rtypes.h.
-         Module* CoreModule = HS.lookupModule("CoreLegacy", /*AllowSearch*/false);
+         Module* CoreModule = HS.lookupModule("CoreLegacy", SourceLocation(),
+                                              /*AllowSearch*/false);
          assert(M && "Must have module CoreLegacy");
          PP.makeModuleVisible(CoreModule, ImportLoc);
       }
@@ -4499,7 +4500,7 @@ int RootClingMain(int argc,
 
    // Process externally passed arguments if present.
    llvm::Optional<std::string> EnvOpt = llvm::sys::Process::GetEnv("EXTRA_CLING_ARGS");
-   if (EnvOpt.hasValue()) {
+   if (EnvOpt.has_value()) {
       llvm::StringRef Env(*EnvOpt);
       while (!Env.empty()) {
          llvm::StringRef Arg;

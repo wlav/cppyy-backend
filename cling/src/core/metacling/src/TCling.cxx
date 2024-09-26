@@ -444,7 +444,7 @@ void TCling::UpdateEnumConstants(TEnum* enumObj, TClass* cl) const {
 
          // Create the TEnumConstant or update it if existing
          TEnumConstant* enumConstant = nullptr;
-         TClingClassInfo* tcCInfo = (TClingClassInfo*)(cl ? cl->GetClassInfo() : 0);
+         TClingClassInfo* tcCInfo = (TClingClassInfo*)(cl ? cl->GetClassInfo() : nullptr);
          TClingDataMemberInfo* tcDmInfo = new TClingDataMemberInfo(GetInterpreterImpl(), *EDI, tcCInfo);
          DataMemberInfo_t* dmInfo = (DataMemberInfo_t*) tcDmInfo;
          if (TObject* encAsTObj = enumObj->GetConstants()->FindObject(constantName)){
@@ -481,7 +481,7 @@ TEnum* TCling::CreateEnum(void *VD, TClass *cl) const
       // If the enum is unnamed we do not add it to the list of enums i.e unusable.
    }
    if (buf.empty()) {
-      return 0;
+      return nullptr;
    }
 
    const char* name = buf.c_str();
@@ -547,7 +547,7 @@ void TCling::HandleNewDecl(const void* DV, bool isDeserialized, std::set<TClass*
       // Put the global constants and global enums in the corresponding lists.
       gROOT->GetListOfGlobals()->Add(new TGlobal((DataMemberInfo_t *)
                                                  new TClingDataMemberInfo(GetInterpreterImpl(),
-                                                                          cast<ValueDecl>(ND), 0)));
+                                                                          cast<ValueDecl>(ND), nullptr)));
    }
 }
 
@@ -649,11 +649,6 @@ extern "C" void TCling__SplitAclicMode(const char* fileName, string &mode,
    io = aclicio.Data(); fname = f.Data();
 }
 
-// Implemented in TClingCallbacks.
-extern "C" void TCling__FindLoadedLibraries(std::vector<std::pair<uint32_t, std::string>> &sLibraries,
-                                 std::vector<std::string> &sPaths,
-                                 cling::Interpreter &interpreter, bool searchSystem);
-
 //______________________________________________________________________________
 //
 //
@@ -685,14 +680,6 @@ static clang::ClassTemplateDecl* FindTemplateInNamespace(clang::Decl* decl)
    }
 
    return nullptr; // something went wrong.
-}
-
-////////////////////////////////////////////////////////////////////////////////
-/// Autoload a library provided the mangled name of a missing symbol.
-
-void* llvmLazyFunctionCreator(const std::string& mangled_name)
-{
-   return ((TCling*)gCling)->LazyFunctionCreatorAutoload(mangled_name);
 }
 
 //______________________________________________________________________________
@@ -773,7 +760,7 @@ int TCling_GenerateDictionary(const std::vector<std::string> &classes,
       for (it = fwdDecls.begin(); it != fwdDecls.end(); ++it) {
          fileContent += "class " + *it + ";\n";
       }
-      fileContent += "#ifdef __CINT__ \n";
+      fileContent += "#ifdef __CLING__ \n";
       fileContent += "#pragma link C++ nestedclasses;\n";
       fileContent += "#pragma link C++ nestedtypedefs;\n";
       for (it = classes.begin(); it != classes.end(); ++it) {
@@ -804,7 +791,7 @@ int TCling_GenerateDictionary(const std::vector<std::string> &classes,
       //(2) prepare the file
       FILE* filePointer;
       filePointer = fopen(fileName, "w");
-      if (filePointer == NULL) {
+      if (filePointer == nullptr) {
          //can't open a file
          return 1;
       }
@@ -842,7 +829,7 @@ int TCling_GenerateDictionary(const std::string& className,
 //______________________________________________________________________________
 //
 
-void* TCling::fgSetOfSpecials = 0;
+void* TCling::fgSetOfSpecials = nullptr;
 
 //______________________________________________________________________________
 //
@@ -853,7 +840,7 @@ namespace {
    // Yes, throwing exceptions in error handlers is bad.
    // Doing nothing is pretty terrible, too.
    void exceptionErrorHandler(void * /*user_data*/,
-                              const std::string& reason,
+                              const char* reason,
                               bool /*gen_crash_diag*/) {
       throw std::runtime_error(std::string(">>> Interpreter compilation error:\n") + reason);
    }
@@ -988,14 +975,16 @@ bool TClingLookupHelper__ExistingTypeCheck(const std::string &tname,
       // Check if the scope is in the list of classes
       if (auto scope = static_cast<TClass *>(gROOT->GetListOfClasses()->FindObject(scopeName))) {
          auto enumTable = dynamic_cast<const THashList *>(scope->GetListOfEnums(false));
-         if (enumTable && enumTable->THashList::FindObject(enName)) return true;
+         if (enumTable && enumTable->THashList::FindObject(enName))
+            return true;
       }
       // It may still be in one of the loaded protoclasses
       else if (auto scope = static_cast<TProtoClass *>(gClassTable->GetProtoNorm(scopeName))) {
          auto listOfEnums = scope->GetListOfEnums();
          if (listOfEnums) { // it could be null: no enumerators in the protoclass
             auto enumTable = dynamic_cast<const THashList *>(listOfEnums);
-            if (enumTable && enumTable->THashList::FindObject(enName)) return true;
+            if (enumTable && enumTable->THashList::FindObject(enName))
+               return true;
          }
       }
       delete [] scopeName;
@@ -1003,7 +992,8 @@ bool TClingLookupHelper__ExistingTypeCheck(const std::string &tname,
    {
       // We don't have any scope: this could only be a global enum
       auto enumTable = dynamic_cast<const THashList *>(gROOT->GetListOfEnums());
-      if (enumTable && enumTable->THashList::FindObject(inner)) return true;
+      if (enumTable && enumTable->THashList::FindObject(inner))
+         return true;
    }
 
    if (gCling->GetClassSharedLibs(inner))
@@ -1238,10 +1228,14 @@ static void RegisterCxxModules(cling::Interpreter &clingInterp)
 {
    if (!clingInterp.getCI()->getLangOpts().Modules)
       return;
-      // Setup core C++ modules if we have any to setup.
 
-      // Load libc and stl first.
-      // Load vcruntime module for windows
+   // Loading of a module might deserialize.
+   cling::Interpreter::PushTransactionRAII deserRAII(&clingInterp);
+
+   // Setup core C++ modules if we have any to setup.
+
+   // Load libc and stl first.
+   // Load vcruntime module for windows
 #ifdef R__WIN32
    LoadModule("vcruntime", clingInterp);
    LoadModule("services", clingInterp);
@@ -1283,7 +1277,7 @@ static void RegisterCxxModules(cling::Interpreter &clingInterp)
          ;
       // Allow forcefully enabling/disabling the GMI.
       llvm::Optional<std::string> envUseGMI = llvm::sys::Process::GetEnv("ROOT_USE_GMI");
-      if (envUseGMI.hasValue()) {
+      if (envUseGMI.has_value()) {
          if (!envUseGMI->empty() && !CppyyLegacy::FoundationUtils::CanConvertEnvValueToBool(*envUseGMI))
             CppyyLegacy::Warning("TCling__RegisterCxxModules",
                       "Cannot convert '%s' to bool, setting to false!",
@@ -1455,7 +1449,7 @@ TCling::TCling(const char *name, const char *title, const char* const argv[], vo
 
    // Process externally passed arguments if present.
    llvm::Optional<std::string> EnvOpt = llvm::sys::Process::GetEnv("EXTRA_CLING_ARGS");
-   if (EnvOpt.hasValue()) {
+   if (EnvOpt.has_value()) {
       StringRef Env(*EnvOpt);
       while (!Env.empty()) {
          StringRef Arg;
@@ -1467,7 +1461,7 @@ TCling::TCling(const char *name, const char *title, const char* const argv[], vo
    auto GetEnvVarPath = [](const std::string &EnvVar,
                             std::vector<std::string> &Paths) {
       llvm::Optional<std::string> EnvOpt = llvm::sys::Process::GetEnv(EnvVar);
-      if (EnvOpt.hasValue()) {
+      if (EnvOpt.has_value()) {
          StringRef Env(*EnvOpt);
          while (!Env.empty()) {
             StringRef Arg;
@@ -1495,7 +1489,7 @@ TCling::TCling(const char *name, const char *title, const char* const argv[], vo
 
    // FIXME: This only will enable frontend timing reports.
    EnvOpt = llvm::sys::Process::GetEnv("ROOT_CLING_TIMING");
-   if (EnvOpt.hasValue())
+   if (EnvOpt.has_value())
      clingArgsStorage.push_back("-ftime-report");
 
    // Add the overlay file. Note that we cannot factor it out for both root
@@ -1575,7 +1569,7 @@ TCling::TCling(const char *name, const char *title, const char* const argv[], vo
    // Add the Rdict module file extension.
    cling::Interpreter::ModuleFileExtensions extensions;
    EnvOpt = llvm::sys::Process::GetEnv("ROOTDEBUG_RDICT");
-   if (!EnvOpt.hasValue())
+   if (!EnvOpt.has_value())
       extensions.push_back(std::make_shared<TClingRdictModuleFileExtension>());
 
    // Filter -fno-plt, if any, which is added by compilation in anaconda
@@ -3253,26 +3247,26 @@ Bool_t TCling::IsLoaded(const char* filename) const
       return kTRUE;
 
    //FIXME: We must use the cling::Interpreter::lookupFileOrLibrary iface.
-   const clang::DirectoryLookup *CurDir = 0;
+   clang::ConstSearchDirIterator *CurDir = nullptr;
    clang::Preprocessor &PP = fInterpreter->getCI()->getPreprocessor();
    clang::HeaderSearch &HS = PP.getHeaderSearchInfo();
    auto FE = HS.LookupFile(file_name.c_str(),
                            clang::SourceLocation(),
                            /*isAngled*/ false,
-                           /*FromDir*/ 0, CurDir,
-                           clang::ArrayRef<std::pair<const clang::FileEntry *,
-                           const clang::DirectoryEntry *>>(),
-                           /*SearchPath*/ 0,
-                           /*RelativePath*/ 0,
-                           /*RequestingModule*/ 0,
-                           /*SuggestedModule*/ 0,
-                           /*IsMapped*/ 0,
+                           /*FromDir*/ nullptr, CurDir,
+                           clang::ArrayRef<std::pair<const clang::FileEntry*,
+                           const clang::DirectoryEntry*>>(),
+                           /*SearchPath*/ nullptr,
+                           /*RelativePath*/ nullptr,
+                           /*RequestingModule*/ nullptr,
+                           /*SuggestedModule*/ nullptr,
+                           /*IsMapped*/ nullptr,
                            /*IsFrameworkFound*/ nullptr,
                            /*SkipCache*/ false,
                            /*BuildSystemModule*/ false,
                            /*OpenFile*/ false,
                            /*CacheFail*/ false);
-   if (FE && FE->isValid()) {
+   if (FE) {
       // check in the source manager if the file is actually loaded
       clang::SourceManager &SM = fInterpreter->getCI()->getSourceManager();
       // this works only with header (and source) files...

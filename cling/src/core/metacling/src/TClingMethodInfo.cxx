@@ -359,15 +359,14 @@ GetOrInstantiateFuncTemplateWithDefaults(clang::FunctionTemplateDecl* FTDecl,
    SmallVector<DeducedTemplateArgument, 4> DeducedArgs;
    sema::TemplateDeductionInfo Info{SourceLocation()};
 
-   Sema::InstantiatingTemplate Inst(S, Info.getLocation(), FTDecl,
-                                    defaultTemplateArgs,
-                                    Sema::CodeSynthesisContext::DeducedTemplateArgumentSubstitution,
-                                    Info);
+   Sema::InstantiatingTemplate Inst(
+      S, Info.getLocation(), FTDecl,
+      defaultTemplateArgs, Sema::CodeSynthesisContext::DeducedTemplateArgumentSubstitution, Info);
 
    // Collect the function arguments of the templated function, substituting
    // dependent types as possible.
    TemplateArgumentList templArgList(TemplateArgumentList::OnStack, defaultTemplateArgs);
-   MultiLevelTemplateArgumentList MLTAL{templArgList};
+   MultiLevelTemplateArgumentList MLTAL{FTDecl, templArgList.asArray(), /*Final=*/false};
    for (const clang::ParmVarDecl *param: templatedDecl->parameters()) {
       QualType paramType = param->getOriginalType();
 
