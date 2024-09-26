@@ -2,7 +2,7 @@ diff --git a/src/interpreter/cling/lib/Interpreter/CIFactory.cpp b/src/interpret
 index aec153242b..abcfd33597 100644
 --- a/src/interpreter/cling/lib/Interpreter/CIFactory.cpp
 +++ b/src/interpreter/cling/lib/Interpreter/CIFactory.cpp
-@@ -305,6 +305,13 @@ namespace {
+@@ -336,6 +336,13 @@ namespace {
          }
    #endif // _LIBCPP_VERSION
  

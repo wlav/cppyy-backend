@@ -2,14 +2,13 @@ diff --git a/src/interpreter/cling/lib/Interpreter/CIFactory.cpp b/src/interpret
 index f97c86032f..69321c5579 100644
 --- a/src/interpreter/cling/lib/Interpreter/CIFactory.cpp
 +++ b/src/interpreter/cling/lib/Interpreter/CIFactory.cpp
-@@ -1669,9 +1669,10 @@ static void stringifyPreprocSetting(PreprocessorOptions& PPOpts,
+@@ -1685,8 +1685,9 @@ static void stringifyPreprocSetting(PreprocessorOptions& PPOpts,
  
      // Set CodeGen options.
      CodeGenOptions& CGOpts = CI->getCodeGenOpts();
 +    CGOpts.OptimizationLevel = 2;
 +    CGOpts.RelaxedAliasing = 1;
  #ifdef _MSC_VER
-     CGOpts.MSVolatile = 1;
 -    CGOpts.RelaxedAliasing = 1;
      CGOpts.EmitCodeView = 1;
      CGOpts.CXXCtorDtorAliases = 1;
@@ -26,7 +25,7 @@ index 4b971bb02e..cbea6870db 100644
  #include "TransactionPool.h"
  #include "ValueExtractionSynthesizer.h"
  #include "ValuePrinterSynthesizer.h"
-@@ -1004,15 +1003,8 @@ namespace cling {
+@@ -1006,15 +1005,8 @@ namespace cling {
      ASTTransformers.emplace_back(new AutoSynthesizer(TheSema));
      ASTTransformers.emplace_back(new EvaluateTSynthesizer(TheSema));
      if (hasCodeGenerator() && !m_Interpreter->getOptions().NoRuntime) {
@@ -43,17 +42,3 @@ index 4b971bb02e..cbea6870db 100644
      }
      ASTTransformers.emplace_back(new DefinitionShadower(*TheSema, *m_Interpreter));
  
-diff --git a/src/interpreter/cling/lib/Interpreter/BackendPasses.cpp b/src/interpreter/cling/lib/Interpreter/BackendPasses.cpp
-index cb3308c360..873bc682ea 100644
---- a/src/interpreter/cling/lib/Interpreter/BackendPasses.cpp
-+++ b/src/interpreter/cling/lib/Interpreter/BackendPasses.cpp
-@@ -382,6 +382,9 @@ void BackendPasses::CreatePasses(llvm::Module& M, int OptLevel)
-     // Inlining = CGOpts.NoInlining;
-   }
-
-+// force normal inlining (as above says: NoInlining is kills)
-+  const_cast<CodeGenOptions&>(m_CGOpts).setInlining(CodeGenOptions::NormalInlining);
-+
-   llvm::PassManagerBuilder PMBuilder;
-   PMBuilder.OptLevel = OptLevel;
-   PMBuilder.SizeLevel = m_CGOpts.OptimizeSize;

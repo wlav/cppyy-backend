@@ -2,8 +2,8 @@ diff --git a/src/interpreter/llvm-project/clang/lib/Sema/SemaTemplateInstantiate
 index 6fee23aa8b..ed30f06ca9 100644
 --- a/src/interpreter/llvm-project/clang/lib/Sema/SemaTemplateInstantiateDecl.cpp
 +++ b/src/interpreter/llvm-project/clang/lib/Sema/SemaTemplateInstantiateDecl.cpp
-@@ -4792,6 +4792,19 @@ void Sema::InstantiateFunctionDefinition(SourceLocation PointOfInstantiation,
-   if (TSK == TSK_ExplicitSpecialization)
+@@ -4819,6 +4819,19 @@ void Sema::InstantiateFunctionDefinition(SourceLocation PointOfInstantiation,
+       !DefinitionRequired)
      return;
 
 +  // Pure extern declarations do not need an instantiation (would prefer to
@@ -26,7 +26,7 @@ diff --git a/src/interpreter/llvm-project/clang/lib/AST/TemplateBase.cpp b/src/i
 index 88a554c985..5e6e53e1e7 100644
 --- a/src/interpreter/llvm-project/clang/lib/AST/TemplateBase.cpp
 +++ b/src/interpreter/llvm-project/clang/lib/AST/TemplateBase.cpp
-@@ -431,7 +433,16 @@ void TemplateArgument::print(const PrintingPolicy &Policy,
+@@ -423,7 +425,16 @@ void TemplateArgument::print(const PrintingPolicy &Policy,
    case Type: {
      PrintingPolicy SubPolicy(Policy);
      SubPolicy.SuppressStrongLifetime = true;
