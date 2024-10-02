@@ -2513,6 +2513,64 @@ void CppyyLegacy::TMetaUtils::WriteClassCode(CallWriteStreamer_t WriteStreamerFu
 /// Whether it is or not depend on the I/O on whether the default template argument might change or not
 /// and whether they (should) affect the on disk layout (for STL containers, we do know they do not).
 
+static void ProcessTemplateArgument(const clang::TemplateArgument& Arg,
+                                    const clang::ASTContext& Ctx,
+                                    const cling::Interpreter& interpreter,
+                                    const CppyyLegacy::TMetaUtils::TNormalizedCtxt& normCtxt,
+                                    llvm::SmallVector<clang::TemplateArgument, 4>& desArgs,
+                                    bool& mightHaveChanged) {
+
+   if (Arg.getKind() == clang::TemplateArgument::Template) {
+      clang::TemplateName templateName = Arg.getAsTemplate();
+      clang::TemplateDecl* templateDecl = templateName.getAsTemplateDecl();
+      if (templateDecl) {
+         clang::DeclContext* declCtxt = templateDecl->getDeclContext();
+
+         if (declCtxt && !templateName.getAsQualifiedTemplateName()){
+            clang::NamespaceDecl* ns = clang::dyn_cast<clang::NamespaceDecl>(declCtxt);
+            clang::NestedNameSpecifier* nns;
+            if (ns) {
+               nns = cling::utils::TypeName::CreateNestedNameSpecifier(Ctx, ns);
+            } else if (clang::TagDecl* TD = llvm::dyn_cast<clang::TagDecl>(declCtxt)) {
+               nns = cling::utils::TypeName::CreateNestedNameSpecifier(Ctx,TD, false /*FullyQualified*/);
+            } else {
+               // TU scope
+               desArgs.push_back(Arg);
+               return;
+            }
+            clang::TemplateName UnderlyingTN(templateDecl);
+            if (clang::UsingShadowDecl *USD = templateName.getAsUsingShadowDecl())
+               UnderlyingTN = clang::TemplateName(USD);
+            clang::TemplateName templateNameWithNSS ( Ctx.getQualifiedTemplateName(nns, false, UnderlyingTN) );
+            desArgs.push_back(clang::TemplateArgument(templateNameWithNSS));
+            mightHaveChanged = true;
+            return;
+         }
+      }
+   }
+
+   if (Arg.getKind() != clang::TemplateArgument::Type) {
+      desArgs.push_back(Arg);
+      return;
+   }
+
+   clang::QualType SubTy = Arg.getAsType();
+
+   // Check if the type needs more desugaring and recurse.
+   // (Originally this was limited to elaborated and templated type,
+   // but we also need to do it for pointer and reference type
+   // and who knows what, so do it always)
+   clang::QualType newSubTy = AddDefaultParameters(SubTy,
+                                                   interpreter,
+                                                   normCtxt);
+   if (SubTy != newSubTy) {
+      mightHaveChanged = true;
+      desArgs.push_back(clang::TemplateArgument(newSubTy));
+   } else {
+      desArgs.push_back(Arg);
+   }
+}
+
 clang::QualType CppyyLegacy::TMetaUtils::AddDefaultParameters(clang::QualType instanceType,
                                                        const cling::Interpreter &interpreter,
                                                        const CppyyLegacy::TMetaUtils::TNormalizedCtxt &normCtxt)
@@ -2604,103 +2662,86 @@ clang::QualType CppyyLegacy::TMetaUtils::AddDefaultParameters(clang::QualType in
       llvm::ArrayRef<clang::TemplateArgument> template_arguments = TST->template_arguments();
       unsigned int Idecl = 0, Edecl = TSTdecl->getTemplateArgs().size();
       unsigned int maxAddArg = TSTdecl->getTemplateArgs().size() - dropDefault;
+
       for (const clang::TemplateArgument *I = template_arguments.begin(), *E = template_arguments.end(); Idecl != Edecl;
            I != E ? ++I : nullptr, ++Idecl, ++Param) {
 
          if (I != E) {
+            if (I->getKind() == clang::TemplateArgument::Pack) {
+               // expand the pack, independent of the Idecl count, which counts a pack as 1 decl
+               for (auto PI = I->pack_begin(); PI != I->pack_end(); ++PI)
+                  ProcessTemplateArgument(*PI, Ctx, interpreter, normCtxt, desArgs, mightHaveChanged);
+            } else
+               ProcessTemplateArgument(*I, Ctx, interpreter, normCtxt, desArgs, mightHaveChanged);
 
-            if (I->getKind() == clang::TemplateArgument::Template) {
-               clang::TemplateName templateName = I->getAsTemplate();
-               clang::TemplateDecl* templateDecl = templateName.getAsTemplateDecl();
-               if (templateDecl) {
-                  clang::DeclContext* declCtxt = templateDecl->getDeclContext();
+            continue;
 
-                  if (declCtxt && !templateName.getAsQualifiedTemplateName()){
-                     clang::NamespaceDecl* ns = clang::dyn_cast<clang::NamespaceDecl>(declCtxt);
-                     clang::NestedNameSpecifier* nns;
-                     if (ns) {
-                        nns = cling::utils::TypeName::CreateNestedNameSpecifier(Ctx, ns);
-                     } else if (clang::TagDecl* TD = llvm::dyn_cast<clang::TagDecl>(declCtxt)) {
-                        nns = cling::utils::TypeName::CreateNestedNameSpecifier(Ctx,TD, false /*FullyQualified*/);
-                     } else {
-                        // TU scope
-                        desArgs.push_back(*I);
-                        continue;
-                     }
-                     clang::TemplateName UnderlyingTN(templateDecl);
-                     if (clang::UsingShadowDecl *USD = templateName.getAsUsingShadowDecl())
-                        UnderlyingTN = clang::TemplateName(USD);
-                     clang::TemplateName templateNameWithNSS ( Ctx.getQualifiedTemplateName(nns, false, UnderlyingTN) );
-                     desArgs.push_back(clang::TemplateArgument(templateNameWithNSS));
-                     mightHaveChanged = true;
-                     continue;
-                  }
-               }
-            }
-
-            if (I->getKind() != clang::TemplateArgument::Type) {
-               desArgs.push_back(*I);
-               continue;
-            }
-
-            clang::QualType SubTy = I->getAsType();
-
-            // Check if the type needs more desugaring and recurse.
-            // (Originally this was limited to elaborated and templated type,
-            // but we also need to do it for pointer and reference type
-            // and who knows what, so do it always)
-            clang::QualType newSubTy = AddDefaultParameters(SubTy,
-                                                            interpreter,
-                                                            normCtxt);
-            if (SubTy != newSubTy) {
-               mightHaveChanged = true;
-               desArgs.push_back(clang::TemplateArgument(newSubTy));
-            } else {
-               desArgs.push_back(*I);
-            }
-            // Converted.push_back(TemplateArgument(ArgTypeForTemplate));
          } else if (!isStdDropDefault && Idecl < maxAddArg) {
+            if ((*Param)->isTemplateParameterPack()) {
+               clang::TemplateTypeParmDecl* TTP = llvm::dyn_cast<clang::TemplateTypeParmDecl>(*Param);
 
-            mightHaveChanged = true;
+               if (TTP && TTP->hasDefaultArgument()) {
+                  clang::QualType DefaultArgType = TTP->getDefaultArgument();
+                  DefaultArgType = AddDefaultParameters(DefaultArgType, interpreter, normCtxt);
+                  desArgs.push_back(clang::TemplateArgument(DefaultArgType));
+                  mightHaveChanged = true;
+                  continue;
 
-            const clang::TemplateArgument& templateArg
-               = TSTdecl->getTemplateArgs().get(Idecl);
-            if (templateArg.getKind() != clang::TemplateArgument::Type) {
-               desArgs.push_back(templateArg);
-               continue;
-            }
-            clang::QualType SubTy = templateArg.getAsType();
-
-            clang::SourceLocation TemplateLoc = Template->getSourceRange ().getBegin(); //NOTE: not sure that this is the 'right' location.
-            clang::SourceLocation RAngleLoc = TSTdecl->getSourceRange().getBegin(); // NOTE: most likely wrong, I think this is expecting the location of right angle
-
-            clang::TemplateTypeParmDecl *TTP = llvm::dyn_cast<clang::TemplateTypeParmDecl>(*Param);
-            {
-               // We may induce template instantiation
-               cling::Interpreter::PushTransactionRAII clingRAII(const_cast<cling::Interpreter*>(&interpreter));
-               bool HasDefaultArgs;
-               clang::TemplateArgumentLoc ArgType = S.SubstDefaultTemplateArgumentIfAvailable(
-                                                                                              Template,
-                                                                                              TemplateLoc,
-                                                                                              RAngleLoc,
-                                                                                              TTP,
-                                                                                              desArgs,
-                                                                                              canonArgs,
-                                                                                              HasDefaultArgs);
-               // The substition can fail, in which case there would have been compilation
-               // error printed on the screen.
-               if (ArgType.getArgument().isNull()
-                   || ArgType.getArgument().getKind() != clang::TemplateArgument::Type) {
-                  CppyyLegacy::TMetaUtils::Error("CppyyLegacy::TMetaUtils::AddDefaultParameters",
-                                          "Template parameter substitution failed for %s around %s\n",
-                                          instanceType.getAsString().c_str(), SubTy.getAsString().c_str());
+               } else {
+                  // debatable, but we're short on information w/o an actual error occurring;
+                  // simply dropping back to the original type (possible with an adjusted
+                  // prefix) works in most cases
+                  mightHaveChanged = false;
                   break;
                }
-               clang::QualType BetterSubTy = ArgType.getArgument().getAsType();
-               SubTy = cling::utils::Transform::GetPartiallyDesugaredType(Ctx,BetterSubTy,normCtxt.GetConfig(),/*fullyQualified=*/ true);
-            }
-            SubTy = AddDefaultParameters(SubTy,interpreter,normCtxt);
-            desArgs.push_back(clang::TemplateArgument(SubTy));
+
+            } else {
+               mightHaveChanged = true;
+
+               const clang::TemplateArgument& templateArg
+                  = TSTdecl->getTemplateArgs().get(Idecl);
+               if (templateArg.getKind() != clang::TemplateArgument::Type) {
+                  desArgs.push_back(templateArg);
+                  continue;
+               }
+
+               clang::QualType SubTy = templateArg.getAsType();
+
+               clang::SourceLocation TemplateLoc = Template->getSourceRange ().getBegin(); //NOTE: not sure that this is the 'right' location.
+               clang::SourceLocation RAngleLoc = TSTdecl->getSourceRange().getBegin(); // NOTE: most likely wrong, I think this is expecting the location of right angle
+
+               clang::TemplateTypeParmDecl *TTP = llvm::dyn_cast<clang::TemplateTypeParmDecl>(*Param);
+               {
+                  // We may induce template instantiation
+                  cling::Interpreter::PushTransactionRAII clingRAII(const_cast<cling::Interpreter*>(&interpreter));
+                  bool HasDefaultArgs;
+                  clang::TemplateArgumentLoc ArgType = S.SubstDefaultTemplateArgumentIfAvailable(
+                                                                                                 Template,
+                                                                                                 TemplateLoc,
+                                                                                                 RAngleLoc,
+                                                                                                 TTP,
+                                                                                                 desArgs,
+                                                                                                 canonArgs,
+                                                                                                 HasDefaultArgs);
+                  // The substition can fail, in which case there would have been compilation
+                  // error printed on the screen.
+                  if (ArgType.getArgument().isNull()
+                      || ArgType.getArgument().getKind() != clang::TemplateArgument::Type) {
+                     CppyyLegacy::TMetaUtils::Error("CppyyLegacy::TMetaUtils::AddDefaultParameters",
+                                             "Template parameter substitution failed for %s around %s\n",
+                                             instanceType.getAsString().c_str(), SubTy.getAsString().c_str());
+                     break;
+                  }
+
+                  clang::QualType BetterSubTy = ArgType.getArgument().getAsType();
+                  SubTy = cling::utils::Transform::GetPartiallyDesugaredType(Ctx,BetterSubTy,normCtxt.GetConfig(),/*fullyQualified=*/ true);
+               }
+
+               SubTy = AddDefaultParameters(SubTy,interpreter,normCtxt);
+               desArgs.push_back(clang::TemplateArgument(SubTy));
+               continue;
+           }
+
          } else {
             // We are past the end of the list of specified arguements and we
             // do not want to add the default, no need to continue.
@@ -2721,6 +2762,7 @@ clang::QualType CppyyLegacy::TMetaUtils::AddDefaultParameters(clang::QualType in
       instanceType = Ctx.getElaboratedType(clang::ETK_None,prefix,instanceType);
       instanceType = Ctx.getQualifiedType(instanceType,prefix_qualifiers);
    }
+
    return instanceType;
 }
 
