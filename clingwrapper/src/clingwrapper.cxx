@@ -127,15 +127,33 @@ static const ClassRefs_t::size_type STD_HANDLE = GLOBAL_HANDLE + 1;
 typedef std::map<std::string, ClassRefs_t::size_type> Name2ClassRefIndex_t;
 static Name2ClassRefIndex_t g_name2classrefidx;
 
+static std::map<std::string, std::string> resolved_enum_types;
+
 namespace {
 
 static inline
-Cppyy::TCppType_t find_memoized(const std::string& name)
+Cppyy::TCppType_t find_memoized_scope(const std::string& name)
 {
     auto icr = g_name2classrefidx.find(name);
     if (icr != g_name2classrefidx.end())
         return (Cppyy::TCppType_t)icr->second;
     return (Cppyy::TCppType_t)0;
+}
+
+static inline
+std::string find_memoized_resolved_name(const std::string& name)
+{
+// resolved class types
+    Cppyy::TCppType_t klass = find_memoized_scope(name);
+    if (klass) return Cppyy::GetScopedFinalName(klass);
+
+// resolved enum types
+    auto res = resolved_enum_types.find(name);
+    if (res != resolved_enum_types.end())
+        return res->second;
+
+// unknown ...
+    return "";
 }
 
 class CallWrapper {
@@ -436,8 +454,8 @@ std::string Cppyy::ResolveName(const std::string& cppitem_name)
 // Fully resolve the given name to the final type name.
 
 // try memoized type cache, in case seen before
-    TCppType_t klass = find_memoized(cppitem_name);
-    if (klass) return GetScopedFinalName(klass);
+    std::string memoized = find_memoized_resolved_name(cppitem_name);
+    if (!memoized.empty()) return memoized;
 
 // remove global scope '::' if present
     std::string tclean = cppitem_name.compare(0, 2, "::") == 0 ?
@@ -535,7 +553,6 @@ static std::string extract_namespace(const std::string& name)
     return "";
 }
 
-static std::map<std::string, std::string> resolved_enum_types;
 std::string Cppyy::ResolveEnum(const std::string& enum_type)
 {
 // The underlying type of a an enum may be any kind of integer.
@@ -620,7 +637,7 @@ static Cppyy::TCppIndex_t ArgSimilarityScore(void *argqtp, void *reqqtp)
 Cppyy::TCppScope_t Cppyy::GetScope(const std::string& sname)
 {
 // First, try cache
-    TCppType_t result = find_memoized(sname);
+    TCppType_t result = find_memoized_scope(sname);
     if (result) return result;
 
 // Second, skip builtins before going through the more expensive steps of resolving
@@ -633,7 +650,7 @@ Cppyy::TCppScope_t Cppyy::GetScope(const std::string& sname)
     std::string scope_name = ResolveName(sname);
     bool bHasAlias1 = sname != scope_name;
     if (bHasAlias1) {
-        result = find_memoized(scope_name);
+        result = find_memoized_scope(scope_name);
         if (result) {
             g_name2classrefidx[sname] = result;
             return result;
@@ -650,7 +667,7 @@ Cppyy::TCppScope_t Cppyy::GetScope(const std::string& sname)
 // memoize found/created TClass
     bool bHasAlias2 = cr->GetName() != scope_name;
     if (bHasAlias2) {
-        result = find_memoized(cr->GetName());
+        result = find_memoized_scope(cr->GetName());
         if (result) {
             g_name2classrefidx[scope_name] = result;
             if (bHasAlias1) g_name2classrefidx[sname] = result;
@@ -1165,7 +1182,22 @@ bool Cppyy::IsEnum(const std::string& type_name)
     if (tn_short.empty()) return false;
 
     R__LOCKGUARD_CLING(gInterpreterMutex);
-    return gInterpreter->ClassInfo_IsEnum(tn_short.c_str());
+    if (gInterpreter->ClassInfo_IsEnum(tn_short.c_str()))
+        return true;
+
+    // ClassInfo_IsEnum may fail for shadowed enums
+    TEnum* ee = nullptr;
+
+    std::string scope_name = extract_namespace(tn_short);
+    if (scope_name.empty())
+        ee = ((TListOfEnums*)gROOT->GetListOfEnums())->GetObject(tn_short.c_str());
+    else {
+        TClass* cl = TClass::GetClass(scope_name.c_str());
+        if (cl) ee = ((TListOfEnums*)cl->GetListOfEnums())->GetObject(
+            tn_short.substr(scope_name.size()+2, std::string::npos).c_str());
+    }
+
+    return (bool)ee;
 }
 
 bool Cppyy::IsAggregate(TCppType_t type)
