@@ -642,6 +642,21 @@ const char *TClingDataMemberInfo::TypeName() const
       vdType = CppyyLegacy::TMetaUtils::ReSubstTemplateArg(vdType, fClassInfo->GetType() );
 
       CppyyLegacy::TMetaUtils::GetFullyQualifiedTypeName(buf, vdType, *fInterp);
+      if (buf.find("(lambda)") != std::string::npos) {
+          // TODO: this is a special case that works in conjunction with the support
+          // for lambda variables. As of LLVM16, template instantiations of scopes with
+          // decltype of a lambda functions will print "(lambda)" as the template arg,
+          // instead of an implicit function ptr type. This makes the scope name unusable.
+          // For the relevant use case, however, the scope isn't relevant: only the actual
+          // type of the data member represented here is. Hence, taking the canonical type
+          // is fine (the by-passed typedef isn't used). This need not be generally true,
+          // but it's a niche case to begin with and the scoped type isn't going to be
+          // usuable as-is. Further, as of C++17, classes can be implicitly instantiated
+          // meaning that an `std::function` can be used as a workaround to get at a
+          // workable type of a lambda.
+          buf.clear();
+          CppyyLegacy::TMetaUtils::GetFullyQualifiedTypeName(buf, vdType.getCanonicalType(), *fInterp);
+      }
 
       return buf.c_str();
    }
