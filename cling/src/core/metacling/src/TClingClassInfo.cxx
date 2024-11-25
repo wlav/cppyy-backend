@@ -831,6 +831,21 @@ bool TClingClassInfo::IsScopedEnum() const
    return false;
 }
 
+static std::string GetEnumQualName(const EnumDecl* ED, cling::Interpreter* interp)
+{
+   std::string qual_name;
+   auto Ty = ED->getIntegerType().getTypePtrOrNull();
+   if (auto td = llvm::dyn_cast<TypedefType>(Ty)) {
+      const auto* decl = td->getDecl();
+      const auto& ctxt = decl->getASTContext();
+      CppyyLegacy::TMetaUtils::GetFullyQualifiedTypeName(qual_name, ctxt.getTypedefType(decl), *interp);
+   } else {
+      CppyyLegacy::TMetaUtils::GetFullyQualifiedTypeName(qual_name, ED->getIntegerType(), *interp);
+   }
+
+   return qual_name;
+}
+
 EDataType TClingClassInfo::GetUnderlyingType() const
 {
    if (!IsValid())
@@ -840,31 +855,30 @@ EDataType TClingClassInfo::GetUnderlyingType() const
 
    if (auto ED = llvm::dyn_cast<EnumDecl>(GetDecl())) {
       R__LOCKGUARD(gInterpreterMutex);
-      auto Ty = ED->getIntegerType().getTypePtrOrNull();
-      if (auto td = llvm::dyn_cast<TypedefType>(Ty)) {
-          const auto* decl = td->getDecl();
-          std::string name;
-          const auto& ctxt = decl->getASTContext();
-          CppyyLegacy::TMetaUtils::GetFullyQualifiedTypeName(name, ctxt.getTypedefType(decl), *fInterp);
-          if (name == "int8_t")
-              return kInt8_t;
-          if (name == "uint8_t")
-              return kUInt8_t;
-      }
 
-      Ty = ED->getIntegerType().getCanonicalType().getTypePtrOrNull();
+      // Note: for char types, check the non-canonical type for (u)int8_t as
+      // these are typedefs to such and which would erroneously be interpreted
+      // as strings if fully resolved
+
+      auto Ty = ED->getIntegerType().getCanonicalType().getTypePtrOrNull();
       if (auto BTy = llvm::dyn_cast<BuiltinType>(Ty)) {
          switch (BTy->getKind()) {
          case BuiltinType::Bool:
             return kBool_t;
 
          case BuiltinType::Char_U:
-         case BuiltinType::UChar:
+         case BuiltinType::UChar: {
+            if (GetEnumQualName(ED, fInterp) == "uint8_t")
+               return kUInt8_t;
             return kUChar_t;
+         }
 
          case BuiltinType::Char_S:
-         case BuiltinType::SChar:
+         case BuiltinType::SChar: {
+            if (GetEnumQualName(ED, fInterp) == "int8_t")
+               return kInt8_t;
             return kChar_t;
+         }
 
          case BuiltinType::UShort:
             return kUShort_t;
