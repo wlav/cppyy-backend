@@ -403,6 +403,7 @@ TFunction* m2f(Cppyy::TCppMethod_t method) {
     return wrap->fTF;
 }
 
+/*
 static inline
 CallWrapper::DeclId_t m2d(Cppyy::TCppMethod_t method) {
     CallWrapper* wrap = ((CallWrapper*)method);
@@ -412,6 +413,7 @@ CallWrapper::DeclId_t m2d(Cppyy::TCppMethod_t method) {
     }
     return wrap->fDecl;
 }
+*/
 
 static inline
 char* cppstring_to_cstring(const std::string& cppstr)
