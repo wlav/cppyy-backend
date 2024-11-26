@@ -85,14 +85,11 @@ Boston, MA 02111-1307, USA.  */
    On failure returns NULL. */
 
 PTR
-mmalloc_attach (fd, baseaddr, minsize)
 #ifndef WIN32
-  int fd;
+mmalloc_attach (int fd, PTR baseaddr, int minsize)
 #else
-  HANDLE fd;
+mmalloc_attach (HANDLE fd, PTR baseaddr, int minsize)
 #endif
-  PTR baseaddr;
-  int minsize;
 {
   struct mdesc mtemp;
   struct mdesc *mdp;
@@ -167,11 +164,7 @@ mmalloc_attach (fd, baseaddr, minsize)
         }
     }
 #else
-#if _WIN64
-  if (mdp -> fd == (HANDLE)0xffffffffffffffff) mdp -> flags |= MMALLOC_DEVZERO;
-#else
   if (mdp -> fd == (HANDLE)0xffffffff) mdp -> flags |= MMALLOC_DEVZERO;
-#endif
 #endif /* WIN32 */
 
   /*  Now try to map in the first page, copy the malloc descriptor structure
@@ -240,11 +233,10 @@ mmalloc_attach (fd, baseaddr, minsize)
    unsuccessful for some reason. */
 
 static struct mdesc *
-reuse (cfd)
 #ifndef WIN32
-  int cfd;
+reuse(int cfd)
 #else
-  HANDLE cfd;
+reuse(HANDLE cfd)
 #endif
 {
   struct mdesc *mtemp = (struct mdesc*) malloc(sizeof(struct mdesc));

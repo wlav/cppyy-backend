@@ -67,7 +67,7 @@ TBits& TBits::operator=(const TBits& rhs)
          fAllBits = new UChar_t[fNbytes];
          memcpy(fAllBits,rhs.fAllBits,fNbytes);
       } else {
-         fAllBits = 0;
+         fAllBits = nullptr;
       }
    }
    return *this;
@@ -87,7 +87,7 @@ TBits::~TBits()
 void TBits::Clear(Option_t * /*option*/)
 {
    delete [] fAllBits;
-   fAllBits = 0;
+   fAllBits = nullptr;
    fNbits   = 0;
    fNbytes  = 0;
 }
@@ -150,7 +150,7 @@ UInt_t TBits::CountBits(UInt_t startBit) const
    UInt_t ibit = startBit%8;
    if (ibit) {
       for (i=ibit;i<8;i++) {
-         if (fAllBits[startByte] & (1<<ibit)) count++;
+         if (fAllBits[startByte] & (1<<i)) count++;
       }
       startByte++;
    }

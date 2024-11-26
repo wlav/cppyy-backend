@@ -26,7 +26,6 @@ in this Software without prior written authorization from the X Consortium.
 
 */
 
-#include <stdio.h>
 
 #include "def.h"
 

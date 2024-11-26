@@ -56,10 +56,11 @@ public:
       TBits  &fBits; //!
       UInt_t  fPos;  //!
 
-      TReference(); // left undefined
+      TReference() = delete;
 
 public:
-      TReference(TBits& bit, UInt_t pos) : fBits(bit),fPos(pos) { }
+      TReference(TBits& bit, UInt_t pos) : fBits(bit), fPos(pos) {}
+      TReference(const TReference &rhs) : fBits(rhs.fBits), fPos(rhs.fPos) {}
       ~TReference() { }
 
        // For b[i] = val;
@@ -148,17 +149,17 @@ public:
 
 inline Bool_t operator&(const TBits::TReference& lhs, const TBits::TReference& rhs)
 {
-   return (Bool_t)lhs & rhs;
+   return ((Bool_t)lhs) && rhs;
 }
 
 inline Bool_t operator|(const TBits::TReference& lhs, const TBits::TReference& rhs)
 {
-   return (Bool_t)lhs | rhs;
+   return ((Bool_t)lhs) || rhs;
 }
 
 inline Bool_t operator^(const TBits::TReference& lhs, const TBits::TReference& rhs)
 {
-   return (Bool_t)lhs ^ rhs;
+   return ((Bool_t)lhs) ^ rhs;
 }
 
 inline TBits operator&(const TBits& lhs, const TBits& rhs)

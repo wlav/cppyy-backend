@@ -54,7 +54,7 @@ ClassImp(CppyyLegacy::TTimeStamp);
 
 namespace CppyyLegacy {
 
-TVirtualMutex *gTimeMutex = 0; // local mutex
+TVirtualMutex *gTimeMutex = nullptr; // local mutex
 
 ////////////////////////////////////////////////////////////////////////////////
 /// Write time stamp to std::ostream.
@@ -274,8 +274,9 @@ const Char_t *TTimeStamp::AsString(Option_t *option) const
 {
    const Int_t nbuffers = 8;     // # of buffers
 
-   static Char_t formatted[nbuffers][64];  // strftime fields substituted
-   static Char_t formatted2[nbuffers][64]; // nanosec field substituted
+   constexpr std::size_t bufferSize = 64;
+   static Char_t formatted[nbuffers][bufferSize];  // strftime fields substituted
+   static Char_t formatted2[nbuffers][bufferSize]; // nanosec field substituted
 
    static Int_t ibuffer = nbuffers;
 
@@ -288,7 +289,7 @@ const Char_t *TTimeStamp::AsString(Option_t *option) const
 
    if (opt.Contains("2")) {
       // return string formatted as integer {sec,nsec}
-      sprintf(formatted[ibuffer], "{%d,%d}", fSec, fNanoSec);
+      snprintf(formatted[ibuffer], bufferSize, "{%d,%d}", fSec, fNanoSec);
       return formatted[ibuffer];
    }
 
@@ -334,7 +335,7 @@ const Char_t *TTimeStamp::AsString(Option_t *option) const
    // hack in the nsec part
    Char_t *ptr = strrchr(formatted[ibuffer], '#');
    if (ptr) *ptr = '%';    // substitute % for #
-   sprintf(formatted2[ibuffer], formatted[ibuffer], fNanoSec);
+   snprintf(formatted2[ibuffer], bufferSize, formatted[ibuffer], fNanoSec);
 
    return formatted2[ibuffer];
 }
@@ -565,7 +566,7 @@ void TTimeStamp::Set()
    fSec     = Int_t(time.QuadPart/(unsigned __int64) (1000*1000*10));
 #else
    struct timeval tp;
-   gettimeofday(&tp, 0);
+   gettimeofday(&tp, nullptr);
    fSec     = tp.tv_sec;
    fNanoSec = tp.tv_usec*1000;
 #endif
