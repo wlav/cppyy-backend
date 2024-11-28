@@ -246,7 +246,7 @@ reuse(HANDLE cfd)
   int rdonly = 0;
   BY_HANDLE_FILE_INFORMATION FileInformation;
   DWORD lbuf;
-  long fd = _get_osfhandle((int)cfd);
+  intptr_t fd = _get_osfhandle((int)cfd);
   if (!GetFileInformationByHandle(cfd,&FileInformation))
   {
      fprintf(stderr, "reuse: error calling GetFileInformationByHandle(%d)\n", GetLastError());
