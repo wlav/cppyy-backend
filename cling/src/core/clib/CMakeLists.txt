@@ -12,6 +12,7 @@ set(Clib_dict_headers strlcpy.h
                       snprintf.h PARENT_SCOPE)
 
 ROOT_OBJECT_LIBRARY(Clib
+  src/Demangle.c
   src/attach.c
   src/detach.c
   src/getpagesize.c
@@ -21,20 +22,17 @@ ROOT_OBJECT_LIBRARY(Clib
   src/mmalloc.c
   src/mmapsup.c
   src/mmcheck.c
+  src/mmemalign.c
+  src/mmstats.c
+  src/mmtrace.c
   src/mrealloc.c
+  src/mvalloc.c
   src/sbrksup.c
   src/snprintf.c
   src/strlcat.c
   src/strlcpy.c
 )
 
-target_include_directories(Clib
-  PUBLIC
-    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/inc>
-  PRIVATE
-    ${CMAKE_BINARY_DIR}/ginclude
-    ${CMAKE_CURRENT_SOURCE_DIR}/res
-    ${CMAKE_CURRENT_SOURCE_DIR}/../foundation/inc # for RConfig.hxx
-)
+target_include_directories(Clib PRIVATE res)
 
 ROOT_INSTALL_HEADERS()
