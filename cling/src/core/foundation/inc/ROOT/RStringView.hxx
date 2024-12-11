@@ -14,7 +14,7 @@
 
 #include "RConfigure.h"
 
-#ifdef R__HAS_STD_STRING_VIEW
+#if __cplusplus > 201402L
 
 #include <string_view>
 
@@ -53,7 +53,7 @@ namespace std {
 
 }
 
-#endif // ifdef else R__HAS_STD_STRING_VIEW
+#endif // ifdef else __cplusplus > 201402L
 
 #ifndef R__HAS_OP_EQUAL_PLUS_STRING_VIEW
 
@@ -72,17 +72,4 @@ inline std::string &operator+=(std::string &left, std::string_view right)
 
 #endif // ifndef R__HAS_OP_EQUAL_PLUS_STRING_VIEW
 
-namespace CppyyLegacy {
-namespace Internal {
-    class TStringView {
-       const char *fData{nullptr};
-       size_t      fLength{0};
-
-    public:
-       explicit TStringView(const char *cstr, size_t len) : fData(cstr), fLength(len) {}
-
-       operator std::string_view() const { return std::string_view(fData,fLength); }
-    };
-} // namespace Internal
-} // namespace CppyyLegacy
 #endif // RStringView_H
