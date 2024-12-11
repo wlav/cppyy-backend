@@ -118,7 +118,7 @@ class my_cmake_build(_build):
             stdcxx = os.environ['STDCXX']
         except KeyError:
             if is_manylinux():
-                stdcxx = '14'
+                stdcxx = '17'
             else:
                 stdcxx = '20'
 
@@ -264,7 +264,7 @@ class my_install(_install):
                 if line.find('cxxversionflag=', 0, 15) == 0:
                     line = 'cxxversionflag="-std=c++2a "\n'
                 elif line.find('features=', 0, 9) == 0:
-                    line = line.replace('cxx14', 'cxx20')
+                    line = line.replace('cxx17', 'cxx20')
                 outfile.write(line)
             outfile.close()
             os.rename(outp, inp)
@@ -286,7 +286,7 @@ class my_install(_install):
             outp = inp+'.new'
             outfile = open(outp, 'w')
             for line in open(inp).readlines():
-                line = line.replace('-std=c++14', '-std=c++2a')
+                line = line.replace('-std=c++17', '-std=c++2a')
                 outfile.write(line)
             outfile.close()
             os.rename(outp, inp)
