@@ -424,6 +424,7 @@ function(cppyy_add_bindings pkg pkg_version author author_email)
     list(APPEND cling_args "-f" ${cpp_file})
     list(APPEND cling_args "-s" ${pkg_simplename})
     list(APPEND cling_args "-rmf" ${rootmap_file} "-rml" ${lib_file})
+    list(APPEND cling_args "--interpreteronly")
     foreach(in_pcm IN LISTS ARG_IMPORTS)
         #
         # Create -m options for any imported .pcm files.
