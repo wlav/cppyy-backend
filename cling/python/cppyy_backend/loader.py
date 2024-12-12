@@ -188,6 +188,8 @@ def ensure_precompiled_header(pchdir = '', pchname = ''):
                  if 'native' in cling_args:  pchname += 'native.'
                  if 'openmp' in  cling_args: pchname += 'omp.'
                  if 'cuda' in cling_args:    pchname += 'cuda.'
+                 from ._get_cppflags import get_cppversion
+                 pchname += get_cppversion() + '.'
                  from ._version import __version__
                  pchname += str(__version__)
              pchname = os.path.join(pchdir, pchname)
