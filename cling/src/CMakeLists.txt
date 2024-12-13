@@ -23,7 +23,12 @@ include(cmake/modules/CaptureCommandLine.cmake)
 
 project(ROOT)
 
-#---Set the locale to default C to prevent issued due to localization of commands---------------
+#---Set globally consistent use of __cplusplus ------------------------------------------------
+if ((MSVC) AND (MSVC_VERSION GREATER_EQUAL 1914))
+   set(CMAKE_CXX_FLAGS            "${CMAKE_CXX_FLAGS} /Zc:__cplusplus")
+endif()
+
+#---Set the locale to default C to prevent issued due to localization of commands--------------
 # This is necessary as we for example call `clang -v` and parse its output. But on a localized
 # program, the output parsing is much more error prone as certrain strings we're looking for
 # could be missing or be in a different order. To prevent those errors, let's just force all
@@ -177,18 +182,6 @@ endif()
 
 #---Here we look for installed software and switch on and of the different build options--------
 include(SearchInstalledSoftware)
-
-#---Here we add tcmalloc to the linker flags if needed------------------------------------------
-if (TCMALLOC_FOUND)
-  set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -ltcmalloc -L${TCMALLOC_LIBRARY_PATH}")
-  set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} -ltcmalloc -L${TCMALLOC_LIBRARY_PATH}")
-endif()
-
-#---Here we add jemalloc to the linker flags if needed------------------------------------------
-if (JEMALLOC_FOUND)
-  set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -ljemalloc -L${JEMALLOC_LIBRARY_PATH}")
-  set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} -ljemalloc -L${JEMALLOC_LIBRARY_PATH}")
-endif()
 
 #---Populate the configure arguments returned by 'root-config --config'-------------------------
 get_cmake_property(variables CACHE_VARIABLES)
@@ -360,14 +353,6 @@ if(runtime_cxxmodules)
   set(FIXME_TEMPORARILY_EXCLUDED_FOR_RUNTIME_CXXMODULES On)
 else()
   get_property(incdirs DIRECTORY PROPERTY INCLUDE_DIRECTORIES)
-
-  if(WIN32)
-    list(APPEND incdirs
-      ${CMAKE_SOURCE_DIR}/graf2d/win32gdk/gdk/src
-      ${CMAKE_SOURCE_DIR}/graf2d/win32gdk/gdk/src/gdk
-      ${CMAKE_SOURCE_DIR}/graf2d/win32gdk/gdk/src/glib
-    )
-  endif()
 
   foreach(d ${incdirs})
     if(NOT "${d}" MATCHES "AFTER|BEFORE|INTERFACE|PRIVATE|PUBLIC|SYSTEM")
