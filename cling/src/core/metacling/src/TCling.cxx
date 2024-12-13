@@ -334,6 +334,14 @@ void TCling__PrintStackTrace() {
 }
 
 ////////////////////////////////////////////////////////////////////////////////
+/// Load a library.
+
+extern "C" int TCling__LoadLibrary(const char *library)
+{
+   return gSystem->Load(library, "", false);
+}
+
+////////////////////////////////////////////////////////////////////////////////
 /// Re-apply the lock count delta that TCling__ResetInterpreterMutex() caused.
 
 extern "C" void TCling__RestoreInterpreterMutex(void *delta)
@@ -592,7 +600,6 @@ extern "C" void TCling__LibraryUnloadedRTTI(const void* dyLibHandle,
                                             const char* canonicalName) {
    ((TCling*)gCling)->LibraryUnloaded(dyLibHandle, canonicalName);
 }
-
 
 extern "C" const Decl* TCling__GetObjectDecl(TObject *obj) {
    return ((TClingClassInfo*)obj->IsA()->GetClassInfo())->GetDecl();
@@ -5856,7 +5863,7 @@ Int_t TCling::AutoParse(const char *cls)
       return 0;
 
    if (!fHeaderParsingOnDemand || fIsAutoParsingSuspended) {
-      if (fClingCallbacks->IsAutoloadingEnabled()) {
+      if (fClingCallbacks->IsAutoLoadingEnabled()) {
          return AutoLoad(cls);
       } else {
          return 0;
@@ -5871,7 +5878,7 @@ Int_t TCling::AutoParse(const char *cls)
    }
 
    // The catalogue of headers is in the dictionary
-   if (fClingCallbacks->IsAutoloadingEnabled()
+   if (fClingCallbacks->IsAutoLoadingEnabled()
          && !gClassTable->GetDictNorm(cls)) {
       // Need RAII against recursive (dictionary payload) parsing (ROOT-8445).
       CppyyLegacy::Internal::ParsingStateRAII parsingStateRAII(fInterpreter->getParser(),
@@ -6814,7 +6821,7 @@ bool TCling::IsClassAutoloadingEnabled() const
       return false;
    if (!fClingCallbacks)
       return false;
-   return fClingCallbacks->IsAutoloadingEnabled();
+   return fClingCallbacks->IsAutoLoadingEnabled();
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -6830,8 +6837,8 @@ int TCling::SetClassAutoloading(int autoload) const
       return autoload;
 
    assert(fClingCallbacks && "We must have callbacks!");
-   bool oldVal = fClingCallbacks->IsAutoloadingEnabled();
-   fClingCallbacks->SetAutoloadingEnabled(autoload);
+   bool oldVal = fClingCallbacks->IsAutoLoadingEnabled();
+   fClingCallbacks->SetAutoLoadingEnabled(autoload);
    return oldVal;
 }
 

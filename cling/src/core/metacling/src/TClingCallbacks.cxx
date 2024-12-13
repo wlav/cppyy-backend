@@ -11,6 +11,8 @@
 
 #include "TClingCallbacks.h"
 
+#include <ROOT/FoundationUtils.hxx>
+
 #include "cling/Interpreter/DynamicLibraryManager.h"
 #include "cling/Interpreter/Interpreter.h"
 #include "cling/Interpreter/InterpreterCallbacks.h"
@@ -29,14 +31,22 @@
 #include "clang/Parse/Parser.h"
 #include "clang/Sema/Lookup.h"
 #include "clang/Sema/Scope.h"
-#include "clang/Sema/ScopeInfo.h"
+#include "clang/Serialization/ASTReader.h"
+#include "clang/Serialization/GlobalModuleIndex.h"
+#include "clang/Basic/DiagnosticSema.h"
 
+#include "llvm/ExecutionEngine/Orc/Core.h"
+
+#include "llvm/Support/Error.h"
 #include "llvm/Support/FileSystem.h"
 #include "llvm/Support/Path.h"
+#include "llvm/Support/Process.h"
 
 #include "TClingUtils.h"
 #include "ClingRAII.h"
+#include "DllImport.h"
 
+#include <optional>
 
 using namespace clang;
 using namespace cling;
@@ -45,6 +55,7 @@ namespace CppyyLegacy {
 
 using namespace Internal;
 
+R__EXTERN int gDebug;
 class TObject;
 
 // Functions used to forward calls from code compiled with no-rtti to code
@@ -63,6 +74,7 @@ extern "C" {
    int TCling__CompileMacro(const char *fileName, const char *options);
    void TCling__SplitAclicMode(const char* fileName, std::string &mode,
                   std::string &args, std::string &io, std::string &fname);
+   int TCling__LoadLibrary(const char *library);
    bool TCling__LibraryLoadingFailed(const std::string&, const std::string&, bool, bool);
    void TCling__LibraryLoadedRTTI(const void* dyLibHandle,
                                   llvm::StringRef canonicalName);
@@ -73,20 +85,156 @@ extern "C" {
    void TCling__RestoreInterpreterMutex(void *state);
    void *TCling__LockCompilationDuringUserCodeExecution();
    void TCling__UnlockCompilationDuringUserCodeExecution(void *state);
-   void TCling__FindLoadedLibraries(std::vector<std::pair<uint32_t, std::string>> &sLibraries,
-                                    std::vector<std::string> &sPaths,
-                                    cling::Interpreter &interpreter, bool searchSystem);
 }
 
-TClingCallbacks::TClingCallbacks(cling::Interpreter* interp, bool hasCodeGen)
-   : InterpreterCallbacks(interp),
-     fLastLookupCtx(0), fROOTSpecialNamespace(0),
-     fFirstRun(true), fIsAutoloading(false), fIsAutoloadingRecursively(false),
-     fIsAutoParsingSuspended(false), fPPOldFlag(false), fPPChanged(false) {
+class AutoloadLibraryMU : public llvm::orc::MaterializationUnit {
+   const TClingCallbacks &fCallbacks;
+   std::string fLibrary;
+   llvm::orc::SymbolNameVector fSymbols;
+public:
+   AutoloadLibraryMU(const TClingCallbacks &cb, const std::string &Library, const llvm::orc::SymbolNameVector &Symbols)
+      : MaterializationUnit({getSymbolFlagsMap(Symbols), nullptr}), fCallbacks(cb), fLibrary(Library), fSymbols(Symbols)
+   {
+   }
+
+   StringRef getName() const override { return "<Symbols from Autoloaded Library>"; }
+
+   void materialize(std::unique_ptr<llvm::orc::MaterializationResponsibility> R) override
+   {
+      if (!fCallbacks.IsAutoLoadingEnabled()) {
+         R->failMaterialization();
+         return;
+      }
+
+      llvm::orc::SymbolMap loadedSymbols;
+      llvm::orc::SymbolNameSet failedSymbols;
+      bool loadedLibrary = false;
+
+      for (auto symbol : fSymbols) {
+         std::string symbolStr = (*symbol).str();
+         std::string nameForDlsym = CppyyLegacy::TMetaUtils::DemangleNameForDlsym(symbolStr);
+
+         // Check if the symbol is available without loading the library.
+         void *addr = llvm::sys::DynamicLibrary::SearchForAddressOfSymbol(nameForDlsym);
+
+         if (!addr && !loadedLibrary) {
+            // Try to load the library which should provide the symbol definition.
+            // TODO: Should this interface with the DynamicLibraryManager directly?
+            if (TCling__LoadLibrary(fLibrary.c_str()) < 0) {
+               CppyyLegacy::TMetaUtils::Error("AutoloadLibraryMU", "Failed to load library %s", fLibrary.c_str());
+            }
+
+            // Only try loading the library once.
+            loadedLibrary = true;
+
+            addr = llvm::sys::DynamicLibrary::SearchForAddressOfSymbol(nameForDlsym);
+         }
+
+         if (addr) {
+            loadedSymbols[symbol] =
+               llvm::JITEvaluatedSymbol(llvm::pointerToJITTargetAddress(addr), llvm::JITSymbolFlags::Exported);
+         } else {
+            // Collect all failing symbols, delegate their responsibility and then
+            // fail their materialization. R->defineNonExistent() sounds like it
+            // should do that, but it's not implemented?!
+            failedSymbols.insert(symbol);
+         }
+      }
+
+      if (!failedSymbols.empty()) {
+         auto failingMR = R->delegate(failedSymbols);
+         if (failingMR) {
+            (*failingMR)->failMaterialization();
+         }
+      }
+
+      if (!loadedSymbols.empty()) {
+         llvm::cantFail(R->notifyResolved(loadedSymbols));
+         llvm::cantFail(R->notifyEmitted());
+      }
+   }
+
+   void discard(const llvm::orc::JITDylib &JD, const llvm::orc::SymbolStringPtr &Name) override {}
+
+private:
+   static llvm::orc::SymbolFlagsMap getSymbolFlagsMap(const llvm::orc::SymbolNameVector &Symbols)
+   {
+      llvm::orc::SymbolFlagsMap map;
+      for (auto symbolName : Symbols)
+         map[symbolName] = llvm::JITSymbolFlags::Exported;
+      return map;
+   }
+};
+
+class AutoloadLibraryGenerator : public llvm::orc::DefinitionGenerator {
+   const TClingCallbacks &fCallbacks;
+   cling::Interpreter *fInterpreter;
+public:
+   AutoloadLibraryGenerator(cling::Interpreter *interp, const TClingCallbacks& cb)
+      : fCallbacks(cb), fInterpreter(interp) {}
+
+   llvm::Error tryToGenerate(llvm::orc::LookupState &LS, llvm::orc::LookupKind K, llvm::orc::JITDylib &JD,
+                             llvm::orc::JITDylibLookupFlags JDLookupFlags,
+                             const llvm::orc::SymbolLookupSet &Symbols) override
+   {
+      if (!fCallbacks.IsAutoLoadingEnabled())
+         llvm::Error::success();
+
+      // If we get here, the symbols have not been found in the current process,
+      // so no need to check that again. Instead search for the library that
+      // provides the symbol and create one MaterializationUnit per library to
+      // actually load it if needed.
+      std::unordered_map<std::string, llvm::orc::SymbolNameVector> found;
+      llvm::orc::SymbolNameSet missing;
+
+      // TODO: Do we need to take gInterpreterMutex?
+      // R__LOCKGUARD(gInterpreterMutex);
+
+      for (auto &&KV : Symbols) {
+         llvm::orc::SymbolStringPtr name = KV.first;
+
+         const cling::DynamicLibraryManager &DLM = *fInterpreter->getDynamicLibraryManager();
+
+         std::string libName = DLM.searchLibrariesForSymbol((*name).str(),
+                                                            /*searchSystem=*/true);
+
+         // libNew overrides memory management functions; must never autoload that.
+         assert(libName.find("/libNew.") == std::string::npos && "We must not autoload libNew!");
+
+         // libCling symbols are intentionally hidden from the process, and libCling must not be
+         // dlopened. Instead, symbols must be resolved by specifically querying the dynlib handle of
+         // libCling, which by definition is loaded - else we could not call this code. The handle
+         // is made available as argument to `CreateInterpreter`.
+         assert(libName.find("/libCling.") == std::string::npos && "Must not autoload libCling!");
+
+         if (libName.empty())
+            missing.insert(name);
+         else
+            found[libName].push_back(name);
+      }
+
+      for (auto &&KV : found) {
+         auto MU = std::make_unique<AutoloadLibraryMU>(fCallbacks, KV.first, std::move(KV.second));
+         if (auto Err = JD.define(MU))
+            return Err;
+      }
+
+      if (!missing.empty())
+         return llvm::make_error<llvm::orc::SymbolsNotFound>(
+            JD.getExecutionSession().getSymbolStringPool(), std::move(missing));
+
+      return llvm::Error::success();
+   }
+};
+
+TClingCallbacks::TClingCallbacks(cling::Interpreter *interp, bool hasCodeGen) : InterpreterCallbacks(interp)
+{
    if (hasCodeGen) {
-      Transaction* T = 0;
-      m_Interpreter->declare("namespace __CppyyLegacy_SpecialObjects{}", &T);
+      Transaction* T = nullptr;
+      m_Interpreter->declare("namespace __ROOT_SpecialObjects{}", &T);
       fROOTSpecialNamespace = dyn_cast<NamespaceDecl>(T->getFirstDecl().getSingleDecl());
+
+      interp->addGenerator(std::make_unique<AutoloadLibraryGenerator>(interp, *this));
    }
 }
 
@@ -98,7 +246,7 @@ void TClingCallbacks::InclusionDirective(clang::SourceLocation sLoc/*HashLoc*/,
                                          llvm::StringRef FileName,
                                          bool /*IsAngled*/,
                                          clang::CharSourceRange /*FilenameRange*/,
-                                         const clang::OptionalFileEntryRef FE,
+                                         clang::OptionalFileEntryRef FE,
                                          llvm::StringRef /*SearchPath*/,
                                          llvm::StringRef /*RelativePath*/,
                                          const clang::Module * Imported,
@@ -109,7 +257,7 @@ void TClingCallbacks::InclusionDirective(clang::SourceLocation sLoc/*HashLoc*/,
       // FIXME: We should make the module visible at that point.
       if (!SemaR.isModuleVisible(Imported))
          CppyyLegacy::TMetaUtils::Info("TClingCallbacks::InclusionDirective",
-                                "Module %s resolved but not visible!", Imported->Name.c_str());
+                                       "Module %s resolved but not visible!", Imported->Name.c_str());
       else
         return;
    }
@@ -126,7 +274,7 @@ void TClingCallbacks::InclusionDirective(clang::SourceLocation sLoc/*HashLoc*/,
    // Strategy 2) is tried only if 1) fails.
 
    bool isHeaderFile = FileName.endswith(".h") || FileName.endswith(".hxx") || FileName.endswith(".hpp");
-   if (!IsAutoloadingEnabled() || fIsAutoloadingRecursively || !isHeaderFile)
+   if (!IsAutoLoadingEnabled() || fIsAutoLoadingRecursively || !isHeaderFile)
       return;
 
    std::string localString(FileName.str());
@@ -147,7 +295,7 @@ bool TClingCallbacks::LibraryLoadingFailed(const std::string& errmessage, const 
 // #include "myMacro.C+"
 //
 bool TClingCallbacks::FileNotFound(llvm::StringRef FileName) {
-   // Method called via Callbacks->FileNotFound(Filename, RecoveryPath)
+   // Method called via Callbacks->FileNotFound(Filename)
    // in Preprocessor::HandleIncludeDirective(), initially allowing to
    // change the include path, and allowing us to compile code via ACLiC
    // when specifying #include "myfile.C+", and suppressing the preprocessor
@@ -172,13 +320,12 @@ bool TClingCallbacks::FileNotFound(llvm::StringRef FileName) {
          // Save state of the preprocessor
          Preprocessor::CleanupAndRestoreCacheRAII cleanupRAII(PP);
          Parser& P = const_cast<Parser&>(m_Interpreter->getParser());
+         // We parsed 'include' token. Store it.
+         clang::Parser::ParserCurTokRestoreRAII fSavedCurToken(P);
+         // We provide our own way of handling the entire #include "file.c+"
          // After we have saved the token reset the current one to
          // something which is safe (semi colon usually means empty decl)
          Token& Tok = const_cast<Token&>(P.getCurToken());
-         // We parsed 'include' token. We don't need to restore it, because
-         // we provide our own way of handling the entire #include "file.c+"
-         // Thus if we reverted the token back to the parser, we are in
-         // a trouble.
          Tok.setKind(tok::semi);
          // We can't PushDeclContext, because we go up and the routine that pops
          // the DeclContext assumes that we drill down always.
@@ -197,21 +344,11 @@ bool TClingCallbacks::FileNotFound(llvm::StringRef FileName) {
                                                 SemaR.TUScope);
          int retcode = TCling__CompileMacro(fname.c_str(), options.c_str());
          if (retcode) {
-            // compilation was successful, let's remember the original
-            // preprocessor "include not found" error suppression flag
-            if (!fPPChanged)
-               fPPOldFlag = PP.GetSuppressIncludeNotFoundError();
-            PP.SetSuppressIncludeNotFoundError(true);
-            fPPChanged = true;
+            // compilation was successful, tell the preprocess to silently
+            // skip the file
+            return true;
          }
-         return false;
       }
-   }
-   if (fPPChanged) {
-      // restore the original preprocessor "include not found" error
-      // suppression flag
-      PP.SetSuppressIncludeNotFoundError(fPPOldFlag);
-      fPPChanged = false;
    }
    return false;
 }
@@ -239,7 +376,7 @@ static bool topmostDCIsFunction(Scope* S) {
 }
 
 // On a failed lookup we have to try to more things before issuing an error.
-// The symbol might need to be loaded by ROOT's autoloading mechanism or
+// The symbol might need to be loaded by ROOT's AutoLoading mechanism or
 // it might be a ROOT special object.
 //
 // Try those first and if still failing issue the diagnostics.
@@ -277,11 +414,77 @@ bool TClingCallbacks::LookupObject(LookupResult &R, Scope *S) {
       return true;
    }
 
-   if (fIsAutoloadingRecursively)
+   if (fIsAutoLoadingRecursively)
       return false;
 
-   // Skip resolving resolve this name as a dynamic name, i.e. do not call
-   // `return tryResolveAtRuntimeInternal(R, S);`
+   // Finally try to resolve this name as a dynamic name, i.e delay its
+   // resolution for runtime.
+   return tryResolveAtRuntimeInternal(R, S);
+}
+
+bool TClingCallbacks::findInGlobalModuleIndex(DeclarationName Name, bool loadFirstMatchOnly /*=true*/)
+{
+   std::optional<std::string> envUseGMI = llvm::sys::Process::GetEnv("ROOT_USE_GMI");
+   if (envUseGMI.has_value())
+      if (!envUseGMI->empty() && !CppyyLegacy::FoundationUtils::ConvertEnvValueToBool(*envUseGMI))
+         return false;
+
+   const CompilerInstance *CI = m_Interpreter->getCI();
+   const LangOptions &LangOpts = CI->getPreprocessor().getLangOpts();
+
+   if (!LangOpts.Modules)
+      return false;
+
+   // We are currently building a module, we should not import .
+   if (LangOpts.isCompilingModule())
+      return false;
+
+   if (fIsCodeGening)
+      return false;
+
+   // We are currently instantiating one (or more) templates. At that point,
+   // all Decls are present in the AST (with possibly deserialization pending),
+   // and we should not load more modules which could find an implicit template
+   // instantiation that is lazily loaded.
+   Sema &SemaR = m_Interpreter->getSema();
+   if (SemaR.InstantiatingSpecializations.size() > 0)
+      return false;
+
+   GlobalModuleIndex *Index = CI->getASTReader()->getGlobalIndex();
+   if (!Index)
+      return false;
+
+   // FIXME: We should load only the first available and rely on other callbacks
+   // such as RequireCompleteType and LookupUnqualified to load all.
+   GlobalModuleIndex::FileNameHitSet FoundModules;
+
+   // Find the modules that reference the identifier.
+   // Note that this only finds top-level modules.
+   if (Index->lookupIdentifier(Name.getAsString(), FoundModules)) {
+      for (llvm::StringRef FileName : FoundModules) {
+         StringRef ModuleName = llvm::sys::path::stem(FileName);
+
+         // Skip to the first not-yet-loaded module.
+         if (m_LoadedModuleFiles.count(FileName)) {
+            if (gDebug > 2)
+               llvm::errs() << "Module '" << ModuleName << "' already loaded"
+                            << " for '" << Name.getAsString() << "'\n";
+            continue;
+         }
+
+         fIsLoadingModule = true;
+         if (gDebug > 2)
+            llvm::errs() << "Loading '" << ModuleName << "' on demand"
+                         << " for '" << Name.getAsString() << "'\n";
+
+         m_Interpreter->loadModule(ModuleName.str());
+         fIsLoadingModule = false;
+         m_LoadedModuleFiles[FileName] = Name;
+         if (loadFirstMatchOnly)
+            break;
+      }
+      return true;
+   }
    return false;
 }
 
@@ -291,27 +494,42 @@ bool TClingCallbacks::LookupObject(const DeclContext* DC, DeclarationName Name) 
       return false;
    }
 
-   if (!IsAutoloadingEnabled() || fIsAutoloadingRecursively) return false;
+   if (fIsLoadingModule)
+      return false;
 
-   if (Name.getNameKind() != DeclarationName::Identifier) return false;
+   if (fIsAutoParsingSuspended || fIsAutoLoadingRecursively)
+      return false;
 
+   if (Name.getNameKind() != DeclarationName::Identifier)
+      return false;
 
+   Sema &SemaR = m_Interpreter->getSema();
+   auto *D = cast<Decl>(DC);
+   SourceLocation Loc = D->getLocation();
+   if (Loc.isValid() && SemaR.getSourceManager().isInSystemHeader(Loc)) {
+      // This declaration comes from a system module, we do not want to try
+      // autoparsing it and find instantiations in our ROOT modules.
+      return false;
+   }
 
    // Get the 'lookup' decl context.
    // We need to cast away the constness because we will lookup items of this
    // namespace/DeclContext
    NamespaceDecl* NSD = dyn_cast<NamespaceDecl>(const_cast<DeclContext*>(DC));
-   if (!NSD)
-      return false;
 
-   if ( !TCling__IsAutoLoadNamespaceCandidate(NSD) )
-      return false;
+   // When GMI is mixed with rootmaps, we might have a name for two different
+   // entities provided by the two systems. In that case check if the rootmaps
+   // registered the enclosing namespace as a rootmap name resolution namespace
+   // and only if that was not the case use the information in the GMI.
+   if (!NSD || !TCling__IsAutoLoadNamespaceCandidate(NSD)) {
+      // After loading modules, we must update the redeclaration chains.
+      return findInGlobalModuleIndex(Name, /*loadFirstMatchOnly*/ false) && D->getMostRecentDecl();
+   }
 
    const DeclContext* primaryDC = NSD->getPrimaryContext();
    if (primaryDC != DC)
       return false;
 
-   Sema &SemaR = m_Interpreter->getSema();
    LookupResult R(SemaR, Name, SourceLocation(), Sema::LookupOrdinaryName);
    R.suppressDiagnostics();
    // We need the qualified name for TCling to find the right library.
@@ -330,8 +548,7 @@ bool TClingCallbacks::LookupObject(const DeclContext* DC, DeclarationName Name) 
       llvm::SmallVector<NamedDecl*, 4> lookupResults;
       for(LookupResult::iterator I = R.begin(), E = R.end(); I < E; ++I)
          lookupResults.push_back(*I);
-      UpdateWithNewDecls(DC, Name, llvm::makeArrayRef(lookupResults.data(),
-                                                      lookupResults.size()));
+      UpdateWithNewDecls(DC, Name, llvm::ArrayRef(lookupResults.data(), lookupResults.size()));
       return true;
    }
    return false;
@@ -343,14 +560,21 @@ bool TClingCallbacks::LookupObject(clang::TagDecl* Tag) {
       return false;
    }
 
+   if (fIsLoadingModule)
+      return false;
+
    // Clang needs Tag's complete definition. Can we parse it?
-   if (fIsAutoloadingRecursively || fIsAutoParsingSuspended) return false;
+   if (fIsAutoLoadingRecursively || fIsAutoParsingSuspended) return false;
+
+   // if (findInGlobalModuleIndex(Tag->getDeclName(), /*loadFirstMatchOnly*/false))
+   //    return true;
 
    Sema &SemaR = m_Interpreter->getSema();
 
    SourceLocation Loc = Tag->getLocation();
    if (SemaR.getSourceManager().isInSystemHeader(Loc)) {
-      // We will not help the system headers, sorry.
+      // This declaration comes from a system module, we do not want to try
+      // autoparsing it and find instantiations in our ROOT modules.
       return false;
    }
 
@@ -369,12 +593,12 @@ bool TClingCallbacks::LookupObject(clang::TagDecl* Tag) {
 
       // Use the Normalized name for the autoload
       std::string Name;
-      const CppyyLegacy::TMetaUtils::TNormalizedCtxt* tNormCtxt = NULL;
+      const CppyyLegacy::TMetaUtils::TNormalizedCtxt* tNormCtxt = nullptr;
       TCling__GetNormalizedContext(tNormCtxt);
       CppyyLegacy::TMetaUtils::GetNormalizedName(Name,
-                                          C.getTypeDeclType(RD),
-                                          *m_Interpreter,
-                                          *tNormCtxt);
+                                                 C.getTypeDeclType(RD),
+                                                 *m_Interpreter,
+                                                 *tNormCtxt);
       // Autoparse implies autoload
       if (TCling__AutoParseCallback(Name.c_str())) {
          // We have read it; remember that.
@@ -386,7 +610,7 @@ bool TClingCallbacks::LookupObject(clang::TagDecl* Tag) {
 }
 
 
-// The symbol might be defined in the ROOT class autoloading map so we have to
+// The symbol might be defined in the ROOT class AutoLoading map so we have to
 // try to autoload it first and do secondary lookup to try to find it.
 //
 // returns true when a declaration is found and no error should be emitted.
@@ -402,10 +626,10 @@ bool TClingCallbacks::tryAutoParseInternal(llvm::StringRef Name, LookupResult &R
 
    Sema &SemaR = m_Interpreter->getSema();
 
-   // Try to autoload first if autoloading is enabled
-   if (IsAutoloadingEnabled()) {
+   // Try to autoload first if AutoLoading is enabled
+   if (IsAutoLoadingEnabled()) {
      // Avoid tail chasing.
-     if (fIsAutoloadingRecursively)
+     if (fIsAutoLoadingRecursively)
        return false;
 
      // We should try autoload only for special lookup failures.
@@ -415,7 +639,7 @@ bool TClingCallbacks::tryAutoParseInternal(llvm::StringRef Name, LookupResult &R
            || kind == Sema::LookupNamespaceName))
         return false;
 
-     fIsAutoloadingRecursively = true;
+     fIsAutoLoadingRecursively = true;
 
      bool lookupSuccess = false;
      // Save state of the PP
@@ -434,7 +658,7 @@ bool TClingCallbacks::tryAutoParseInternal(llvm::StringRef Name, LookupResult &R
                  // need to auto parse.
                  // But we might need to auto-load.
                  TCling__AutoLoadCallback(Name.data());
-                 fIsAutoloadingRecursively = false;
+                 fIsAutoLoadingRecursively = false;
                  return true;
               }
            }
@@ -449,7 +673,7 @@ bool TClingCallbacks::tryAutoParseInternal(llvm::StringRef Name, LookupResult &R
      } else if (FE && TCling__GetClassSharedLibs(Name.str().c_str())) {
         // We are "autoparsing" a header, and the header was not parsed.
         // But its library is known - so we do know about that header.
-        // Do the parsing explicitly here, while recursive autoloading is
+        // Do the parsing explicitly here, while recursive AutoLoading is
         // disabled.
         std::string incl = "#include \"";
         incl += FE->getName();
@@ -457,7 +681,7 @@ bool TClingCallbacks::tryAutoParseInternal(llvm::StringRef Name, LookupResult &R
         m_Interpreter->declare(incl);
      }
 
-     fIsAutoloadingRecursively = false;
+     fIsAutoLoadingRecursively = false;
 
      if (lookupSuccess)
        return true;
@@ -507,7 +731,7 @@ bool TClingCallbacks::tryResolveAtRuntimeInternal(LookupResult &R, Scope *S) {
    }
 
    VarDecl* Result = VarDecl::Create(C, TU, Loc, Loc, II, C.DependentTy,
-                                     /*TypeSourceInfo*/0, SC_None);
+                                     /*TypeSourceInfo*/nullptr, SC_None);
 
    if (!Result) {
       // We cannot handle the situation. Give up
@@ -518,7 +742,6 @@ bool TClingCallbacks::tryResolveAtRuntimeInternal(LookupResult &R, Scope *S) {
    // is a gross hack, because TClingCallbacks shouldn't know about
    // EvaluateTSynthesizer at all!
 
-   SourceRange invalidRange;
    Wrapper->addAttr(AnnotateAttr::CreateImplicit(C, "__ResolveAtRuntime"));
 
    // Here we have the scope but we cannot do Sema::PushDeclContext, because
@@ -532,7 +755,7 @@ bool TClingCallbacks::tryResolveAtRuntimeInternal(LookupResult &R, Scope *S) {
 
 bool TClingCallbacks::shouldResolveAtRuntime(LookupResult& R, Scope* S) {
    if (m_IsRuntime)
-     return false;
+      return false;
 
    if (R.getLookupKind() != Sema::LookupOrdinaryName)
       return false;
@@ -548,6 +771,16 @@ bool TClingCallbacks::shouldResolveAtRuntime(LookupResult& R, Scope* S) {
       return false;
    const cling::CompilationOptions& COpts = T->getCompilationOpts();
    if (!COpts.DynamicScoping)
+      return false;
+
+   auto &PP = R.getSema().PP;
+   // In `foo bar`, `foo` is certainly a type name and must not be resolved. We
+   // cannot rely on `PP.LookAhead(0)` as the parser might have already consumed
+   // some tokens.
+   SourceLocation LocAfterIdent = PP.getLocForEndOfToken(R.getNameLoc());
+   Token LookAhead0;
+   PP.getRawToken(LocAfterIdent, LookAhead0, /*IgnoreWhiteSpace=*/true);
+   if (LookAhead0.is(tok::raw_identifier))
       return false;
 
    // FIXME: Figure out better way to handle:
@@ -635,21 +868,26 @@ bool TClingCallbacks::tryInjectImplicitAutoKeyword(LookupResult &R, Scope *S) {
                                      C.getAutoType(QualType(),
                                                    clang::AutoTypeKeyword::Auto,
                                                    /*IsDependent*/false),
-                                     /*TypeSourceInfo*/0, SC_None);
+                                     /*TypeSourceInfo*/nullptr, SC_None);
 
    if (!Result) {
       CppyyLegacy::TMetaUtils::Error("TClingCallbacks::tryInjectImplicitAutoKeyword",
-                              "Cannot create VarDecl");
+                                     "Cannot create VarDecl");
       return false;
    }
 
    // Annotate the decl to give a hint in cling.
    // FIXME: We should move this in cling, when we implement turning it on
    // and off.
-   SourceRange invalidRange;
    Result->addAttr(AnnotateAttr::CreateImplicit(C, "__Auto"));
 
    R.addDecl(Result);
+
+   // Raise a warning when trying to use implicit auto injection feature.
+   SemaRef.getDiagnostics().setSeverity(diag::warn_deprecated_message, diag::Severity::Warning, SourceLocation());
+   SemaRef.Diag(Loc, diag::warn_deprecated_message)
+      << "declaration without the 'auto' keyword" << DC << Loc << FixItHint::CreateInsertion(Loc, "auto ");
+
    // Say that we can handle the situation. Clang should try to recover
    return true;
 }
@@ -700,7 +938,7 @@ void TClingCallbacks::DefinitionShadowed(const clang::NamedDecl *D) {
 
 void TClingCallbacks::DeclDeserialized(const clang::Decl* D) {
    if (const RecordDecl* RD = dyn_cast<RecordDecl>(D)) {
-      // FIXME: Our autoloading doesn't work (load the library) when the looked
+      // FIXME: Our AutoLoading doesn't work (load the library) when the looked
       // up decl is found in the PCH/PCM. We have to do that extra step, which
       // loads the corresponding library when a decl was deserialized.
       //
@@ -746,72 +984,6 @@ void *TClingCallbacks::LockCompilationDuringUserCodeExecution()
 void TClingCallbacks::UnlockCompilationDuringUserCodeExecution(void *StateInfo)
 {
    TCling__UnlockCompilationDuringUserCodeExecution(StateInfo);
-}
-
-static bool shouldIgnore(llvm::StringRef FileName) {
-   llvm::StringRef fileStem = llvm::sys::path::stem(FileName);
-   return fileStem.startswith("libNew");
-}
-
-static void SearchAndAddPath(const std::string& Path,
-      std::vector<std::pair<uint32_t, std::string>> &sLibraries, std::vector<std::string> &sPaths,
-      std::unordered_set<std::string>& alreadyLookedPath, cling::DynamicLibraryManager* dyLibManager)
-{
-   // Already searched?
-   auto it = alreadyLookedPath.insert(Path);
-   if (!it.second)
-      return;
-   StringRef DirPath(Path);
-   if (!llvm::sys::fs::is_directory(DirPath))
-      return;
-
-   bool flag = false;
-   std::error_code EC;
-   for (llvm::sys::fs::directory_iterator DirIt(DirPath, EC), DirEnd;
-         DirIt != DirEnd && !EC; DirIt.increment(EC)) {
-
-      std::string FileName(DirIt->path());
-      if (llvm::sys::fs::is_directory(FileName))
-         continue;
-      if (!cling::DynamicLibraryManager::isSharedLibrary(FileName))
-         continue;
-      // No need to check linked libraries, as this function is only invoked
-      // for symbols that cannot be found (neither by dlsym nor in the JIT).
-      if (dyLibManager->isLibraryLoaded(FileName.c_str()))
-         continue;
-
-      if (shouldIgnore(FileName))
-         continue;
-
-      sLibraries.push_back(std::make_pair(sPaths.size(), llvm::sys::path::filename(FileName).str()));
-      flag = true;
-   }
-
-   if (flag)
-      sPaths.push_back(Path);
-}
-
-// Extracted here to circumvent ODR clash between
-// std::Sp_counted_ptr_inplace<llvm::sys::fs::detail::DirIterState, std::allocator<llvm::sys::fs::detail::DirIterState>, (_gnu_cxx::_Lock_policy)2>::_M_get_deleter(std::type_info const&)
-// coming from a no-rtti and a rtti build in libstdc++ from GCC >= 8.1.
-// In its function body, rtti uses `arg0 == typeid(...)` protected by #ifdef __cpp_rtti. Depending
-// on which symbol (with or without rtti) the linker picks up, the argument `arg0` is a valid
-// type_info - or not, in which case this comparison crashes.
-// Circumvent this by removing the rtti-use of this function:
-void TCling__FindLoadedLibraries(std::vector<std::pair<uint32_t, std::string>> &sLibraries,
-                                 std::vector<std::string> &sPaths,
-                                 cling::Interpreter &interpreter, bool searchSystem)
-{
-   // Store the information of path so that we don't have to iterate over the same path again and again.
-   static std::unordered_set<std::string> alreadyLookedPath;
-   cling::DynamicLibraryManager* dyLibManager = interpreter.getDynamicLibraryManager();
-
-   const auto &searchPaths = dyLibManager->getSearchPaths();
-   for (const cling::DynamicLibraryManager::SearchPathInfo &Info : searchPaths) {
-      if (!Info.IsUser && !searchSystem)
-         continue;
-      SearchAndAddPath(Info.Path, sLibraries, sPaths, alreadyLookedPath, dyLibManager);
-   }
 }
 
 } // namespace CppyyLegacy

@@ -595,7 +595,7 @@ public:
    virtual bool IsPointerType(const void * QualTypePtr) const;
    virtual bool IsVoidPointerType(const void * QualTypePtr) const;
 
-// FunctionDecl interface 
+// FunctionDecl interface
    bool FunctionDeclId_IsMethod(DeclId_t fdeclid) const;
 
 // additional QualType Opaque Ptr interface
