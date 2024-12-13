@@ -1099,17 +1099,6 @@ void TDirectory::SetName(const char* newname)
 }
 
 ////////////////////////////////////////////////////////////////////////////////
-/// Encode the name and cycle into buffer like: "aap;2".
-
-void TDirectory::EncodeNameCycle(char *buffer, const char *name, Short_t cycle)
-{
-   if (cycle == 9999)
-      strcpy(buffer, name);
-   else
-      sprintf(buffer, "%s;%d", name, cycle);
-}
-
-////////////////////////////////////////////////////////////////////////////////
 /// Decode a namecycle "aap;2" into name "aap" and cycle "2". Destination
 /// buffer size for name (including string terminator) should be specified in
 /// namesize.
