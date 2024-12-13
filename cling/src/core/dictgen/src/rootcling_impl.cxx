@@ -238,7 +238,6 @@ static void AnnotateFieldDecl(clang::FieldDecl &decl,
    if (fieldSelRules.empty()) return;
 
    clang::ASTContext &C = decl.getASTContext();
-   clang::SourceRange commentRange; // Empty: this is a fake comment
 
    const std::string declName(decl.getNameAsString());
    std::string varName;
@@ -3597,9 +3596,9 @@ public:
    // outside environment and pre-included files have no effect. This hook
    // informs rootcling when a new submodule is being built so that it can
    // make CoreLegacy.Rtypes.h visible.
-   virtual void EnteredSubmodule(clang::Module* M,
-                                 clang::SourceLocation ImportLoc,
-                                 bool ForPragma) {
+   void EnteredSubmodule(clang::Module* M,
+                         clang::SourceLocation ImportLoc,
+                         bool ForPragma) override {
       assert(M);
       using namespace clang;
       if (llvm::StringRef(M->Name).endswith("ACLiC_dict")) {
@@ -4615,7 +4614,7 @@ int RootClingMain(int argc,
          clang::PragmaNamespace(pragma) {}
       void HandlePragma(clang::Preprocessor &PP,
                         clang::PragmaIntroducer Introducer,
-                        clang::Token &tok) {
+                        clang::Token &tok) override {
          PP.DiscardUntilEndOfDirective();
       }
    };
