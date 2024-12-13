@@ -360,7 +360,6 @@ bool DictSelectionReader::SecondPass(const clang::RecordDecl &recordDecl)
          // Now we take care of the transient and unsplittable members
          if (tInfo.fTransientMembers.empty() && tInfo.fUnsplittableMembers.empty()) continue;
          clang::ASTContext &C = recordDecl.getASTContext();
-         clang::SourceRange commentRange; // Empty: this is a fake comment
          std::string userDefinedProperty;
          userDefinedProperty.reserve(100);
          for (auto fieldPtr : recordDecl.fields()) {
