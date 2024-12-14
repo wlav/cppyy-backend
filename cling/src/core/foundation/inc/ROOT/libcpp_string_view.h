@@ -15,6 +15,8 @@
 #error "Do not use libcpp_string_view.h directly. #include \"RWrap_libcpp_string_view.h\" instead."
 #endif // RWrap_libcpp_string_view_h
 
+#include <functional>   // for std::unary_function
+
 /*
 string_view synopsis
 
