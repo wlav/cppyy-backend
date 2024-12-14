@@ -164,7 +164,11 @@ mmalloc_attach (HANDLE fd, PTR baseaddr, int minsize)
         }
     }
 #else
+#if _WIN64
+  if (mdp -> fd == (HANDLE)0xffffffffffffffff) mdp -> flags |= MMALLOC_DEVZERO;
+#else
   if (mdp -> fd == (HANDLE)0xffffffff) mdp -> flags |= MMALLOC_DEVZERO;
+#endif
 #endif /* WIN32 */
 
   /*  Now try to map in the first page, copy the malloc descriptor structure

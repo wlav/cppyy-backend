@@ -71,7 +71,7 @@ PTR mmalloc_getkey(PTR md, int keynum)
 
   if ((mdp != NULL) && (keynum >= 0) && (keynum < MMALLOC_KEYS))
     {
-      keyval = (PTR)((long)mdp -> keys [keynum] + mdp->offset);
+      keyval = (PTR)((intptr_t)mdp -> keys [keynum] + mdp->offset);
     }
   return (keyval);
 }
