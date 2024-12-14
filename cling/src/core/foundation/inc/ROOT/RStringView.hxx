@@ -14,7 +14,21 @@
 
 #include "RConfigure.h"
 
-#if __cplusplus > 201402L
+// Don't rely on RConfigure.h to figure whether `string_view` is available, as the
+// configuration is fixed at build time, but Cling (or the PCH) can be used with a
+// different standard at run-time, e.g. through EXTRA_CLING_ARGS
+
+#if (__cplusplus > 201402L) || (defined(_MSC_VER) && _MSVC_LANG > 201402L)
+# ifndef R__HAS_STD_STRING_VIEW
+#  define R__HAS_STD_STRING_VIEW
+# endif
+#else
+# ifdef R__HAS_STD_STRING_VIEW
+#  undef R__HAS_STD_STRING_VIEW
+# endif
+#endif
+
+#ifdef R__HAS_STD_STRING_VIEW
 
 #include <string_view>
 
