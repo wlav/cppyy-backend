@@ -164,7 +164,7 @@ mmalloc_attach (HANDLE fd, PTR baseaddr, int minsize)
         }
     }
 #else
-#if _WIN64
+#ifdef _WIN64
   if (mdp -> fd == (HANDLE)0xffffffffffffffff) mdp -> flags |= MMALLOC_DEVZERO;
 #else
   if (mdp -> fd == (HANDLE)0xffffffff) mdp -> flags |= MMALLOC_DEVZERO;
