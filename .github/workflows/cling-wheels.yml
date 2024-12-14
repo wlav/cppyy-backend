@@ -34,10 +34,10 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - os: macos-14
-            name: mac-cpython
-            python: 310
-            platform_id: macosx_x86_64
+          #- os: macos-14
+          #  name: mac-cpython
+          #  python: 310
+          #  platform_id: macosx_x86_64
 
           # cross-compilation platform, disabled because tools build
           # during the build process won't run
