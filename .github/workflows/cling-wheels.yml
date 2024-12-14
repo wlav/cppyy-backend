@@ -34,7 +34,7 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - os: macos-latest
+          - os: macos-14
             name: mac-cpython
             python: 310
             platform_id: macosx_x86_64
