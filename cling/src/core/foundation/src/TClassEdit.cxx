@@ -1425,7 +1425,10 @@ static void ResolveTypedefImpl(const char *tname,
                if (!scoperesult.empty()) {
                   // and it is a typedef
                   if (modified) {
-                     if (constprefix && scoperesult.compare(0,6,"const ",6) != 0) mod_start_of_type -= 6;
+                     if (constprefix && scoperesult.compare(0,6,"const ",6) != 0 && \
+                             6 <= mod_start_of_type && result.compare(mod_start_of_type-6, 6, "const ")) {
+                         mod_start_of_type -= 6;
+                     }
                      result.replace(mod_start_of_type, string::npos,
                                     scoperesult);
                      result += "::";
