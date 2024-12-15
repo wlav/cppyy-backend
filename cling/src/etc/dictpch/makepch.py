@@ -109,7 +109,7 @@ def makepch():
       alllinkdefsFilename.replace("\\","/")
 
    rootclingExe = os.path.join(rootdir,"bin","rootcling")
-   tmpdir = tempfile.gettempdir()
+   tmpdir = tempfile.mkdtemp()
    outf = os.path.join(tmpdir, "allDict.cxx")
    command = [rootclingExe,
               rootbuildFlag,
@@ -143,6 +143,7 @@ def makepch():
    if ret == 0:
       shutil.move(os.path.join(tmpdir, "allDict_rdict.pch"), pchFileName)
       os.unlink(outf)
+   shutil.rmtree(tmpdir)
 
    return ret
 
