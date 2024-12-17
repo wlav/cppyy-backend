@@ -276,7 +276,7 @@ class my_install(_install):
                         line = line[:pcxx+3] + update_cxxversion + line[pcxx+5:]
                 outfile.write(line)
             outfile.close()
-            os.rename(outp, inp)
+            os.replace(outp, inp)
             os.chmod(inp, stat.S_IMODE(os.lstat(inp).st_mode) | stat.S_IXUSR | stat.S_IXGRP | stat.S_IXOTH)
 
             log.info(f'updating allCppflags.txt to C++{update_cxxversion}')
@@ -288,7 +288,7 @@ class my_install(_install):
                     line = f'-std=c++{update_cxxversion}\n'
                 outfile.write(line)
             outfile.close()
-            os.rename(outp, inp)
+            os.replace(outp, inp)
 
             log.info('updating compiledata.h to C++{update_cxxversion}')
             inp = os.path.join(get_prefix(), 'include', 'compiledata.h')
@@ -300,7 +300,7 @@ class my_install(_install):
                      line = line[pstd+8] + update_cxxversion + line[pstd+10:]
                 outfile.write(line)
             outfile.close()
-            os.rename(outp, inp)
+            os.replace(outp, inp)
 
         install_path = self._get_install_path()
         log.info('Copying installation to: %s ...', install_path)
@@ -390,8 +390,13 @@ setup(
         'Operating System :: POSIX :: Linux',
         'Operating System :: MacOS :: MacOS X',
 
-        'Programming Language :: Python :: 2',
-        'Programming Language :: Python :: 2.7',
+        'Programming Language :: Python :: 3',
+        'Programming Language :: Python :: 3.8',
+        'Programming Language :: Python :: 3.9',
+        'Programming Language :: Python :: 3.10',
+        'Programming Language :: Python :: 3.11',
+        'Programming Language :: Python :: 3.12',
+        'Programming Language :: Python :: 3.13',
         'Programming Language :: C',
         'Programming Language :: C++',
 
