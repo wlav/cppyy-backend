@@ -1385,13 +1385,10 @@ static void ResolveTypedefImpl(const char *tname,
       while (tname[cursor]==' ') ++cursor;
    }
 
-   if (tname[cursor]=='c' && (cursor+6<len)) {
-      if (strncmp(tname+cursor,"const ",6) == 0) {
-         cursor += 6;
-         if (modified) result += "const ";
-      }
+   if (strncmp(tname+cursor,"const ",6) == 0) {
+      cursor += 6;
+      if (modified) result += "const ";
       constprefix = true;
-
    }
 
    if (len > 2 && strncmp(tname+cursor,"::",2) == 0) {
