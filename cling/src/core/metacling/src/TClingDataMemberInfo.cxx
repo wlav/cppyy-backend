@@ -375,7 +375,13 @@ intptr_t TClingDataMemberInfo::Offset()
       return (intptr_t)-1;
    }
 
-   const Decl *D = GetDecl();
+   const Decl *D = TClingDeclInfo::GetDecl();
+   if (!D && llvm::dyn_cast<clang::UsingShadowDecl>(*fIter))
+      D = *fIter;
+
+   if (!D)
+      return (intptr_t)-1;
+
    ASTContext& C = D->getASTContext();
    if (const FieldDecl *FldD = dyn_cast<FieldDecl>(D)) {
       // The current member is a non-static data member; add a transaction as
