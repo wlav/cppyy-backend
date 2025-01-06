@@ -186,16 +186,6 @@ TString::TString(TString &&s) noexcept
 }
 
 ////////////////////////////////////////////////////////////////////////////////
-/// Copy a std::string_view in a TString.
-
-TString::TString(const std::string_view& substr)
-{
-   Ssiz_t len = substr.length();
-   char *data = Init(len, len);
-   memcpy(data, substr.data(), len);
-}
-
-////////////////////////////////////////////////////////////////////////////////
 /// Copy a TSubString in a TString.
 
 TString::TString(const TSubString& substr)
@@ -300,19 +290,6 @@ TString& TString::operator=(const std::string &s)
       return *this;
    }
    return Replace(0, Length(), s.c_str(), s.length());
-}
-
-////////////////////////////////////////////////////////////////////////////////
-/// Assign std::string s to TString.
-
-TString& TString::operator=(const std::string_view &s)
-{
-   if (s.length()==0) {
-      UnLink();
-      Zero();
-      return *this;
-   }
-   return Replace(0, Length(), s.data(), s.length());
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -2559,11 +2536,3 @@ std::string cling::printValue(const CppyyLegacy::TSubString* val) {
    return s.Data();
 }
 
-////////////////////////////////////////////////////////////////////////////////
-/// Print a TString in the cling interpreter:
-
-std::string cling::printValue(const std::string_view* val) {
-   std::string str(*val);
-   CppyyLegacy::TString s = CppyyLegacy::TString::Format("\"%s\"[%d]", str.c_str(), (int)val->length());
-   return s.Data();
-}

@@ -10,11 +10,9 @@
 
 set(Foundation_dict_headers
   ESTLType.h
-  RStringView.h
   TClassEdit.h
   ROOT/RMakeUnique.hxx
   ROOT/RSpan.hxx
-  ROOT/RStringView.hxx
   ROOT/TypeTraits.hxx
   PARENT_SCOPE
 )

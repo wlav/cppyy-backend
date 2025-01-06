@@ -63,7 +63,6 @@ namespace CppyyLegacy {
       class TNormalizedCtxt;
    }
 }
-#include "ROOT/RStringView.hxx"
 
 // TClassEdit is used to manipulate class and type names.
 //
@@ -164,21 +163,21 @@ namespace TClassEdit {
    bool        IsDefHash(const char *hashname, const char *classname);
    bool        IsInterpreterDetail(const char *type);
    bool        IsSTLBitset(const char *type);
-   CppyyLegacy::ESTLType UnderlyingIsSTLCont(std::string_view type);
-   CppyyLegacy::ESTLType IsSTLCont (std::string_view type);
+   CppyyLegacy::ESTLType UnderlyingIsSTLCont(const std::string& type);
+   CppyyLegacy::ESTLType IsSTLCont (const std::string& type);
    int         IsSTLCont (const char *type,int testAlloc);
    bool        IsStdClass(const char *type);
    bool        IsVectorBool(const char *name);
-   void        GetNormalizedName(std::string &norm_name, std::string_view name);
+   void        GetNormalizedName(std::string &norm_name, const std::string& name);
    int         GetSplit  (const char *type, std::vector<std::string> &output, int &nestedLoc, EModType mode = TClassEdit::kNone);
-   CppyyLegacy::ESTLType STLKind(std::string_view type, bool all=false);    //Kind of stl container
+   CppyyLegacy::ESTLType STLKind(const std::string& type, bool all=false);    //Kind of stl container
    int         STLArgs   (int kind);            //Min number of arguments without allocator
    std::string ResolveTypedef(const char *tname, bool resolveAll = false);
    std::string ShortType (const char *typeDesc, int mode);
    const char* GetUnqualifiedName(const char*name);
-   inline bool IsUniquePtr(std::string_view name) {return 0 == name.compare(0, 16, "std::unique_ptr<");}
-   inline bool IsStdArray(std::string_view name) {return 0 == name.compare(0, 11, "std::array<");}
-   inline std::string GetUniquePtrType(std::string_view name)
+   inline bool IsUniquePtr(const std::string& name) {return 0 == name.compare(0, 16, "std::unique_ptr<");}
+   inline bool IsStdArray(const std::string& name) {return 0 == name.compare(0, 11, "std::array<");}
+   inline std::string GetUniquePtrType(const std::string& name)
    {
       // Find the first template parameter
       std::vector<std::string> v;
@@ -239,7 +238,7 @@ namespace TClassEdit {
    };
 
    /// Split a function declaration into its different parts.
-   bool SplitFunction(std::string_view decl, FunctionSplitInfo &result);
+   bool SplitFunction(const std::string& decl, FunctionSplitInfo &result);
 }
 
 } // namespace CppyyLegacy

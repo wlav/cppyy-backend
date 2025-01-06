@@ -25,7 +25,6 @@
 
 #include "TMathBase.h"
 
-#include "ROOT/RStringView.hxx"
 #include "ROOT/TypeTraits.hxx"
 
 #include <iosfwd>
@@ -44,30 +43,11 @@ class TObjArray;
 class TVirtualMutex;
 class TBufferFile;
 
-/*TString operator+(const TString &s1, const TString &s2);
-TString operator+(const TString &s,  const char *cs);
-TString operator+(const char *cs, const TString &s);
-TString operator+(const TString &s, char c);
-TString operator+(char c, const TString &s);*/
 Bool_t  operator==(const TString &s1, const TString &s2);
 Bool_t  operator==(const TString &s1, const char *s2);
 Bool_t  operator==(const TSubString &s1, const TSubString &s2);
 Bool_t  operator==(const TSubString &s1, const TString &s2);
 Bool_t  operator==(const TSubString &s1, const char *s2);
-/*
-template<class T>
-struct is_signed_numeral : std::integral_constant<bool,
-   std::is_integral<T>::value && std::is_signed<T>::value
-> {};
-
-template<class T>
-struct is_unsigned_numeral : std::integral_constant<bool,
-   std::is_integral<T>::value && !std::is_signed<T>::value
-> {};
-
-template<class T>
-using is_float_numeral = std::is_floating_point<T>;
-*/
 
 //////////////////////////////////////////////////////////////////////////
 //                                                                      //
@@ -109,7 +89,6 @@ public:
    char          operator()(Ssiz_t i) const;     // Index with optional bounds checking
    char          operator[](Ssiz_t i) const;     // Index with bounds checking
 
-   operator std::string_view() const { return std::string_view(Data(),fExtent); }
    operator std::string() const { return std::string(Data(),fExtent); }
 
    const char   *Data() const;
@@ -273,7 +252,6 @@ public:
    TString(const std::string &s);
    TString(char c);
    TString(char c, Ssiz_t s);
-   explicit TString(const std::string_view &sub);
    TString(const TSubString &sub);
 
    virtual ~TString();
@@ -301,7 +279,6 @@ public:
    TString    &operator=(const TString &s);
    TString    &operator=(TString &&s) noexcept;
    TString    &operator=(const std::string &s);
-   TString    &operator=(const std::string_view &s);
    TString    &operator=(const TSubString &s);
    TString    &operator+=(const char *s);        // Append string
    TString    &operator+=(const TString &s);
@@ -422,7 +399,6 @@ public:
    void         ToUpper();                              // Change self to upper-case
    TObjArray   *Tokenize(const TString &delim) const;
    Bool_t       Tokenize(TString &tok, Ssiz_t &from, const char *delim = " ") const;
-   std::string_view View() const { return std::string_view(GetPointer(),Length()); }
 
    // Static member functions
    static UInt_t  Hash(const void *txt, Int_t ntxt);    // Calculates hash index from any char string.
@@ -811,19 +787,6 @@ inline Bool_t operator!=(const TString &s1, const TSubString &s2)
 inline Bool_t operator!=(const char *s1, const TSubString &s2)
 { return !(s2 == s1); }
 
-#ifndef WIN32
-// To avoid ambiguities.
-inline Bool_t operator==(const char *s1, const std::string_view &s2)
-{
-  return std::string_view(s1) == s2;
-}
-
-inline Bool_t operator==(const std::string_view &s1, const char *s2)
-{
-  return s1 == std::string_view(s2);
-}
-#endif
-
 } // namespace CppyyLegacy
 
 namespace llvm {
@@ -833,7 +796,6 @@ namespace llvm {
 namespace cling {
   std::string printValue(const CppyyLegacy::TString* val);
   std::string printValue(const CppyyLegacy::TSubString* val);
-  std::string printValue(const std::string_view* val);
 }
 
 #endif
