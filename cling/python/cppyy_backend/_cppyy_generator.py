@@ -15,6 +15,11 @@ import traceback
 
 from clang.cindex import AccessSpecifier, Config, CursorKind, Diagnostic, Index, SourceRange, TokenKind, TypeKind
 
+if sys.hexversion > 0x3030000:
+    collMapping = collections.abc.Mapping
+else:
+    collMapping = collections.Mapping
+
 
 class HelpFormatter(argparse.ArgumentDefaultsHelpFormatter, argparse.RawDescriptionHelpFormatter):
     pass
@@ -329,7 +334,7 @@ class CppyyGenerator(object):
                 #   - first as just the bare fields
                 #   - then as children of the typedef
                 #
-                if "type" in child_info and isinstance(child_info["type"], collections.Mapping) and child_info["type"]["kind"] in ("struct", "union"):
+                if "type" in child_info and isinstance(child_info["type"], collMapping) and child_info["type"]["kind"] in ("struct", "union"):
                     assert children[-1] == child_info["type"]
                     children.pop()
                 children.append(child_info)
