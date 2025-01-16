@@ -131,41 +131,8 @@ class my_clean(_clean):
         _clean.run(self)
 
 class my_install(_install):
-    def _get_install_path(self):
-        # depending on goal, copy over pre-installed tree
-        if hasattr(self, 'bdist_dir') and self.bdist_dir:
-            install_path = self.bdist_dir
-        elif "platlib" in self.install_lib:
-            # this is illogical but cppyy-cling is treated as pure and the backend
-            # needs to be co-located with it to be found; purelib and platlib are
-            # the same on many platforms, but not all (eg. not on Fedora)
-            # TODO: fix this in cppyy-cling to install in platlib, or the loader to
-            #       look into platlib, then remove this
-            install_path = self.install_purelib
-        else:
-            install_path = self.install_lib
-        return install_path
-
     def run(self):
-        # base install
-        _install.run(self)
-
-        # custom install of backend
-        log.info('Now installing cppyy_backend')
-        builddir = self.build_lib
-        if not os.path.exists(builddir):
-            raise DistutilsSetupError('Failed to find build dir!')
-
-        install_path = self._get_install_path()
-        log.info('Copying installation to: %s ...', install_path)
-        self.copy_tree(builddir, install_path)
-
-        log.info('Install finished')
-
-    def get_outputs(self):
-        outputs = _install.get_outputs(self)
-        #outputs.append(os.path.join(self._get_install_path(), 'cppyy_backend'))
-        return outputs
+        return _install.run(self)
 
 
 cmdclass = {
