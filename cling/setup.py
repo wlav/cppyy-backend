@@ -102,10 +102,10 @@ class my_cmake_build(_build):
         builddir = get_builddir()
         prefix   = get_prefix()
         srcdir   = get_srcdir()
-        if not os.path.exists(srcdir):
-            log.info('No src directory ... creating with "python create_src_directory.py"')
+        if not os.path.exists(os.path.join(srcdir, 'interpreter')):
+            log.info('No Cling source found ... downloading with "python create_src_directory.py"')
             if subprocess.call([sys.executable, 'create_src_directory.py']) != 0:
-                log.error('ERROR: the source directory "%s" does not exist' % srcdir)
+                log.error('ERROR: the Cling source directory "%s" does not exist' % os.path.join(srcdir, 'interpreter'))
                 log.error('Please run "python create_src_directory.py" first.')
                 sys.exit(1)
 
