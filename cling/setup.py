@@ -263,13 +263,13 @@ class my_install(_install):
 
         if update_cxxversion is not None:
           # for manylinux, reset the default cxxversion to 20 if no user override
-            log.info(f'updating cling-config to C++{update_cxxversion}')
+            log.info('updating cling-config to C++%s' % update_cxxversion)
             inp = os.path.join(get_prefix(), 'bin', 'root-config')
             outp = inp+'.new'
             outfile = open(outp, 'w')
             for line in open(inp).readlines():
                 if line.find('cxxversionflag=', 0, 15) == 0:
-                    line = f'cxxversionflag="-std=c++{update_cxxversion} "\n'
+                    line = 'cxxversionflag="-std=c++%s "\n' % update_cxxversion
                 elif line.find('features=', 0, 9) == 0:
                     pcxx = line.find('cxx')
                     if 0 < pcxx:
@@ -279,13 +279,13 @@ class my_install(_install):
             os.replace(outp, inp)
             os.chmod(inp, stat.S_IMODE(os.lstat(inp).st_mode) | stat.S_IXUSR | stat.S_IXGRP | stat.S_IXOTH)
 
-            log.info(f'updating allCppflags.txt to C++{update_cxxversion}')
+            log.info('updating allCppflags.txt to C++%s' % update_cxxversion)
             inp = os.path.join(get_prefix(), 'etc', 'dictpch', 'allCppflags.txt')
             outp = inp+'.new'
             outfile = open(outp, 'w')
             for line in open(inp).readlines():
                 if '-std=' == line[:5]:
-                    line = f'-std=c++{update_cxxversion}\n'
+                    line = '-std=c++%s\n' % update_cxxversion
                 outfile.write(line)
             outfile.close()
             os.replace(outp, inp)
