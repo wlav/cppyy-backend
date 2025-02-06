@@ -52,11 +52,7 @@ addr = 'https://root.cern.ch/download/'+fn
 if not os.path.exists(os.path.join(TARBALL_CACHE_DIR, fn)):
     try:
         print('retrieving', fn)
-        if sys.hexversion < 0x3000000:
-            output_fn = fn
-        else:
-            output_fn = bytes(fn, 'utf-8')
-        with contextlib.closing(urllib2.urlopen(addr, output_fn)) as resp:
+        with contextlib.closing(urllib2.urlopen(addr)) as resp:
             with open(os.path.join(TARBALL_CACHE_DIR, fn), 'wb') as out:
                 shutil.copyfileobj(resp, out)
     except urllib2.HTTPError:
