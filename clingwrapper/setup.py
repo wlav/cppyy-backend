@@ -6,11 +6,6 @@ from setuptools.command.install import install as _install
 from distutils.command.build_ext import build_ext as _build_ext
 from distutils.command.clean import clean as _clean
 from distutils.dir_util import remove_tree
-try:
-    from wheel.bdist_wheel import bdist_wheel as _bdist_wheel
-    has_wheel = True
-except ImportError:
-    has_wheel = False
 from distutils.errors import DistutilsSetupError
 
 requirements = ['cppyy-cling==6.32.8']
@@ -139,18 +134,6 @@ cmdclass = {
         'build_ext': my_build_cpplib,
         #'clean': my_clean,
         'install': my_install }
-
-if has_wheel:
-    class my_bdist_wheel(_bdist_wheel):
-        def finalize_options(self):
-         # this is a universal, but platform-specific package; a combination
-         # that wheel does not recognize, thus simply fool it
-            from distutils.util import get_platform
-            self.plat_name = get_platform()
-            self.universal = True
-            _bdist_wheel.finalize_options(self)
-            self.root_is_pure = True
-    cmdclass['bdist_wheel'] = my_bdist_wheel
 
 
 setup(
