@@ -3752,10 +3752,8 @@ void CppyyLegacy::TMetaUtils::GetNormalizedName(std::string &norm_name, const cl
    // class in the global scope. There's a fix for that to Clang, but the conda version
    // of cppyy builds with the Clang from ROOT, which doesn't have that patch. This is
    // a runaround the problem.
-   auto pos = norm_name.find('<');
-   if (pos != std::string::npos && norm_name.find("::", pos) == std::string::npos) {
-   // We have a templated type with no scoped arguments. Let's see whether it is
-   // findable by Cling
+   if (norm_name.back() == '>') {
+   // We have a templated type; check whether it's finable by Cling.
       clang::QualType qtfound = interpreter.getLookupHelper().findType(
           norm_name, cling::LookupHelper::NoDiagnostics);
       if (qtfound.isNull()) {
