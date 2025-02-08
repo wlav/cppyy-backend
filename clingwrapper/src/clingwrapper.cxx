@@ -209,7 +209,7 @@ static std::set<std::string> g_builtins =
     {"bool", "char", "signed char", "unsigned char", "int8_t", "uint8_t", "wchar_t",
      "short", "unsigned short", "int", "unsigned int", "long", "unsigned long",
      "long long", "unsigned long long",
-     "float", "double", "long double", "void"};
+     "float", "double", "long double", "void", "va_list"};
 
 // smart pointer types
 static std::set<std::string> gSmartPtrTypes =
@@ -616,24 +616,24 @@ std::string Cppyy::ResolveEnum(const std::string& enum_type)
 
 static Cppyy::TCppIndex_t ArgSimilarityScore(void *argqtp, void *reqqtp)
 {
-    // This scoring is not based on any particular rules
-        if (gInterpreter->IsSameType(argqtp, reqqtp))
-            return 0; // Best match
-        else if ((gInterpreter->IsSignedIntegerType(argqtp) && gInterpreter->IsSignedIntegerType(reqqtp)) ||
-                 (gInterpreter->IsUnsignedIntegerType(argqtp) && gInterpreter->IsUnsignedIntegerType(reqqtp)) ||
-                 (gInterpreter->IsFloatingType(argqtp) && gInterpreter->IsFloatingType(reqqtp)))
-            return 1;
-        else if ((gInterpreter->IsSignedIntegerType(argqtp) && gInterpreter->IsUnsignedIntegerType(reqqtp)) ||
-                 (gInterpreter->IsFloatingType(argqtp) && gInterpreter->IsUnsignedIntegerType(reqqtp)))
-            return 2;
-        else if ((gInterpreter->IsIntegerType(argqtp) && gInterpreter->IsIntegerType(reqqtp)))
-            return 3;
-        else if ((gInterpreter->IsIntegralType(argqtp) && gInterpreter->IsIntegralType(reqqtp)))
-            return 4;
-        else if ((gInterpreter->IsVoidPointerType(argqtp) && gInterpreter->IsPointerType(reqqtp)))
-            return 5;
-        else
-            return 10; // Penalize heavily for no possible match
+// This scoring is not based on any particular rules
+    if (gInterpreter->IsSameType(argqtp, reqqtp))
+        return 0; // Best match
+    else if ((gInterpreter->IsSignedIntegerType(argqtp) && gInterpreter->IsSignedIntegerType(reqqtp)) ||
+             (gInterpreter->IsUnsignedIntegerType(argqtp) && gInterpreter->IsUnsignedIntegerType(reqqtp)) ||
+             (gInterpreter->IsFloatingType(argqtp) && gInterpreter->IsFloatingType(reqqtp)))
+        return 1;
+    else if ((gInterpreter->IsSignedIntegerType(argqtp) && gInterpreter->IsUnsignedIntegerType(reqqtp)) ||
+             (gInterpreter->IsFloatingType(argqtp) && gInterpreter->IsUnsignedIntegerType(reqqtp)))
+        return 2;
+    else if ((gInterpreter->IsIntegerType(argqtp) && gInterpreter->IsIntegerType(reqqtp)))
+        return 3;
+    else if ((gInterpreter->IsIntegralType(argqtp) && gInterpreter->IsIntegralType(reqqtp)))
+        return 4;
+    else if ((gInterpreter->IsVoidPointerType(argqtp) && gInterpreter->IsPointerType(reqqtp)))
+        return 5;
+    else
+        return 10; // Penalize heavily for no possible match
 }
 
 Cppyy::TCppScope_t Cppyy::GetScope(const std::string& sname)
@@ -921,7 +921,8 @@ bool copy_args(Parameter* args, size_t nargs, void** vargs)
 }
 
 static inline
-void release_args(Parameter* args, size_t nargs) {
+void release_args(Parameter* args, size_t nargs)
+{
     for (size_t i = 0; i < nargs; ++i) {
         if (args[i].fTypeCode == 'X')
             free(args[i].fValue.fVoidp);
@@ -1858,8 +1859,8 @@ std::string Cppyy::GetMethodArgType(TCppMethod_t method, TCppIndex_t iarg)
         if (ft.rfind("enum ", 0) != std::string::npos) {   // special case to preserve 'enum' tag
             std::string arg_type = arg->GetTypeNormalizedName();
             return arg_type.insert(arg_type.rfind("const ", 0) == std::string::npos ? 0 : 6, "enum ");
-        } else if (ft.find("int8_t") != std::string::npos) // do not result int8_t and uint8_t typedefs
-            return ft;
+        } else if (g_builtins.find(ft) != g_builtins.end() || ft.find("int8_t") != std::string::npos)
+            return ft;       // do not resolve int8_t and uint8_t typedefs
 
         return arg->GetTypeNormalizedName();
     }
