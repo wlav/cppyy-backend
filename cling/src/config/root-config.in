@@ -203,6 +203,11 @@ linuxs390xgcc)
    auxldflags="-m64"
    auxlibs="-lm -ldl -rdynamic"
    ;;
+linuxriscv64)
+   # RISC-V 64bit Linux with gcc
+   auxcflags="${cxxversionflag} -fsigned-char"
+   auxlibs="-lm -ldl -rdynamic"
+   ;;
 freebsd)
    # FreeBSD with libc5
    auxcflags="${cxxversionflag}"
