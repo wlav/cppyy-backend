@@ -402,6 +402,25 @@ typedef uLong FAR uLongf;
 #  endif
 #endif
 
+#ifdef Z_SOLO
+#  ifdef _WIN64
+     typedef unsigned long long z_size_t;
+#  else
+     typedef unsigned long z_size_t;
+#  endif
+#else
+#  define z_longlong long long
+#  if defined(NO_SIZE_T)
+     typedef unsigned NO_SIZE_T z_size_t;
+#  elif defined(STDC)
+#    include <stddef.h>
+     typedef size_t z_size_t;
+#  else
+     typedef unsigned long z_size_t;
+#  endif
+#  undef z_longlong
+#endif
+
 #ifdef Z_U4
    typedef Z_U4 z_crc_t;
 #else
