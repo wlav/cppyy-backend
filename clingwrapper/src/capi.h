@@ -206,6 +206,8 @@ extern "C" {
     RPY_EXPORTED
     int cppyy_exists_method_template(cppyy_scope_t scope, const char* name);
     RPY_EXPORTED
+    int cppyy_is_static_template(cppyy_scope_t scope, const char* name);
+    RPY_EXPORTED
     int cppyy_method_is_template(cppyy_scope_t scope, cppyy_index_t idx);
     RPY_EXPORTED
     cppyy_method_t cppyy_get_method_template(cppyy_scope_t scope, const char* name, const char* proto);
