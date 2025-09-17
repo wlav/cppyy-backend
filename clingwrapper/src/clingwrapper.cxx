@@ -39,18 +39,17 @@
 #include "TThread.h"
 
 // Standard
-#include <assert.h>
+#include <cassert>
 #include <algorithm>     // for std::count, std::remove
 #include <climits>
 #include <stdexcept>
 #include <map>
 #include <new>
-#include <regex>
 #include <set>
 #include <sstream>
-#include <signal.h>
-#include <stdlib.h>      // for getenv
-#include <string.h>
+#include <csignal>
+#include <cstdlib>      // for getenv
+#include <cstring>
 #include <typeinfo>
 
 #if defined(__arm64__)
@@ -61,7 +60,7 @@ ARMUncaughtException guard;                                                  \
 if (setjmp(gExcJumBuf) == 0) {
 #define _CLING_CATCH_UNCAUGHT                                                \
 } else {                                                                     \
-    if (!getenv("CPPYY_UNCAUGHT_QUIET"))                                     \
+    if (!std::getenv("CPPYY_UNCAUGHT_QUIET"))                                     \
         std::cerr << "Warning: uncaught exception in JIT is rethrown; resources may leak" \
                   << " (suppress with \"CPPYY_UNCAUGHT_QUIET=1\")" << std::endl;\
     std::rethrow_exception(std::current_exception());                        \
@@ -269,14 +268,14 @@ static void inline do_trace(int sig) {
 
 class TExceptionHandlerImp : public TExceptionHandler {
 public:
-    virtual void HandleException(Int_t sig) {
+    void HandleException(Int_t sig) override {
         if (TROOT::Initialized()) {
             if (gException) {
                 gInterpreter->RewindDictionary();
                 gInterpreter->ClearFileBusy();
             }
 
-            if (!getenv("CPPYY_CRASH_QUIET"))
+            if (!std::getenv("CPPYY_CRASH_QUIET"))
                 do_trace(sig);
 
         // jump back, if catch point set
@@ -320,11 +319,11 @@ public:
         }
 
     // disable fast path if requested
-        if (getenv("CPPYY_DISABLE_FASTPATH")) gEnableFastPath = false;
+        if (std::getenv("CPPYY_DISABLE_FASTPATH")) gEnableFastPath = false;
 
     // set opt level (default to 2 if not given; Cling itself defaults to 0)
         int optLevel = 2;
-        if (getenv("CPPYY_OPT_LEVEL")) optLevel = atoi(getenv("CPPYY_OPT_LEVEL"));
+        if (std::getenv("CPPYY_OPT_LEVEL")) optLevel = atoi(std::getenv("CPPYY_OPT_LEVEL"));
         if (optLevel != 0) {
             std::ostringstream s;
             s << "#pragma cling optimize " << optLevel;
@@ -2077,7 +2076,7 @@ Cppyy::TCppMethod_t Cppyy::GetMethodTemplate(
 // enough), and finally to ignore the template arguments part of the name as this fails
 // in cling if there are default parameters.
     TFunction* func = nullptr; ClassInfo_t* cl = nullptr;
-    if (scope == (cppyy_scope_t)GLOBAL_HANDLE) {
+    if (scope == (TCppScope_t)GLOBAL_HANDLE) {
         func = gROOT->GetGlobalFunctionWithPrototype(name.c_str(), proto.c_str());
         if (func && name.back() == '>') {
         // make sure that all template parameters match (more are okay, e.g. defaults or
@@ -2105,7 +2104,7 @@ Cppyy::TCppMethod_t Cppyy::GetMethodTemplate(
         }
     }
 
-    if (!func && name.back() == '>' && (cl || scope == (cppyy_scope_t)GLOBAL_HANDLE)) {
+    if (!func && name.back() == '>' && (cl || scope == (TCppScope_t)GLOBAL_HANDLE)) {
     // try again, ignoring proto in case full name is complete template
         auto declid = gInterpreter->GetFunction(cl, name.c_str());
         if (declid) {
@@ -2176,7 +2175,7 @@ Cppyy::TCppIndex_t Cppyy::GetGlobalOperator(
     const std::string& lcname = type_remap(lcname1, rcname);
 
     std::string proto = lcname + "&" + (rc.empty() ? rc : (", " + rcname + "&"));
-    if (scope == (cppyy_scope_t)GLOBAL_HANDLE) {
+    if (scope == (TCppScope_t)GLOBAL_HANDLE) {
         TFunction* func = gROOT->GetGlobalFunctionWithPrototype(opname.c_str(), proto.c_str());
         if (func) return (TCppIndex_t)new_CallWrapper(func);
         proto = lcname + (rc.empty() ? rc : (", " + rcname));
