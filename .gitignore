@@ -2,6 +2,7 @@ releases/
 root-*/
 cling/src/interpreter
 builddir/
+clingwrapper/build
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
